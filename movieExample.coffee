@@ -6,7 +6,7 @@
 # Q: How to "package" things like the loading screen together?
 
 B.setRootAction
-  doInSequence : 
+  doInSequence : [
     "init page": ui.html.show 
       location: "body"
       html: B.asset("baseTemplate") 
