@@ -25,11 +25,11 @@
 
         <sequence loop="true">
           <!-- Show Intro -->
-          <ui_html_show location="main" html="asset:introScreen" />
+          <ui_html_show html="asset:introScreen" />
           <!-- Show scene A -->
-          <ui_html_show location="main" html="asset:introScreen" />
+          <ui_html_show html="asset:introScreen" />
           <!-- Show credits -->
-          <ui_html_show location="main" html="asset:credits" />
+          <ui_html_show html="asset:credits" />
         </sequence>
       </if>
     </define>
