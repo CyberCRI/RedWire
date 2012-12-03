@@ -5,8 +5,8 @@
 
 # Q: How to "package" things like the loading screen together?
 
-B.declareActions [
-  B.doInSequence [
+B.setRootAction
+  doInSequence : 
     "init page": ui.html.show 
       location: "body"
       html: B.asset("baseTemplate") 
@@ -40,7 +40,7 @@ B.declareActions [
           ]
       ]
   ]
-]
+
 
 B.declareModels
   status: new B.Object
@@ -54,17 +54,17 @@ B.declareConfig
     introScreen "in"
 
 B.declareAssets
-  baseTemplate: "template.html"
-  loadingScreen: "loading.html"
+  baseTemplate: 
+    type: B.String
+    url: "template.html"
+  loadingScreen: "loading.html" # type auto-detection
   pauseScreen: "pause.html"
   introScreen: "intro.html"
   creditsScreen: "credits.html"
 
 
 # allows action to be changed later
-# Q: how avoid duplication of "name", while still allowing library and modules to work?
-ui.html.show = B.makeAction 
-  name: "ui.html.show" 
+B.defineAction "ui.html.show", 
   doc: "Shows HTML in the given location"
   parameterDefs:
     html: 
@@ -73,7 +73,7 @@ ui.html.show = B.makeAction
     location: 
       type: B.String 
       default: "body"
-      constant: true
+      constant: true # means that changes to this parameter changes will be ignored
 
   action: (params) ->
     init: -> $(params.location).html(params.html.get())
@@ -81,4 +81,23 @@ ui.html.show = B.makeAction
     update: ->
 
 
+B.defineAction "ui.html.jade", 
+  doc: "Compiles a template using the Jade template engine"
+  parameterDefs:
+    template: 
+      type: B.String
+      constant: true
+    output: B.String # shorthand syntax
+    locals: B.Object({}) # shorthand syntax
+
+  action: (temp, params) ->
+    init: -> 
+      jade = require("jade")
+      temp.compiledTemplate = jade.compile(params.template.value)
+    destroy: ->
+    update: -> 
+      # in case params don't change, do nothing
+      if not params.locals.value.hasChanged then return 
+
+      params.output.value = temp.compiledTemplate(params.locals.value)
 
