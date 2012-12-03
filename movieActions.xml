@@ -16,22 +16,22 @@
 
         <!-- Load assets -->
         <loadAssets toLoad="ALL" loadingPercent="model:status.loading">
-
-        <!-- Show game -->
-        <if condition="model:status.paused">
-          <!-- Show pause screen -->
-          <ui_html_show html="asset:pauseScreen"/>
-
-          <sequence loop="true">
-            <!-- Show Intro -->
-            <ui_html_show location="main" html="asset:introScreen" />
-            <!-- Show scene A -->
-            <ui_html_show location="main" html="asset:introScreen" />
-            <!-- Show credits -->
-            <ui_html_show location="main" html="asset:credits" />
-          </sequence>
-        </if>
       </parallel>
+
+      <!-- Show game -->
+      <if condition="model:status.paused">
+        <!-- Show pause screen -->
+        <ui_html_show html="asset:pauseScreen"/>
+
+        <sequence loop="true">
+          <!-- Show Intro -->
+          <ui_html_show location="main" html="asset:introScreen" />
+          <!-- Show scene A -->
+          <ui_html_show location="main" html="asset:introScreen" />
+          <!-- Show credits -->
+          <ui_html_show location="main" html="asset:credits" />
+        </sequence>
+      </if>
     </define>
   </sequence>
 </root>
