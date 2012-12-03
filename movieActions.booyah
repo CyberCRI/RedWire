@@ -1,0 +1,35 @@
+sequence:
+	# Init page
+	ui.html.show location = "body", html = assets:baseTemplate
+
+	define location = true:
+		# Show loading screen
+		ui.html.show html=model:loadingScreen
+
+		parallel:
+			# Format loading screen
+			ui.html.show 
+			(
+				html = assets:loadingScreen
+				output = models:loadingScren
+				locals = 
+					loadingPercent = model:status.loading
+			)
+
+		# Load assets
+		loadAssets toLoad="*" loadingPercent=model:status.loading
+
+		# Show game
+		when model:status.paused:
+			ui.html.show html="asset:pauseScreen
+		else:
+			sequence (loop = true):
+				# Show intro
+				ui.html.show html=asset:introScreen
+				# Show scene a
+				ui.html.show html=asset:sceneA
+				# Show credits
+				ui.html.show html=asset:credits
+
+
+
