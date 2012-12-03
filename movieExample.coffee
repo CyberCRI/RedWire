@@ -34,8 +34,8 @@ B.setRootAction
             "show intro": ui.html.show 
               location: "main"
               html: B.asset("introScreen")
-            "show scene a": ui.html.show B.asset("introScreen")
-            "show scene b": ui.html.show B.asset("introScreen")
+            "show scene a": ui.html.show B.asset("sceneA")
+            "show scene b": ui.html.show B.asset("sceneB")
             "show credits": ui.html.show B.asset("creditsScreen")
           ]
       ]
@@ -60,6 +60,8 @@ B.declareAssets
   loadingScreen: "loading.html" # type auto-detection
   pauseScreen: "pause.html"
   introScreen: "intro.html"
+  sceneA: "sceneA.html"
+  sceneB: "sceneB.html"
   creditsScreen: "credits.html"
 
 
