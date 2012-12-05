@@ -5,42 +5,7 @@
 
 # Q: How to "package" things like the loading screen together?
 
-B.setRootAction
-  doInSequence : [
-    "init page": ui.html.show 
-      location: "body"
-      html: B.asset("baseTemplate") 
-
-    # Q: did our "define" lose the doInSequence action above?
-    define location: "main", [
-      "format loading screen": ui.html.jade 
-        template: B.asset("loadingScreen")
-        output: B.model("loadingScreen")
-        locals: 
-          loadingPercent: B.model("status.loading")
-
-      "show loading screen": ui.html.show { html: B.model("loadingScreen") } 
-      "load assets": B.loadAssets
-        toLoad: "ALL"
-        loadingPercent: B.model("status.loading")
-
-      "show game": B.if 
-        condition: B.model("status.paused") # or could be a function
-        then: 
-          "show pause screen": ui.html.show
-            html: B.asset("pauseScreen") 
-        else: 
-          doInSequence { loop: true }, [
-            "show intro": ui.html.show 
-              location: "main"
-              html: B.asset("introScreen")
-            "show scene a": ui.html.show B.asset("sceneA")
-            "show scene b": ui.html.show B.asset("sceneB")
-            "show credits": ui.html.show B.asset("creditsScreen")
-          ]
-      ]
-  ]
-
+B.setRootAction "movieActions.booyah"
 
 B.declareModels
   status: new B.Object
@@ -83,6 +48,22 @@ B.defineAction "ui.html.show",
     update: ->
 
 
+###
+  context =
+    params:
+      param1:
+        value
+        hasChanged
+      ...
+    children:
+      named: {}
+        state = ["running", "suspended", "stopped"]
+        signal = *
+      list: []
+    temp: {}
+###
+
+
 B.defineAction "ui.html.jade", 
   doc: "Compiles a template using the Jade template engine"
   parameterDefs:
@@ -92,14 +73,49 @@ B.defineAction "ui.html.jade",
     output: B.String # shorthand syntax
     locals: B.Object({}) # shorthand syntax
 
-  action: (temp, params) ->
+  action: (params, children, temp) ->
     init: -> 
       jade = require("jade")
-      temp.compiledTemplate = jade.compile(params.template.value)
+      @compiledTemplate = jade.compile(params.template.value)
     destroy: ->
     update: -> 
       # in case params don't change, do nothing
       if not params.locals.value.hasChanged then return 
 
       params.output.value = temp.compiledTemplate(params.locals.value)
+
+
+B.defineAction "watch",
+  doc: "Activate a branch based on a condition"
+  parameterDefs:
+    condition: 
+      type: B.Any
+  # TODO
+
+
+B.defineAction "sequence",
+  doc: "Do one action after the other"
+  parameterDefs:
+    loop: B.Bool(false)
+    runningChild: B.Int(0)
+  action: 
+    start: (context) -> # TODO: init children?
+    stop: (context) -> # TODO: stop children?
+    update: (context) -> 
+      if context.children.list[context.params.runningChild.value].signal == B.Signal.DONE
+        # TODO: is this neccessary?
+        context.children.list[context.params.runningChild.value].state = B.ActionState.STOPPED
+
+        context.params.runningChild.value = (context.params.runningChild.value + 1) % context.children.list.length 
+
+        context.children.list[context.params.runningChild.value].state = B.ActionState.RUNNING
+
+    suspend: (context, suspended) -> # propogate to children?
+
+
+# TODO: do "define" action
+
+
+# TODO: is "parallel" action necessary
+
 

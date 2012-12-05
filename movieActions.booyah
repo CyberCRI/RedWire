@@ -1,35 +1,38 @@
-[ # means sequence
-	# Init page
-	ui.html.show location = "body", html = assets:baseTemplate
+root = 
+	sequence:
+		# Init page
+		- ui.html.show location = "body", html = assets:baseTemplate
 
-	define location = true:
-		# Show loading screen
-		ui.html.show html=model:loadingScreen
+		- define location = true:
+			sequence:
+				# Show loading screen
+				- ui.html.show html=model:loadingScreen
 
-		{ # means parallel
-			# Format loading screen
-			ui.html.show 
-			(
-				html = assets:loadingScreen
-				output = models:loadingScren
-				locals = 
-					loadingPercent = model:status.loading
-			)
-		}
+				- loadGame
+
+				# Show game
+				- watch model:status.paused:
+					true:
+						ui.html.show html=asset:pauseScreen
+					false:
+						sequence (loop = true):
+							# Show intro
+							ui.html.show html=asset:introScreen
+							# Show scene a
+							ui.html.show html=asset:sceneA
+							# Show credits
+							ui.html.show html=asset:credits
+
+loadGame = 		
+	parallel:
+		# Format loading screen
+		- ui.html.show 
+		(
+			html = assets:loadingScreen
+			output = models:loadingScren
+			locals = 
+				loadingPercent = model:status.loading
+		)
 
 		# Load assets
-		loadAssets toLoad="*" loadingPercent=model:status.loading
-
-		# Show game
-		watch model:status.paused:
-			true:
-				ui.html.show html="asset:pauseScreen
-			false:
-				sequence (loop = true):
-					# Show intro
-					ui.html.show html=asset:introScreen
-					# Show scene a
-					ui.html.show html=asset:sceneA
-					# Show credits
-					ui.html.show html=asset:credits
-]
+		- loadAssets toLoad="*" loadingPercent=model:status.loading
