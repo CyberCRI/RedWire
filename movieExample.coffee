@@ -42,10 +42,7 @@ B.defineAction "ui.html.show",
       default: "body"
       constant: true # means that changes to this parameter changes will be ignored
 
-  action: (params) ->
-    init: -> $(params.location).html(params.html.get())
-    destroy: -> $(params.location).html("")
-    update: ->
+  onModelChange: (params) -> $(params.location).html(params.html.get())
 
 
 ###
@@ -73,17 +70,25 @@ B.defineAction "ui.html.jade",
       constant: true
     output: B.String # shorthand syntax
     locals: B.Object({}) # shorthand syntax
+  start: (temp) -> 
+    jade = require("jade")
+    temp.compiledTemplate = jade.compile(params.template.value)
+  onModelChange: (params) -> 
+    params.output.value = temp.compiledTemplate(params.locals.value)
+  unitTests: 
+    "constant template": 
+        inputParams:
+          template: "h1 Hello"
+        outputParams:
+          output: "<h1>Hello</h1>"
+    "locals in template": 
+        inputParams:
+          template: "h1= Hello \#{name}"
+          locals:
+            name: "Jesse"
+        outputParams:
+          output: "<h1>Hello Jesse</h1>"
 
-  action: (params, children, temp) ->
-    init: -> 
-      jade = require("jade")
-      @compiledTemplate = jade.compile(params.template.value)
-    destroy: ->
-    update: -> 
-      # in case params don't change, do nothing
-      if not params.locals.value.hasChanged then return 
-
-      params.output.value = temp.compiledTemplate(params.locals.value)
 
 
 B.defineAction "watch",
@@ -94,40 +99,75 @@ B.defineAction "watch",
   start: (namedChildren) -> 
     # stop all children at start
     for name, child of namedChildren then child.state = B.ActionState.STOPPED
-  update: (params, namedChildren) -> 
-    if not params.condition.hasChanged then return 
-
-    # TODO: assert only one action is running
-
+  onModelChange: (params, namedChildren) -> 
     # TODO: suspend rather than stop running child? 
     namedChildren[params.condition.oldValue].state = B.ActionState.STOPPED
 
     if params.condition.value of namedChildren
-      namedChildren[params.condition.value] = B.ActionState.RUNNING
+      namedChildren[params.condition.value].state = B.ActionState.RUNNING
+      return "Activated named child"
     else if B.Signals.OTHERWISE of namedChildren
-      namedChildren[params.condition.value] = B.ActionState.RUNNING
-    else
-      throw new B.Abort("value of condition '#{params.condition.value}' not found")
+      namedChildren[params.condition.value].state = B.ActionState.RUNNING
+      return "Activated the OTHERWISE case"
+    else 
+      return "value of condition '#{params.condition.value}' not found"
+  contract: 
+    "only one action is running": (namedChildren) -> 
+      count = 0
+      for name, child of namedChildren 
+        if child.name.state == B.ActionState.RUNNING then count++
+      return count <= 1
+  unitTests:
+    "the right action is activated":
+      input:
+        params:
+          condition: "yes"
+        namedChildren: 
+          "yes": 
+            state: B.ActionState.STOPPED
+          "no": 
+            state: B.ActionState.STOPPED
+      output:
+        namedChildren:
+          "yes": 
+            state: B.ActionState.RUNNING
+          "no": 
+            state: B.ActionState.STOPPED
+    "the otherwise action is activated":
+      input:
+        params:
+          condition: "maybe"
+        namedChildren: 
+          "yes": 
+            state: B.ActionState.STOPPED
+          "no": 
+            state: B.ActionState.STOPPED
+          "B.Signals.OTHERWISE": 
+            state: B.ActionState.STOPPED
+      output:
+        namedChildren:
+          "yes": 
+            state: B.ActionState.STOPPED
+          "no": 
+            state: B.ActionState.STOPPED
+          "B.Signals.OTHERWISE": 
+            state: B.ActionState.RUNNING
 
-
-
-    # TODO: assert only one action is running
 
 B.defineAction "sequence",
   doc: "Do one action after the other"
   parameterDefs:
     loop: B.Bool(false)
     runningChild: B.Int(0)
-  action: 
-    update: (context) -> 
-      if context.children.list[context.params.runningChild.value].signal == B.Signal.DONE
-        # No need to stop done child
-        context.params.runningChild.value = (context.params.runningChild.value + 1) % context.children.list.length 
-        context.children.list[context.params.runningChild.value].state = B.ActionState.RUNNING
+  update: (context) -> 
+    if context.children.list[context.params.runningChild.value].signal == B.Signal.DONE
+      # No need to stop done child
+      context.params.runningChild.value = (context.params.runningChild.value + 1) % context.children.list.length 
+      context.children.list[context.params.runningChild.value].state = B.ActionState.RUNNING
 
 
+B.defineTestCase "The sequence action activates the right case"
 
-# TODO: do "define" action
 
 
 
