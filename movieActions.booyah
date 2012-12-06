@@ -3,36 +3,35 @@ root =
 		# Init page
 		- ui.html.show location = "body", html = assets:baseTemplate
 
-		- define location = true:
-			sequence:
-				# Show loading screen
-				- ui.html.show html=model:loadingScreen
+		- sequence location = "main":
+			# Show loading screen
+			- ui.html.show html=model:loadingScreen
 
-				- loadGame
+			- loadGame
 
-				# Show game
-				- watch model:status.paused:
-					true:
-						ui.html.show html=asset:pauseScreen
-					false:
-						sequence (loop = true):
-							# Show intro
-							ui.html.show html=asset:introScreen
-							# Show scene a
-							ui.html.show html=asset:sceneA
-							# Show credits
-							ui.html.show html=asset:credits
+			# Show game
+			- watch model:status.paused:
+				true:
+					ui.html.show html=asset:pauseScreen
+				false:
+					sequence (loop = true):
+						# Show intro
+						ui.html.show html=asset:introScreen
+						# Show scene a
+						ui.html.show html=asset:sceneA
+						# Show credits
+						ui.html.show html=asset:credits
 
+# This is composed action  
 loadGame = 		
-	parallel:
-		# Format loading screen
-		- ui.html.show 
-		(
-			html = assets:loadingScreen
-			output = models:loadingScren
-			locals = 
-				loadingPercent = model:status.loading
-		)
+	# Format loading screen
+	- ui.html.show 
+	(
+		html = assets:loadingScreen
+		output = models:loadingScreen
+		locals = 
+			loadingPercent = model:status.loading
+	)
 
-		# Load assets
-		- loadAssets toLoad="*" loadingPercent=model:status.loading
+	# Load assets
+	- loadAssets toLoad="*" loadingPercent=model:status.loading

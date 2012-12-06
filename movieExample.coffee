@@ -54,6 +54,7 @@ B.defineAction "ui.html.show",
       param1:
         value
         hasChanged
+        oldValue (if hasChanged)
       ...
     children:
       named: {}
@@ -90,8 +91,27 @@ B.defineAction "watch",
   parameterDefs:
     condition: 
       type: B.Any
-  # TODO
+  start: (namedChildren) -> 
+    # stop all children at start
+    for name, child of namedChildren then child.state = B.ActionState.STOPPED
+  update: (params, namedChildren) -> 
+    if not params.condition.hasChanged then return 
 
+    # TODO: assert only one action is running
+
+    # TODO: suspend rather than stop running child? 
+    namedChildren[params.condition.oldValue].state = B.ActionState.STOPPED
+
+    if params.condition.value of namedChildren
+      namedChildren[params.condition.value] = B.ActionState.RUNNING
+    else if B.Signals.OTHERWISE of namedChildren
+      namedChildren[params.condition.value] = B.ActionState.RUNNING
+    else
+      throw new B.Abort("value of condition '#{params.condition.value}' not found")
+
+
+
+    # TODO: assert only one action is running
 
 B.defineAction "sequence",
   doc: "Do one action after the other"
@@ -99,23 +119,16 @@ B.defineAction "sequence",
     loop: B.Bool(false)
     runningChild: B.Int(0)
   action: 
-    start: (context) -> # TODO: init children?
-    stop: (context) -> # TODO: stop children?
     update: (context) -> 
       if context.children.list[context.params.runningChild.value].signal == B.Signal.DONE
-        # TODO: is this neccessary?
-        context.children.list[context.params.runningChild.value].state = B.ActionState.STOPPED
-
+        # No need to stop done child
         context.params.runningChild.value = (context.params.runningChild.value + 1) % context.children.list.length 
-
         context.children.list[context.params.runningChild.value].state = B.ActionState.RUNNING
 
-    suspend: (context, suspended) -> # propogate to children?
 
 
 # TODO: do "define" action
 
 
-# TODO: is "parallel" action necessary
 
 
