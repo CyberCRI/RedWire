@@ -10,14 +10,8 @@ TODO
   - Multiplayer
   - Logging
 
-- Sending signals
-  - error: exceptions
-  - done: return special value?
-  - custom signals: ?
-
 - Tests
-  - Unit tests (actions by themselves)
-  - Functional/smoke tests ()
+  - Functional/smoke tests (requires setup)
 
 - Streams
   - Canvas
@@ -25,6 +19,11 @@ TODO
   - Network
   - Time
 
+- Restart sequence, destroy residuals, ...
+
+- Level Design
+  - view and controller actions that manipulate serializable data?
+  - editor actions activated in "design" mode?
 
 Questions
 =========
@@ -66,6 +65,7 @@ Findings
   - At stop, the subtree is stopped
 - Actions can log their reasoning
   - The return value is logged by default
+- Contracts (invariants) can be written to be called before and after each update call
 - Update can be split into different steps:
   - contract
   - onModelChange

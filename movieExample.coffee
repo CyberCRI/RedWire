@@ -53,11 +53,7 @@ B.defineAction "ui.html.show",
         hasChanged
         oldValue (if hasChanged)
       ...
-    children:
-      named: {}
-        state = ["running", "suspended", "stopped"]
-        signal = *
-      list: []
+    childActivation: {}
     temp: {}
 ###
 
@@ -96,25 +92,24 @@ B.defineAction "watch",
   parameterDefs:
     condition: 
       type: B.Any
-  start: (namedChildren) -> 
+  start: (childActivation) -> 
     # stop all children at start
-    for name, child of namedChildren then child.state = B.ActionState.STOPPED
-  onModelChange: (params, namedChildren) -> 
-    # TODO: suspend rather than stop running child? 
-    namedChildren[params.condition.oldValue].state = B.ActionState.STOPPED
+    for name of childActivation then childActivation[name] = false
+  onModelChange: (params, childActivation) -> 
+    childActivation[params.condition.oldValue] = false
 
-    if params.condition.value of namedChildren
-      namedChildren[params.condition.value].state = B.ActionState.RUNNING
-      return "Activated named child"
-    else if B.Signals.OTHERWISE of namedChildren
-      namedChildren[params.condition.value].state = B.ActionState.RUNNING
-      return "Activated the OTHERWISE case"
+    if params.condition.value of childActivation
+      childActivation[params.condition.value] = true
+      return B.logInfo "Activated named child"
+    else if "otherwise" of childActivation
+      childActivation[params.condition.value].state = B.ActionState.RUNNING
+      return B.logInfo "Activated the OTHERWISE case"
     else 
-      return "value of condition '#{params.condition.value}' not found"
+      return B.logWarning "value of condition '#{params.condition.value}' not found"
   contract: 
-    "only one action is running": (namedChildren) -> 
+    "only one action is running": (childActivation) -> 
       count = 0
-      for name, child of namedChildren 
+      for name, child of childActivation 
         if child.name.state == B.ActionState.RUNNING then count++
       return count <= 1
   unitTests:
@@ -122,48 +117,49 @@ B.defineAction "watch",
       input:
         params:
           condition: "yes"
-        namedChildren: 
-          "yes": 
-            state: B.ActionState.STOPPED
-          "no": 
-            state: B.ActionState.STOPPED
+        childActivation: 
+          "yes": false
+          "no": false
       output:
-        namedChildren:
-          "yes": 
-            state: B.ActionState.RUNNING
-          "no": 
-            state: B.ActionState.STOPPED
+        childActivation: 
+          "yes": true
+          "no": false
     "the otherwise action is activated":
       input:
         params:
           condition: "maybe"
-        namedChildren: 
-          "yes": 
-            state: B.ActionState.STOPPED
-          "no": 
-            state: B.ActionState.STOPPED
-          "B.Signals.OTHERWISE": 
-            state: B.ActionState.STOPPED
+        childActivation: 
+          "yes": false
+          "no": false
+          "otherwise": false
       output:
-        namedChildren:
-          "yes": 
-            state: B.ActionState.STOPPED
-          "no": 
-            state: B.ActionState.STOPPED
-          "B.Signals.OTHERWISE": 
-            state: B.ActionState.RUNNING
+        childActivation:
+          "yes": false
+          "no": false
+          "otherwise": true
 
 
 B.defineAction "sequence",
   doc: "Do one action after the other"
   parameterDefs:
     loop: B.Bool(false)
-    runningChild: B.Int(0)
-  update: (context) -> 
-    if context.children.list[context.params.runningChild.value].signal == B.Signal.DONE
-      # No need to stop done child
-      context.params.runningChild.value = (context.params.runningChild.value + 1) % context.children.list.length 
-      context.children.list[context.params.runningChild.value].state = B.ActionState.RUNNING
+    runningChild: B.String()
+  start: (childActivation) -> 
+    # stop all children at start
+    for name of childActivation then childActivation[name] = false
+  onChildActivationChange: (params, childActivation) -> 
+    keys = params.runningChild.value.keys[0]
+    if params.runningChild.value == null
+      params.runningChild.value = keys[0]
+    else
+      index = keys.indexOf(params.runningChild.value) + 1
+      if params.loop.value
+        index = index % keys.length
+      else
+        if index >= keys.length then return B.Action.DONE
+      params.runningChild.value = keys[index]
+
+    childActivation[params.runningChild.value].state = true
 
 
 B.defineTestCase "The sequence action activates the right case"
