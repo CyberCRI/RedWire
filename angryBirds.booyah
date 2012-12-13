@@ -1,0 +1,24 @@
+root = 
+  inSequence
+    # Load assets
+    - duplicate
+      - showHtml template=config:loadingTemplate, parent="#body"
+      - inParallel
+        - loadAssets assets=config:assets, percentDone=model:loadingPercent
+        - updateHtml template=config:loadingTemplate, percentDone=model:loadingPercent
+
+    # Play game
+    - when condition=model:showing
+      "splash": runSplashScreen
+      "select": runLevelSelection
+      "level": runLevel
+
+
+runSplashScreen=
+  inParallel:
+    animateSprite spriteSheet=asset:splash, canvas="#canvas"
+    listenToButt
+
+
+
+

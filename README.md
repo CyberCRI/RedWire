@@ -5,25 +5,45 @@ Bugs
 TODO
 ====
 
+- Asset storage
+  - Temporary storage
+  - Binary/object format
+  - Tree layout
+
+- Replace "onchanged" with array of conditions for update?
+
+- Streams (Sevices)
+  - Communicate through models
+  - Can gather events outside of the event loop
+  - An action can be wired to different models (e.g. fading music player vs. immediate sound clip player)
+  - All communication logs which action did it
+  - Examples
+    - Canvas
+    - Sound
+    - Network
+    - SVG
+    - HTML events
+  - Using the HTTP service may be done by creating subactions
+  - Rephrase asset loading as service?
+
 - Examples
   - Angry birds
   - Multiplayer
   - Logging
 
+- Errors
+
 - Tests
   - Functional/smoke tests (requires setup)
-
-- Streams
-  - Canvas
-  - Sound
-  - Network
-  - Time
 
 - Restart sequence, destroy residuals, ...
 
 - Level Design
   - view and controller actions that manipulate serializable data?
   - editor actions activated in "design" mode?
+
+- Creating and destroying sub-actions
+
 
 Questions
 =========
@@ -48,7 +68,10 @@ Questions
   - This would be better done with associating resources (e.g. HTML elemnents) with owning actions
 - How to include this into a full app?
 - Need syntax sugar to only run "update" on changes? 
-
+- Classify in/out status of parameters?
+- Type conversions - explicit, implicit, or forbidden?
+- Is there not the need to parameterize an action tree by other actions (template method pattern)?
+  - If no, good!
 
 Findings
 ========

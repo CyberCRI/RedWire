@@ -162,6 +162,28 @@ B.defineAction "sequence",
     childActivation[params.runningChild.value].state = true
 
 
+B.defineService "play",
+  doc: "Plays an MP3"
+  parameterDefs:
+    loop: B.Bool(false)
+    volume: B.Float({range: [0, 1]})
+    pan: B.Float({range: [-1, 1]})
+    sounds: B.Queue(B.String())
+    assetMap: B.Object()
+  updateFilter: ["model"]
+  update: (params) ->
+    for sound in sounds:
+      a = new Audio(params.assetMap.value[sound])
+      # TODO: look into how the asset storing might work in HTML5 for sounds, audio, etc.
+      # also look into local storage
+      a.play()
+    sounds.empty() 
+  # or ...
+  soundsIn: (sound, params) ->
+    a = Audio(params.assetMap.value[sound])
+    a.play()
+
+
 B.defineTestCase "The sequence action activates the right case"
 
 
