@@ -162,26 +162,84 @@ B.defineAction "sequence",
     childActivation[params.runningChild.value].state = true
 
 
-B.defineService "play",
-  doc: "Plays an MP3"
+B.declareDataType "audio.PlayCommand",
+  volume: B.Float({range: [0, 1], default: 1})
+  pan: B.Float({range: [-1, 1], default: 0})
+  assetPath: B.String()
+
+
+B.defineAction "audio.playSound",
+  doc: "Plays an MP3 clip once"
   parameterDefs:
-    loop: B.Bool(false)
-    volume: B.Float({range: [0, 1]})
-    pan: B.Float({range: [-1, 1]})
-    sounds: B.Queue(B.String())
-    assetMap: B.Object()
+    sounds: B.Queue(audio.PlayCommand)
   updateFilter: ["model"]
-  update: (params) ->
-    for sound in sounds:
-      a = new Audio(params.assetMap.value[sound])
-      # TODO: look into how the asset storing might work in HTML5 for sounds, audio, etc.
-      # also look into local storage
-      a.play()
+  services: ["audio.sound"]
+  update: (params, services) ->
+    for sound in sounds.value:
+      services["audio.sound"].play(sound.assetPath)
     sounds.empty() 
-  # or ...
-  soundsIn: (sound, params) ->
-    a = Audio(params.assetMap.value[sound])
-    a.play()
+
+
+B.defineAction "audio.playMusic",
+  doc: "Plays a single music track"
+  parameterDefs:
+    music: B.String()
+    fadeTime: 
+      doc: "in milliseconds"
+      type: B.Int(1000)
+    fading: B.Enum(["in", "out", "none"])("none") # or could be done by a "delareEnum" globally
+    startFadeTime: B.Int()
+    gameTime: B.Int()
+  services: ["audio.sound"]
+  start: (locals) -> 
+    locals.currentClip = null
+    locals.fading = "none"
+  update: (params, services, assets, local) ->
+    if params.music.hasChanged then params.fading = "out"
+
+    if locals.fading == "in":
+      volume = (params.gameTime.value - params.lastFadeTime.value) / params.fadeTime.value
+
+
+    if locals.currentClip:
+      # fade out
+
+      services["audio.sound"].stop
+      stop current music
+      when DONE
+      play new music
+
+    for sound in sounds.value:
+      services["audio.sound"].play(sound.assetPath)
+    sounds.empty() 
+
+
+B.defineService "audio.sound",
+  doc: "Plays an MP3 via HTML5"
+  service:
+    start: ->
+      @sounds = {}
+    end: ->
+      @sounds = {}
+    factory: (action) -> 
+      play: (assetPath) ->
+        sound = assetMap[assetPath]
+        runningSounds[assetPath] = sound
+        sound.play()
+      stop: (assetPath, callback) ->
+        if not assetPath of runningSounds then callback("No sound detected")
+
+        runningSounds[assetPath].pause()
+        callback(null)
+    gui: -> # TODO: make GUI component for sounds
+
+
+B.defineService "jquery",
+  doc: "Does everything"
+  # RequireJS form
+  service ["jquery"], ($) -> 
+    factory: (action) -> $
+
 
 
 B.defineTestCase "The sequence action activates the right case"

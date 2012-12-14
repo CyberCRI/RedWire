@@ -13,7 +13,10 @@ TODO
 - Replace "onchanged" with array of conditions for update?
 
 - Streams (Sevices)
-  - Communicate through models
+  - Common use-case is wrapping existing frameworks
+  - Can be used directly, without communicating through the model
+  - Callbacks should wait until action is updated (using locals?)
+
   - Can gather events outside of the event loop
   - An action can be wired to different models (e.g. fading music player vs. immediate sound clip player)
   - All communication logs which action did it
@@ -72,6 +75,12 @@ Questions
 - Type conversions - explicit, implicit, or forbidden?
 - Is there not the need to parameterize an action tree by other actions (template method pattern)?
   - If no, good!
+- How should assets be accessed by actions and services?
+  - As a shared map?
+  - As parameters (eventually typed)?
+  - As a tree?
+- Would require.js bindings on actions be useful for internal libraries?
+
 
 Findings
 ========
@@ -94,3 +103,6 @@ Findings
   - onModelChange
   - contract
 - Unit tests can be phrased simply in terms of input -> output (at least for params)
+- Services can be used to capture/filter I/O 
+  - Otherwise they are not that useful!
+- Require.JS bindings are nice for extenal libraries 

@@ -16,8 +16,9 @@ root =
 
 runSplashScreen=
   inParallel:
-    animateSprite spriteSheet=asset:splash, canvas="#canvas"
-    listenToButt
+    - canvas.animateSprite spriteSheet=asset:splash, canvas="canvas"
+    - canvas.listen canvas="canvas"
+    
 
 
 
