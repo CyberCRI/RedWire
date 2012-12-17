@@ -234,6 +234,38 @@ B.defineService "audio.sound",
     gui: -> # TODO: make GUI component for sounds
 
 
+B.defineAction "html.handleButton",
+  doc: "" # TODO
+  ports:
+    selector: B.String()
+    status: B.Enum(["disabled", "enabled", "pressed", "hover"])
+  requires: [{ "jquery" : "$" }]
+  start: ->
+  stop: ->
+    if oldValue("selector") 
+      $(oldValue("selector")).off("click mouseover mouseout", handler("onMouseEvent"))
+  update: (values) ->
+    if hasChanged("selector")
+      $(oldValue("selector")).on("click mouseover mouseout", handler("onMouseEvent"))
+
+    if hasChanged("status")
+      switch values.status
+        when "disabled" then $(values.selector)).attr("disabled", "disabled")
+        when "enabled" then $(values.selector)).removeAttr("disabled")
+    
+    if locals.status
+      values.status = locals.status
+      delete locals.status
+  handlers:
+    onMouseEvent: (event) ->
+      switch event.type
+        when "click" then locals.status = "pressed"
+        when "mouseover" then locals.status = "hover"
+        when "mouseout" then locals.status = "enabled"
+
+
+
+
 B.defineService "jquery",
   doc: "Does everything"
   # RequireJS form
