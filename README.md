@@ -16,8 +16,6 @@ TODO
   - Binary/object format
   - Tree layout
 
-- Replace "onchanged" with array of conditions for update?
-
 - Streams (Sevices)
   - Common use-case is wrapping existing frameworks
   - Can be used directly, without communicating through the model
@@ -114,5 +112,14 @@ Findings
   - Otherwise they are not that useful!
   - Ideal service is a perfect proxy (not yet available)
 - Require.JS bindings are nice for extenal libraries 
-- Actions that receive input should use handlers, through the handlers() indirection function, storing values in locals
-
+- Event handling
+  - Actions that receive input can use handlers, through the handlers() indirection function, storing values in locals
+  - Default handlers through signalEvent() that pushes an event into the end of a standard array, like locals.events
+- Timing
+  - Need global "time" info that refers to the game time
+  - Need timeChanged() parameters
+- Data types
+  - Enum data type is useful
+  - Custom data types are also useful (and converters could be provided later)
+  - Should have these options: range, allowNull, default 
+  - Algebraic data types would be the best

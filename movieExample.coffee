@@ -41,21 +41,9 @@ B.defineAction "ui.html.show",
       type: B.String 
       default: "body"
       constant: true # means that changes to this parameter changes will be ignored
-
-  onModelChange: (params) -> $(params.location).html(params.html.get())
-
-
-###
-  context =
-    params:
-      param1:
-        value
-        hasChanged
-        oldValue (if hasChanged)
-      ...
-    childActivation: {}
-    temp: {}
-###
+  updateFilter: ["model"]
+  requires: ["jquery"]
+  update: (params) -> $(params.location).html(params.html)
 
 
 B.defineAction "ui.html.jade", 
@@ -65,12 +53,13 @@ B.defineAction "ui.html.jade",
       type: B.String
       constant: true
     output: B.String # shorthand syntax
-    locals: B.Object({}) # shorthand syntax
-  start: (temp) -> 
-    jade = require("jade")
-    temp.compiledTemplate = jade.compile(params.template.value)
-  onModelChange: (params) -> 
-    params.output.value = temp.compiledTemplate(params.locals.value)
+    dict: B.Object({}) # shorthand syntax
+  requires: ["jade"]
+  start: (params) -> 
+    locals.compiledTemplate = jade.compile(params.template)
+  updateFilter: ["model"]
+  update: (params) -> 
+    params.output = temp.compiledTemplate(params.locals)
   unitTests: 
     "constant template": 
         inputParams:
@@ -92,21 +81,22 @@ B.defineAction "watch",
   parameterDefs:
     condition: 
       type: B.Any
-  start: (childActivation) -> 
+  start: () -> 
     # stop all children at start
     for name of childActivation then childActivation[name] = false
-  onModelChange: (params, childActivation) -> 
-    childActivation[params.condition.oldValue] = false
+  updateFilter: ["model"]
+  update: (params) -> 
+    childActivation[oldValue("condition")] = false
 
-    if params.condition.value of childActivation
-      childActivation[params.condition.value] = true
+    if params.condition of childActivation
+      childActivation[params.condition] = true
       return B.logInfo "Activated named child"
     else if "otherwise" of childActivation
-      childActivation[params.condition.value].state = B.ActionState.RUNNING
+      childActivation[params.condition].state = B.ActionState.RUNNING
       return B.logInfo "Activated the OTHERWISE case"
     else 
-      return B.logWarning "value of condition '#{params.condition.value}' not found"
-  contract: 
+      return B.logWarning "value of condition '#{params.condition}' not found"
+  invariant: 
     "only one action is running": (childActivation) -> 
       count = 0
       for name, child of childActivation 
@@ -144,40 +134,23 @@ B.defineAction "sequence",
   parameterDefs:
     loop: B.Bool(false)
     runningChild: B.String()
-  start: (childActivation) -> 
+  start: () -> 
     # stop all children at start
     for name of childActivation then childActivation[name] = false
-  onChildActivationChange: (params, childActivation) -> 
-    keys = params.runningChild.value.keys[0]
-    if params.runningChild.value == null
-      params.runningChild.value = keys[0]
+  updateFilter: ["childActivation"]
+  update: (params) -> 
+    keys = params.runningChild.keys[0]
+    if params.runningChild == null
+      params.runningChild = keys[0]
     else
-      index = keys.indexOf(params.runningChild.value) + 1
-      if params.loop.value
+      index = keys.indexOf(params.runningChild) + 1
+      if params.loop
         index = index % keys.length
       else
         if index >= keys.length then return B.Action.DONE
-      params.runningChild.value = keys[index]
+      params.runningChild = keys[index]
 
-    childActivation[params.runningChild.value].state = true
-
-
-B.declareDataType "audio.PlayCommand",
-  volume: B.Float({range: [0, 1], default: 1})
-  pan: B.Float({range: [-1, 1], default: 0})
-  assetPath: B.String()
-
-
-B.defineAction "audio.playSound",
-  doc: "Plays an MP3 clip once"
-  parameterDefs:
-    sounds: B.Queue(audio.PlayCommand)
-  updateFilter: ["model"]
-  services: ["audio.sound"]
-  update: (params, services) ->
-    for sound in sounds.value:
-      services["audio.sound"].play(sound.assetPath)
-    sounds.empty() 
+    childActivation[params.runningChild].state = true
 
 
 B.defineAction "audio.playMusic",
@@ -188,50 +161,57 @@ B.defineAction "audio.playMusic",
       doc: "in milliseconds"
       type: B.Int(1000)
     fading: B.Enum(["in", "out", "none"])("none") # or could be done by a "delareEnum" globally
-    startFadeTime: B.Int()
-    gameTime: B.Int()
-  services: ["audio.sound"]
-  start: (locals) -> 
-    locals.currentClip = null
+    startFadeTime: B.Int({ allowNull: true })
+  start: -> 
+    locals.audio = null
     locals.fading = "none"
-  update: (params, services, assets, local) ->
-    if params.music.hasChanged then params.fading = "out"
+  stop: (params) -> 
+    if locals.audio 
+      params.fading = "none"
+      locals.audio.pause()
+  update: (params) ->
+    if hasChanged("music") 
+      if oldValue("music") then params.fading = "out"
+      else then params.fading = "in"
+      params.startFadeTime = gameTime() # or just gameTime as attribute
 
-    if locals.fading == "in":
-      volume = (params.gameTime.value - params.lastFadeTime.value) / params.fadeTime.value
+    if params.fading == "out"
+      interpolate = (gameTime() - params.startFadeTime) / params.fadeTime
+      if interpolate >= 1 
+        params.fading = "in"
+        params.startFadeTime = gameTime()
+        locals.audio = null
+      else
+        locals.audio.volume = interpolate
+
+    if params.fading == "in"
+      if not locals.audio 
+        locals.audio = assets.get(params.music) # or new Audio(params.music)
+        locals.audio.addEventListener("ended", signalEvent("ended"))
+        locals.audio.play()
+
+      interpolate = (gameTime() - params.startFadeTime) / params.fadeTime
+      if interpolate >= 1
+        params.fading = "none"
+        startFadeTime = null
+      else
+        locals.audio.volume = 1 - interpolate
+
+    if locals.events:
+      assert("is ended", locals.events[0] == "ended")
+      locals.audio.play()
 
 
-    if locals.currentClip:
-      # fade out
-
-      services["audio.sound"].stop
-      stop current music
-      when DONE
-      play new music
-
-    for sound in sounds.value:
-      services["audio.sound"].play(sound.assetPath)
+B.defineAction "audio.playSound",
+  doc: "Plays an MP3 clip once"
+  parameterDefs:
+    sounds: B.Queue(B.String())
+  updateFilter: ["model"]
+  update: (params) ->
+    for sound in params.sounds:
+      assets.get(sound).play()
+      # or new Audio(sound).play()
     sounds.empty() 
-
-
-B.defineService "audio.sound",
-  doc: "Plays an MP3 via HTML5"
-  service:
-    start: ->
-      @sounds = {}
-    end: ->
-      @sounds = {}
-    factory: (action) -> 
-      play: (assetPath) ->
-        sound = assetMap[assetPath]
-        runningSounds[assetPath] = sound
-        sound.play()
-      stop: (assetPath, callback) ->
-        if not assetPath of runningSounds then callback("No sound detected")
-
-        runningSounds[assetPath].pause()
-        callback(null)
-    gui: -> # TODO: make GUI component for sounds
 
 
 B.defineAction "html.handleButton",
@@ -263,14 +243,6 @@ B.defineAction "html.handleButton",
         when "mouseover" then locals.status = "hover"
         when "mouseout" then locals.status = "enabled"
 
-
-
-
-B.defineService "jquery",
-  doc: "Does everything"
-  # RequireJS form
-  service ["jquery"], ($) -> 
-    factory: (action) -> $
 
 
 
