@@ -6,10 +6,8 @@ TODO
 ====
 
 - Services
-  - Try to make canvas service that tracks changes by pixel, not by through commands
   - Make an action using callback that waits until action is updated using locals (ex. ajax request)
   - Make an audio service that just tracks what audio is playing, where it is in each clip, the volume, and who is playing it
-  - Try to add requires call to actions to use libraries like jquery
 
 - Asset storage
   - Temporary storage

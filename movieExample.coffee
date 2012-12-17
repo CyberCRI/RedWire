@@ -244,11 +244,27 @@ B.defineAction "html.handleButton",
         when "mouseout" then locals.status = "enabled"
 
 
-
-
-B.defineTestCase "The sequence action activates the right case"
-
-
-
-
+B.defineService "canvas",
+  doc: "Detects all changes made to canvases"
+  requires: ["jquery"]
+  start: -> 
+  stop: ->
+  beforeLoop: ->
+    actionToPixels = {}
+    pixelToActions = {}
+  afterLoop: ->
+  beforeAction: (action) -> 
+    for canvas in $("canvas")
+      # store canvas
+      locals.imageData[canvas.id] = canvas.getImageData(canvas.width, canvas.height)
+  afterAction: (action) ->
+    for canvas in $("canvas")
+      # compare canvas
+      oldImage = locals.imageData[canvas.id] 
+      newImage = getImageData(canvas.width, canvas.height)
+      for i in [0..oldImage.data.length]
+        if oldImage.data[i] != newImage.data[i]
+          actionToPixels[action.id].push(i)
+          pixelToActions[i].push(action.id)
+  drawGui: -> # TODO
 
