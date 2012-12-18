@@ -7,7 +7,6 @@ TODO
 
 - Services
   - Make an action using callback that waits until action is updated using locals (ex. ajax request)
-  - Make an audio service that just tracks what audio is playing, where it is in each clip, the volume, and who is playing it
 
 - Asset storage
   - Temporary storage

@@ -250,8 +250,8 @@ B.defineService "canvas",
   start: -> 
   stop: ->
   beforeLoop: ->
-    actionToPixels = {}
-    pixelToActions = {}
+    locals.actionToPixels = {}
+    locals.pixelToActions = {}
   afterLoop: ->
   beforeAction: (action) -> 
     for canvas in $("canvas")
@@ -259,12 +259,49 @@ B.defineService "canvas",
       locals.imageData[canvas.id] = canvas.getImageData(canvas.width, canvas.height)
   afterAction: (action) ->
     for canvas in $("canvas")
-      # compare canvas
       oldImage = locals.imageData[canvas.id] 
-      newImage = getImageData(canvas.width, canvas.height)
-      for i in [0..oldImage.data.length]
-        if oldImage.data[i] != newImage.data[i]
-          actionToPixels[action.id].push(i)
-          pixelToActions[i].push(action.id)
+      if locals.mode == "restore"
+        canvas.setImageData(oldImage)
+      else if locals.mode == "compare"
+        # compare canvas
+        newImage = canvas.getImageData(canvas.width, canvas.height)
+        for i in [0..oldImage.data.length]
+          if oldImage.data[i] != newImage.data[i]
+            locals.actionToPixels[action.id].push(i)
+            locals.pixelToActions[i].push(action.id)
+  drawGui: -> # TODO
+
+
+B.defineService "audio",
+  doc: "Detects all changes made to JS audio objects"
+  start: -> 
+  stop: ->
+  assetCreated: (audio) ->
+    locals.audioClips[audio.id] = 
+      status: "loaded"
+      progress: 0
+      duration: 0
+      actions: {}
+    audio.addEventListener("ended", (event) -> locals.audioClips[audio.id].status = "ended")
+    audio.addEventListener "playing", (event) -> 
+      if locals.mode == "restore"
+        audio.play()
+      else if locals.mode == "compare"
+        locals.audioClips[audio.id].status = "playing"
+        locals.audioClips[audio.id].actions[audio.id] =
+          change: "played"
+        locals.actionToAudios[locals.currentAction].push audio.id
+    audio.addEventListener "paused", (event) -> 
+      locals.audioClips[audio.id].status = "paused"
+      locals.audioClips[audio.id].actions[audio.id] =
+        change: "paused"
+        locals.actionToAudios[locals.currentAction].push audio.id
+    # ... for progress as well
+  beforeLoop: ->
+    locals.audioClips = {}
+    locals.audioToActions = {}
+  afterLoop: ->
+  beforeAction: (action) -> locals.currentAction = action
+  afterAction: (action) ->
   drawGui: -> # TODO
 
