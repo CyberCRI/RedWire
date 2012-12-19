@@ -305,3 +305,28 @@ B.defineService "audio",
   afterAction: (action) ->
   drawGui: -> # TODO
 
+
+# Network actions are more complicated, as you can create new actions as children to handle each request/response
+B.defineAction "net.twitter.followers",
+  doc: "Fetches a list of twitter followers"
+  parameterDefs:
+    username: B.String()
+    followers: B.Array(B.String())
+  requires: ["jquery"]
+  start: (params) -> 
+  stop: (params) -> 
+  updateFilter = ["change:username", "handler"]
+  update: (params) ->
+    if params.username == "" return DONE
+
+    if hasChanged("username")
+      $.ajax("http://twitter.com/...").done handler("response")
+
+    if locals.data
+      params.followers = data
+      delete locals.data
+  handlers:
+    response: (data) -> locals.usernames = data
+
+
+
