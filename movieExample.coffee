@@ -306,7 +306,6 @@ B.defineService "audio",
   drawGui: -> # TODO
 
 
-# Network actions are more complicated, as you can create new actions as children to handle each request/response
 B.defineAction "net.twitter.followers",
   doc: "Fetches a list of twitter followers"
   parameterDefs:
@@ -317,9 +316,8 @@ B.defineAction "net.twitter.followers",
   stop: (params) -> 
   updateFilter = ["change:username", "handler"]
   update: (params) ->
-    if params.username == "" return DONE
-
-    if hasChanged("username")
+    if hasChanged("username") and params.username != ""
+      # TODO: cancel current request if username changes in the meantime
       $.ajax("http://twitter.com/...").done handler("response")
 
     if locals.data

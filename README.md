@@ -5,48 +5,28 @@ Bugs
 TODO
 ====
 
-- Services
-  - Make an action using callback that waits until action is updated using locals (ex. ajax request)
-
 - Asset storage
   - Temporary storage
   - Binary/object format
   - Tree layout
 
-- Streams (Sevices)
-  - Common use-case is wrapping existing frameworks
-  - Can be used directly, without communicating through the model
-  - Callbacks should wait until action is updated (using locals?)
-
-  - Can gather events outside of the event loop
-  - An action can be wired to different models (e.g. fading music player vs. immediate sound clip player)
-  - All communication logs which action did it
-  - Examples
-    - Canvas
-    - Sound
-    - Network
-    - SVG
-    - HTML events
-  - Using the HTTP service may be done by creating subactions
-  - Rephrase asset loading as service?
+- Errors
 
 - Examples
   - Angry birds
   - Multiplayer
   - Logging
 
-- Errors
+- Restart sequence, destroy residuals, ...
 
 - Tests
   - Functional/smoke tests (requires setup)
 
-- Restart sequence, destroy residuals, ...
-
 - Level Design
+  - allow editor actions that activated in "design" mode?
+    - move objects/graphics on the screen
   - view and controller actions that manipulate serializable data?
-  - editor actions activated in "design" mode?
-
-- Creating and destroying sub-actions
+  - setup level by hand, save it as asset, and then have action "merge" to saved states when level loaded? 
 
 
 Questions
@@ -82,7 +62,11 @@ Questions
   - As a tree?
 - Would require.js bindings on actions be useful for internal libraries?
 - Can an action call one function (such as stop()) from within another (like update())?
-
+- How to handle foreach?
+  - One action deal with multiple models?
+  - A foreach action that loops on the model?
+  - Composable actions- a single action is folded into a foreach action?
+- Should action be able to create/remove other actions on the fly?
 
 Findings
 ========
