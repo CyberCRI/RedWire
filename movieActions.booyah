@@ -1,11 +1,11 @@
 root = 
 	sequence:
-		# Init page
-		- ui.html.show location = "body", html = assets:baseTemplate
+		# Init page@
+		- ui.html.show location = "body", html = config:baseTemplate # assets are not loaded yet
 
 		- sequence location = "main":
 			# Show loading screen
-			- ui.html.show html=model:loadingScreen
+			- ui.html.show html=config:loadingScreen
 
 			- loadGame
 
@@ -21,6 +21,9 @@ root =
 						ui.html.show html=asset:sceneA
 						# Show credits
 						ui.html.show html=asset:credits
+
+			error: 
+				ui.html.show html=config:loadingScreen
 
 # This is composed action  
 loadGame = 		
