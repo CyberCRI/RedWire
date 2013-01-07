@@ -5,11 +5,6 @@ Bugs
 TODO
 ====
 
-- Asset storage
-  - Temporary storage
-  - Binary/object format
-  - Tree layout
-
 - Errors
 
 - Examples
@@ -23,7 +18,7 @@ TODO
   - Functional/smoke tests (requires setup)
 
 - Level Design
-  - allow editor actions that activated in "design" mode?
+  - allow editor actions that are activated in "design" mode?
     - move objects/graphics on the screen
   - view and controller actions that manipulate serializable data?
   - setup level by hand, save it as asset, and then have action "merge" to saved states when level loaded? 
@@ -58,6 +53,7 @@ Questions
   - A foreach action that loops on the model?
   - Composable actions- a single action is folded into a foreach action?
 - Should action be able to create/remove other actions on the fly?
+- Should assets have a tree layout?
 
 
 Findings

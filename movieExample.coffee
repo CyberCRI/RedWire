@@ -73,7 +73,6 @@ B.defineAction "ui.html.jade",
           output: "<h1>Hello Jesse</h1>"
 
 
-
 B.defineAction "watch",
   doc: "Activate a branch based on a condition"
   parameterDefs:
@@ -313,8 +312,8 @@ B.defineAction "net.twitter.followers",
     followers: B.Array(B.String())
   requires: ["jquery"]
   directions: ["forward"]
-  start: (params) -> 
-  stop: (params) -> 
+  start: -> 
+  stop: -> 
   updateFilter = ["change:username", "handler"]
   update: (params) ->
     if hasChanged("username") and params.username != ""
@@ -328,4 +327,19 @@ B.defineAction "net.twitter.followers",
     response: (data) -> locals.usernames = data
 
 
+B.defineAction "loadAssets",
+  doc: "Loads all assets"
+  directions: ["forward"]
+  ports:
+    percentComplete: B.Float({ min: 0, max: 1 })
+  start: -> 
+    # assuming a downloader like http://www.html5rocks.com/en/tutorials/games/assetmanager/
+    locals.downloader = new AssetDownloader()
+    for assetName, assetPath of assets then locals.downloader.queue(assetPath)
+    locals.downloader.start()
+  update: (params) ->
+    if not locals.downloader.isDone() then return 
+
+    for assetName, assetPath of assets then assets.set(assetName, locals.downloader.get(assetPath))
+    return B.Action.DONE
 
