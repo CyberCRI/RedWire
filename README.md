@@ -74,12 +74,13 @@ Findings
   - At start, the root can decide to disable some children
   - At stop, the subtree is stopped
 - Actions can log their reasoning
+  - logInfo, logWarning, ... 
   - The return value is logged by default
 - Contracts (invariants) can be written to be called before and after each update call
 - Update can be split into different steps:
-  - contract
+  - contract/invariant
   - onModelChange
-  - contract
+  - contract/invariant
 - Unit tests can be phrased simply in terms of input -> output (at least for params)
 - Services can be used to capture/filter/debug/display meta info about I/O 
   - Otherwise they are not that useful!

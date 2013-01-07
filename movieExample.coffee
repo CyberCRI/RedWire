@@ -3,8 +3,6 @@
 
 # these "declare*" functions can be called more than once, both to augment and modify current behavior
 
-# Q: How to "package" things like the loading screen together?
-
 B.setRootAction "movieActions.booyah"
 
 B.declareModels
@@ -162,6 +160,7 @@ B.defineAction "audio.playMusic",
       type: B.Int(1000)
     fading: B.Enum(["in", "out", "none"])("none") # or could be done by a "delareEnum" globally
     startFadeTime: B.Int({ allowNull: true })
+  directions: ["forward"]
   start: -> 
     locals.audio = null
     locals.fading = "none"
@@ -220,6 +219,7 @@ B.defineAction "html.handleButton",
     selector: B.String()
     status: B.Enum(["disabled", "enabled", "pressed", "hover"])
   requires: [{ "jquery" : "$" }]
+  directions: ["forward"]
   start: ->
   stop: ->
     if oldValue("selector") 
