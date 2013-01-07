@@ -312,6 +312,7 @@ B.defineAction "net.twitter.followers",
     username: B.String()
     followers: B.Array(B.String())
   requires: ["jquery"]
+  directions: ["forward"]
   start: (params) -> 
   stop: (params) -> 
   updateFilter = ["change:username", "handler"]

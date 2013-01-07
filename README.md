@@ -38,7 +38,7 @@ Questions
 - Action-action interactions 
   - need to explicitely start/stop them?
 - Packaging
-  - How to package models along with actions?
+  - How to package models, function, and actions together?
     - Based on mixin or model-transformation?
   - How to use namespaces?
 - Need to "clean up" in a destroy block?
@@ -58,6 +58,7 @@ Questions
   - A foreach action that loops on the model?
   - Composable actions- a single action is folded into a foreach action?
 - Should action be able to create/remove other actions on the fly?
+
 
 Findings
 ========
@@ -98,3 +99,4 @@ Findings
 - Type conversions 
   - Explicit, not implicit
   - Conversions can be specified in layout.
+- Directions can be specified for actions, so that they are not run when going back in time
