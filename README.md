@@ -6,6 +6,9 @@ TODO
 ====
 
 - Errors
+  - Thrown exceptions in actions create errors
+  - Error policies can be set by error type or tag (to avoid hiararchies)
+  - Error policies include restart element that created error, restart whole branch, switch branch, ignore, bubble up (default)
 
 - Examples
   - Angry birds

@@ -136,7 +136,7 @@ B.defineAction "sequence",
     for name of childActivation then childActivation[name] = false
   updateFilter: ["childActivation"]
   update: (params) -> 
-    keys = params.runningChild.keys[0]
+    keys = Object.keys(childActivation)
     if params.runningChild == null
       params.runningChild = keys[0]
     else
@@ -147,7 +147,7 @@ B.defineAction "sequence",
         if index >= keys.length then return B.Action.DONE
       params.runningChild = keys[index]
 
-    childActivation[params.runningChild].state = true
+    childActivation[params.runningChild] = true
 
 
 B.defineAction "audio.playMusic",
@@ -318,13 +318,16 @@ B.defineAction "net.twitter.followers",
   update: (params) ->
     if hasChanged("username") and params.username != ""
       # TODO: cancel current request if username changes in the meantime
-      $.ajax("http://twitter.com/...").done handler("response")
+      $.ajax("http://twitter.com/...").done(handler("response")).fail(handler("error"))
 
     if locals.data
       params.followers = data
       delete locals.data
+
+    if locals.error then throw locals.error
   handlers:
     response: (data) -> locals.usernames = data
+    error: (err) -> locals.error = err
 
 
 B.defineAction "loadAssets",
