@@ -331,10 +331,12 @@ B.defineAction "loadAssets",
   doc: "Loads all assets"
   directions: ["forward"]
   ports:
+    toLoad: B.String({ default: "*"})
     percentComplete: B.Float({ min: 0, max: 1 })
   start: -> 
     # assuming a downloader like http://www.html5rocks.com/en/tutorials/games/assetmanager/
     locals.downloader = new AssetDownloader()
+    # TODO: filter assets by "toLoad"
     for assetName, assetPath of assets then locals.downloader.queue(assetPath)
     locals.downloader.start()
   update: (params) ->
@@ -342,4 +344,5 @@ B.defineAction "loadAssets",
 
     for assetName, assetPath of assets then assets.set(assetName, locals.downloader.get(assetPath))
     return B.Action.DONE
+
 
