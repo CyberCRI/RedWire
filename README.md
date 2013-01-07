@@ -35,25 +35,16 @@ Questions
 - Signals
   - How to handle errors?
     - Policies: abandon, retry, custom...
-  - Does the DONE signal stop the action by default?
 - Action-action interactions 
   - need to explicitely start/stop them?
-- Need for "suspended" action?
-  - Could just kill it, since data will stay in place
-- Composed actions
-  - Explicitely declare free parameters?
-    - Pros: clear dependencies
-    - Cons: computer can find depencies by itself, easier refactoring
-  - How to package models as well?
+- Packaging
+  - How to package models along with actions?
     - Based on mixin or model-transformation?
-- Definition blocks
-  - Explicit or exist for any block?
+  - How to use namespaces?
 - Need to "clean up" in a destroy block?
   - This would be better done with associating resources (e.g. HTML elemnents) with owning actions
 - How to include this into a full app?
-- Need syntax sugar to only run "update" on changes? 
 - Classify in/out status of parameters?
-- Type conversions - explicit, implicit, or forbidden?
 - Is there not the need to parameterize an action tree by other actions (template method pattern)?
   - If no, good!
 - How should assets be accessed by actions and services?
@@ -104,3 +95,6 @@ Findings
   - Custom data types are also useful (and converters could be provided later)
   - Should have these options: range, allowNull, default 
   - Algebraic data types would be the best
+- Type conversions 
+  - Explicit, not implicit
+  - Conversions can be specified in layout.
