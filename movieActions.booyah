@@ -3,27 +3,29 @@ root =
 		# Init page
 		- ui.html.show location = "body", html = config:baseTemplate # assets are not loaded yet
 
-		- sequence location = "main":
-			# Show loading screen
-			- ui.html.show html=config:loadingScreen
+		- catchErrors:
+			try: sequence location = "main": # syntax problem here?
+				# Show loading screen
+				- ui.html.show html=config:loadingScreen
 
-			- loadGame
+				- restartOnError (model:server=config:fallbackHost):
+					- loadGame
 
-			# Show game
-			- watch model:status.paused:
-				true:
-					ui.html.show html=asset:pauseScreen
-				false:
-					sequence (loop = true):
-						# Show intro
-						ui.html.show html=asset:introScreen
-						# Show scene a
-						ui.html.show html=asset:sceneA
-						# Show credits
-						ui.html.show html=asset:credits
+				# Show game
+				- watch model:status.paused:
+					true:
+						ui.html.show html=asset:pauseScreen
+					false:
+						sequence (loop = true):
+							# Show intro
+							ui.html.show html=asset:introScreen
+							# Show scene a
+							ui.html.show html=asset:sceneA
+							# Show credits
+							ui.html.show html=asset:credits
 
-			error: 
-				ui.html.show html=config:loadingScreen
+			onError: 
+				ui.html.show html=config:errorScreen
 
 # This is composed action  
 loadGame = 		
@@ -37,4 +39,4 @@ loadGame =
 	)
 
 	# Load assets
-	- loadAssets toLoad="*" loadingPercent=model:status.loading
+	- loadAssets toLoad="*", loadingPercent=model:status.loading, errorPolicy=restart(times=3)

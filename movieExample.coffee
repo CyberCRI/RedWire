@@ -349,3 +349,43 @@ B.defineAction "loadAssets",
     return B.Action.DONE
 
 
+B.defineErrorPolicy "restart",
+  doc: "Restarts the action, up to a certain number of times"
+  params:
+    max: B.Int({ allowNull: true })
+    timesRestarted: B.Int()
+  start: ->
+    params.timesRestarted = 0
+  onError: (action, params) ->
+    if params.number != null and params.timesRestarted >= params.number then return B.Error
+
+    action.activated = true
+    params.timesRestarted++
+    # by default error is considered handled
+  stop: ->
+
+
+B.defineErrorPolicy "stop",
+  doc: "Stops the action immediately"
+  start: ->
+  onError: (action) -> action.activated = false 
+  stop: ->
+
+
+B.defineErrorPolicy "setModel",
+  doc: "Sets model parameters, but does not handle error. Good when used in combination with other handlers"
+  params:
+    params: B.Object()
+  start: ->
+  onError: (action, params) ->
+    if params.number != null and locals.timesStarted >= params.number then return B.Error
+
+    action.activated = true
+    locals.timesStarted++
+    # by default error is considered handled
+  stop: ->
+
+
+
+
+

@@ -50,6 +50,7 @@ Questions
     - Or policies as functions
       - Pros: Reduces tree depth
       - Cons: How to combine policies? How to switch branches?
+    - Or a combination (errors for restart, ignore, ...) and actions for switching branches
   - To report errors, reportWarning() and reportError() functions 
     - Can throw exceptions or just log info depending on how the error handling is configured
     - And assert() functions could take a function to evaluate. If assertions are set to be ignored than the test is not even run
@@ -121,4 +122,4 @@ Findings
   - Explicit, not implicit
   - Conversions can be specified in layout.
 - Directions can be specified for actions, so that they are not run when going back in time
-- Parameters can be bound to several sources: config (completely loaded before start), assets, and model
+- Parameters can be bound to several sources: constant, config (completely loaded before start), assets, model, and expressions composed of these sources
