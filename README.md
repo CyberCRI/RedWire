@@ -30,9 +30,29 @@ TODO
 Questions
 =========
 
-- Signals
-  - How to handle errors?
-    - Policies: abandon, retry, custom...
+- Errors
+  - What can you do in response to an error?
+    - Retry a certain number of times or for a certain length of time (i.e. server not responding)
+      - Restart action, then bubble error after condition is met
+    - Alert the user (i.e. "sorry, you'll need to try again later")
+      - Switch actions
+    - Try alternative means (i.e. use static data, interpolate based on previous info, ...)
+      - Switch actions
+    - Restart the process with different info (i.e. return to a "safe state")
+      - Set model, then restart
+    - Ignore it and move on (i.e. skip logging in, just play)
+      - Stop action, go to next 
+    - Combination of these approaches
+  - Besides reporting, error handling should be orthagonal to actions themselves
+    - Custom actions could be used (similar to try/catch)
+      - Pros: Explicit, flexible (new actions could be made). 
+      - Cons: Adds more levels to the tree
+    - Or policies as functions
+      - Pros: Reduces tree depth
+      - Cons: How to combine policies? How to switch branches?
+  - To report errors, reportWarning() and reportError() functions 
+    - Can throw exceptions or just log info depending on how the error handling is configured
+    - And assert() functions could take a function to evaluate. If assertions are set to be ignored than the test is not even run
 - Action-action interactions 
   - need to explicitely start/stop them?
 - Packaging
@@ -57,6 +77,9 @@ Questions
   - Composable actions- a single action is folded into a foreach action?
 - Should action be able to create/remove other actions on the fly?
 - Should assets have a tree layout?
+- Should whitespace be significant in Booyah format?
+  - Pros: Looks pretty. Less verbose. Forces consistant indentation practices
+  - Cons: Spaces vs. tabs. Editors may not show whitespace. No single line expressions. Confusing in some multi-line cases. 
 
 
 Findings
@@ -68,21 +91,19 @@ Findings
 - Default "parallel" behavoir is convienient
 - Injecting parameters based on names reduces variable scoping
 - Children can be named (labeled edge, JS object) or unnamed (unlabled edge, JS array)
+  - Since an array is an object, always use the object form
 - All actions are stopped at start
   - At program start, the root action is enabled
   - At start, the root can decide to disable some children
   - At stop, the subtree is stopped
 - Actions can log their reasoning
   - logInfo, logWarning, ... 
-  - The return value is logged by default
+  - Additionally, the return value can be logged by default
 - Contracts (invariants) can be written to be called before and after each update call
-- Update can be split into different steps:
-  - contract/invariant
-  - onModelChange
-  - contract/invariant
 - Unit tests can be phrased simply in terms of input -> output (at least for params)
 - Services can be used to capture/filter/debug/display meta info about I/O 
   - Otherwise they are not that useful!
+  - Services may need "hooks" into certain events such as assets loading in order to track them
   - Ideal service is a perfect proxy (not yet available)
 - Require.JS bindings are nice for extenal libraries 
 - Event handling
@@ -100,3 +121,4 @@ Findings
   - Explicit, not implicit
   - Conversions can be specified in layout.
 - Directions can be specified for actions, so that they are not run when going back in time
+- Parameters can be bound to several sources: config (completely loaded before start), assets, and model

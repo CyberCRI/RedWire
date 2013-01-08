@@ -1,6 +1,6 @@
 root = 
 	sequence:
-		# Init page@
+		# Init page
 		- ui.html.show location = "body", html = config:baseTemplate # assets are not loaded yet
 
 		- sequence location = "main":
