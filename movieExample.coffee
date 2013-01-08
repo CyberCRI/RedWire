@@ -349,41 +349,44 @@ B.defineAction "loadAssets",
     return B.Action.DONE
 
 
-B.defineErrorPolicy "restart",
-  doc: "Restarts the action, up to a certain number of times"
+B.defineAction "error.switch",
+  doc: "Runs the try branch. If an error is found, runs the onError branch"
+  start: ->
+    children["try"].activated = true
+  update: ->
+    if children["try"].error then children["onError"].activated = true
+
+
+B.defineAction "error.restart",
+  doc: "Restarts the child action, up to a certain number of times"
   params:
     max: B.Int({ allowNull: true })
     timesRestarted: B.Int()
   start: ->
     params.timesRestarted = 0
-  onError: (action, params) ->
-    if params.number != null and params.timesRestarted >= params.number then return B.Error
+  update:  ->
+    if not children[0].error then return # TODO: add to updateFilter?
 
-    action.activated = true
+    if params.number != null and params.timesRestarted >= params.number then throw children[0].error
+
+    children[0].activated = true
     params.timesRestarted++
-    # by default error is considered handled
   stop: ->
 
 
-B.defineErrorPolicy "stop",
-  doc: "Stops the action immediately"
+B.defineAction "error.stop",
+  doc: "Stops the error from bubbling further"
   start: ->
-  onError: (action) -> action.activated = false 
+  update: -> 
+    if not children[0].error then return # TODO: add to updateFilter?
+
+    return B.Action.DONE
   stop: ->
 
 
-B.defineErrorPolicy "setModel",
-  doc: "Sets model parameters, but does not handle error. Good when used in combination with other handlers"
-  params:
-    params: B.Object()
-  start: ->
-  onError: (action, params) ->
-    if params.number != null and locals.timesStarted >= params.number then return B.Error
-
-    action.activated = true
-    locals.timesStarted++
-    # by default error is considered handled
-  stop: ->
+B.defineAction "setModel",
+  doc: "Sets model parameters to certain values"
+  start: -> for key, value of params: params[key] = value
 
 
 

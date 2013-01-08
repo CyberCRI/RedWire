@@ -3,7 +3,7 @@ root =
 		# Init page
 		- ui.html.show location = "body", html = config:baseTemplate # assets are not loaded yet
 
-		- catchErrors:
+		- error.switch:
 			try: sequence location = "main": # syntax problem here?
 				# Show loading screen
 				- ui.html.show html=config:loadingScreen
@@ -39,4 +39,5 @@ loadGame =
 	)
 
 	# Load assets
-	- loadAssets toLoad="*", loadingPercent=model:status.loading, errorPolicy=restart(times=3)
+	- error.restart (times=3)
+		- loadAssets toLoad="*", loadingPercent=model:status.loading
