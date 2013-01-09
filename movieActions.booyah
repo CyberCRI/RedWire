@@ -8,7 +8,7 @@ root =
 				# Show loading screen
 				- ui.html.show html=config:loadingScreen
 
-				- restartOnError (model:server=config:fallbackHost):
+				- error.restart (times=1, model:host=config:fallbackHost):
 					- loadGame
 
 				# Show game
@@ -40,4 +40,4 @@ loadGame =
 
 	# Load assets
 	- error.restart (times=3)
-		- loadAssets toLoad="*", loadingPercent=model:status.loading
+		- loadAssets toLoad="*", loadingPercent=model:status.loading, host=model:host

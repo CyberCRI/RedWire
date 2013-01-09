@@ -383,12 +383,3 @@ B.defineAction "error.stop",
     return B.Action.DONE
   stop: ->
 
-
-B.defineAction "setModel",
-  doc: "Sets model parameters to certain values"
-  start: -> for key, value of params: params[key] = value
-
-
-
-
-

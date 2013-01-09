@@ -81,6 +81,13 @@ Questions
 - Should whitespace be significant in Booyah format?
   - Pros: Looks pretty. Less verbose. Forces consistant indentation practices
   - Cons: Spaces vs. tabs. Editors may not show whitespace. No single line expressions. Confusing in some multi-line cases. 
+- How to set aritrary values in an action?
+  - Setting the model through an action can be easily done for a single parameter, but is harder to do for several
+  - Sets of key, value pairs
+    - Requires different algorithm to match
+  - Arbitrary (extra) parameters 
+    - Hard to match up the parameters
+  - Have define calls in the model be part of the action layout
 
 
 Findings
@@ -123,3 +130,5 @@ Findings
   - Conversions can be specified in layout.
 - Directions can be specified for actions, so that they are not run when going back in time
 - Parameters can be bound to several sources: constant, config (completely loaded before start), assets, model, and expressions composed of these sources
+
+
