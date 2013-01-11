@@ -87,7 +87,15 @@ Questions
     - Requires different algorithm to match
   - Arbitrary (extra) parameters 
     - Hard to match up the parameters
-  - Have define calls in the model be part of the action layout
+  - ** Have define calls in the model be part of the action layout. **
+- Redirection?
+  - ** Through "pointers" or symbolic links from one part of the model to the other? **
+  - Through tags that can be assigned or searched in the model?
+  - Through model addresses? 
+- How to load a level?
+  - Bring in data (models, assets, config?)
+  - Merge or temporily override values? (stack-based approach)
+  - Notion of "scenes" that include actions as well?
 
 
 Findings
