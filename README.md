@@ -88,15 +88,20 @@ Questions
   - Arbitrary (extra) parameters 
     - Hard to match up the parameters
   - ** Have define calls in the model be part of the action layout. **
-- Redirection?
+- Indirection
   - ** Through "pointers" or symbolic links from one part of the model to the other? **
+    - reference() and dereference() functions?
   - Through tags that can be assigned or searched in the model?
   - Through model addresses? 
 - How to load a level?
   - Bring in data (models, assets, config?)
   - Merge or temporily override values? (stack-based approach)
   - Notion of "scenes" that include actions as well?
-
+- Multiplayer
+  - How to debug?
+  - How to join/leave/start/stop games?
+  - How to synchronize models?
+    - Label parts as synchronizable or not?
 
 Findings
 ========
