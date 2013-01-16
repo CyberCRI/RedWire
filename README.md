@@ -5,6 +5,9 @@ Bugs
 TODO
 ====
 
+- Declare child connections.
+  - Choices: none, list, named, and fixed valued (choices from enum).
+
 - Errors
   - Thrown exceptions in actions create errors
   - Error policies can be set by error type or tag (to avoid hiararchies)
@@ -102,6 +105,11 @@ Questions
   - How to join/leave/start/stop games?
   - How to synchronize models?
     - Label parts as synchronizable or not?
+- Share code using GitHub?
+  - Packages using namespace ending with user IDs that are pulled from github
+  - GitHub API can't list forks, so the site would have to keep track of them
+  - Would you have one single repository? Or merge several repositories?
+
 
 Findings
 ========
