@@ -5,6 +5,8 @@ Bugs
 TODO
 ====
 
+- Scenes
+
 - Declare child connections.
   - Choices: none, list, named, and fixed valued (choices from enum).
 
