@@ -5,10 +5,16 @@ Bugs
 TODO
 ====
 
-- Scenes
+- Write binding generator function example
+  - Simple
+  - With hierarchical bindings (parent did a define)
+
+- Config set loading/saving
 
 - Declare child connections.
   - Choices: none, list, named, and fixed valued (choices from enum).
+
+- Try to integrate sprite.js for animation
 
 - Errors
   - Thrown exceptions in actions create errors
@@ -152,6 +158,8 @@ Findings
   - Explicit, not implicit
   - Conversions can be specified in layout.
 - Directions can be specified for actions, so that they are not run when going back in time
+  - Forward, backward
 - Parameters can be bound to several sources: constant, config (completely loaded before start), assets, model, and expressions composed of these sources
+- Stop calls should be done in reverse order of node execution 
 
 
