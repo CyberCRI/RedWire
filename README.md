@@ -5,19 +5,18 @@ Bugs
 TODO
 ====
 
-- Write binding generator function example
-  - How to handle output?
-
 - Config set loading/saving
 
-
-Later
-=====
+- Can we use javascript properties to do references and also for each loops on arrays?
 
 - Declare child connections.
   - Choices: none, list, named, and fixed valued (choices from enum).
 
 - Try to integrate sprite.js for animation
+
+
+Later
+=====
 
 - Errors
   - Thrown exceptions in actions create errors
@@ -128,7 +127,8 @@ Questions
   - Create blank value and refer to it
   - ** Model references to insert in an array **
     - What is a reference?
-
+- Use {} for arrays and objects in action layout?
+  - Or use [] to create implicit sequence and {} to create implicit parallel (but still requires labels?)
 
 Findings
 ========

@@ -13,26 +13,39 @@ root =
 playLevel = 
 	while(condition: not modelRef("levelComplete"))
 	{
-		# TODO: detectClicks
-			# on drag/drop piece
-			# on select piece
-
-		computeLightPath(path: modelRef("lightPath"), pieces: modelRef("pieces"), boardSize: configRef("boardSize"))
-
-		# detect win
-		watch(condition: isPieceHit(modelRef("targetPiece")))
+		inSequence
 		{
-			true: mergeConfig(config: configSet("levelComplete"))
+			# TODO: detectClicks
+			canvas.monitorCanvasButton({ canvas: "#canvas", status: piece.buttonStatus } for piece in model.get("pieces"))
+
+			foreach(piece in modelRef("pieces"))
+				watch(condition: piece.buttonStatus)
+				{
+					pressed: 
+						set(ref: modelRef("selectedPiece"), value: referenceTo(piece))
+				}
+
+				# on drag/drop piece
+				# on select piece
+
+			computeLightPath(path: modelRef("lightPath"), pieces: modelRef("pieces"), boardSize: configRef("boardSize"))
+
+			# detect win
+			watch(condition: isPieceHit(modelRef("targetPiece").get()))
+			{
+				true: mergeConfig(config: configSet("levelComplete"))
+			}
+
+			# draw
+			set(modelRef: "sprites", value: [])
+
+			foreach(piece in modelRef("pieces"))
+				drawPiece({ piece: piece, sprite: insert(modelRef("sprites")) })
+			drawLight(pieces: modelRef("pieces"), sprites: modelRef("sprites"))
+			drawControls(controls: modelRef("controls"), sprites: modelRef("sprites"))
+
+			drawSprites(sprites: modelRef("sprites"), canvas: config("canvasName"))
 		}
-
-		# draw
-		set(modelRef: "sprites", value: [])
-
-		drawPiece({ piece: piece, sprite: insert(model("sprites")) } for piece in modelRef("pieces").get() )
-		drawLight(pieces: modelRef("pieces"), sprites: modelRef("sprites"))
-		drawControls(controls: modelRef("controls"), sprites: modelRef("sprites"))
-
-		drawSprites(sprites: modelRef("sprites"), canvas: config("canvasName"))
 	}
 
 
