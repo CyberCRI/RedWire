@@ -1,0 +1,54 @@
+# optics game example
+# single player version
+
+
+root = 
+	inSequence (loop: true) 
+	{
+		showIntroScreen
+		playLevel
+		showEnding
+	}
+
+playLevel = 
+	while(condition: not modelRef("levelComplete"))
+	{
+		# TODO: detectClicks
+			# on drag/drop piece
+			# on select piece
+
+		computeLightPath(path: modelRef("lightPath"), pieces: modelRef("pieces"), boardSize: configRef("boardSize"))
+
+		# detect win
+		watch(condition: isPieceHit(modelRef("targetPiece")))
+		{
+			true: mergeConfig(config: configSet("levelComplete"))
+		}
+
+		# draw
+		set(modelRef: "sprites", value: [])
+
+		drawPiece({ piece: piece, sprite: insert(model("sprites")) } for piece in modelRef("pieces").get() )
+		drawLight(pieces: modelRef("pieces"), sprites: modelRef("sprites"))
+		drawControls(controls: modelRef("controls"), sprites: modelRef("sprites"))
+
+		drawSprites(sprites: modelRef("sprites"), canvas: config("canvasName"))
+	}
+
+
+
+# config sets
+
+levelComplete =
+	levelComplete: true
+
+
+# actions
+
+modelRef = (name) ->
+	get() -> return model.get(name)
+	set(value) -> model.set(name, value)
+
+insertInto = (array) ->
+	get() -> return null
+	set(value) -> array.push(value)

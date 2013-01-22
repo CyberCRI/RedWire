@@ -6,10 +6,13 @@ TODO
 ====
 
 - Write binding generator function example
-  - Simple
-  - With hierarchical bindings (parent did a define)
+  - How to handle output?
 
 - Config set loading/saving
+
+
+Later
+=====
 
 - Declare child connections.
   - Choices: none, list, named, and fixed valued (choices from enum).
@@ -98,7 +101,8 @@ Questions
     - Requires different algorithm to match
   - Arbitrary (extra) parameters 
     - Hard to match up the parameters
-  - ** Have define calls in the model be part of the action layout. **
+  - Have define calls in the model be part of the action layout.
+  - Load/push/pop config sets
 - Indirection
   - ** Through "pointers" or symbolic links from one part of the model to the other? **
     - reference() and dereference() functions?
@@ -117,6 +121,13 @@ Questions
   - Packages using namespace ending with user IDs that are pulled from github
   - GitHub API can't list forks, so the site would have to keep track of them
   - Would you have one single repository? Or merge several repositories?
+- How to handle output bindings?
+  - Output function
+    - Pros: easy to use
+    - Cons: what is the initial value?
+  - Create blank value and refer to it
+  - ** Model references to insert in an array **
+    - What is a reference?
 
 
 Findings
@@ -161,5 +172,4 @@ Findings
   - Forward, backward
 - Parameters can be bound to several sources: constant, config (completely loaded before start), assets, model, and expressions composed of these sources
 - Stop calls should be done in reverse order of node execution 
-
 
