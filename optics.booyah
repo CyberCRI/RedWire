@@ -2,6 +2,21 @@
 # single player version
 
 
+# model
+
+levelComplete: 
+	{ type: "Boolean", value: false }
+pieces: 
+	buttonStatus: "ready"
+selectedPiece: null
+lightPath: null
+boardSize: ""
+targetPiece: null
+sprites: []
+
+
+# action tree
+
 root = 
 	inSequence (loop: true) 
 	{
@@ -16,13 +31,14 @@ playLevel =
 		inSequence
 		{
 			# TODO: detectClicks
-			canvas.monitorCanvasButton({ canvas: "#canvas", status: piece.buttonStatus } for piece in model.get("pieces"))
+			bind(piece: eachof(modelRef("pieces")))
+				canvas.monitorCanvasButton(canvas: "#canvas", status: piece.buttonStatus)
 
-			foreach(piece in modelRef("pieces"))
+			bind(piece: eachof(modelRef("pieces")))
 				watch(condition: piece.buttonStatus)
 				{
 					pressed: 
-						set(ref: modelRef("selectedPiece"), value: referenceTo(piece))
+						setModel(selectedPiece: referenceTo(piece))
 				}
 
 				# on drag/drop piece
@@ -33,13 +49,14 @@ playLevel =
 			# detect win
 			watch(condition: isPieceHit(modelRef("targetPiece").get()))
 			{
-				true: mergeConfig(config: configSet("levelComplete"))
+				true: setModel(levelComplete: true)
 			}
 
 			# draw
-			set(modelRef: "sprites", value: [])
+			setModel(sprites: [])
+			call(function: clearCanvas, arguments: [config("canvasName")])
 
-			foreach(piece in modelRef("pieces"))
+			bind(piece: eachof(modelRef("pieces")))
 				drawPiece({ piece: piece, sprite: insert(modelRef("sprites")) })
 			drawLight(pieces: modelRef("pieces"), sprites: modelRef("sprites"))
 			drawControls(controls: modelRef("controls"), sprites: modelRef("sprites"))
