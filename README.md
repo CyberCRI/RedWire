@@ -129,6 +129,12 @@ Questions
     - What is a reference?
 - Use {} for arrays and objects in action layout?
   - Or use [] to create implicit sequence and {} to create implicit parallel (but still requires labels?)
+- Use LINQ or similar syntax to define mappings?
+  - More flexible than simple function calling, since filters can be applied
+  - http://hugoware.net/projects/jlinq (but not sure you can filter afterwards)
+- Merge operations to avoid conflicts (based on reduce operations such as sum(), max(), etc.)
+- Make server component in Clojure?
+
 
 Findings
 ========
