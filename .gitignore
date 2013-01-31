@@ -1,1 +1,6 @@
-*.js
+# Ignore OS garbage
+.DS_Store
+
+# Ignore JS not in libraries
+concepts/*.js
+platform/site/*.js
