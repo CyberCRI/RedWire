@@ -11,7 +11,7 @@ Ext.application
           items: [
             {
               xtype: 'header'
-              title: "Snap1k Game Editor"
+              title: "gamEvolve"
               border: false
               cls: "appTitle"
             }
