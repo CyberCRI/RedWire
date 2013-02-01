@@ -4,3 +4,7 @@
 # Ignore JS not in libraries
 concepts/*.js
 platform/site/*.js
+platform/site/tests/*.js
+
+# Ignore generated documentation
+docs/

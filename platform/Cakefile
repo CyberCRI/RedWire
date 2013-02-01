@@ -1,9 +1,14 @@
 {spawn, exec} = require 'child_process'
 
 task 'build', 'build once', ->
-    coffee = spawn 'coffee', ['-c', '-o', 'site', 'src']
-    coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
+  coffee = spawn 'coffee', ['-c', '-o', 'site', 'src']
+  coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
 
 task 'watch', 'continually build with --watch', ->
-    coffee = spawn 'coffee', ['-cw', '-o', 'site', 'src']
-    coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
+  coffee = spawn 'coffee', ['-cw', '-o', 'site', 'src']
+  coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
+
+task 'doc', 'create documentation', ->
+  coffee = spawn 'docco', ['src/*.coffee', 'src/tests/*.coffee']
+  coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
+
