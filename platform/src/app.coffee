@@ -1,5 +1,5 @@
 Ext.application
-  name: 'HelloExt'
+  name: 'gamEvolve'
   launch: ->
     Ext.create 'Ext.container.Viewport', 
       layout: 'border'
