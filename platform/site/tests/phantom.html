@@ -1,0 +1,30 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>gamEvolve Tests</title>
+
+  <link rel="stylesheet" type="text/css" href="../lib/jasmine/jasmine.css">
+  <script type="text/javascript" src="../lib/jasmine/jasmine.js"></script>
+  <script type="text/javascript" src="../lib/jasmine/jasmine-html.js"></script>
+
+  <script type="text/javascript" src="../lib/phantom-jasmine/console-runner.js"></script>
+
+  <!-- include source files here... -->
+  <script type="text/javascript" src="../model.js"></script>
+
+  <!-- include spec files here... -->
+  <script type="text/javascript" src="testModel.js"></script>
+</head>
+<body>
+
+<script type="text/javascript">
+  var console_reporter = new jasmine.ConsoleReporter()
+  jasmine.getEnv().addReporter(new jasmine.TrivialReporter());
+  jasmine.getEnv().addReporter(console_reporter);
+  jasmine.getEnv().execute();
+</script>
+
+</body>
+</html>
+
