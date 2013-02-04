@@ -31,6 +31,9 @@ GE =
   # Use Underscore's clone method
   clone: _.clone
 
+  # Reject arrays as objects
+  isPlainOldObject: (o) -> return _.isObject(o) and not _.isArray(o)
+
   # Logging functions could be used later 
   logError: (x) -> console.error(x)
 
@@ -45,12 +48,12 @@ GE =
       patches.push { add: prefix, value: GE.clone(newValue) }
     else if newValue is undefined 
       patches.push { remove: prefix }
-    else if not isObject(newValue) or not isObject(oldValue) 
+    else if not GE.isPlainOldObject(newValue) or not GE.isPlainOldObject(oldValue) 
       patches.push { replace: prefix, value: GE.clone(newValue) }
     else 
       # both elements are objects
       keys = _.union _.keys(oldValue), _.keys(newValue)
-      makePatchList(oldValue[key], newValue[key], "#{prefix}/#{key}", patches) for key in keys
+      GE.makePatches(oldValue[key], newValue[key], "#{prefix}/#{key}", patches) for key in keys
 
     return patches
 
@@ -61,10 +64,10 @@ GE =
 
     getParentAndKey = (parent, pathParts) ->
       if pathParts.length == 0 then return [parent, null]
-      if pathParts.length == 1 then return [parent, pathParts[1]]
-      return getParentAndKey(_.first(parent[first]), _.rest(pathParts))
+      if pathParts.length == 1 then return [parent, pathParts[0]]
+      return getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
 
-    value = GE.clone(originalValue)
+    value = GE.clone(oldValue)
 
     for patch in patches
       if "remove" of patch
@@ -90,15 +93,15 @@ GE =
 
   # The model copies itself as you call functions on it, like a Crockford-style monad
   Model: class Model
-    constructor: (@previous = null, @data = {}) -> 
-      version = if @previous? then @previous.version + 1 else 0
+    constructor: (data = {}, @previous = null) -> 
+      @data = GE.clone(data)
+      @version = if @previous? then @previous.version + 1 else 0
 
     applyPatches: (patches) ->
       if GE.doPatchesConflict(patches) then throw new Error("Patches conflict")
 
-      newData = GE.applyPatches(@data)
-      return new Model(@, newData)
-
+      newData = GE.applyPatches(patches, @data)
+      return new Model(newData, @)
 
   # Catches all errors in the function 
   sandboxFunctionCall: (functionName, args) ->
