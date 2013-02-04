@@ -9,17 +9,20 @@ children: [
     params:
       condition: "not(model('levelComplete'))"
     children: [
-        doc: "detect clicks"
         bind: 
-          piece: "eachOf(model('pieces'))"
+          doc: "detect clicks"
+          from: 
+            piece: "model('pieces')"
+          select: 
+            piece: "piece"
         children: 
           action: "watch"
           params:
-            condition: "param('piece').buttonStatus"
+            condition: "piece.buttonStatus"
           children:
             pressed: 
               setModel:
-                selectedPiece: "linkTo(param('piece'))"
+                selectedPiece: "linkTo(piece)"
       ,
         action: "computeLightPath"
         params:
@@ -41,7 +44,11 @@ children: [
           arguments: ["config('canvasName')"]
       ,
         bind:
-          piece: eachOf(modelRef("pieces"))
+          from: 
+            piece: "model('pieces')"
+          where: "piece.isActive"
+          select: 
+            piece: "piece"
         children:
           action: "drawPiece"
           params: { sprite: insert(model("sprites")) }
