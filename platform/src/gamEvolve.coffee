@@ -36,8 +36,69 @@ GE =
 
   logWarning: (x) -> console.warn(x)
 
+  # Compare new object and old object to create list of patches.
+  # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
+  makePatches: (oldValue, newValue, prefix = "", patches = []) ->
+    if _.isEqual(newValue, oldValue) then return patches
+
+    if oldValue is undefined
+      patches.push { add: prefix, value: GE.clone(newValue) }
+    else if newValue is undefined 
+      patches.push { remove: prefix }
+    else if not isObject(newValue) or not isObject(oldValue) 
+      patches.push { replace: prefix, value: GE.clone(newValue) }
+    else 
+      # both elements are objects
+      keys = _.union _.keys(oldValue), _.keys(newValue)
+      makePatchList(oldValue[key], newValue[key], "#{prefix}/#{key}", patches) for key in keys
+
+    return patches
+
+  # Takes an oldValue and list of patches and creates a new value
+  # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
+  applyPatches: (patches, oldValue, prefix = "") ->
+    splitPath = (path) -> _.rest(path.split("/"))
+
+    getParentAndKey = (parent, pathParts) ->
+      if pathParts.length == 0 then return [parent, null]
+      if pathParts.length == 1 then return [parent, pathParts[1]]
+      return getParentAndKey(_.first(parent[first]), _.rest(pathParts))
+
+    value = GE.clone(originalValue)
+
+    for patch in patches
+      if "remove" of patch
+        [parent, key] = getParentAndKey(value, splitPath(patch.remove))
+        delete parent[key]
+      else if "add" of patch
+        [parent, key] = getParentAndKey(value, splitPath(patch.add))
+        parent[key] = patch.value
+      else if "replace" of patch
+        [parent, key] = getParentAndKey(value, splitPath(patch.replace))
+        if key not of parent then throw new Error("No existing value to replace for patch #{patch}")
+        parent[key] = patch.value
+
+    return value
+
+  # Returns true if more than 1 patch in the list tries to touch the same model parameters
+  doPatchesConflict: (patches) ->
+    affectedKeys = {}
+    for patch in patches
+      key = patch.remove or patch.add or patch.replace
+      if key of affectedKeys then return true
+      affectedKeys[key] = true
+
   # The model copies itself as you call functions on it, like a Crockford-style monad
   Model: class Model
+    constructor: (@previous = null, @data = {}) -> 
+      version = if @previous? then @previous.version + 1 else 0
+
+    applyPatches: (patches) ->
+      if GE.doPatchesConflict(patches) then throw new Error("Patches conflict")
+
+      newData = GE.applyPatches(@data)
+      return new Model(@, newData)
+
 
   # Catches all errors in the function 
   sandboxFunctionCall: (functionName, args) ->

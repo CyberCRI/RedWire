@@ -7,7 +7,7 @@ describe "gamEvolve", ->
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
       toBeEmpty: (expected) -> expected.length == 0
 
-  it "can sandbox a function call", ->
+  it "sandboxes a function call", ->
     globals.testFunction = (x) -> 
       x.a = 1
       throw new Error("error")
@@ -16,7 +16,7 @@ describe "gamEvolve", ->
     expect(testObj.a).toBe(1)
 
   describe "runSteps", ->
-    it "can call functions", ->
+    it "calls functions", ->
       # make test function to spy on
       globals.testFunction = jasmine.createSpy()
 
@@ -28,7 +28,7 @@ describe "gamEvolve", ->
 
       expect(globals.testFunction).toHaveBeenCalledWith(1, 2)
 
-    it "can call actions", ->
+    it "calls actions", ->
       isCalled = false
 
       actions = 
