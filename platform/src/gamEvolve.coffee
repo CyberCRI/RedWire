@@ -21,20 +21,69 @@
       2. If more signals are created, store them for parents
 ###
 
-# Declare the model namespace
-model = 
-  # Return an empty event list and the current data
-  create: (pod = {}) -> return { events: [pod] }
+# Requires underscore
 
-  # TODO return time too
-  getLastData: (m) -> return _.last(events)
+# Get alias for the global scope
+globals = @
 
-  getDataAtEvent: (m, event) -> return m.events[event]
+# All will be in the "GE" namespace
+GE = 
+  # Use Underscore's clone method
+  clone: _.clone
 
-  makePatch: (m, pod) ->
+  # Logging functions could be used later 
+  logError: (x) -> console.error(x)
 
-  # TODO return time too
-  applyPatches: (m, patch) ->
+  logWarning: (x) -> console.warn(x)
+
+  # The model copies itself as you call functions on it, like a Crockford-style monad
+  Model: class Model
+
+  # Catches all errors in the function 
+  sandboxFunctionCall: (functionName, args) ->
+    try
+      globals[functionName].apply({}, args)
+    catch e
+      GE.logWarning("Calling function #{functionName} raised an exception #{e}")
+    
+  # Catches all errors in the function 
+  sandboxActionCall: (actions, actionName, params) ->
+    action = actions[actionName]
+
+    # TODO: merge default param values
+    # TODO: evaluate all functions, then insure that all params are POD
+    # TODO: allow paramDefs to be missing
+    if(not _.isEqual(_.keys(action.paramDefs), _.keys(params)))
+      return GE.logError("Parameters given to action #{actionName} do not match definitions")
+
+    try
+      locals = 
+        params: params
+      action.update.apply(locals)
+    catch e
+      GE.logWarning("Calling action #{action} raised an exception #{e}")
+
+  runStep: (model, actions, layout) ->
+    # TODO: defer action and call execution until whole tree is evaluated?
+
+    if "action" of layout
+      GE.sandboxActionCall(actions, layout.action, layout.params)
+      # continute with children
+      if "children" not of layout then return
+
+      for child in layout.children
+        GE.runStep(model, actions, child)
+    else if "call" of layout
+      GE.sandboxFunctionCall(layout.call, layout.params)
+    else
+      GE.logError("Layout item must be action or call")
+
+
+# Install the GE namespace in the global scope
+globals.GE = GE
+
+
+
 
 
 
