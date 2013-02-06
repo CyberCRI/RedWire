@@ -8,12 +8,9 @@ describe "gamEvolve", ->
       toBeEmpty: (expected) -> expected.length == 0
 
   it "sandboxes a function call", ->
-    globals.testFunction = (x) -> 
-      x.a = 1
-      throw new Error("error")
-    testObj = {}
-    GE.sandboxFunctionCall("testFunction", [testObj])
-    expect(testObj.a).toBe(1)
+    globals.testFunction = jasmine.createSpy()
+    GE.sandboxFunctionCall(null, "testFunction", ["hello"])
+    expect(globals.testFunction).toHaveBeenCalledWith("hello")
 
   describe "model", ->
     it "can be created empty", ->
@@ -127,4 +124,20 @@ describe "gamEvolve", ->
 
       GE.runStep(null, actions, layout)
       expect(timesCalled).toEqual(3)
+
+    it "evaluates parameters for functions", ->
+      model = new GE.Model({ person: { firstName: "bob" } })
+
+      # make test function to spy on
+      globals.testFunction = jasmine.createSpy()
+
+      layout = 
+        call: "testFunction"
+        params: ["@model:person.firstName", "model"]
+
+
+      GE.runStep(model, null, layout)
+
+      expect(globals.testFunction).toHaveBeenCalledWith("bob", "model")
+
 
