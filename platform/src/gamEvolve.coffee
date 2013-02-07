@@ -31,7 +31,7 @@ GE =
   # The model copies itself as you call functions on it, like a Crockford-style monad
   Model: class Model
     constructor: (data = {}, @previous = null) -> 
-      @data = GE.clone(data)
+      @data = GE.cloneData(data)
       @version = if @previous? then @previous.version + 1 else 0
 
     applyPatches: (patches) ->
@@ -41,13 +41,12 @@ GE =
       newData = GE.applyPatches(patches, @data)
       return new Model(newData, @)
 
-    clonedData: -> return GE.clone(@data)
+    clonedData: -> return GE.cloneData(@data)
 
     makePatches: (newData) -> return GE.makePatches(@data, newData)
 
-  # Use Underscore's clone method
-  # TODO: replace with deep clone 
-  clone: _.clone
+  # There is probably a faster way to do this 
+  cloneData: (o) -> JSON.parse(JSON.stringify(o))
 
   # Reject arrays as objects
   isOnlyObject: (o) -> return _.isObject(o) and not _.isArray(o)
@@ -73,11 +72,11 @@ GE =
     if _.isEqual(newValue, oldValue) then return patches
 
     if oldValue is undefined
-      patches.push { add: prefix, value: GE.clone(newValue) }
+      patches.push { add: prefix, value: GE.cloneData(newValue) }
     else if newValue is undefined 
       patches.push { remove: prefix }
     else if not GE.isOnlyObject(newValue) or not GE.isOnlyObject(oldValue) 
-      patches.push { replace: prefix, value: GE.clone(newValue) }
+      patches.push { replace: prefix, value: GE.cloneData(newValue) }
     else 
       # both elements are objects
       keys = _.union _.keys(oldValue), _.keys(newValue)
@@ -92,7 +91,7 @@ GE =
   applyPatches: (patches, oldValue, prefix = "") ->
     splitPath = (path) -> _.rest(path.split("/"))
 
-    value = GE.clone(oldValue)
+    value = GE.cloneData(oldValue)
 
     for patch in patches
       if "remove" of patch
@@ -172,9 +171,19 @@ GE =
 
     return newBindings
 
+  handleSetModel: (model, bindings, setModelLayout) ->
+    modelData = model.clonedData()
+
+    # TODO: handle bindings?
+    for name, value of setModelLayout
+      evaluatedParam = GE.compileParameter(modelData, bindings, value).get()
+      GE.matchers.model(modelData, name).set(evaluatedParam) 
+      
+    return model.makePatches(modelData)
+
   runStep: (model, actions, layout, bindings = {}) ->
     # TODO: defer action and call execution until whole tree is evaluated?
-    # TODO: handle object of children in addition to array
+    # TODO: handle children as object in addition to array
 
     # List of patches to apply, across all actions
     patches = []
@@ -183,26 +192,23 @@ GE =
       actionPatches = GE.sandboxActionCall(model, bindings, actions, layout.action, layout.params, bindings)
       # Concatenate the array in place
       patches.push(actionPatches...) 
-
-      # continute with children
-      if "children" of layout 
-        for child in layout.children
-          childPatches = GE.runStep(model, actions, child, bindings)
-          # Concatenate the array in place
-          patches.push(childPatches...) 
     else if "call" of layout
       GE.sandboxFunctionCall(model, bindings, layout.call, layout.params, bindings)
     else if "bind" of layout
-      newBindings = GE.calculateBindings(bindings, layout.bind)
-
-      # continute with children
-      if "children" of layout 
-        for child in layout.children
-          childPatches = GE.runStep(model, actions, child, newBindings)
-          # Concatenate the array in place
-          patches.push(childPatches...) 
+      bindings = GE.calculateBindings(bindings, layout.bind)
+    else if "setModel" of layout
+      setModelPatches = GE.handleSetModel(model, bindings, layout.setModel)
+      # Concatenate the array in place
+      patches.push(setModelPatches...) 
     else
       GE.logError("Layout item must be action or call")
+
+    # continute with children
+    if "children" of layout 
+      for child in layout.children
+        childPatches = GE.runStep(model, actions, child, bindings)
+        # Concatenate the array in place
+        patches.push(childPatches...) 
 
     return patches
 

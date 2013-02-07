@@ -182,4 +182,23 @@ describe "gamEvolve", ->
       expect(newModel.data.b).toBe(9)
       expect(newModel.data.c).toBe(30)
 
+    it "sets the model", ->
+      oldModel = new GE.Model
+        a: 
+          a1: 1
+        b: 10
+        c: "hi"
 
+      layout = 
+        setModel: 
+          "a.a1": 2
+          "b": "@model:c"
+
+      patches = GE.runStep(oldModel, null, layout)
+      newModel = oldModel.applyPatches(patches)
+
+      # The new model should be changed, but the old one shouldn't be
+      expect(oldModel.data.a.a1).toBe(1)
+      expect(oldModel.data.b).toBe(10)
+      expect(newModel.data.a.a1).toBe(2)
+      expect(newModel.data.b).toBe("hi")
