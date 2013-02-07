@@ -28,6 +28,23 @@ globals = @
 
 # All will be in the "GE" namespace
 GE = 
+  # The model copies itself as you call functions on it, like a Crockford-style monad
+  Model: class Model
+    constructor: (data = {}, @previous = null) -> 
+      @data = GE.clone(data)
+      @version = if @previous? then @previous.version + 1 else 0
+
+    applyPatches: (patches) ->
+      if patches.length == 0 then return @ # Nothing to do
+      if GE.doPatchesConflict(patches) then throw new Error("Patches conflict")
+
+      newData = GE.applyPatches(patches, @data)
+      return new Model(newData, @)
+
+    clonedData: -> return GE.clone(@data)
+
+    makePatches: (newData) -> return GE.makePatches(@data, newData)
+
   # Use Underscore's clone method
   clone: _.clone
 
@@ -38,6 +55,14 @@ GE =
   logError: (x) -> console.error(x)
 
   logWarning: (x) -> console.warn(x)
+
+  # For accessing a value within an embedded object or array
+  # Takes a parent object/array and the "path" as an array
+  # Returns [parent, key] where parent is the array/object and key w
+  getParentAndKey: (parent, pathParts) ->
+    if pathParts.length == 0 then return [parent, null]
+    if pathParts.length == 1 then return [parent, pathParts[0]]
+    return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
 
   # Compare new object and old object to create list of patches.
   # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
@@ -58,14 +83,6 @@ GE =
       GE.makePatches(oldValue[key], newValue[key], "#{prefix}/#{key}", patches) for key in keys
 
     return patches
-
-  # For accessing a value within an embedded object or array
-  # Takes a parent object/array and the "path" as an array
-  # Returns [parent, key] where parent is the array/object and key w
-  getParentAndKey: (parent, pathParts) ->
-    if pathParts.length == 0 then return [parent, null]
-    if pathParts.length == 1 then return [parent, pathParts[0]]
-    return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
 
   # Takes an oldValue and list of patches and creates a new value
   # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
@@ -98,72 +115,84 @@ GE =
       if key of affectedKeys then return true
       affectedKeys[key] = true
 
-  # The model copies itself as you call functions on it, like a Crockford-style monad
-  Model: class Model
-    constructor: (data = {}, @previous = null) -> 
-      @data = GE.clone(data)
-      @version = if @previous? then @previous.version + 1 else 0
-
-    applyPatches: (patches) ->
-      if GE.doPatchesConflict(patches) then throw new Error("Patches conflict")
-
-      newData = GE.applyPatches(patches, @data)
-      return new Model(newData, @)
-
   # Catches all errors in the function 
   sandboxFunctionCall: (model, functionName, parameters) ->
+    modelData = model.clonedData()
+    compiledParams = (GE.compileParameter(modelData, parameter) for parameter in parameters)
+    evaluatedParams = (param.get() for param in compiledParams)
+
     try
-      evaluatedParams = (GE.getParameterValue(model, GE.convertParameter(parameter)) for parameter in parameters)
       globals[functionName].apply({}, evaluatedParams)
     catch e
       GE.logWarning("Calling function #{functionName} raised an exception #{e}")
     
   # Catches all errors in the function 
-  sandboxActionCall: (actions, actionName, params) ->
+  sandboxActionCall: (model, actions, actionName, parameters) ->
     action = actions[actionName]
 
     # TODO: merge default param values
     # TODO: evaluate all functions, then insure that all params are POD
     # TODO: allow paramDefs to be missing
-    if(not _.isEqual(_.keys(action.paramDefs), _.keys(params)))
+    if(not _.isEqual(_.keys(action.paramDefs), _.keys(parameters)))
       return GE.logError("Parameters given to action #{actionName} do not match definitions")
 
+    modelData = model.clonedData()
+    compiledParams = {}
+    evaluatedParams = {}
+    for paramName, paramValue of parameters
+      compiledParams[paramName] = GE.compileParameter(modelData, paramValue)
+      evaluatedParams[paramName] = compiledParams[paramName].get()
+    locals = 
+      params: evaluatedParams
     try
-      locals = 
-        params: params
       action.update.apply(locals)
     catch e
       GE.logWarning("Calling action #{action} raised an exception #{e}")
 
+    # Call set() on all parameter functions
+    for paramName of parameters
+      compiledParams[paramName].set(evaluatedParams[paramName])
+
+    # return patches, if any
+    return model.makePatches(modelData) 
+
   runStep: (model, actions, layout) ->
     # TODO: defer action and call execution until whole tree is evaluated?
 
+    # List of patches to apply, across all actions
+    patches = []
+
     if "action" of layout
-      GE.sandboxActionCall(actions, layout.action, layout.params)
+      actionPatches = GE.sandboxActionCall(model, actions, layout.action, layout.params)
+      # Concatenate the array in place
+      patches.push(actionPatches...) 
+
       # continute with children
-      if "children" not of layout then return
+      if "children" not of layout then return patches
 
       for child in layout.children
-        GE.runStep(model, actions, child)
+        childPatches = GE.runStep(model, actions, child)
+        # Concatenate the array in place
+        patches.push(childPatches...) 
     else if "call" of layout
       GE.sandboxFunctionCall(model, layout.call, layout.params)
     else
       GE.logError("Layout item must be action or call")
 
+    return patches
+
   # Parameter names are always strings
   matchers: 
-    model: (name) -> 
+    model: (modelData, name) -> 
       if not name? then throw new Error("Model matcher requires a name")
 
+      [parent, key] = GE.getParentAndKey(modelData, name.split("."))
       return {
-        get: -> 
-          [parent, key] = GE.getParentAndKey(@modelData, name.split("."))
-          return parent[key]
-        set: (x) ->
-          [parent, key] = GE.getParentAndKey(@modelData, name.split("."))
-          parent[key] = x
+        get: -> return parent[key]
+        set: (x) -> parent[key] = x
       }
 
+    # TODO: these bindings should be evaluated directly in convertParameter, because they could make reference to models
     binding: (name) -> 
       if not name? then throw new Error("Binding matcher requires a name")
 
@@ -172,35 +201,28 @@ GE =
         set: (x) -> @bindings[name] = x
       }
 
+  # Compile parameter text into 'executable' object containing get()/set() methods
   # TODO: include piping expressions
-  # TODO: insure that parameters are only JSON
-  convertParameter: (layoutParameter) ->
+  # TODO: insure that parameter constants are only JSON
+  compileParameter: (modelData, layoutParameter) ->
     if _.isString(layoutParameter) and layoutParameter.length > 0
       # it might be an expression
       if layoutParameter[0] == "$"
         return GE.matchers.binding(layoutParameter.slice(1))
 
       if layoutParameter[0] == "@"
-        # The parameter is optional
-        # TODO: include multiple parameters?
-        [matcherName, parameter] = layoutParameter.slice(1).split(":")
-
-        return GE.matchers[matcherName](parameter)
-
-      # Nope, just a string. Fall through...
+        # The argument is optional
+        # TODO: include multiple arguments? As list or map?
+        [matcherName, argument] = layoutParameter.slice(1).split(":")
+        return GE.matchers[matcherName](modelData, argument)
+        # Nope, just a string. Fall through...
 
     # Return as a constant value
-    return layoutParameter
+    return {
+      get: -> return layoutParameter
+      set: -> # Noop. Cannot set constant value
+    }
 
-  # Parameters that have get functions are evaluated
-  getParameterValue: (model, parameter) ->
-    if GE.isOnlyObject(parameter) and "get" of parameter and "set" of parameter
-      locals = 
-        modelData: model.data
-      return parameter.get.apply(locals)
-
-    # Already a constant value
-    return parameter
 
 
 # Install the GE namespace in the global scope

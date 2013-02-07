@@ -9,7 +9,7 @@ describe "gamEvolve", ->
 
   it "sandboxes a function call", ->
     globals.testFunction = jasmine.createSpy()
-    GE.sandboxFunctionCall(null, "testFunction", ["hello"])
+    GE.sandboxFunctionCall(new GE.Model(), "testFunction", ["hello"])
     expect(globals.testFunction).toHaveBeenCalledWith("hello")
 
   describe "model", ->
@@ -72,7 +72,7 @@ describe "gamEvolve", ->
         call: "testFunction"
         params: [1, 2]
 
-      GE.runStep(null, null, layout)
+      GE.runStep(new GE.Model(), null, layout)
 
       expect(globals.testFunction).toHaveBeenCalledWith(1, 2)
 
@@ -97,7 +97,7 @@ describe "gamEvolve", ->
           x: 2
           y: "z"
 
-      GE.runStep(null, actions, layout)
+      GE.runStep(new GE.Model(), actions, layout)
       expect(isCalled).toBeTruthy()
 
     it "calls children of actions", ->
@@ -122,7 +122,7 @@ describe "gamEvolve", ->
           }
         ]
 
-      GE.runStep(null, actions, layout)
+      GE.runStep(new GE.Model(), actions, layout)
       expect(timesCalled).toEqual(3)
 
     it "evaluates parameters for functions", ->
@@ -139,5 +139,34 @@ describe "gamEvolve", ->
       GE.runStep(model, null, layout)
 
       expect(globals.testFunction).toHaveBeenCalledWith("bob", "model")
+
+    it "evaluates parameters for actions", ->
+      oldModel = new GE.Model
+        a: 1
+        b: 10
+
+      actions = 
+        adjustModel: 
+          paramDefs:
+            x: null
+            y: null
+          update: ->
+            @params.x++
+            @params.y--
+
+      layout = 
+        action: "adjustModel"
+        params: 
+          x: "@model:a"
+          y: "@model:b"
+
+      patches = GE.runStep(oldModel, actions, layout)
+      newModel = oldModel.applyPatches(patches)
+
+      # The new model should be changed, but the old one shouldn't be
+      expect(oldModel.data.a).toBe(1)
+      expect(oldModel.data.b).toBe(10)
+      expect(newModel.data.a).toBe(2)
+      expect(newModel.data.b).toBe(9)
 
 
