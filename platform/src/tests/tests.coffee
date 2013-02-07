@@ -7,11 +7,6 @@ describe "gamEvolve", ->
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
       toBeEmpty: (expected) -> expected.length == 0
 
-  it "sandboxes a function call", ->
-    globals.testFunction = jasmine.createSpy()
-    GE.sandboxFunctionCall(new GE.Model(), "testFunction", ["hello"])
-    expect(globals.testFunction).toHaveBeenCalledWith("hello")
-
   describe "model", ->
     it "can be created empty", ->
       model = new GE.Model()
@@ -132,33 +127,47 @@ describe "gamEvolve", ->
       globals.testFunction = jasmine.createSpy()
 
       layout = 
-        call: "testFunction"
-        params: ["@model:person.firstName", "model"]
-
-
+        bind: 
+          select: 
+            lastName: "jon"
+        children: [
+          { 
+            call: "testFunction"
+            params: ["@model:person.firstName", "model", "$lastName"]
+          }
+        ]
       GE.runStep(model, null, layout)
 
-      expect(globals.testFunction).toHaveBeenCalledWith("bob", "model")
+      expect(globals.testFunction).toHaveBeenCalledWith("bob", "model", "jon")
 
     it "evaluates parameters for actions", ->
       oldModel = new GE.Model
         a: 1
         b: 10
+        c: 20
 
       actions = 
         adjustModel: 
           paramDefs:
             x: null
             y: null
+            z: null
           update: ->
             @params.x++
             @params.y--
+            @params.z = 30
 
       layout = 
-        action: "adjustModel"
-        params: 
-          x: "@model:a"
-          y: "@model:b"
+        bind: 
+          select:
+            c: "@model:b"
+            z: "@model:c"
+        children: [
+          action: "adjustModel"
+          params: 
+            x: "@model:a"
+            y: "$c"
+        ]
 
       patches = GE.runStep(oldModel, actions, layout)
       newModel = oldModel.applyPatches(patches)
@@ -166,7 +175,9 @@ describe "gamEvolve", ->
       # The new model should be changed, but the old one shouldn't be
       expect(oldModel.data.a).toBe(1)
       expect(oldModel.data.b).toBe(10)
+      expect(oldModel.data.c).toBe(20)
       expect(newModel.data.a).toBe(2)
       expect(newModel.data.b).toBe(9)
+      expect(newModel.data.c).toBe(30)
 
 

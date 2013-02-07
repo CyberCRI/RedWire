@@ -46,6 +46,7 @@ GE =
     makePatches: (newData) -> return GE.makePatches(@data, newData)
 
   # Use Underscore's clone method
+  # TODO: replace with deep clone 
   clone: _.clone
 
   # Reject arrays as objects
@@ -116,9 +117,9 @@ GE =
       affectedKeys[key] = true
 
   # Catches all errors in the function 
-  sandboxFunctionCall: (model, functionName, parameters) ->
+  sandboxFunctionCall: (model, bindings, functionName, parameters) ->
     modelData = model.clonedData()
-    compiledParams = (GE.compileParameter(modelData, parameter) for parameter in parameters)
+    compiledParams = (GE.compileParameter(modelData, bindings, parameter) for parameter in parameters)
     evaluatedParams = (param.get() for param in compiledParams)
 
     try
@@ -127,20 +128,25 @@ GE =
       GE.logWarning("Calling function #{functionName} raised an exception #{e}")
     
   # Catches all errors in the function 
-  sandboxActionCall: (model, actions, actionName, parameters) ->
+  sandboxActionCall: (model, bindings, actions, actionName, layoutParameters) ->
     action = actions[actionName]
 
-    # TODO: merge default param values
-    # TODO: evaluate all functions, then insure that all params are POD
+    # TODO: insure that all params values are POD
     # TODO: allow paramDefs to be missing
-    if(not _.isEqual(_.keys(action.paramDefs), _.keys(parameters)))
-      return GE.logError("Parameters given to action #{actionName} do not match definitions")
 
     modelData = model.clonedData()
     compiledParams = {}
     evaluatedParams = {}
-    for paramName, paramValue of parameters
-      compiledParams[paramName] = GE.compileParameter(modelData, paramValue)
+    for paramName, defaultValue of action.paramDefs
+      # Resolve parameter value. In order, try layout, bindings, and finally default
+      if paramName of layoutParameters
+        paramValue = layoutParameters[paramName]
+      else if paramName of bindings
+        paramValue = bindings[paramName]
+      else 
+        paramValue = defaultValue
+
+      compiledParams[paramName] = GE.compileParameter(modelData, bindings, paramValue)
       evaluatedParams[paramName] = compiledParams[paramName].get()
     locals = 
       params: evaluatedParams
@@ -150,32 +156,51 @@ GE =
       GE.logWarning("Calling action #{action} raised an exception #{e}")
 
     # Call set() on all parameter functions
-    for paramName of parameters
-      compiledParams[paramName].set(evaluatedParams[paramName])
+    for paramName, paramValue of compiledParams
+      paramValue.set(evaluatedParams[paramName])
 
     # return patches, if any
     return model.makePatches(modelData) 
 
-  runStep: (model, actions, layout) ->
+  calculateBindings: (oldBindings, bindingLayout) ->
+    # Avoid polluting old object, and avoid creating new properties
+    newBindings = Object.create(oldBindings)
+
+    # TODO: handle 'from'
+    for name, value of bindingLayout.select
+      newBindings[name] = value
+
+    return newBindings
+
+  runStep: (model, actions, layout, bindings = {}) ->
     # TODO: defer action and call execution until whole tree is evaluated?
+    # TODO: handle object of children in addition to array
 
     # List of patches to apply, across all actions
     patches = []
 
     if "action" of layout
-      actionPatches = GE.sandboxActionCall(model, actions, layout.action, layout.params)
+      actionPatches = GE.sandboxActionCall(model, bindings, actions, layout.action, layout.params, bindings)
       # Concatenate the array in place
       patches.push(actionPatches...) 
 
       # continute with children
-      if "children" not of layout then return patches
-
-      for child in layout.children
-        childPatches = GE.runStep(model, actions, child)
-        # Concatenate the array in place
-        patches.push(childPatches...) 
+      if "children" of layout 
+        for child in layout.children
+          childPatches = GE.runStep(model, actions, child, bindings)
+          # Concatenate the array in place
+          patches.push(childPatches...) 
     else if "call" of layout
-      GE.sandboxFunctionCall(model, layout.call, layout.params)
+      GE.sandboxFunctionCall(model, bindings, layout.call, layout.params, bindings)
+    else if "bind" of layout
+      newBindings = GE.calculateBindings(bindings, layout.bind)
+
+      # continute with children
+      if "children" of layout 
+        for child in layout.children
+          childPatches = GE.runStep(model, actions, child, newBindings)
+          # Concatenate the array in place
+          patches.push(childPatches...) 
     else
       GE.logError("Layout item must be action or call")
 
@@ -192,23 +217,14 @@ GE =
         set: (x) -> parent[key] = x
       }
 
-    # TODO: these bindings should be evaluated directly in convertParameter, because they could make reference to models
-    binding: (name) -> 
-      if not name? then throw new Error("Binding matcher requires a name")
-
-      return {
-        get: -> return @bindings[name]
-        set: (x) -> @bindings[name] = x
-      }
-
   # Compile parameter text into 'executable' object containing get()/set() methods
   # TODO: include piping expressions
   # TODO: insure that parameter constants are only JSON
-  compileParameter: (modelData, layoutParameter) ->
+  compileParameter: (modelData, bindings, layoutParameter) ->
     if _.isString(layoutParameter) and layoutParameter.length > 0
-      # it might be an expression
+      # It might be an binding to be evaluated
       if layoutParameter[0] == "$"
-        return GE.matchers.binding(layoutParameter.slice(1))
+        layoutParameter = bindings[layoutParameter.slice(1)]
 
       if layoutParameter[0] == "@"
         # The argument is optional
