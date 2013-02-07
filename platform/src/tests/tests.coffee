@@ -152,10 +152,12 @@ describe "gamEvolve", ->
             x: null
             y: null
             z: null
+            d: 2
           update: ->
             @params.x++
             @params.y--
             @params.z = 30
+            expect(@params.d).toBe(2)
 
       layout = 
         bind: 
