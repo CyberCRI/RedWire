@@ -258,3 +258,62 @@ describe "gamEvolve", ->
       expect(models[2].data.child1TimesCalled).toBe(1)
       expect(models[2].data.activeChild).toBe(2)
 
+    it "binds across model arrays", ->
+      oldModel = new GE.Model
+        people: [
+          { first: "bill", last: "bobson" }
+          { first: "joe", last: "johnson" }
+        ]
+
+      actions = 
+        changeName: 
+          paramDefs:
+            newName: "" 
+            toChange: ""
+          update: -> @params.toChange = @params.newName
+
+      layout = 
+        bind: 
+          from:
+            person: "@model:people"
+        children: [
+          { 
+            action: "changeName"
+            params: 
+              newName: "$person.first"
+              toChange: "$person.last"
+          }
+        ]
+
+      [result, patches] = GE.runStep(oldModel, actions, layout)
+      newModel = oldModel.applyPatches(patches)
+
+      expect(newModel.data.people[0].last).toBe("bill")
+      expect(newModel.data.people[1].last).toBe("joe")
+
+    it "binds across constant arrays", ->
+      oldModel = new GE.Model()
+      people = [
+        { first: "bill", last: "bobson" }
+        { first: "joe", last: "johnson" }
+      ]
+
+      # make test function to spy on
+      globals.testFunction = jasmine.createSpy()
+
+      layout = 
+        bind: 
+          from:
+            person: people
+        children: [
+          { 
+            call: "testFunction"
+            params: ["$person"]
+          }
+        ]
+
+      GE.runStep(oldModel, null, layout)
+
+      for person in people
+        expect(globals.testFunction).toHaveBeenCalledWith(person)
+    

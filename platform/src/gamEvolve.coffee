@@ -86,10 +86,10 @@ GE =
       patches.push { add: prefix, value: GE.cloneData(newValue) }
     else if newValue is undefined 
       patches.push { remove: prefix }
-    else if not GE.isOnlyObject(newValue) or not GE.isOnlyObject(oldValue) 
+    else if not _.isObject(newValue) or not _.isObject(oldValue) or typeof(oldValue) != typeof(newValue)
       patches.push { replace: prefix, value: GE.cloneData(newValue) }
     else 
-      # both elements are objects
+      # both elements are objects or 
       keys = _.union _.keys(oldValue), _.keys(newValue)
       GE.makePatches(oldValue[key], newValue[key], "#{prefix}/#{key}", patches) for key in keys
 
@@ -175,15 +175,39 @@ GE =
     # return result and patches, if any
     return [result, model.makePatches(modelData)]
 
-  calculateBindings: (oldBindings, bindingLayout) ->
-    # Avoid polluting old object, and avoid creating new properties
-    newBindings = Object.create(oldBindings)
+  calculateBindingSet: (modelData, oldBindings, bindingLayout) ->
+    bindingSet = []
 
-    # TODO: handle 'from'
-    for name, value of bindingLayout.select
-      newBindings[name] = value
+    # TODO: multiply from values together in order to make every combination
+    if "from" of bindingLayout
+      for bindingName, bindingExpression of bindingLayout.from
+        # Evaluate values of the "from" clauses
+        # TODO: in the case of models, get reference to model rather than evaluate the data here
+        bindingValues = GE.compileParameter(modelData, oldBindings, bindingExpression).get()
+        for bindingIndex in [0..bindingValues.length - 1]
+          # Avoid polluting old object, and avoid creating new properties
+          newBindings = Object.create(oldBindings)
+          if _.isString(bindingExpression)
+            # WRONG: Works for models, but maybe not for other things
+            newBindings[bindingName] = "#{bindingExpression}.#{bindingIndex}"
+          else
+            # Evaluate immediately
+            newBindings[bindingName] = bindingValues[bindingIndex]
 
-    return newBindings
+          # Handle select
+          for name, value of bindingLayout.select
+            newBindings[name] = GE.compileParameter(modelData, newBindings, value).get()
+
+          bindingSet.push(newBindings)
+    else
+      # Avoid polluting old object, and avoid creating new properties
+      newBindings = Object.create(oldBindings)
+      # Handle select
+      for name, value of bindingLayout.select
+        newBindings[name] = value
+      bindingSet.push(newBindings)
+
+    return bindingSet
 
   handleSetModel: (model, bindings, setModelLayout) ->
     modelData = model.clonedData()
@@ -203,11 +227,9 @@ GE =
     patches = []
     result = undefined
 
-    childNames = if layout.children? then [0..layout.children.length - 1] else []
-    # By default, all children are considered active
-    activeChildren = childNames
-
     if "action" of layout
+      childNames = if layout.children? then [0..layout.children.length - 1] else []
+
       if "update" of actions[layout.action]
         [result, actionPatches] = GE.sandboxActionCall(model, bindings, actions, layout.action, "update", layout.params, childNames)
         # Concatenate patches array in place
@@ -216,32 +238,40 @@ GE =
       # check which children should be activated
       if "listActiveChildren" of actions[layout.action]
         [activeChildren, __] = GE.sandboxActionCall(model, bindings, actions, layout.action, "listActiveChildren", layout.params, childNames)
+      else
+        # By default, all children are considered active
+        activeChildren = childNames
+
+      # Continue with children
+      childSignals = []
+      for childIndex in activeChildren
+        child = layout.children[childIndex]
+        [childSignals[childIndex], childPatches] = GE.runStep(model, actions, child, bindings)
+        # Concatenate patches array in place
+        patches.push(childPatches...) 
+
+      # Handle signals
+      # TODO: if handler not defined, propogate error signals upwards? How to merge them?
+      if "handleSignals" of actions[layout.action]
+        [result, actionPatches] = GE.sandboxActionCall(model, bindings, actions, layout.action, "handleSignals", layout.params, childNames, childSignals)
+        # Concatenate patches array in place
+        patches.push(actionPatches...) 
     else if "call" of layout
       GE.sandboxFunctionCall(model, bindings, layout.call, layout.params, bindings)
     else if "bind" of layout
-      bindings = GE.calculateBindings(bindings, layout.bind)
+      bindingSet = GE.calculateBindingSet(model.data, bindings, layout.bind)
+      for newBindings in bindingSet
+        # Continue with children
+        for child in (layout.children or [])
+          [__, childPatches] = GE.runStep(model, actions, child, newBindings)
+          # Concatenate patches array in place
+          patches.push(childPatches...) 
     else if "setModel" of layout
       setModelPatches = GE.handleSetModel(model, bindings, layout.setModel)
       # Concatenate the array in place
       patches.push(setModelPatches...) 
     else
       GE.logError("Layout item is not understood")
-
-    # Continue with children
-    childSignals = []
-    for childIndex in activeChildren
-      child = layout.children[childIndex]
-      [childSignals[childIndex], childPatches] = GE.runStep(model, actions, child, bindings)
-      # Concatenate patches array in place
-      patches.push(childPatches...) 
-
-    # Handle signals
-    # TODO: if handler not defined, propogate error signals upwards? How to merge them?
-    if "action" of layout
-      if "handleSignals" of actions[layout.action]
-        [result, actionPatches] = GE.sandboxActionCall(model, bindings, actions, layout.action, "handleSignals", layout.params, childNames, childSignals)
-        # Concatenate patches array in place
-        patches.push(actionPatches...) 
 
     return [result, patches]
 
@@ -263,7 +293,21 @@ GE =
     if _.isString(layoutParameter) and layoutParameter.length > 0
       # It might be an binding to be evaluated
       if layoutParameter[0] == "$"
-        layoutParameter = bindings[layoutParameter.slice(1)]
+        layoutParameter = layoutParameter.slice(1)
+
+        # Only evaluate up to a "special" character
+        endChar = layoutParameter.search(/\./)
+        if endChar == -1 then endChar = layoutParameter.length
+        bindingKey = bindings[layoutParameter.slice(0, endChar)]
+
+        if _.isString(bindingKey)
+          layoutParameter = "#{bindingKey}#{layoutParameter.slice(endChar)}" 
+        else
+          # WRONG: This is a hack, but will not work for more complex expressions
+          return {
+            get: -> return bindingKey
+            set: -> # Noop. Cannot set constant value
+          }
 
       if layoutParameter[0] == "@"
         # The argument is optional
