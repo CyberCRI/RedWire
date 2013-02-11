@@ -49,6 +49,7 @@ Ext.application
                   region: 'west'
                   xtype: 'button'
                   icon: "images/play_12x16.png"
+                  id: "playButton"
                   tooltip: "Play/pause"
                 }
                 {
@@ -108,9 +109,9 @@ Ext.application
     context.setFillColor("black")
     context.fillRect(0, 0, canvas.width(), canvas.height())
 
-    editors = []
+    editors = {}
     onResize = -> 
-      for editor in editors
+      for editorName, editor of editors
         session = editor.session
 
         editor.resize()
@@ -129,7 +130,25 @@ Ext.application
       editor.getSession().setMode("ace/mode/javascript")
       editor.getSession().setUseWrapMode(true)
       editor.setWrapBehavioursEnabled(true)
-      editors.push(editor)
+      editors[id] = editor
 
+    loadIntoEditor = (editorId, url) ->
+      $.ajax
+        url: url
+        dataType: "text"
+        success: (data) -> editors[editorId].setValue(data)
 
+    loadIntoEditor("modelEditor", "optics/model.json")
+    # No assets for the time being
+    # loadIntoEditor("assets", "optics/assets.json")
+    loadIntoEditor("actionsEditor", "optics/actions.js")
+    loadIntoEditor("layoutEditor", "optics/layout.json")
+
+    $("#playButton").on "click", ->
+      modelData = JSON.parse(editors.modelEditor.getValue())
+      actions = eval(editors.actionsEditor.getValue())
+      layout = JSON.parse(editors.layoutEditor.getValue())
+      gameController = new GE.GameController(new GE.Model(modelData), actions, layout)
+      gameController.step()
+      
 

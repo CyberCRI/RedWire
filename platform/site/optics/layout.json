@@ -1,0 +1,7 @@
+{
+  "action": "clearBackground",
+  "params": {
+    "backgroundColor": "@model:backgroundColor"
+  }
+}
+  

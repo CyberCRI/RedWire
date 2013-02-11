@@ -54,6 +54,18 @@ GE =
 
   signals: makeConstantSet("DONE", "ERROR")
 
+  GameController: class GameController
+    constructor: (@model, @actions, @layout) ->
+
+    # Does not apply changes
+    dryStep: -> 
+      GE.runStep(@model, @actions, @layout)
+    
+    # Applies changes to model, if possible
+    step: ->
+      [result, patches] = GE.runStep(@model, @actions, @layout)
+      @model = @model.applyPatches(patches)
+
   makeConstantSet: makeConstantSet
 
   # There is probably a faster way to do this 
