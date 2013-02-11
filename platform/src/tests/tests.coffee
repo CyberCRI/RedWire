@@ -67,7 +67,7 @@ describe "gamEvolve", ->
         call: "testFunction"
         params: [1, 2]
 
-      GE.runStep(new GE.Model(), null, layout)
+      GE.runStep(new GE.Model(), null, null, layout)
 
       expect(globals.testFunction).toHaveBeenCalledWith(1, 2)
 
@@ -92,7 +92,7 @@ describe "gamEvolve", ->
           x: 2
           y: "z"
 
-      GE.runStep(new GE.Model(), actions, layout)
+      GE.runStep(new GE.Model(), null, actions, layout)
       expect(isCalled).toBeTruthy()
 
     it "calls children of actions", ->
@@ -117,11 +117,13 @@ describe "gamEvolve", ->
           }
         ]
 
-      GE.runStep(new GE.Model(), actions, layout)
+      GE.runStep(new GE.Model(), null, actions, layout)
       expect(timesCalled).toEqual(3)
 
     it "evaluates parameters for functions", ->
       model = new GE.Model({ person: { firstName: "bob" } })
+
+      assets = { image: new Image() }
 
       # make test function to spy on
       globals.testFunction = jasmine.createSpy()
@@ -133,18 +135,20 @@ describe "gamEvolve", ->
         children: [
           { 
             call: "testFunction"
-            params: ["@model:person.firstName", "model", "$lastName"]
+            params: ["@model:person.firstName", "model", "$lastName", "@asset:image"]
           }
         ]
-      GE.runStep(model, null, layout)
+      GE.runStep(model, assets, null, layout)
 
-      expect(globals.testFunction).toHaveBeenCalledWith("bob", "model", "jon")
+      expect(globals.testFunction).toHaveBeenCalledWith("bob", "model", "jon", assets.image)
 
     it "evaluates parameters for actions", ->
       oldModel = new GE.Model
         a: 1
         b: 10
         c: 20
+
+      assets = { image: new Image() }
 
       actions = 
         adjustModel: 
@@ -153,17 +157,20 @@ describe "gamEvolve", ->
             y: null
             z: null
             d: 2
+            e: null
           update: ->
             @params.x++
             @params.y--
             @params.z = 30
             expect(@params.d).toBe(2)
+            expect(@params.e).toBe(assets.image)
 
       layout = 
         bind: 
           select:
             c: "@model:b"
             z: "@model:c"
+            e: "@asset:image"
         children: [
           action: "adjustModel"
           params: 
@@ -171,7 +178,7 @@ describe "gamEvolve", ->
             y: "$c"
         ]
 
-      [result, patches] = GE.runStep(oldModel, actions, layout)
+      [result, patches] = GE.runStep(oldModel, assets, actions, layout)
       newModel = oldModel.applyPatches(patches)
 
       # The new model should be changed, but the old one shouldn't be
@@ -194,7 +201,7 @@ describe "gamEvolve", ->
           "a.a1": 2
           "b": "@model:c"
 
-      [result, patches] = GE.runStep(oldModel, null, layout)
+      [result, patches] = GE.runStep(oldModel, null, null, layout)
       newModel = oldModel.applyPatches(patches)
 
       # The new model should be changed, but the old one shouldn't be
@@ -244,14 +251,14 @@ describe "gamEvolve", ->
           }
         ]
 
-      [result, patches] = GE.runStep(models[0], actions, layout)
+      [result, patches] = GE.runStep(models[0], null, actions, layout)
       models[1] = models[0].applyPatches(patches)
 
       expect(models[1].data.child0TimesCalled).toBe(1)
       expect(models[1].data.child1TimesCalled).toBe(0)
       expect(models[1].data.activeChild).toBe(1)
       
-      [result, patches] = GE.runStep(models[1], actions, layout)
+      [result, patches] = GE.runStep(models[1], null, actions, layout)
       models[2] = models[1].applyPatches(patches)
 
       expect(models[2].data.child0TimesCalled).toBe(1)
@@ -285,7 +292,7 @@ describe "gamEvolve", ->
           }
         ]
 
-      [result, patches] = GE.runStep(oldModel, actions, layout)
+      [result, patches] = GE.runStep(oldModel, null, actions, layout)
       newModel = oldModel.applyPatches(patches)
 
       expect(newModel.data.people[0].last).toBe("bill")
@@ -312,7 +319,7 @@ describe "gamEvolve", ->
           }
         ]
 
-      GE.runStep(oldModel, null, layout)
+      GE.runStep(oldModel, null, null, layout)
 
       for person in people
         expect(globals.testFunction).toHaveBeenCalledWith(person)

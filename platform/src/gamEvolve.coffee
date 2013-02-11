@@ -54,16 +54,26 @@ GE =
 
   signals: makeConstantSet("DONE", "ERROR")
 
+  extensions:
+    images: ["png", "gif", "jpeg", "jpg"]
+
   GameController: class GameController
-    constructor: (@model, @actions, @layout) ->
+    constructor: (@model, @assets, @actions, @layout) ->
+
+    loadAssets: (callback) ->
+      GE.loadAssets @assets, (err, loadedAssets) =>
+        if err? then return callback(err)
+
+        @loadedAssets = loadedAssets
+        callback(null)
 
     # Does not apply changes
     dryStep: -> 
-      GE.runStep(@model, @actions, @layout)
+      GE.runStep(@model, @loadedAssets, @actions, @layout)
     
     # Applies changes to model, if possible
     step: ->
-      [result, patches] = GE.runStep(@model, @actions, @layout)
+      [result, patches] = GE.runStep(@model, @loadedAssets, @actions, @layout)
       @model = @model.applyPatches(patches)
 
   makeConstantSet: makeConstantSet
@@ -139,9 +149,9 @@ GE =
       affectedKeys[key] = true
 
   # Catches all errors in the function 
-  sandboxFunctionCall: (model, bindings, functionName, parameters) ->
+  sandboxFunctionCall: (model, assets, bindings, functionName, parameters) ->
     modelData = model.clonedData()
-    compiledParams = (GE.compileParameter(modelData, bindings, parameter) for parameter in parameters)
+    compiledParams = (GE.compileParameter(modelData, assets, bindings, parameter) for parameter in parameters)
     evaluatedParams = (param.get() for param in compiledParams)
 
     try
@@ -150,7 +160,7 @@ GE =
       GE.logWarning("Calling function #{functionName} raised an exception #{e}")
     
   # Catches all errors in the function 
-  sandboxActionCall: (model, bindings, actions, actionName, methodName, layoutParameters, childNames, signals) ->
+  sandboxActionCall: (model, assets, bindings, actions, actionName, methodName, layoutParameters, childNames, signals) ->
     action = actions[actionName]
 
     # TODO: insure that all params values are POD
@@ -168,7 +178,7 @@ GE =
       else 
         paramValue = defaultValue
 
-      compiledParams[paramName] = GE.compileParameter(modelData, bindings, paramValue)
+      compiledParams[paramName] = GE.compileParameter(modelData, assets, bindings, paramValue)
       evaluatedParams[paramName] = compiledParams[paramName].get()
     locals = 
       params: evaluatedParams
@@ -187,7 +197,7 @@ GE =
     # return result and patches, if any
     return [result, model.makePatches(modelData)]
 
-  calculateBindingSet: (modelData, oldBindings, bindingLayout) ->
+  calculateBindingSet: (modelData, assets, oldBindings, bindingLayout) ->
     bindingSet = []
 
     # TODO: multiply from values together in order to make every combination
@@ -195,7 +205,7 @@ GE =
       for bindingName, bindingExpression of bindingLayout.from
         # Evaluate values of the "from" clauses
         # TODO: in the case of models, get reference to model rather than evaluate the data here
-        bindingValues = GE.compileParameter(modelData, oldBindings, bindingExpression).get()
+        bindingValues = GE.compileParameter(modelData, assets, oldBindings, bindingExpression).get()
         for bindingIndex in [0..bindingValues.length - 1]
           # Avoid polluting old object, and avoid creating new properties
           newBindings = Object.create(oldBindings)
@@ -208,7 +218,7 @@ GE =
 
           # Handle select
           for name, value of bindingLayout.select
-            newBindings[name] = GE.compileParameter(modelData, newBindings, value).get()
+            newBindings[name] = GE.compileParameter(modelData, assets, newBindings, value).get()
 
           bindingSet.push(newBindings)
     else
@@ -221,17 +231,17 @@ GE =
 
     return bindingSet
 
-  handleSetModel: (model, bindings, setModelLayout) ->
+  handleSetModel: (model, assets, bindings, setModelLayout) ->
     modelData = model.clonedData()
 
     # TODO: handle bindings?
     for name, value of setModelLayout
-      evaluatedParam = GE.compileParameter(modelData, bindings, value).get()
-      GE.matchers.model(modelData, name).set(evaluatedParam) 
+      evaluatedParam = GE.compileParameter(modelData, assets, bindings, value).get()
+      GE.makeModelEvaluator(modelData, name).set(evaluatedParam) 
       
     return model.makePatches(modelData)
 
-  runStep: (model, actions, layout, bindings = {}) ->
+  runStep: (model, assets, actions, layout, bindings = {}) ->
     # TODO: defer action and call execution until whole tree is evaluated?
     # TODO: handle children as object in addition to array
 
@@ -243,13 +253,13 @@ GE =
       childNames = if layout.children? then [0..layout.children.length - 1] else []
 
       if "update" of actions[layout.action]
-        [result, actionPatches] = GE.sandboxActionCall(model, bindings, actions, layout.action, "update", layout.params, childNames)
+        [result, actionPatches] = GE.sandboxActionCall(model, assets, bindings, actions, layout.action, "update", layout.params, childNames)
         # Concatenate patches array in place
         patches.push(actionPatches...) 
 
       # check which children should be activated
       if "listActiveChildren" of actions[layout.action]
-        [activeChildren, __] = GE.sandboxActionCall(model, bindings, actions, layout.action, "listActiveChildren", layout.params, childNames)
+        [activeChildren, __] = GE.sandboxActionCall(model, assets, bindings, actions, layout.action, "listActiveChildren", layout.params, childNames)
       else
         # By default, all children are considered active
         activeChildren = childNames
@@ -258,28 +268,28 @@ GE =
       childSignals = []
       for childIndex in activeChildren
         child = layout.children[childIndex]
-        [childSignals[childIndex], childPatches] = GE.runStep(model, actions, child, bindings)
+        [childSignals[childIndex], childPatches] = GE.runStep(model, assets, actions, child, bindings)
         # Concatenate patches array in place
         patches.push(childPatches...) 
 
       # Handle signals
       # TODO: if handler not defined, propogate error signals upwards? How to merge them?
       if "handleSignals" of actions[layout.action]
-        [result, actionPatches] = GE.sandboxActionCall(model, bindings, actions, layout.action, "handleSignals", layout.params, childNames, childSignals)
+        [result, actionPatches] = GE.sandboxActionCall(model, assets, bindings, actions, layout.action, "handleSignals", layout.params, childNames, childSignals)
         # Concatenate patches array in place
         patches.push(actionPatches...) 
     else if "call" of layout
-      GE.sandboxFunctionCall(model, bindings, layout.call, layout.params, bindings)
+      GE.sandboxFunctionCall(model, assets, bindings, layout.call, layout.params, bindings)
     else if "bind" of layout
-      bindingSet = GE.calculateBindingSet(model.data, bindings, layout.bind)
+      bindingSet = GE.calculateBindingSet(model.data, assets, bindings, layout.bind)
       for newBindings in bindingSet
         # Continue with children
         for child in (layout.children or [])
-          [__, childPatches] = GE.runStep(model, actions, child, newBindings)
+          [__, childPatches] = GE.runStep(model, assets, actions, child, newBindings)
           # Concatenate patches array in place
           patches.push(childPatches...) 
     else if "setModel" of layout
-      setModelPatches = GE.handleSetModel(model, bindings, layout.setModel)
+      setModelPatches = GE.handleSetModel(model, assets, bindings, layout.setModel)
       # Concatenate the array in place
       patches.push(setModelPatches...) 
     else
@@ -288,20 +298,34 @@ GE =
     return [result, patches]
 
   # Parameter names are always strings
-  matchers: 
-    model: (modelData, name) -> 
-      if not name? then throw new Error("Model matcher requires a name")
+  makeModelEvaluator: (modelData, name) -> 
+    if not name? then throw new Error("Model evaluator requires a name")
 
-      [parent, key] = GE.getParentAndKey(modelData, name.split("."))
-      return {
-        get: -> return parent[key]
-        set: (x) -> parent[key] = x
-      }
+    [parent, key] = GE.getParentAndKey(modelData, name.split("."))
+    return {
+      get: -> return parent[key]
+      set: (x) -> parent[key] = x
+    }
+
+  makeAssetEvaluator: (assets, name) ->
+    if not name? then throw new Error("Asset evaluator requires a name")
+
+    return {
+      get: -> return assets[name]
+      set: (x) -> # Noop. Cannot set asset
+    }
+
+  makeConstantEvaluator: (value) ->
+    return {
+      get: -> return value
+      set: -> # Noop. Cannot set constant value
+    }
+
 
   # Compile parameter text into 'executable' object containing get()/set() methods
   # TODO: include piping expressions
   # TODO: insure that parameter constants are only JSON
-  compileParameter: (modelData, bindings, layoutParameter) ->
+  compileParameter: (modelData, assets, bindings, layoutParameter) ->
     if _.isString(layoutParameter) and layoutParameter.length > 0
       # It might be an binding to be evaluated
       if layoutParameter[0] == "$"
@@ -316,24 +340,40 @@ GE =
           layoutParameter = "#{bindingKey}#{layoutParameter.slice(endChar)}" 
         else
           # WRONG: This is a hack, but will not work for more complex expressions
-          return {
-            get: -> return bindingKey
-            set: -> # Noop. Cannot set constant value
-          }
+          return GE.makeConstantEvaluator(bindingKey)
 
       if layoutParameter[0] == "@"
         # The argument is optional
         # TODO: include multiple arguments? As list or map?
         [matcherName, argument] = layoutParameter.slice(1).split(":")
-        return GE.matchers[matcherName](modelData, argument)
-        # Nope, just a string. Fall through...
+        switch matcherName
+          when "model" then return GE.makeModelEvaluator(modelData, argument)
+          when "asset" then return GE.makeAssetEvaluator(assets, argument)
+          else throw new Error("Cannot handle evaluator #{matcherName}")
+      # Nope, just a string. Fall through...
 
     # Return as a constant value
-    return {
-      get: -> return layoutParameter
-      set: -> # Noop. Cannot set constant value
-    }
+    return GE.makeConstantEvaluator(layoutParameter)
 
+  # Load all the assets in the given object (name: url) and then call callback with the results, or error
+  loadAssets: (assets, callback) ->
+    results = {}
+    loadedCount = 0 
+
+    onLoad = -> if ++loadedCount == _.size(assets) then callback(null, results)
+    onError = -> callback(new Error(arguments))
+
+    for name, url of assets
+      extension = url.slice(url.lastIndexOf(".") + 1)
+
+      if extension in GE.extensions.images
+        results[name] = new Image()
+        results[name].onload = onLoad 
+        results[name].onabort = onError
+        results[name].onerror = onError
+        results[name].src = url
+      else 
+        return callback(new Error("Do not know how to load #{url}"))
 
 
 # Install the GE namespace in the global scope

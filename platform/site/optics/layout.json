@@ -1,7 +1,7 @@
 {
-  "action": "clearBackground",
+  "action": "drawImage",
   "params": {
-    "backgroundColor": "@model:backgroundColor"
+    "image": "@asset:background"
   }
 }
   

@@ -139,16 +139,18 @@ Ext.application
         success: (data) -> editors[editorId].setValue(data)
 
     loadIntoEditor("modelEditor", "optics/model.json")
-    # No assets for the time being
-    # loadIntoEditor("assets", "optics/assets.json")
+    loadIntoEditor("assetsEditor", "optics/assets.json")
     loadIntoEditor("actionsEditor", "optics/actions.js")
     loadIntoEditor("layoutEditor", "optics/layout.json")
 
     $("#playButton").on "click", ->
+      assets = JSON.parse(editors.assetsEditor.getValue())
       modelData = JSON.parse(editors.modelEditor.getValue())
       actions = eval(editors.actionsEditor.getValue())
       layout = JSON.parse(editors.layoutEditor.getValue())
-      gameController = new GE.GameController(new GE.Model(modelData), actions, layout)
-      gameController.step()
+      gameController = new GE.GameController(new GE.Model(modelData), assets, actions, layout)
+      gameController.loadAssets (err) ->
+        if err? then throw err
+        gameController.step()
       
 
