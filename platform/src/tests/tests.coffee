@@ -171,7 +171,7 @@ describe "gamEvolve", ->
             y: "$c"
         ]
 
-      patches = GE.runStep(oldModel, actions, layout)
+      [result, patches] = GE.runStep(oldModel, actions, layout)
       newModel = oldModel.applyPatches(patches)
 
       # The new model should be changed, but the old one shouldn't be
@@ -194,7 +194,7 @@ describe "gamEvolve", ->
           "a.a1": 2
           "b": "@model:c"
 
-      patches = GE.runStep(oldModel, null, layout)
+      [result, patches] = GE.runStep(oldModel, null, layout)
       newModel = oldModel.applyPatches(patches)
 
       # The new model should be changed, but the old one shouldn't be
@@ -202,3 +202,59 @@ describe "gamEvolve", ->
       expect(oldModel.data.b).toBe(10)
       expect(newModel.data.a.a1).toBe(2)
       expect(newModel.data.b).toBe("hi")
+
+    it "checks and adjusts activation", ->
+      models = [new GE.Model
+        activeChild: 0
+        child0TimesCalled: 0
+        child1TimesCalled: 0
+      ]
+
+      actions = 
+        nextOnDone: 
+          paramDefs: 
+            activeChild: 0
+          listActiveChildren: -> return [@params.activeChild]
+          handleSignals: ->
+            if @signals[@params.activeChild] == GE.signals.DONE 
+              @params.activeChild++
+            if @params.activeChild >= @children.length - 1
+              return GE.signals.DONE
+        reportDone:
+          paramDefs: 
+            timesCalled: 0
+          update: -> 
+            @params.timesCalled++
+            return GE.signals.DONE
+
+      layout = 
+        action: "nextOnDone"
+        params: 
+          activeChild: "@model:activeChild"
+        children: [
+          {
+            action: "reportDone"
+            params: 
+              timesCalled: "@model:child0TimesCalled"
+          },
+          {
+            action: "reportDone"
+            params: 
+              timesCalled: "@model:child1TimesCalled"
+          }
+        ]
+
+      [result, patches] = GE.runStep(models[0], actions, layout)
+      models[1] = models[0].applyPatches(patches)
+
+      expect(models[1].data.child0TimesCalled).toBe(1)
+      expect(models[1].data.child1TimesCalled).toBe(0)
+      expect(models[1].data.activeChild).toBe(1)
+      
+      [result, patches] = GE.runStep(models[1], actions, layout)
+      models[2] = models[1].applyPatches(patches)
+
+      expect(models[2].data.child0TimesCalled).toBe(1)
+      expect(models[2].data.child1TimesCalled).toBe(1)
+      expect(models[2].data.activeChild).toBe(2)
+

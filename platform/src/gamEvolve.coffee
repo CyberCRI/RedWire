@@ -26,6 +26,13 @@
 # Get alias for the global scope
 globals = @
 
+# Since this is called by the GE namspace definition below, it must be defined first
+makeConstantSet = (values...) ->
+  obj = {}
+  for value in values then obj[value] = value
+  return Object.freeze(obj)
+
+
 # All will be in the "GE" namespace
 GE = 
   # The model copies itself as you call functions on it, like a Crockford-style monad
@@ -44,6 +51,10 @@ GE =
     clonedData: -> return GE.cloneData(@data)
 
     makePatches: (newData) -> return GE.makePatches(@data, newData)
+
+  signals: makeConstantSet("DONE", "ERROR")
+
+  makeConstantSet: makeConstantSet
 
   # There is probably a faster way to do this 
   cloneData: (o) -> JSON.parse(JSON.stringify(o))
@@ -127,7 +138,7 @@ GE =
       GE.logWarning("Calling function #{functionName} raised an exception #{e}")
     
   # Catches all errors in the function 
-  sandboxActionCall: (model, bindings, actions, actionName, layoutParameters) ->
+  sandboxActionCall: (model, bindings, actions, actionName, methodName, layoutParameters, childNames, signals) ->
     action = actions[actionName]
 
     # TODO: insure that all params values are POD
@@ -149,17 +160,20 @@ GE =
       evaluatedParams[paramName] = compiledParams[paramName].get()
     locals = 
       params: evaluatedParams
+      children: childNames
+      signals: signals
     try
-      action.update.apply(locals)
+      result = action[methodName].apply(locals)
     catch e
-      GE.logWarning("Calling action #{action} raised an exception #{e}")
+      # TODO: convert exceptions to error sigals that do not create patches
+      GE.logWarning("Calling action #{action}.#{methodName} raised an exception #{e}")
 
     # Call set() on all parameter functions
     for paramName, paramValue of compiledParams
       paramValue.set(evaluatedParams[paramName])
 
-    # return patches, if any
-    return model.makePatches(modelData) 
+    # return result and patches, if any
+    return [result, model.makePatches(modelData)]
 
   calculateBindings: (oldBindings, bindingLayout) ->
     # Avoid polluting old object, and avoid creating new properties
@@ -187,11 +201,21 @@ GE =
 
     # List of patches to apply, across all actions
     patches = []
+    result = undefined
+
+    childNames = if layout.children? then [0..layout.children.length - 1] else []
+    # By default, all children are considered active
+    activeChildren = childNames
 
     if "action" of layout
-      actionPatches = GE.sandboxActionCall(model, bindings, actions, layout.action, layout.params, bindings)
-      # Concatenate the array in place
-      patches.push(actionPatches...) 
+      if "update" of actions[layout.action]
+        [result, actionPatches] = GE.sandboxActionCall(model, bindings, actions, layout.action, "update", layout.params, childNames)
+        # Concatenate patches array in place
+        patches.push(actionPatches...) 
+
+      # check which children should be activated
+      if "listActiveChildren" of actions[layout.action]
+        [activeChildren, __] = GE.sandboxActionCall(model, bindings, actions, layout.action, "listActiveChildren", layout.params, childNames)
     else if "call" of layout
       GE.sandboxFunctionCall(model, bindings, layout.call, layout.params, bindings)
     else if "bind" of layout
@@ -201,16 +225,25 @@ GE =
       # Concatenate the array in place
       patches.push(setModelPatches...) 
     else
-      GE.logError("Layout item must be action or call")
+      GE.logError("Layout item is not understood")
 
-    # continute with children
-    if "children" of layout 
-      for child in layout.children
-        childPatches = GE.runStep(model, actions, child, bindings)
-        # Concatenate the array in place
-        patches.push(childPatches...) 
+    # Continue with children
+    childSignals = []
+    for childIndex in activeChildren
+      child = layout.children[childIndex]
+      [childSignals[childIndex], childPatches] = GE.runStep(model, actions, child, bindings)
+      # Concatenate patches array in place
+      patches.push(childPatches...) 
 
-    return patches
+    # Handle signals
+    # TODO: if handler not defined, propogate error signals upwards? How to merge them?
+    if "action" of layout
+      if "handleSignals" of actions[layout.action]
+        [result, actionPatches] = GE.sandboxActionCall(model, bindings, actions, layout.action, "handleSignals", layout.params, childNames, childSignals)
+        # Concatenate patches array in place
+        patches.push(actionPatches...) 
+
+    return [result, patches]
 
   # Parameter names are always strings
   matchers: 
