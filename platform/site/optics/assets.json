@@ -2,5 +2,6 @@
   "background": "optics/images/asset_interface_grid.png",
   "wall": "optics/images/asset_solid_wall_idle.png",
   "squarePrism": "optics/images/asset_prism_square_idle.png",
-  "mirror": "optics/images/asset_mirror_poly_idle.png"
+  "mirror": "optics/images/asset_mirror_poly_idle.png",
+  "laser-on": "optics/images/asset_laser_red_start_work.png"
 }

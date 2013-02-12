@@ -19,7 +19,8 @@
           "params": {
             "type" : "$piece.type",
             "row" : "$piece.row",
-            "col" : "$piece.col"
+            "col" : "$piece.col",
+            "rotation": "$piece.rotation"
           }
         }
       ]

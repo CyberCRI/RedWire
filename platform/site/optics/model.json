@@ -18,6 +18,12 @@
       "row": 9,
       "col": 6,
       "type": "mirror"
+    },
+    { 
+      "row": 0,
+      "col": 3,
+      "type": "laser-on",
+      "rotation": "90"
     }
   ]
 
