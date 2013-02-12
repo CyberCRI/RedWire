@@ -1,7 +1,30 @@
 {
-  "action": "drawImage",
-  "params": {
-    "image": "@asset:background"
-  }
+  "action": "group",
+  "children": [
+    { 
+      "action": "drawImage",
+      "params": {
+        "image": "@asset:background"
+      }
+    },
+    {
+      "bind": {
+        "from": {
+          "piece": "@model:pieces"
+        }
+      },
+      "children": [
+        {
+          "action": "drawPiece",
+          "params": {
+            "type" : "$piece.type",
+            "row" : "$piece.row",
+            "col" : "$piece.col"
+          }
+        }
+      ]
+    }
+  ]
+
 }
   

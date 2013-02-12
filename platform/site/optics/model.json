@@ -1,4 +1,23 @@
 {
-  "backgroundColor": "red"
+  "cellSize": 10,
+  "pieces": [
+    { 
+      "row": 0,
+      "col": 0,
+      "type": "wall"
+    },
+    { 
+      "row": 2,
+      "col": 4,
+      "type": "squarePrism"
+    },
+    { 
+      "row": 9,
+      "col": 6,
+      "type": "mirror"
+    }
+  ]
+
+
 
 }

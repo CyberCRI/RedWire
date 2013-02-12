@@ -136,6 +136,7 @@ Ext.application
       $.ajax
         url: url
         dataType: "text"
+        cache: false
         success: (data) -> editors[editorId].setValue(data)
 
     loadIntoEditor("modelEditor", "optics/model.json")

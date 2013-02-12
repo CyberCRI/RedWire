@@ -171,7 +171,7 @@ GE =
     evaluatedParams = {}
     for paramName, defaultValue of action.paramDefs
       # Resolve parameter value. In order, try layout, bindings, and finally default
-      if paramName of layoutParameters
+      if layoutParameters and paramName of layoutParameters
         paramValue = layoutParameters[paramName]
       else if paramName of bindings
         paramValue = bindings[paramName]
@@ -184,6 +184,7 @@ GE =
       params: evaluatedParams
       children: childNames
       signals: signals
+      assets: assets
     try
       result = action[methodName].apply(locals)
     catch e
@@ -250,6 +251,8 @@ GE =
     result = undefined
 
     if "action" of layout
+      if layout.action not of actions then throw new Error("Cannot find action '#{layout.action}'")
+
       childNames = if layout.children? then [0..layout.children.length - 1] else []
 
       if "update" of actions[layout.action]
