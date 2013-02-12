@@ -56,6 +56,7 @@ GE =
 
   extensions:
     images: ["png", "gif", "jpeg", "jpg"]
+    js: ["js"]
 
   GameController: class GameController
     constructor: (@model, @assets, @actions, @layout) ->
@@ -375,6 +376,14 @@ GE =
         results[name].onabort = onError
         results[name].onerror = onError
         results[name].src = url
+      else if extension in GE.extensions.js
+        # TODO: use script loader instead?
+        $.ajax
+          url: url
+          dataType: "script"
+          cache: false
+          success: onLoad
+          error: onError
       else 
         return callback(new Error("Do not know how to load #{url}"))
 

@@ -31,6 +31,12 @@
         "row": "@model:selected.row",
         "col": "@model:selected.col"
       }
+    },
+    {
+      "action": "calculateLight",
+      "params": {
+        "pieces": "@model:pieces"
+      }
     }
   ]
 
