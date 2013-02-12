@@ -23,6 +23,13 @@
           }
         }
       ]
+    },
+    {
+      "action": "drawSelected",
+      "params": {
+        "row": "@model:selected.row",
+        "col": "@model:selected.col"
+      }
     }
   ]
 

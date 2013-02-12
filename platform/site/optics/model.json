@@ -1,5 +1,8 @@
 {
-  "cellSize": 10,
+  "selected": {
+    "row": 5,
+    "col": 2
+  },
   "pieces": [
     { 
       "row": 0,

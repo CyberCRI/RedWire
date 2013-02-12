@@ -38,7 +38,21 @@
       // This could be done by drawImage() if better expressions existed
       canvas = $("#gameCanvas");
       context = canvas[0].getContext("2d");
-      context.drawImage(this.assets[this.params.type], this.params.row * 50 + 33, this.params.col * 50 + 33);
+      context.drawImage(this.assets[this.params.type], this.params.row * 52 + 33, this.params.col * 52 + 33);
     }
   },
+
+  drawSelected: {
+    paramDefs: {
+      row: 0,
+      col: 0
+    },
+    update: function() {
+      // This could be done by drawImage() if better expressions existed
+      canvas = $("#gameCanvas");
+      context = canvas[0].getContext("2d");
+      context.strokeStyle = "yellow"
+      context.strokeRect(this.params.row * 52 + 33, this.params.col * 52 + 33, 52, 52);
+    }
+  }
 });
