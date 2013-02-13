@@ -76,8 +76,6 @@
 
       function handleGridCell(point, intensity, direction)
       {
-        console.log("point: ", point[0], point[1]);
-
         if(point[0] < 0 || point[0] > GRID_SIZE[0] || point[1] < 0 || point[1] > GRID_SIZE[1]) return [0, [0, 0]];
 
         return [intensity, direction];
@@ -133,14 +131,15 @@
         lightDirection = results[1];
       } while(lightIntensity > 0);
 
+      console.log("points: ", points)
+
       canvas = $("#gameCanvas");
       context = canvas[0].getContext("2d");
       context.save();
       context.strokeStyle = "red"
-      context.strokeRect(this.params.col * 52 + 33, this.params.row * 52 + 33, 52, 52);
 
-      context.moveTo(points[0][0], points[0][1]);
       context.beginPath();
+      context.moveTo(points[0][0] * CELL_SIZE + MARGIN, points[0][1] * CELL_SIZE + MARGIN);
       for(var i = 1; i < points.length; i++)
       {
         context.lineTo(points[i][0] * CELL_SIZE + MARGIN, points[i][1] * CELL_SIZE + MARGIN);
