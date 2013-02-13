@@ -39,8 +39,8 @@
       // This could be done by drawImage() if better expressions existed
       var canvas = $("#gameCanvas");
       var context = canvas[0].getContext("2d");
-      var x = this.params.col * 52 + 33 + 26;
-      var y = this.params.row * 52 + 33 + 26;
+      var x = this.params.col * 53 + 33 + 26;
+      var y = this.params.row * 53 + 33 + 26;
 
       context.save();
       context.translate(x, y);
@@ -61,7 +61,7 @@
       canvas = $("#gameCanvas");
       context = canvas[0].getContext("2d");
       context.strokeStyle = "yellow"
-      context.strokeRect(this.params.col * 52 + 33, this.params.row * 52 + 33, 52, 52);
+      context.strokeRect(this.params.col * 53 + 33, this.params.row * 53 + 33, 50, 50);
     }
   },
 
@@ -70,8 +70,8 @@
       "pieces": []
     },
     update: function() {
-      var MARGIN = 33 + 26;
-      var CELL_SIZE = 52;
+      var MARGIN = 30;
+      var CELL_SIZE = 53;
       var GRID_SIZE = [14, 9];
 
       function handleGridCell(point, intensity, direction)

@@ -360,6 +360,7 @@ GE =
     return GE.makeConstantEvaluator(layoutParameter)
 
   # Load all the assets in the given object (name: url) and then call callback with the results, or error
+  # TODO: have cache-busting be configurable
   loadAssets: (assets, callback) ->
     results = {}
     loadedCount = 0 
@@ -375,7 +376,7 @@ GE =
         results[name].onload = onLoad 
         results[name].onabort = onError
         results[name].onerror = onError
-        results[name].src = url
+        results[name].src = url + "?_=#{new Date().getTime()}"
       else if extension in GE.extensions.js
         # TODO: use script loader instead?
         $.ajax
