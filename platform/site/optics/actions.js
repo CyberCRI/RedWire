@@ -73,6 +73,7 @@
       var MARGIN = 30;
       var CELL_SIZE = 53;
       var GRID_SIZE = [14, 9];
+      var MIRROR_ATTENUATION_FACTOR = 0.7;
 
       var that = this;
 
@@ -81,21 +82,14 @@
         return point[0] >= 0 && point[0] < GRID_SIZE[0] && point[1] >= 0 && point[1] < GRID_SIZE[1];        
       }
 
-      // Returns an intersection point with walls, or null otherwise
-      function intersectsBoundaries(origin, dest)
+      // Attempts to find intersection with the given lines and returns it.
+      // Else returns null.
+      function findIntersection(origin, dest, lines)
       {
-        var boundaries = 
-        [
-          Line.Segment.create([0, 0], [GRID_SIZE[0], 0]), // top
-          Line.Segment.create([GRID_SIZE[0], 0], [GRID_SIZE[0], GRID_SIZE[1]]), // right
-          Line.Segment.create([GRID_SIZE[0], GRID_SIZE[1]], [0, GRID_SIZE[1]]), // bottom
-          Line.Segment.create([0, GRID_SIZE[1]], [0, 0]) // left
-        ];
-
         var intersection = null;
-        for(var i = 0; i < boundaries.length; i++)
+        for(var i = 0; i < lines.length; i++)
         {
-          intersection = Line.Segment.create(origin, dest).intersectionWith(boundaries[i]);
+          intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(lines[i][0], lines[i][1]));
           if(intersection) return intersection.elements;
         }
 
@@ -103,24 +97,31 @@
       }
 
       // Returns an intersection point with walls, or null otherwise
+      function intersectsBoundaries(origin, dest)
+      {
+        var boundaries = 
+        [
+          [[0, 0], [GRID_SIZE[0], 0]], // top
+          [[GRID_SIZE[0], 0], [GRID_SIZE[0], GRID_SIZE[1]]], // right
+          [[GRID_SIZE[0], GRID_SIZE[1]], [0, GRID_SIZE[1]]], // bottom
+          [[0, GRID_SIZE[1]], [0, 0]] // left
+        ];
+
+        return findIntersection(origin, dest, boundaries);
+      }
+
+      // Returns an intersection point with walls, or null otherwise
       function intersectsCell(origin, dest, cellPos)
       {
         var boundaries = 
         [
-          Line.Segment.create([cellPos[0], cellPos[1]], [cellPos[0], cellPos[1] + 1]), // top
-          Line.Segment.create([cellPos[0], cellPos[1] + 1], [cellPos[0] + 1, cellPos[1] + 1]), // right
-          Line.Segment.create([cellPos[0] + 1, cellPos[1] + 1], [cellPos[0], cellPos[1] + 1]), // bottom
-          Line.Segment.create([cellPos[0], cellPos[1] + 1], [cellPos[0], cellPos[1]]) // left
+          [[cellPos[0], cellPos[1]], [cellPos[0], cellPos[1] + 1]], // top
+          [[cellPos[0], cellPos[1] + 1], [cellPos[0] + 1, cellPos[1] + 1]], // right
+          [[cellPos[0] + 1, cellPos[1] + 1], [cellPos[0], cellPos[1] + 1]], // bottom
+          [[cellPos[0], cellPos[1] + 1], [cellPos[0], cellPos[1]]] // left
         ];
 
-        var intersection = null;
-        for(var i = 0; i < boundaries.length; i++)
-        {
-          intersection = Line.Segment.create(origin, dest).intersectionWith(boundaries[i]);
-          if(intersection) return intersection.elements;
-        }
-
-        return null;
+        return findIntersection(origin, dest, boundaries);
       }
 
       function findGridElement(point)
@@ -142,6 +143,37 @@
 
           lightIntensity = 0;
         }
+        else if(element.type == "mirror")
+        {
+          // find intersection with central line
+          // HACK: adding 90 degrees to rotation seems to work, but doesn't seem necessary
+          var rotation = (element.rotation + 90) * Math.PI / 180; 
+          var centralLineDiff = [.5 * Math.cos(rotation), .5 * Math.sin(rotation)];
+          var centralLine = [[element.col + 0.5 + centralLineDiff[0], element.row + 0.5 + centralLineDiff[1]], [element.col + 0.5 - centralLineDiff[0], element.row + 0.5 - centralLineDiff[1]]];
+          var lineDestination = Vector.create(origin).add(Vector.create(lightDirection));
+          if(intersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lineDestination.elements, [centralLine]))
+          {
+            lightSegments[lightSegments.length - 1].destination = intersection;
+
+            lightIntensity *= MIRROR_ATTENUATION_FACTOR;
+            lightSegments.push({ origin: intersection, intensity: lightIntensity });
+
+            // reflect around normal (from http://www.gamedev.net/topic/510581-2d-reflection/)
+            // v' = 2 * (v . n) * n - v;
+            var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
+            var oldLightDirection = Vector.create(lightDirection);
+            lightDirection = normal.multiply(2 * oldLightDirection.dot(normal)).subtract(oldLightDirection).elements;
+
+            updateLightDirection();
+          }
+        }
+      }
+
+      function updateLightDirection()
+      {
+        d = [Math.abs(lightDirection[0]), Math.abs(lightDirection[1])];
+        s = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
+        err = d[0] - d[1];
       }
 
       // Do everything in the "grid space" and change to graphic coordinates at the end
@@ -169,10 +201,10 @@
 
       // follow light path through the grid, checking for intersections with pieces
       // Based on Bresenham's line algorithm (http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)      
+      var d, s, r;
+      updateLightDirection();
+
       var origin = [lightSource.col + .5, lightSource.row + .5]
-      var d = [Math.abs(lightDirection[0]), Math.abs(lightDirection[1])];
-      var s = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
-      var err = d[0] - d[1];
 
       var lightSegments = [ { origin: [origin[0], origin[1]], intensity: lightIntensity }];
       var element;
@@ -195,7 +227,7 @@
           lightIntensity = 0;
 
           // find intersection with boundaries
-           lightSegments[lightSegments.length - 1].destination = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, origin);
+          lightSegments[lightSegments.length - 1].destination = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, origin);
         }
         else if(element = findGridElement(origin))
         {
@@ -208,7 +240,6 @@
       canvas = $("#gameCanvas");
       context = canvas[0].getContext("2d");
       context.save();
-      context.strokeStyle = "red"
 
       context.beginPath();
       context.moveTo(lightSegments[0].origin * CELL_SIZE + MARGIN, lightSegments[0].origin * CELL_SIZE + MARGIN);
@@ -216,8 +247,10 @@
       {
         context.lineTo(lightSegments[i].origin[0] * CELL_SIZE + MARGIN, lightSegments[i].origin[1] * CELL_SIZE + MARGIN);
         context.lineTo(lightSegments[i].destination[0] * CELL_SIZE + MARGIN, lightSegments[i].destination[1] * CELL_SIZE + MARGIN);
+
+        context.strokeStyle = "rgba(255, 0, 0, " + lightSegments[i].intensity + ")";
+        context.stroke();
       }
-      context.stroke();
 
       context.restore();
     }
