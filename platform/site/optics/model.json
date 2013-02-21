@@ -1,27 +1,27 @@
 {
   "selected": {
-    "row": 5,
-    "col": 2
+    "col": 2,
+    "row": 5
   },
   "pieces": [
     { 
-      "row": 0,
-      "col": 0,
+      "col": 7,
+      "row": 2,
       "type": "wall"
     },
     { 
-      "row": 2,
       "col": 4,
+      "row": 2,
       "type": "squarePrism"
     },
     { 
-      "row": 6,
       "col": 9,
+      "row": 6,
       "type": "mirror"
     },
     { 
-      "row": 0,
       "col": 3,
+      "row": 0,
       "type": "laser-on",
       "rotation": 120
     }

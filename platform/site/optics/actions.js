@@ -102,6 +102,27 @@
         return null;
       }
 
+      // Returns an intersection point with walls, or null otherwise
+      function intersectsCell(origin, dest, cellPos)
+      {
+        var boundaries = 
+        [
+          Line.Segment.create([cellPos[0], cellPos[1]], [cellPos[0], cellPos[1] + 1]), // top
+          Line.Segment.create([cellPos[0], cellPos[1] + 1], [cellPos[0] + 1, cellPos[1] + 1]), // right
+          Line.Segment.create([cellPos[0] + 1, cellPos[1] + 1], [cellPos[0], cellPos[1] + 1]), // bottom
+          Line.Segment.create([cellPos[0], cellPos[1] + 1], [cellPos[0], cellPos[1]]) // left
+        ];
+
+        var intersection = null;
+        for(var i = 0; i < boundaries.length; i++)
+        {
+          intersection = Line.Segment.create(origin, dest).intersectionWith(boundaries[i]);
+          if(intersection) return intersection.elements;
+        }
+
+        return null;
+      }
+
       function findGridElement(point)
       {
         for(var i in that.params.pieces)
@@ -112,9 +133,15 @@
         return null;
       }
 
-      function handleGridElement(element, intensity, direction)
+      function handleGridElement()
       {
-        return [intensity, direction];
+        if(element.type == "wall")
+        {
+          // find intersection with wall
+          lightSegments[lightSegments.length - 1].destination = intersectsCell(lightSegments[lightSegments.length - 1].origin, origin, [element.col, element.row]);
+
+          lightIntensity = 0;
+        }
       }
 
       // Do everything in the "grid space" and change to graphic coordinates at the end
@@ -148,6 +175,7 @@
       var err = d[0] - d[1];
 
       var lightSegments = [ { origin: [origin[0], origin[1]], intensity: lightIntensity }];
+      var element;
       do
       {
         //points.push([origin[0], origin[1]]);
@@ -171,9 +199,7 @@
         }
         else if(element = findGridElement(origin))
         {
-          var results = handleGridCell(element, lightIntensity, lightDirection);
-          lightIntensity = results[0];
-          lightDirection = results[1];
+          handleGridElement();
         }
       } while(lightIntensity > 0);
 
