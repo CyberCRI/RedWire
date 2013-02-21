@@ -74,10 +74,46 @@
       var CELL_SIZE = 53;
       var GRID_SIZE = [14, 9];
 
-      function handleGridCell(point, intensity, direction)
-      {
-        if(point[0] < 0 || point[0] > GRID_SIZE[0] || point[1] < 0 || point[1] > GRID_SIZE[1]) return [0, [0, 0]];
+      var that = this;
 
+      function isInGrid(point)
+      {
+        return point[0] >= 0 && point[0] < GRID_SIZE[0] && point[1] >= 0 && point[1] < GRID_SIZE[1];        
+      }
+
+      // Returns an intersection point with walls, or null otherwise
+      function intersectsBoundaries(origin, dest)
+      {
+        var boundaries = 
+        [
+          Line.Segment.create([0, 0], [GRID_SIZE[0], 0]), // top
+          Line.Segment.create([GRID_SIZE[0], 0], [GRID_SIZE[0], GRID_SIZE[1]]), // right
+          Line.Segment.create([GRID_SIZE[0], GRID_SIZE[1]], [0, GRID_SIZE[1]]), // bottom
+          Line.Segment.create([0, GRID_SIZE[1]], [0, 0]) // left
+        ];
+
+        var intersection = null;
+        for(var i = 0; i < boundaries.length; i++)
+        {
+          intersection = Line.Segment.create(origin, dest).intersectionWith(boundaries[i]);
+          if(intersection) return intersection.elements;
+        }
+
+        return null;
+      }
+
+      function findGridElement(point)
+      {
+        for(var i in that.params.pieces)
+        {
+          var piece = that.params.pieces[i];
+          if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
+        }
+        return null;
+      }
+
+      function handleGridElement(element, intensity, direction)
+      {
         return [intensity, direction];
       }
 
@@ -111,10 +147,10 @@
       var s = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
       var err = d[0] - d[1];
 
-      var points = []; 
+      var lightSegments = [ { origin: [origin[0], origin[1]], intensity: lightIntensity }];
       do
       {
-        points.push([origin[0], origin[1]]);
+        //points.push([origin[0], origin[1]]);
 
         var err2 = 2 * err;
         if(err2 > -d[1]) {
@@ -126,12 +162,22 @@
           origin[1] += s[1]
         }
 
-        var results = handleGridCell(origin, lightIntensity, lightDirection);
-        lightIntensity = results[0];
-        lightDirection = results[1];
+        if(!isInGrid(origin)) 
+        {
+          lightIntensity = 0;
+
+          // find intersection with boundaries
+           lightSegments[lightSegments.length - 1].destination = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, origin);
+        }
+        else if(element = findGridElement(origin))
+        {
+          var results = handleGridCell(element, lightIntensity, lightDirection);
+          lightIntensity = results[0];
+          lightDirection = results[1];
+        }
       } while(lightIntensity > 0);
 
-      console.log("points: ", points)
+      console.log("lightSegments: ", lightSegments)
 
       canvas = $("#gameCanvas");
       context = canvas[0].getContext("2d");
@@ -139,10 +185,11 @@
       context.strokeStyle = "red"
 
       context.beginPath();
-      context.moveTo(points[0][0] * CELL_SIZE + MARGIN, points[0][1] * CELL_SIZE + MARGIN);
-      for(var i = 1; i < points.length; i++)
+      context.moveTo(lightSegments[0].origin * CELL_SIZE + MARGIN, lightSegments[0].origin * CELL_SIZE + MARGIN);
+      for(var i = 0; i < lightSegments.length; i++)
       {
-        context.lineTo(points[i][0] * CELL_SIZE + MARGIN, points[i][1] * CELL_SIZE + MARGIN);
+        context.lineTo(lightSegments[i].origin[0] * CELL_SIZE + MARGIN, lightSegments[i].origin[1] * CELL_SIZE + MARGIN);
+        context.lineTo(lightSegments[i].destination[0] * CELL_SIZE + MARGIN, lightSegments[i].destination[1] * CELL_SIZE + MARGIN);
       }
       context.stroke();
 
