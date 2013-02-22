@@ -7,7 +7,7 @@
       var canvas = $("#gameCanvas");
       var context = canvas[0].getContext("2d");
       context.setFillColor(this.params.backgroundColor);
-      context.fillRect(0, 0, canvas.width(), canvas.height());
+      context.fillRect(0, 0, canvas.prop("width"), canvas.prop("height"));
     }
   },
 
@@ -90,7 +90,7 @@
         for(var i = 0; i < lines.length; i++)
         {
           intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(lines[i][0], lines[i][1]));
-          if(intersection) return intersection.elements;
+          if(intersection) return intersection.elements.slice(0, 2); // return only 2D part
         }
 
         return null;
@@ -176,6 +176,53 @@
         err = d[0] - d[1];
       }
 
+      // all lines are in grid space, not in screen space
+      function drawGradientLine(ctx, origin, dest, innerRadius, outerRadius, colorRgba)
+      {
+        ctx.save();
+
+        var marginV = Vector.create([MARGIN, MARGIN]);
+
+        // find normal to line (http://stackoverflow.com/questions/1243614/how-do-i-calculate-the-normal-vector-of-a-line-segment)
+        var originV = Vector.create(origin).multiply(CELL_SIZE).add(marginV);
+        var destV = Vector.create(dest).multiply(CELL_SIZE).add(marginV);
+        var d = destV.subtract(originV);
+        var normal = Vector.create([-d.elements[1], d.elements[0]]).toUnitVector();
+
+        var strokeGradUpper = originV.add(normal.multiply(outerRadius));
+        var strokeGradLower = originV.add(normal.multiply(-outerRadius));
+
+        var transRgba = _.clone(colorRgba);
+        transRgba[3] = 0;
+
+        var strokeGrad = ctx.createLinearGradient(strokeGradUpper.elements[0], strokeGradUpper.elements[1], strokeGradLower.elements[0], strokeGradLower.elements[1]);
+        strokeGrad.addColorStop(0, "rgba(" + transRgba.join(",") + ")");
+        strokeGrad.addColorStop(innerRadius / outerRadius, "rgba(" + colorRgba.join(",") + ")");
+        strokeGrad.addColorStop(1 - innerRadius / outerRadius, "rgba(" + colorRgba.join(",") + ")");
+        strokeGrad.addColorStop(1, "rgba(" + transRgba.join(",") + ")");
+        ctx.strokeStyle = strokeGrad;
+
+        ctx.lineWidth = 2 * outerRadius;
+
+        ctx.beginPath();
+        ctx.moveTo(originV.elements[0], originV.elements[1]);
+        ctx.lineTo(destV.elements[0], destV.elements[1]);
+        ctx.stroke();
+
+        // draw end caps
+        // TODO: only draw half circles
+        var fillGrad = ctx.createRadialGradient(originV.elements[0], originV.elements[1], 0, originV.elements[0], originV.elements[1], outerRadius);
+        fillGrad.addColorStop(innerRadius / outerRadius, "rgba(" + colorRgba.join(",") + ")");
+        fillGrad.addColorStop(1, "rgba(" + transRgba.join(",") + ")");
+        ctx.fillStyle = fillGrad;
+
+        ctx.moveTo(originV.elements[0], originV.elements[1]);
+        ctx.arc(originV.elements[0], originV.elements[1], outerRadius, 0, 2 * Math.PI);
+        ctx.fill(); 
+
+        ctx.restore();
+      }
+
       // Do everything in the "grid space" and change to graphic coordinates at the end
 
       // find source of light
@@ -209,9 +256,7 @@
       var lightSegments = [ { origin: [origin[0], origin[1]], intensity: lightIntensity }];
       var element;
       do
-      {
-        //points.push([origin[0], origin[1]]);
-
+      { 
         var err2 = 2 * err;
         if(err2 > -d[1]) {
           err = err - d[1];
@@ -237,22 +282,33 @@
 
       console.log("lightSegments: ", lightSegments)
 
+
+      // DRAW SEGMENTS
+
       canvas = $("#gameCanvas");
       context = canvas[0].getContext("2d");
       context.save();
 
-      context.beginPath();
-      context.moveTo(lightSegments[0].origin * CELL_SIZE + MARGIN, lightSegments[0].origin * CELL_SIZE + MARGIN);
+      context.globalCompositeOperation = 'destination-out';
+
+      // TODO: use method in fiddle: http://jsfiddle.net/wNYkX/3/
+
       for(var i = 0; i < lightSegments.length; i++)
       {
-        context.lineTo(lightSegments[i].origin[0] * CELL_SIZE + MARGIN, lightSegments[i].origin[1] * CELL_SIZE + MARGIN);
-        context.lineTo(lightSegments[i].destination[0] * CELL_SIZE + MARGIN, lightSegments[i].destination[1] * CELL_SIZE + MARGIN);
+        drawGradientLine(context, lightSegments[i].origin, lightSegments[i].destination, 30, 40, [255, 255, 255, lightSegments[i].intensity]);
+      }
 
-        context.strokeStyle = "rgba(255, 0, 0, " + lightSegments[i].intensity + ")";
-        context.stroke();
+      context.globalCompositeOperation = 'source-over';
+
+      for(var i = 0; i < lightSegments.length; i++)
+      {
+        drawGradientLine(context, lightSegments[i].origin, lightSegments[i].destination, 4, 6, [255, 0, 0, lightSegments[i].intensity]);
       }
 
       context.restore();
+
+      // TODO: move the composition stuff to a dedicated layout function
+      context.globalCompositeOperation = 'destination-over';
     }
   }
 });

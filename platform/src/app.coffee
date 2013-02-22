@@ -77,7 +77,7 @@ Ext.application
         }
         {
           title: 'Game'
-          html : '<canvas id="gameCanvas" width="800" height="600"></canvas>'
+          html : '<canvas id="gameCanvas" width="960" height="540"></canvas>'
           region: 'center'
         }
         {

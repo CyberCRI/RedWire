@@ -1,10 +1,13 @@
 {
   "action": "group",
   "children": [
-    { 
-      "action": "drawImage",
+    {
+      "action": "clearBackground"
+    },
+    {
+      "action": "calculateLight",
       "params": {
-        "image": "@asset:background"
+        "pieces": "@model:pieces"
       }
     },
     {
@@ -32,10 +35,10 @@
         "col": "@model:selected.col"
       }
     },
-    {
-      "action": "calculateLight",
+    { 
+      "action": "drawImage",
       "params": {
-        "pieces": "@model:pieces"
+        "image": "@asset:background"
       }
     }
   ]
