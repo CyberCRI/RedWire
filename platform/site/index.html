@@ -3,8 +3,11 @@
     <title>gamEvolve</title>
 
     <script src="lib/jquery/jquery-1.9.0.js" type="text/javascript" charset="utf-8"></script>
+
     <script src="lib/jquery-ui/jquery-ui-1.10.0.custom.js" type="text/javascript" charset="utf-8"></script>
-    <script src="lib/jquery-layout/jquery.layout-latest.js" type="text/javascript" charset="utf-8"></script>
+    <link rel="stylesheet" type="text/css" href="lib/jquery-ui/css/ui-lightness/jquery-ui-1.10.0.custom.css">
+
+   <script src="lib/jquery-layout/jquery.layout-latest.js" type="text/javascript" charset="utf-8"></script>
 
     <script type="text/javascript" src="lib/underscore/underscore.js"></script>
     <script type="text/javascript" src="lib/underscore.string/underscore.string.js"></script>
@@ -15,13 +18,13 @@
     <script src="lib/ace/mode-javascript.js" data-ace-base="lib/ace" type="text/javascript" charset="utf-8"></script>
 
     <style>
-        .editor {
+        /*.editor {
           position: absolute;
           top: 0;
           right: 0;
           bottom: 0;
           left: 0;
-        }
+        }*/
     </style>
 
     <!-- <link rel="stylesheet" type="text/css" href="app.css"> -->
@@ -34,7 +37,19 @@
             editor.getSession().setUseWrapMode(true);
             editor.setWrapBehavioursEnabled(true);
 
-            $('body').layout({ applyDefaultStyles: true });
+            editor = ace.edit("assetsEditor");
+            editor.getSession().setMode("ace/mode/javascript");
+            editor.getSession().setUseWrapMode(true);
+            editor.setWrapBehavioursEnabled(true);
+
+            // Based on http://layout.jquery-dev.net/demos/accordion.html
+
+            $('body').layout({ 
+                applyDefaultStyles: true, 
+                west__onresize:  $.layout.callbacks.resizePaneAccordions
+            });
+
+            $("#west").accordion({ heightStyle: "fill" });
         });
     </script>
 </head>
@@ -44,6 +59,11 @@
     <div class="ui-layout-north">North</div>
     <div class="ui-layout-south">South</div>
     <div class="ui-layout-east">East</div>
-    <div class="ui-layout-west"><div id="modelEditor" class="editor"></div></div>
+    <div id="west" class="ui-layout-west">
+        <h3>Model</h3>
+        <div id="modelEditor" class="editor">Model</div>
+        <h3>Assets</h3>
+        <div id="assetsEditor" class="editor">Assets</div>
+    </div>
 </body>
 </html>
