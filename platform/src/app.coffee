@@ -1,5 +1,7 @@
 globals = @
 
+CODE_CHANGE_TIMEOUT = 1000
+
 $(document).ready ->
   canvas = $("#gameCanvas")
   context = canvas[0].getContext("2d")
@@ -59,6 +61,8 @@ $(document).ready ->
     editor.setWrapBehavioursEnabled(true)
     editors[id] = editor
 
+    editor.getSession().on "change", -> notifyCodeChange()
+
   # TODO: find another way to include global data
   globals.editors = editors
 
@@ -87,8 +91,25 @@ $(document).ready ->
       if err? then throw err
       gameController.step()
 
+  lastCodeChangeTimeoutId = null
+  notifyCodeChange = ->
+    timeoutCallback = ->
+      spinner.stop()
+      runStep()
+
+    spinner.spin($("#north")[0]) 
+
+    # cancel previous timeout
+    if lastCodeChangeTimeoutId 
+      window.clearTimeout(lastCodeChangeTimeoutId)
+      lastCodeChangeTimeoutId = null
+
+    # TODO: catch exceptions here?
+    window.setTimeout(timeoutCallback, CODE_CHANGE_TIMEOUT)
+
   # TODO: 
   # use requestAnimationFrame
+  # wait a bit before updating code (to avoid multiple changes)
   # in play mode, advance when timer calls
   # update slider when number of models changes
   # every time code changes, recompile it and run step (listen to events)
@@ -106,6 +127,23 @@ $(document).ready ->
         icons: 
           primary: "ui-icon-play"
 
+  spinnerOpts = 
+    lines: 9,
+    length: 7
+    width: 4
+    radius: 10
+    corners: 1
+    rotate: 0
+    color: '#000'
+    speed: 1
+    trail: 60
+    shadow: false
+    hwaccel: false
+    className: 'spinner'
+    zIndex: 2e9
+    top: 'auto'
+    left: 'auto'
+  spinner = new Spinner(spinnerOpts)
 
-      
+  notifyCodeChange()
 
