@@ -59,6 +59,7 @@ $(document).ready ->
     editor.setWrapBehavioursEnabled(true)
     editors[id] = editor
 
+  # TODO: find another way to include global data
   globals.editors = editors
 
   loadIntoEditor = (editorId, url) ->
@@ -66,14 +67,17 @@ $(document).ready ->
       url: url
       dataType: "text"
       cache: false
-      success: (data) -> editors[editorId].setValue(data)
+      success: (data) -> 
+        editors[editorId].setValue(data)
+        # The new contect will be selected by default
+        editors[editorId].selection.clearSelection() 
 
   loadIntoEditor("modelEditor", "optics/model.json")
   loadIntoEditor("assetsEditor", "optics/assets.json")
   loadIntoEditor("actionsEditor", "optics/actions.js")
   loadIntoEditor("layoutEditor", "optics/layout.json")
 
-  $("#playButton").on "click", ->
+  runStep = ->
     assets = JSON.parse(editors.assetsEditor.getValue())
     modelData = JSON.parse(editors.modelEditor.getValue())
     actions = eval(editors.actionsEditor.getValue())
@@ -82,5 +86,26 @@ $(document).ready ->
     gameController.loadAssets (err) ->
       if err? then throw err
       gameController.step()
+
+  # TODO: 
+  # use requestAnimationFrame
+  # in play mode, advance when timer calls
+  # update slider when number of models changes
+  # every time code changes, recompile it and run step (listen to events)
+  # lock code down in play mode so it can't be changed
+
+  $("#playButton").on "click", ->
+    if $(this).text() == "Play"
+      $(this).button "option",
+        label: "Pause" 
+        icons: 
+          primary: "ui-icon-pause"
+    else
+      $(this).button "option",
+        label: "Play" 
+        icons: 
+          primary: "ui-icon-play"
+
+
       
 

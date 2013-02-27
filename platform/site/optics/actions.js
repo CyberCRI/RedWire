@@ -6,6 +6,10 @@
     update: function() {
       var canvas = $("#gameCanvas");
       var context = canvas[0].getContext("2d");
+ 
+      // TODO: this shouldn't be necessary here, if a better drawing layer system existed
+      context.globalCompositeOperation = 'source-over';
+
       context.setFillColor(this.params.backgroundColor);
       context.fillRect(0, 0, canvas.prop("width"), canvas.prop("height"));
     }
