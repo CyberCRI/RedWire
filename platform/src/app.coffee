@@ -107,6 +107,8 @@ $(document).ready ->
     # TODO: catch exceptions here?
     window.setTimeout(timeoutCallback, CODE_CHANGE_TIMEOUT)
 
+  $(window).on 'beforeunload', -> 'If you leave the page, you will lose unsaved changes'
+
   # TODO: 
   # use requestAnimationFrame
   # wait a bit before updating code (to avoid multiple changes)
