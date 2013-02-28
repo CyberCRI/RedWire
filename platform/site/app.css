@@ -17,7 +17,7 @@ body {
 
 .editor {
   /* TODO: find way to dynamically measure height */
-  height: 70%;
+  height: 95%;
   font-size: 8pt;
 }
 
