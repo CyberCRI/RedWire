@@ -284,9 +284,6 @@
         }
       } while(lightIntensity > 0);
 
-      console.log("lightSegments: ", lightSegments)
-
-
       // DRAW SEGMENTS
 
       canvas = $("#gameCanvas");

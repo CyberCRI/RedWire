@@ -21,6 +21,20 @@ body {
   font-size: 8pt;
 }
 
+#messageContainer {
+  position: relative;
+  width: 50%;
+  margin: -10px auto 0 auto;
+}
+
+#topAlert, #topInfo {
+  display: none;
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  text-align: center
+}
+
 /* Vertical tabs */
 .ui-tabs-vertical { width: 55em; }
 /* .ui-tabs-vertical .ui-tabs-nav { padding: .2em .1em .2em .2em; float: left; width: 12em; } */

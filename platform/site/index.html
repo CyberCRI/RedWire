@@ -26,6 +26,24 @@
 <body>
   <div id="north" class="ui-layout-north">
     <h1 id="appTitle">gamEvolve</h1>
+    <div id="messageContainer">
+      <div id="topAlert" class="ui-widget">
+        <div class="ui-state-error ui-corner-all">
+          <p>
+            <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+            <span id="topAlertMessage">Error</span>
+          </p>
+        </div>
+      </div>
+      <div id="topInfo" class="ui-widget">
+        <div class="ui-state-highlight ui-corner-all">
+          <p>
+            <span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
+            <span id="topInfoMessage">Info</span>
+          </p>
+        </div>
+      </div>
+    </div>
     <div id="topToolbar" class="toolbar">
       <button id="saveButton">Save</button>
       <button id="shareButton">Share</button>

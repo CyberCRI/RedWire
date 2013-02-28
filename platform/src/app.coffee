@@ -3,6 +3,8 @@ globals = @
 CODE_CHANGE_TIMEOUT = 1000
 
 $(document).ready ->
+  MessageType = GE.makeConstantSet("Error", "Info")
+
   canvas = $("#gameCanvas")
   context = canvas[0].getContext("2d")
   context.setFillColor("black")
@@ -22,6 +24,18 @@ $(document).ready ->
             limit = parseInt(contentWidth / characterWidth, 10)
             session.setWrapLimitRange(limit, limit)
   window.onresize = onResize
+
+  showMessage = (messageType, message) ->
+    switch messageType
+      when MessageType.Error
+        $("#topAlertMessage").html(message)
+        $("#topAlert").show()
+      when MessageType.Info
+        $("#topInfoMessage").html(message)
+        $("#topInfo").show()
+      else throw new Error("Incorrect messageType")
+
+  clearMessage = -> $("#topAlert, #topInfo").hide()
 
   # top
   $("#saveButton").button({ icons: { primary: "ui-icon-transferthick-e-w" }})
@@ -82,10 +96,28 @@ $(document).ready ->
   loadIntoEditor("layoutEditor", "optics/layout.json")
 
   runStep = ->
-    assets = JSON.parse(editors.assetsEditor.getValue())
-    modelData = JSON.parse(editors.modelEditor.getValue())
-    actions = eval(editors.actionsEditor.getValue())
-    layout = JSON.parse(editors.layoutEditor.getValue())
+    try
+      assets = JSON.parse(editors.assetsEditor.getValue())
+    catch error
+      return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
+
+    try
+      modelData = JSON.parse(editors.modelEditor.getValue())
+    catch error
+      return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
+
+    try
+      actions = eval(editors.actionsEditor.getValue())
+    catch error
+      return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
+
+    try
+      layout = JSON.parse(editors.layoutEditor.getValue())
+    catch error
+      return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
+
+    showMessage(MessageType.Info, "Game updated")
+
     gameController = new GE.GameController(new GE.Model(modelData), assets, actions, layout)
     gameController.loadAssets (err) ->
       if err? then throw err
@@ -98,6 +130,7 @@ $(document).ready ->
       runStep()
 
     spinner.spin($("#north")[0]) 
+    clearMessage()
 
     # cancel previous timeout
     if lastCodeChangeTimeoutId 
