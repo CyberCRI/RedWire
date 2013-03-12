@@ -28,6 +28,25 @@
     }
   },
 
+  drawText: {
+    paramDefs: {
+      text: "",
+      x: 0,
+      y: 12,
+      style: "black",
+      font: "12px Arial"
+    },
+    update: function() { 
+      var canvas = $("#gameCanvas");
+      var context = canvas[0].getContext("2d");
+      context.save();
+      context.strokeStyle = this.params.style;
+      context.font = this.params.font;
+      context.strokeText(String(this.params.text), this.params.x, this.params.y);
+      context.restore();
+    }
+  },
+
   group: { 
     doc: "Just to place children under it"
   },
@@ -66,6 +85,15 @@
       context = canvas[0].getContext("2d");
       context.strokeStyle = "yellow"
       context.strokeRect(this.params.col * 53 + 33, this.params.row * 53 + 33, 50, 50);
+    }
+  },
+
+  incrementNumber: {
+    paramDefs: {
+      number: 0
+    },
+    update: function() {
+      this.params.number++;
     }
   },
 
@@ -222,6 +250,15 @@
 
         ctx.moveTo(originV.elements[0], originV.elements[1]);
         ctx.arc(originV.elements[0], originV.elements[1], outerRadius, 0, 2 * Math.PI);
+        ctx.fill(); 
+
+        fillGrad = ctx.createRadialGradient(destV.elements[0], destV.elements[1], 0, destV.elements[0], destV.elements[1], outerRadius);
+        fillGrad.addColorStop(innerRadius / outerRadius, "rgba(" + colorRgba.join(",") + ")");
+        fillGrad.addColorStop(1, "rgba(" + transRgba.join(",") + ")");
+        ctx.fillStyle = fillGrad;
+
+        ctx.moveTo(destV.elements[0], destV.elements[1]);
+        ctx.arc(destV.elements[0], destV.elements[1], outerRadius, 0, 2 * Math.PI);
         ctx.fill(); 
 
         ctx.restore();

@@ -2,7 +2,23 @@
   "action": "group",
   "children": [
     {
+      "action": "incrementNumber",
+      "params": {
+        "number": "@model:score"
+      }
+    },
+    {
       "action": "clearBackground"
+    },
+    {
+      "action": "drawText",
+      "params": {
+        "text": "@model:score",
+        "x": 2,
+        "y": 20,
+        "style": "white",
+        "font": "20px Arial"
+      }
     },
     {
       "action": "calculateLight",

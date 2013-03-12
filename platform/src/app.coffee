@@ -3,7 +3,9 @@
 globals = @
 
 CODE_CHANGE_TIMEOUT = 1000
+
 MessageType = GE.makeConstantSet("Error", "Info")
+
 SPINNER_OPTS = 
   lines: 9
   length: 7
@@ -26,6 +28,14 @@ SPINNER_OPTS =
 
 spinner = new Spinner(SPINNER_OPTS)
 
+lastModel = null
+currentModelData = null
+currentAssets = null
+currentActions = null
+currentLayout = null
+currentLoadedAssets = null
+
+isPlaying = false
 
 ### Functions ###
 
@@ -91,6 +101,7 @@ setupLayout = ->
     applyDefaultStyles: true
     onresize: handleResize
 
+setupButtonHandlers = ->
   # TODO: 
   # use requestAnimationFrame
   # wait a bit before updating code (to avoid multiple changes)
@@ -101,12 +112,14 @@ setupLayout = ->
 
   $("#playButton").on "click", ->
     if $(this).text() == "Play"
+      isPlaying = false
       $(this).button "option",
         label: "Pause" 
         icons: 
           primary: "ui-icon-pause"
     else
       $(this).button "option",
+        isPlaying = true
         label: "Play" 
         icons: 
           primary: "ui-icon-play"
@@ -128,38 +141,46 @@ loadIntoEditor = (editor, url) ->
       # The new contect will be selected by default
       editor.selection.clearSelection() 
 
-runStep = ->
+reloadCode = (callback) ->
   try
-    assets = JSON.parse(editors.assetsEditor.getValue())
+    currentAssets = JSON.parse(editors.assetsEditor.getValue())
   catch error
     return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
 
   try
-    modelData = JSON.parse(editors.modelEditor.getValue())
+    currentModelData = JSON.parse(editors.modelEditor.getValue())
   catch error
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
   try
-    actions = eval(editors.actionsEditor.getValue())
+    currentActions = eval(editors.actionsEditor.getValue())
   catch error
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
   try
-    layout = JSON.parse(editors.layoutEditor.getValue())
+    currentLayout = JSON.parse(editors.layoutEditor.getValue())
   catch error
     return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
 
-  showMessage(MessageType.Info, "Game updated")
+  GE.loadAssets currentAssets, (err, loadedAssets) =>
+    if err? 
+      showMessage(MessageType.Error, "Cannot load assets")
+      callback(err)
 
-  gameController = new GE.GameController(new GE.Model(modelData), assets, actions, layout)
-  gameController.loadAssets (err) ->
-    if err? then throw err
-    gameController.step()
+    currentLoadedAssets = loadedAssets
+    showMessage(MessageType.Info, "Game updated")
+    callback(null)
+
+# returns a new model
+executeCode = ->
+  currentModel = new GE.Model(currentModelData, lastModel)
+  [result, patches] = GE.runStep(currentModel, currentLoadedAssets, currentActions, currentLayout)
+  return currentModel.applyPatches(patches)
 
 notifyCodeChange = ->
   timeoutCallback = ->
     spinner.stop()
-    runStep()
+    reloadCode (err) -> if !err then executeCode()
 
   spinner.spin($("#north")[0]) 
   clearMessage()
@@ -172,11 +193,13 @@ notifyCodeChange = ->
   # TODO: catch exceptions here?
   notifyCodeChange.timeoutId = window.setTimeout(timeoutCallback, CODE_CHANGE_TIMEOUT)
 
-### Start-up ###
+
+### Main ###
 
 $(document).ready ->
   initCanvas()
   setupLayout()
+  setupButtonHandlers()
 
   editors = {}
   for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
@@ -189,7 +212,6 @@ $(document).ready ->
 
   # Setup event handlers
   $(window).on "onresize", handleResize
-
   $(window).on 'beforeunload', -> 'If you leave the page, you will lose unsaved changes'
 
   # Load code
