@@ -3,6 +3,7 @@
 globals = @
 
 CODE_CHANGE_TIMEOUT = 1000
+MODEL_FORMATTING_INDENTATION = 2
 
 MessageType = GE.makeConstantSet("Error", "Info")
 
@@ -30,7 +31,7 @@ editors = {}
 
 spinner = new Spinner(SPINNER_OPTS)
 
-lastModel = new GE.Model()
+currentModel = new GE.Model()
 currentFrame = 0
 currentModelData = null
 currentAssets = null
@@ -122,6 +123,16 @@ setupButtonHandlers = ->
         icons: 
           primary: "ui-icon-play"
 
+  $("#resetButton").on "click", ->
+    currentFrame = 0
+    currentModel = currentModel.atVersion(0)
+
+    editors.modelEditor.setValue(JSON.stringify(currentModel.data, null, MODEL_FORMATTING_INDENTATION))
+    # The new contect will be selected by default
+    editors.modelEditor.selection.clearSelection() 
+
+
+
 setupEditor = (id) ->
   editor = ace.edit(id)
   editor.getSession().setMode("ace/mode/javascript")
@@ -150,6 +161,8 @@ reloadCode = (callback) ->
   catch error
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
+  currentModel.atVersion(currentFrame).data = currentModelData
+
   try
     currentActions = eval(editors.actionsEditor.getValue())
   catch error
@@ -171,7 +184,6 @@ reloadCode = (callback) ->
 
 # returns a new model
 executeCode = ->
-  currentModel = new GE.Model(currentModelData, lastModel)
   [result, patches] = GE.runStep(currentModel, currentLoadedAssets, currentActions, currentLayout)
   return currentModel.applyPatches(patches)
 
@@ -196,9 +208,10 @@ notifyCodeChange = ->
 handleAnimation = ->
   if not isPlaying then return false
 
-  lastModel = executeCode()
+  currentModel = executeCode()
+  currentFrame++
 
-  editors.modelEditor.setValue(JSON.stringify(lastModel.data, null, 4))
+  editors.modelEditor.setValue(JSON.stringify(currentModel.data, null, MODEL_FORMATTING_INDENTATION))
   # The new contect will be selected by default
   editors.modelEditor.selection.clearSelection() 
 
