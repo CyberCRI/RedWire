@@ -41,16 +41,25 @@ GE =
       @data = GE.cloneData(data)
       @version = if @previous? then @previous.version + 1 else 0
 
+    setData: (data) -> return new Model(data, @)
+
+    clonedData: -> return GE.cloneData(@data)
+
+    atVersion: (version) -> 
+      if version > version then throw new Error("Version not found")
+
+      m = @
+      while m.version > version then m = m.previous
+      return m
+
+    makePatches: (newData) -> return GE.makePatches(@data, newData)
+
     applyPatches: (patches) ->
       if patches.length == 0 then return @ # Nothing to do
       if GE.doPatchesConflict(patches) then throw new Error("Patches conflict")
 
       newData = GE.applyPatches(patches, @data)
       return new Model(newData, @)
-
-    clonedData: -> return GE.cloneData(@data)
-
-    makePatches: (newData) -> return GE.makePatches(@data, newData)
 
   signals: makeConstantSet("DONE", "ERROR")
 

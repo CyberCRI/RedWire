@@ -26,9 +26,12 @@ SPINNER_OPTS =
 
 ### Globals ###
 
+editors = {}
+
 spinner = new Spinner(SPINNER_OPTS)
 
-lastModel = null
+lastModel = new GE.Model()
+currentFrame = 0
 currentModelData = null
 currentAssets = null
 currentActions = null
@@ -102,24 +105,19 @@ setupLayout = ->
     onresize: handleResize
 
 setupButtonHandlers = ->
-  # TODO: 
-  # use requestAnimationFrame
-  # wait a bit before updating code (to avoid multiple changes)
-  # in play mode, advance when timer calls
-  # update slider when number of models changes
-  # every time code changes, recompile it and run step (listen to events)
-  # lock code down in play mode so it can't be changed
+  # TODO: lock code down in play mode so it can't be changed
 
   $("#playButton").on "click", ->
     if $(this).text() == "Play"
-      isPlaying = false
+      isPlaying = true
+      handleAnimation()
       $(this).button "option",
         label: "Pause" 
         icons: 
           primary: "ui-icon-pause"
     else
+      isPlaying = false
       $(this).button "option",
-        isPlaying = true
         label: "Play" 
         icons: 
           primary: "ui-icon-play"
@@ -178,6 +176,8 @@ executeCode = ->
   return currentModel.applyPatches(patches)
 
 notifyCodeChange = ->
+  if isPlaying then return false
+
   timeoutCallback = ->
     spinner.stop()
     reloadCode (err) -> if !err then executeCode()
@@ -193,6 +193,16 @@ notifyCodeChange = ->
   # TODO: catch exceptions here?
   notifyCodeChange.timeoutId = window.setTimeout(timeoutCallback, CODE_CHANGE_TIMEOUT)
 
+handleAnimation = ->
+  if not isPlaying then return false
+
+  lastModel = executeCode()
+
+  editors.modelEditor.setValue(JSON.stringify(lastModel.data, null, 4))
+  # The new contect will be selected by default
+  editors.modelEditor.selection.clearSelection() 
+
+  requestAnimationFrame(handleAnimation)
 
 ### Main ###
 
@@ -201,7 +211,6 @@ $(document).ready ->
   setupLayout()
   setupButtonHandlers()
 
-  editors = {}
   for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
     editor = setupEditor(id)
     loadIntoEditor(editor, url)

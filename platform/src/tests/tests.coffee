@@ -58,6 +58,26 @@ describe "gamEvolve", ->
       oldModel = new GE.Model(oldData)
       expect(-> oldModel.applyPatches(_.flatten([patchesA, patchesB]))).toThrow()
 
+    it "can be retrieved at a given version", ->
+      v0 = 
+        a: 0
+      v1 =
+        a: 1
+      v2 = 
+        a: 2
+
+      model = new GE.Model(v0).setData(v1).setData(v2)
+
+      expect(model.clonedData()).toDeeplyEqual(v2)
+      expect(model.version).toBe(2)
+
+      expect(model.atVersion(1).clonedData()).toDeeplyEqual(v1)
+      expect(model.atVersion(1).version).toBe(1)
+
+      expect(model.atVersion(0).clonedData()).toDeeplyEqual(v0)
+      expect(model.atVersion(0).version).toBe(0)
+
+
   describe "runSteps", ->
     it "calls functions", ->
       # make test function to spy on
