@@ -110,19 +110,21 @@ setupButtonHandlers = ->
   # TODO: lock code down in play mode so it can't be changed
 
   $("#playButton").on "click", ->
-    if $(this).text() == "Play"
+    if isPlaying
+      isPlaying = false
+      for editorId, editor of editors then editor.setReadOnly(false)
+      $(this).button "option",
+        label: "Play" 
+        icons: 
+          primary: "ui-icon-play"
+    else
       isPlaying = true
+      for editorId, editor of editors then editor.setReadOnly(true)
       handleAnimation()
       $(this).button "option",
         label: "Pause" 
         icons: 
           primary: "ui-icon-pause"
-    else
-      isPlaying = false
-      $(this).button "option",
-        label: "Play" 
-        icons: 
-          primary: "ui-icon-play"
 
   $("#resetButton").on "click", ->
     currentFrame = 0
