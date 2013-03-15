@@ -397,6 +397,8 @@ GE =
       else 
         return callback(new Error("Do not know how to load #{url}"))
 
+  # Shortcut for timeout function, to avoid trailing the time at the end 
+  doLater: (f) -> setTimeout(f, 0)
 
 # Install the GE namespace in the global scope
 globals.GE = GE

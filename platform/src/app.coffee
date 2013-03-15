@@ -40,6 +40,7 @@ currentLayout = null
 currentLoadedAssets = null
 
 isPlaying = false
+automaticallyUpdatingModel = false
 
 ### Functions ###
 
@@ -86,7 +87,7 @@ setupLayout = ->
     orientation: "horizontal"
     range: "min"
     min: 0
-    max: 10
+    max: 0
     step: 1
     value: 0
   $("#resetButton").button({ icons: { primary: "ui-icon-arrowreturnthick-1-w" }, text: false })
@@ -127,11 +128,25 @@ setupButtonHandlers = ->
     currentFrame = 0
     currentModel = currentModel.atVersion(0)
 
+    automaticallyUpdatingModel = true
     editors.modelEditor.setValue(JSON.stringify(currentModel.data, null, MODEL_FORMATTING_INDENTATION))
     # The new contect will be selected by default
     editors.modelEditor.selection.clearSelection() 
+    automaticallyUpdatingModel = false
 
+  $("#timeSlider").on "slide", ->
+    currentFrame = $(this).slider("value")
+    modelAtCurrentFrame = currentModel.atVersion(currentFrame)
 
+    GE.doLater ->
+      automaticallyUpdatingModel = true
+      editors.modelEditor.setValue(JSON.stringify(modelAtCurrentFrame.data, null, MODEL_FORMATTING_INDENTATION))
+      # The new contect will be selected by default
+      editors.modelEditor.selection.clearSelection() 
+      automaticallyUpdatingModel = false
+
+      # Execute again
+      executeCode(modelAtCurrentFrame)
 
 setupEditor = (id) ->
   editor = ace.edit(id)
@@ -161,8 +176,6 @@ reloadCode = (callback) ->
   catch error
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
-  currentModel.atVersion(currentFrame).data = currentModelData
-
   try
     currentActions = eval(editors.actionsEditor.getValue())
   catch error
@@ -179,16 +192,25 @@ reloadCode = (callback) ->
       callback(err)
 
     currentLoadedAssets = loadedAssets
+
+    # TODO: move these handlers to MVC events
+    currentModel.atVersion(currentFrame).data = currentModelData
+
+    $("#timeSlider").slider "option", 
+      value: currentFrame
+      max: currentFrame
+
     showMessage(MessageType.Info, "Game updated")
     callback(null)
 
-# returns a new model
-executeCode = ->
-  [result, patches] = GE.runStep(currentModel, currentLoadedAssets, currentActions, currentLayout)
-  return currentModel.applyPatches(patches)
+# Runs the currently loaded code with the provided model (by default is the current model)
+# Returns a new model
+executeCode = (model = currentModel) ->
+  [result, patches] = GE.runStep(model, currentLoadedAssets, currentActions, currentLayout)
+  return model.applyPatches(patches)
 
 notifyCodeChange = ->
-  if isPlaying then return false
+  if automaticallyUpdatingModel then return false
 
   timeoutCallback = ->
     spinner.stop()
@@ -211,9 +233,15 @@ handleAnimation = ->
   currentModel = executeCode()
   currentFrame++
 
+  $("#timeSlider").slider "option", 
+    value: currentFrame
+    max: currentFrame
+
+  automaticallyUpdatingModel = true
   editors.modelEditor.setValue(JSON.stringify(currentModel.data, null, MODEL_FORMATTING_INDENTATION))
   # The new contect will be selected by default
   editors.modelEditor.selection.clearSelection() 
+  automaticallyUpdatingModel = false
 
   requestAnimationFrame(handleAnimation)
 
