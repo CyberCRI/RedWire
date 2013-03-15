@@ -128,25 +128,33 @@ setupButtonHandlers = ->
     currentFrame = 0
     currentModel = currentModel.atVersion(0)
 
+    # TODO: move these handlers to MVC events
+    $("#timeSlider").slider "option", 
+      value: 0
+      max: 0
+
     automaticallyUpdatingModel = true
     editors.modelEditor.setValue(JSON.stringify(currentModel.data, null, MODEL_FORMATTING_INDENTATION))
     # The new contect will be selected by default
     editors.modelEditor.selection.clearSelection() 
     automaticallyUpdatingModel = false
 
+    # Execute again
+    executeCode()
+
   $("#timeSlider").on "slide", ->
     currentFrame = $(this).slider("value")
-    modelAtCurrentFrame = currentModel.atVersion(currentFrame)
 
+    # If done immediately, will block slider movement, so we postpone it
     GE.doLater ->
       automaticallyUpdatingModel = true
-      editors.modelEditor.setValue(JSON.stringify(modelAtCurrentFrame.data, null, MODEL_FORMATTING_INDENTATION))
+      editors.modelEditor.setValue(JSON.stringify(currentModel.atVersion(currentFrame).data, null, MODEL_FORMATTING_INDENTATION))
       # The new contect will be selected by default
       editors.modelEditor.selection.clearSelection() 
       automaticallyUpdatingModel = false
 
       # Execute again
-      executeCode(modelAtCurrentFrame)
+      executeCode()
 
 setupEditor = (id) ->
   editor = ace.edit(id)
@@ -203,11 +211,12 @@ reloadCode = (callback) ->
     showMessage(MessageType.Info, "Game updated")
     callback(null)
 
-# Runs the currently loaded code with the provided model (by default is the current model)
+# Runs the currently loaded code on the current frame
 # Returns a new model
-executeCode = (model = currentModel) ->
-  [result, patches] = GE.runStep(model, currentLoadedAssets, currentActions, currentLayout)
-  return model.applyPatches(patches)
+executeCode = ->
+  modelAtFrame = currentModel.atVersion(currentFrame)
+  [result, patches] = GE.runStep(modelAtFrame, currentLoadedAssets, currentActions, currentLayout)
+  return modelAtFrame.applyPatches(patches)
 
 notifyCodeChange = ->
   if automaticallyUpdatingModel then return false
