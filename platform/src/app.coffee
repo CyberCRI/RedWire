@@ -3,6 +3,7 @@
 globals = @
 
 CODE_CHANGE_TIMEOUT = 1000
+MODEL_FORMATTING_INDENTATION = 2
 
 MessageType = GE.makeConstantSet("Error", "Info")
 
@@ -30,7 +31,7 @@ editors = {}
 
 spinner = new Spinner(SPINNER_OPTS)
 
-lastModel = new GE.Model()
+currentModel = new GE.Model()
 currentFrame = 0
 currentModelData = null
 currentAssets = null
@@ -39,6 +40,7 @@ currentLayout = null
 currentLoadedAssets = null
 
 isPlaying = false
+automaticallyUpdatingModel = false
 
 ### Functions ###
 
@@ -85,7 +87,7 @@ setupLayout = ->
     orientation: "horizontal"
     range: "min"
     min: 0
-    max: 10
+    max: 0
     step: 1
     value: 0
   $("#resetButton").button({ icons: { primary: "ui-icon-arrowreturnthick-1-w" }, text: false })
@@ -108,19 +110,53 @@ setupButtonHandlers = ->
   # TODO: lock code down in play mode so it can't be changed
 
   $("#playButton").on "click", ->
-    if $(this).text() == "Play"
+    if isPlaying
+      isPlaying = false
+      for editorId, editor of editors then editor.setReadOnly(false)
+      $(this).button "option",
+        label: "Play" 
+        icons: 
+          primary: "ui-icon-play"
+    else
       isPlaying = true
+      for editorId, editor of editors then editor.setReadOnly(true)
       handleAnimation()
       $(this).button "option",
         label: "Pause" 
         icons: 
           primary: "ui-icon-pause"
-    else
-      isPlaying = false
-      $(this).button "option",
-        label: "Play" 
-        icons: 
-          primary: "ui-icon-play"
+
+  $("#resetButton").on "click", ->
+    currentFrame = 0
+    currentModel = currentModel.atVersion(0)
+
+    # TODO: move these handlers to MVC events
+    $("#timeSlider").slider "option", 
+      value: 0
+      max: 0
+
+    automaticallyUpdatingModel = true
+    editors.modelEditor.setValue(JSON.stringify(currentModel.data, null, MODEL_FORMATTING_INDENTATION))
+    # The new contect will be selected by default
+    editors.modelEditor.selection.clearSelection() 
+    automaticallyUpdatingModel = false
+
+    # Execute again
+    executeCode()
+
+  $("#timeSlider").on "slide", ->
+    currentFrame = $(this).slider("value")
+
+    # If done immediately, will block slider movement, so we postpone it
+    GE.doLater ->
+      automaticallyUpdatingModel = true
+      editors.modelEditor.setValue(JSON.stringify(currentModel.atVersion(currentFrame).data, null, MODEL_FORMATTING_INDENTATION))
+      # The new contect will be selected by default
+      editors.modelEditor.selection.clearSelection() 
+      automaticallyUpdatingModel = false
+
+      # Execute again
+      executeCode()
 
 setupEditor = (id) ->
   editor = ace.edit(id)
@@ -166,17 +202,26 @@ reloadCode = (callback) ->
       callback(err)
 
     currentLoadedAssets = loadedAssets
+
+    # TODO: move these handlers to MVC events
+    currentModel.atVersion(currentFrame).data = currentModelData
+
+    $("#timeSlider").slider "option", 
+      value: currentFrame
+      max: currentFrame
+
     showMessage(MessageType.Info, "Game updated")
     callback(null)
 
-# returns a new model
+# Runs the currently loaded code on the current frame
+# Returns a new model
 executeCode = ->
-  currentModel = new GE.Model(currentModelData, lastModel)
-  [result, patches] = GE.runStep(currentModel, currentLoadedAssets, currentActions, currentLayout)
-  return currentModel.applyPatches(patches)
+  modelAtFrame = currentModel.atVersion(currentFrame)
+  [result, patches] = GE.runStep(modelAtFrame, currentLoadedAssets, currentActions, currentLayout)
+  return modelAtFrame.applyPatches(patches)
 
 notifyCodeChange = ->
-  if isPlaying then return false
+  if automaticallyUpdatingModel then return false
 
   timeoutCallback = ->
     spinner.stop()
@@ -196,11 +241,18 @@ notifyCodeChange = ->
 handleAnimation = ->
   if not isPlaying then return false
 
-  lastModel = executeCode()
+  currentModel = executeCode()
+  currentFrame++
 
-  editors.modelEditor.setValue(JSON.stringify(lastModel.data, null, 4))
+  $("#timeSlider").slider "option", 
+    value: currentFrame
+    max: currentFrame
+
+  automaticallyUpdatingModel = true
+  editors.modelEditor.setValue(JSON.stringify(currentModel.data, null, MODEL_FORMATTING_INDENTATION))
   # The new contect will be selected by default
   editors.modelEditor.selection.clearSelection() 
+  automaticallyUpdatingModel = false
 
   requestAnimationFrame(handleAnimation)
 
