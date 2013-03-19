@@ -225,6 +225,7 @@ notifyCodeChange = ->
 
   timeoutCallback = ->
     spinner.stop()
+    saveCodeToCache()
     reloadCode (err) -> if !err then executeCode()
 
   spinner.spin($("#north")[0]) 
@@ -256,6 +257,36 @@ handleAnimation = ->
 
   requestAnimationFrame(handleAnimation)
 
+# Saves all editor contents to LocalStorage
+saveCodeToCache = ->
+  programId = window.location.hash.slice(1)
+  if !programId then throw new Error("No program ID to save")
+
+  # TODO: should check that currentFrame == 0 before saving model
+  codeToCache = {}
+  for id, editor of editors
+    codeToCache[id] = editor.getValue()
+
+  cachedCodeJson = JSON.stringify(codeToCache)
+  localStorage.setItem(programId, cachedCodeJson)
+
+# Loads all editor contents from LocalStorage
+# Returns true if code was loaded, else false
+loadCodeFromCache = ->
+  programId = window.location.hash.slice(1)
+  if !programId then throw new Error("No program ID to load")
+
+  cachedCodeJson = localStorage.getItem(programId)
+  if !cachedCodeJson then return false
+
+  cachedCode = JSON.parse(cachedCodeJson)
+
+  for id, editor of editors
+    editor.setValue(cachedCode[id])
+    # The new contect will be selected by default
+    editor.selection.clearSelection() 
+  return true
+
 ### Main ###
 
 $(document).ready ->
@@ -263,11 +294,21 @@ $(document).ready ->
   setupLayout()
   setupButtonHandlers()
 
-  for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
     editor = setupEditor(id)
-    loadIntoEditor(editor, url)
-    editor.getSession().on "change", -> notifyCodeChange()
     editors[id] = editor
+
+  loadedCode = false
+  try 
+    loadedCode = loadCodeFromCache()
+
+  if not loadedCode
+    for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
+      loadIntoEditor(editors[id], url)
+
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
+    editors[id].getSession().on "change", -> notifyCodeChange()
+
   # TODO: find another way to include global data
   globals.editors = editors
 
