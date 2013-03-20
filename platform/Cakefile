@@ -1,4 +1,4 @@
-{spawn, exec} = require 'child_process'
+spawn = require "win-spawn"
 
 task 'build', 'build once', ->
   coffee = spawn 'coffee', ['-c', '-o', 'site', 'src']
