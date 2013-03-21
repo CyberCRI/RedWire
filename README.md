@@ -51,7 +51,7 @@ To review changes:
 5. Run regression tests (below)
 6. If all is well, accept the pull request and delete the remote branch. 
   - Depending on the changes, GitHub may be able to merge automatically. If not, you need to do it yourself:
-      * `get checkout master`
+      * `git checkout master`
       * `git merge MY_BRANCH_NAME`
       * `git push origin master`
 7. Deploy! (see below)
@@ -94,7 +94,7 @@ Code reviewers should check the following things:
   - Bug fixes should have tests that will find the bug if it sneaks back
 - Syntax is harmonious with the rest of the file, if not the rest of the project
   - Syntax should roughly match standard style guides for the language in question, such as the [Coffeescript Style Guide] and the [Javascript Style Guide]
-  - Consistency is more important then strict adhesion to the rules
+  - Consistency is more important than strict adhesion to the rules
 
 
 Regression Tests
