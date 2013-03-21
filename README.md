@@ -27,12 +27,12 @@ To propose changes:
 
 1. Clone the repository (requires you to fork it first, if you do not have direct push access)
   * `git clone https://github.com/CyberCRI/gamEvolve.git`
-2. Create a feature branch 
-  * `git checkout --track origin/MY_BRANCH_NAME` _or_ `git checkout -b MY_BRANCH_NAME origin/MY_BRANCH_NAME`
+2. Create a (local) feature branch 
+  * `git checkout -b MY_BRANCH_NAME`
 3. Work on that feature and commit to it
   * `git commit -am "my commit message"`
 4. Push that branch to GitHub
-  * `git push origin MY_BRANCH_NAME`
+  * `git push -u origin MY_BRANCH_NAME`
 5. Go to GitHub and create a pull request
 6. If further commits are necessary, you can continue to commit and push that branch
 7. Once the pull request is accepted, delete the local branch, as well as the reference to the remote one.
