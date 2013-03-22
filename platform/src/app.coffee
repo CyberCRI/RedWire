@@ -270,22 +270,29 @@ saveCodeToCache = ->
   cachedCodeJson = JSON.stringify(codeToCache)
   localStorage.setItem(programId, cachedCodeJson)
 
-# Loads all editor contents from LocalStorage
-# Returns true if code was loaded, else false
+# Loads all editor contents from LocalStorage as JSON and returns it
+# If nothing was stored, returns null
 loadCodeFromCache = ->
   programId = window.location.hash.slice(1)
   if !programId then throw new Error("No program ID to load")
 
-  cachedCodeJson = localStorage.getItem(programId)
-  if !cachedCodeJson then return false
+  return localStorage.getItem(programId)
 
+# Sets cached code in the editors
+setCodeFromCache = (cachedCodeJson) ->
   cachedCode = JSON.parse(cachedCodeJson)
 
   for id, editor of editors
     editor.setValue(cachedCode[id])
     # The new contect will be selected by default
     editor.selection.clearSelection() 
-  return true
+
+# Remove code in LocalStorage
+clearCodeInCache = -> 
+  programId = window.location.hash.slice(1)
+  if !programId then throw new Error("No program ID to remove")
+
+  localStorage.removeItem(programId)
 
 ### Main ###
 
@@ -298,10 +305,20 @@ $(document).ready ->
     editor = setupEditor(id)
     editors[id] = editor
 
-  loadedCode = false
-  try 
-    loadedCode = loadCodeFromCache()
+  # A hash needs to be set, or we won't be able to load the code
+  if not window.location.hash then window.location.hash = "optics"
 
+  # Offer to load code from the cache if we can
+  loadedCode = false
+  cachedCodeJson = loadCodeFromCache()
+  if cachedCodeJson
+    if window.confirm("You had made changes to this code. Should we load your last version?")
+      setCodeFromCache(cachedCodeJson)
+      loadedCode = true
+    else 
+      clearCodeInCache()
+
+  # Otherwise just load from the default "optics" directory
   if not loadedCode
     for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
       loadIntoEditor(editors[id], url)
@@ -314,7 +331,6 @@ $(document).ready ->
 
   # Setup event handlers
   $(window).on "onresize", handleResize
-  $(window).on 'beforeunload', -> 'If you leave the page, you will lose unsaved changes'
 
   # Load code
   notifyCodeChange()
