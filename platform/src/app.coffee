@@ -225,6 +225,7 @@ notifyCodeChange = ->
 
   timeoutCallback = ->
     spinner.stop()
+    saveCodeToCache()
     reloadCode (err) -> if !err then executeCode()
 
   spinner.spin($("#north")[0]) 
@@ -256,6 +257,43 @@ handleAnimation = ->
 
   requestAnimationFrame(handleAnimation)
 
+# Saves all editor contents to LocalStorage
+saveCodeToCache = ->
+  programId = window.location.hash.slice(1)
+  if !programId then throw new Error("No program ID to save")
+
+  # TODO: should check that currentFrame == 0 before saving model
+  codeToCache = {}
+  for id, editor of editors
+    codeToCache[id] = editor.getValue()
+
+  cachedCodeJson = JSON.stringify(codeToCache)
+  localStorage.setItem(programId, cachedCodeJson)
+
+# Loads all editor contents from LocalStorage as JSON and returns it
+# If nothing was stored, returns null
+loadCodeFromCache = ->
+  programId = window.location.hash.slice(1)
+  if !programId then throw new Error("No program ID to load")
+
+  return localStorage.getItem(programId)
+
+# Sets cached code in the editors
+setCodeFromCache = (cachedCodeJson) ->
+  cachedCode = JSON.parse(cachedCodeJson)
+
+  for id, editor of editors
+    editor.setValue(cachedCode[id])
+    # The new contect will be selected by default
+    editor.selection.clearSelection() 
+
+# Remove code in LocalStorage
+clearCodeInCache = -> 
+  programId = window.location.hash.slice(1)
+  if !programId then throw new Error("No program ID to remove")
+
+  localStorage.removeItem(programId)
+
 ### Main ###
 
 $(document).ready ->
@@ -263,17 +301,36 @@ $(document).ready ->
   setupLayout()
   setupButtonHandlers()
 
-  for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
     editor = setupEditor(id)
-    loadIntoEditor(editor, url)
-    editor.getSession().on "change", -> notifyCodeChange()
     editors[id] = editor
+
+  # A hash needs to be set, or we won't be able to load the code
+  if not window.location.hash then window.location.hash = "optics"
+
+  # Offer to load code from the cache if we can
+  loadedCode = false
+  cachedCodeJson = loadCodeFromCache()
+  if cachedCodeJson
+    if window.confirm("You had made changes to this code. Should we load your last version?")
+      setCodeFromCache(cachedCodeJson)
+      loadedCode = true
+    else 
+      clearCodeInCache()
+
+  # Otherwise just load from the default "optics" directory
+  if not loadedCode
+    for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
+      loadIntoEditor(editors[id], url)
+
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
+    editors[id].getSession().on "change", -> notifyCodeChange()
+
   # TODO: find another way to include global data
   globals.editors = editors
 
   # Setup event handlers
   $(window).on "onresize", handleResize
-  $(window).on 'beforeunload', -> 'If you leave the page, you will lose unsaved changes'
 
   # Load code
   notifyCodeChange()
