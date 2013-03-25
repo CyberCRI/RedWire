@@ -1,15 +1,19 @@
 gamEvolve
 =========
 
-Create and modify games using simple concepts. 
+A tool for creating, sharing, and modifing online games using simple concepts. Try it online at http://cybercri.github.com/gamEvolve/
 
-Covered under the MIT open source license. All included libraries (see _Dependencies_ below) are covered under their own open source licenses
+Inspired by both [Rich Hickey's notions of simplicity] and [Bret Victor's ideas on understanding programming], the goal of the project is to let people take other's games and easily modify them, or take several games and recombine them in novel ways. In order to do so, games must be written as a set of "atoms" that can be moved, copied, and forked with minimum refactoring hassle.
+
+Currently under development in pre-alpha phase.
 
 
-Development Philosophy
-----------------------
+Contributions
+-------------
 
-Following [Beck's Directive]:
+The project is looking for contributors: though testing, bug reports, and pull requests.
+
+In terms of development, we follow [Beck's Directive]:
 
 1. Make it work
 2. Make it right
@@ -108,20 +112,24 @@ To run the automatic tests, make sure the code is compiled, and navigate to `pla
 Deployment
 ----------
 
-As part of the continuous deployment process, the master branch should be deployed each time it is pushed to.
+As part of the continuous deployment process, the master branch should be deployed each time it is pushed to. Currently, there is no automatic deployment process. This should be fixed soon.
 
-Currently, there is not automatic process to deploy. This should be fixed soon.
-
-In the meantime, follow these steps:
+In the meantime, the following steps will deploy onto GitHub:
 
 1. In a separate directory, checkout the `gh-pages` branch
+  * `git clone https://github.com/CyberCRI/gamEvolve.git DEPLOY_DIR`
   * `cd DEPLOY_DIR`
-  * `git clone -b gh-pages`
-2. Copy everything in the `platform/site` folder to the `gh-pages` branch
+  * If this is the first deployment:
+      * `git checkout --orphan gh-pages`
+      * `git rm -rf .`
+  * Otherwise:
+      * `git checkout gh-pages`
+2. Copy everything in the `platform/site` folder of the SOURCE\_DIR to the DEPLOY\_DIR folder
 3. Commit all changes to the `gh-pages` branch 
-  * `commit -am "COMMIT MESSAGE"`
+  * `git add -A`
+  * `git commit -m "DESCRIBE MERGED BRANCHES"`
 4. Deploy to GitHub
-  * `git push origin`
+  * `git push -u origin gh-pages`
 
 
 Dependencies
@@ -136,6 +144,12 @@ Compiling the project requires the following dependencies:
   - [Docco]
 
 
+License
+-------
+
+Covered under the MIT open source license. All included libraries (see _Dependencies_) are covered under their own open source licenses.
+
+
 [GitHub Flow]: http://scottchacon.com/2011/08/31/github-flow.html
 [Node.js]: http://nodejs.org/
 [NPM]: https://npmjs.org/
@@ -145,3 +159,5 @@ Compiling the project requires the following dependencies:
 [Coffeescript Style Guide]: https://github.com/polarmobile/coffeescript-style-guide
 [Javascript Style Guide]: http://google-styleguide.googlecode.com/svn/trunk/javascriptguide.xml#Naming
 [Beck's Directive]: http://c2.com/cgi/wiki?MakeItWorkMakeItRightMakeItFast
+[Rich Hickey's notions of simplicity]: http://www.infoq.com/presentations/Simple-Made-Easy
+[Bret Victor's ideas on understanding programming]: http://worrydream.com/LearnableProgramming/
