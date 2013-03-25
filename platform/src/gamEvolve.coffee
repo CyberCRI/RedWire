@@ -67,25 +67,6 @@ GE =
     images: ["png", "gif", "jpeg", "jpg"]
     js: ["js"]
 
-  GameController: class GameController
-    constructor: (@model, @assets, @actions, @layout) ->
-
-    loadAssets: (callback) ->
-      GE.loadAssets @assets, (err, loadedAssets) =>
-        if err? then return callback(err)
-
-        @loadedAssets = loadedAssets
-        callback(null)
-
-    # Does not apply changes
-    dryStep: -> 
-      GE.runStep(@model, @loadedAssets, @actions, @layout)
-    
-    # Applies changes to model, if possible
-    step: ->
-      [result, patches] = GE.runStep(@model, @loadedAssets, @actions, @layout)
-      @model = @model.applyPatches(patches)
-
   makeConstantSet: makeConstantSet
 
   # There is probably a faster way to do this 
@@ -252,15 +233,30 @@ GE =
       
     return model.makePatches(modelData)
 
-  runStep: (model, assets, actions, layout, bindings = {}) ->
+  nodeVisitors: 
+    "action": visitActionNode
+    "call": visitCallNode
+    "bind": visitBindNode
+    "setModel": visitSetModelNode
+
+  # Constants are modelData, assets, actions, and serviceData
+  visitNode: (node, bindings, constants) ->
     # TODO: defer action and call execution until whole tree is evaluated?
     # TODO: handle children as object in addition to array
 
+    for nodeType, visitor of nodeVisitors
+      if nodeType of layout
+        return visitor(node, bindings, constants)
+
+    GE.logError("Layout item is not understood")
+
+    return makeNodeVisitorResult()
+
     # List of patches to apply, across all actions
-    patches = []
+    modelPatches = []
+    servicePatches = {}
     result = undefined
 
-    if "action" of layout
       if layout.action not of actions then throw new Error("Cannot find action '#{layout.action}'")
 
       childNames = if layout.children? then [0..layout.children.length - 1] else []
@@ -399,6 +395,19 @@ GE =
 
   # Shortcut for timeout function, to avoid trailing the time at the end 
   doLater: (f) -> setTimeout(f, 0)
+
+  # Freeze an object recursively
+  # Based on https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/freeze
+  deepFreeze: (o) -> 
+    # First freeze the object
+    Object.freeze(o)
+
+    # Recursively freeze all the object properties
+    for own key, prop of o
+      if _.isObject(prop) and not Object.isFrozen(prop) then deepFreeze(prop)
+
+    return o
+
 
 # Install the GE namespace in the global scope
 globals.GE = GE
