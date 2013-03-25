@@ -37,6 +37,7 @@ currentModelData = null
 currentAssets = null
 currentActions = null
 currentLayout = null
+currentConsole = null
 currentLoadedAssets = null
 
 isPlaying = false
@@ -137,7 +138,7 @@ setupButtonHandlers = ->
 
     automaticallyUpdatingModel = true
     editors.modelEditor.setValue(JSON.stringify(currentModel.data, null, MODEL_FORMATTING_INDENTATION))
-    # The new contect will be selected by default
+    # The new content will be selected by default
     editors.modelEditor.selection.clearSelection() 
     automaticallyUpdatingModel = false
 
@@ -151,7 +152,7 @@ setupButtonHandlers = ->
     GE.doLater ->
       automaticallyUpdatingModel = true
       editors.modelEditor.setValue(JSON.stringify(currentModel.atVersion(currentFrame).data, null, MODEL_FORMATTING_INDENTATION))
-      # The new contect will be selected by default
+      # The new content will be selected by default
       editors.modelEditor.selection.clearSelection() 
       automaticallyUpdatingModel = false
 
@@ -172,7 +173,7 @@ loadIntoEditor = (editor, url) ->
     cache: false
     success: (data) -> 
       editor.setValue(data)
-      # The new contect will be selected by default
+      # The new content will be selected by default
       editor.selection.clearSelection() 
 
 reloadCode = (callback) ->
@@ -301,7 +302,7 @@ $(document).ready ->
   setupLayout()
   setupButtonHandlers()
 
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "console"]
     editor = setupEditor(id)
     editors[id] = editor
 
@@ -320,8 +321,16 @@ $(document).ready ->
 
   # Otherwise just load from the default "optics" directory
   if not loadedCode
-    for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
+    for [id, url] in [["modelEditor", "optics/model.json"], 
+                      ["assetsEditor", "optics/assets.json"], 
+                      ["actionsEditor", "optics/actions.js"],
+                      ["layoutEditor", "optics/layout.json"]]
       loadIntoEditor(editors[id], url)
+
+  currentConsole = "test";
+  editors.console.setValue(currentConsole);
+  editors.console.selection.clearSelection();
+  editors.console.setReadOnly(true); 
 
   for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
     editors[id].getSession().on "change", -> notifyCodeChange()
