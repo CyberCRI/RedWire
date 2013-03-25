@@ -130,6 +130,8 @@ setupButtonHandlers = ->
   $("#resetButton").on "click", ->
     currentFrame = 0
     currentModel = currentModel.atVersion(0)
+    console.log("reset button: on click;")
+    resetConsoleContent()
 
     # TODO: move these handlers to MVC events
     $("#timeSlider").slider "option", 
@@ -295,6 +297,14 @@ clearCodeInCache = ->
 
   localStorage.removeItem(programId)
 
+# Reset console content
+resetConsoleContent = ->
+  console.log("resetConsoleContent")
+
+  editors.console.setValue("");
+  editors.console.selection.clearSelection();
+  editors.console.setReadOnly(true);
+
 ### Main ###
 
 $(document).ready ->
@@ -327,8 +337,9 @@ $(document).ready ->
                       ["layoutEditor", "optics/layout.json"]]
       loadIntoEditor(editors[id], url)
 
-  currentConsole = "test";
-  editors.console.setValue(currentConsole);
+  # TODO replace by resetConsoleContent
+  console.log("Main: doc ready")
+  editors.console.setValue("test");
   editors.console.selection.clearSelection();
   editors.console.setReadOnly(true); 
 
