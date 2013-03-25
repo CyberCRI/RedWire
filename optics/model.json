@@ -1,0 +1,37 @@
+{
+  "score": 0,
+  "selected": {
+    "col": 2,
+    "row": 5
+  },
+  "pieces": [
+    { 
+      "col": 7,
+      "row": 2,
+      "type": "mirror",
+      "rotation": 15
+    },
+    { 
+      "col": 11,
+      "row": 2,
+      "type": "mirror",
+      "rotation": 50
+    },
+    { 
+      "col": 10,
+      "row": 3,
+      "type": "wall"
+    },
+    { 
+      "col": 4,
+      "row": 2,
+      "type": "squarePrism"
+    },
+    { 
+      "col": 3,
+      "row": 0,
+      "type": "laser-on",
+      "rotation": 120
+    }
+  ]
+}

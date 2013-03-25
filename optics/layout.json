@@ -1,0 +1,63 @@
+{
+  "action": "group",
+  "children": [
+    {
+      "action": "incrementNumber",
+      "params": {
+        "number": "@model:score"
+      }
+    },
+    {
+      "action": "clearBackground"
+    },
+    {
+      "action": "drawText",
+      "params": {
+        "text": "@model:score",
+        "x": 2,
+        "y": 20,
+        "style": "white",
+        "font": "20px Arial"
+      }
+    },
+    {
+      "action": "calculateLight",
+      "params": {
+        "pieces": "@model:pieces"
+      }
+    },
+    {
+      "bind": {
+        "from": {
+          "piece": "@model:pieces"
+        }
+      },
+      "children": [
+        {
+          "action": "drawPiece",
+          "params": {
+            "type" : "$piece.type",
+            "row" : "$piece.row",
+            "col" : "$piece.col",
+            "rotation": "$piece.rotation"
+          }
+        }
+      ]
+    },
+    {
+      "action": "drawSelected",
+      "params": {
+        "row": "@model:selected.row",
+        "col": "@model:selected.col"
+      }
+    },
+    { 
+      "action": "drawImage",
+      "params": {
+        "image": "@asset:background"
+      }
+    }
+  ]
+
+}
+  

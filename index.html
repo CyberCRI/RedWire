@@ -1,0 +1,81 @@
+<html>
+<head>
+  <title>gamEvolve</title>
+
+  <script src="lib/jquery/jquery-1.9.1.js" type="text/javascript" charset="utf-8"></script>
+
+  <script src="lib/jquery-ui/jquery-ui-1.10.1.custom.js" type="text/javascript" charset="utf-8"></script>
+  <link rel="stylesheet" type="text/css" href="lib/jquery-ui/css/ui-darkness/jquery-ui-1.10.1.custom.css">
+
+  <script src="lib/jquery-layout/jquery.layout-latest.js" type="text/javascript" charset="utf-8"></script>
+
+  <script type="text/javascript" src="lib/underscore/underscore.js"></script>
+  <script type="text/javascript" src="lib/underscore.string/underscore.string.js"></script>
+
+  <script type="text/javascript" src="lib/spin/spin.js"></script>
+
+  <script src="gamEvolve.js" type="text/javascript" charset="utf-8"></script>
+
+  <script src="lib/ace/ace.js" data-ace-base="lib/ace" type="text/javascript" charset="utf-8"></script>
+  <script src="lib/ace/mode-javascript.js" data-ace-base="lib/ace" type="text/javascript" charset="utf-8"></script>
+
+  <link rel="stylesheet" type="text/css" href="app.css">
+  <script type="text/javascript" src="app.js"></script>
+</head>
+
+<body>
+  <div id="north" class="ui-layout-north">
+    <h1 id="appTitle">gamEvolve</h1>
+    <div id="messageContainer">
+      <div id="topAlert" class="ui-widget">
+        <div class="ui-state-error ui-corner-all">
+          <p>
+            <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>
+            <span id="topAlertMessage">Error</span>
+          </p>
+        </div>
+      </div>
+      <div id="topInfo" class="ui-widget">
+        <div class="ui-state-highlight ui-corner-all">
+          <p>
+            <span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>
+            <span id="topInfoMessage">Info</span>
+          </p>
+        </div>
+      </div>
+    </div>
+    <div id="topToolbar" class="toolbar">
+      <button id="saveButton">Save</button>
+      <button id="shareButton">Share</button>
+    </div>
+  </div>
+  <div class="ui-layout-center">
+    <canvas id="gameCanvas" width="960" height="540"></canvas>
+  </div>
+  <div id="west" class="ui-layout-west">
+    <div class="toolbar">
+      <button id="playButton">Play</button>
+      <div id="timeSlider"></div>
+      <button id="resetButton">Reset</button>
+    </div>
+    <ul>
+      <li><a href="#modelEditor">Model</a></li>
+      <li><a href="#assetsEditor">Assets</a></li>
+    </ul>
+    <div class="ui-layout-content">
+      <div id="modelEditor" class="editor">Model</div>
+      <div id="assetsEditor" class="editor">Assets</div>
+    </div>
+  </div>
+  <div id="south" class="ui-layout-south">
+    <ul>
+      <li><a href="#actionsEditor">Actions</a></li>
+      <li><a href="#layoutEditor">Layout</a></li>
+      <li><a href="#console">Console</a></li>
+    </ul>
+    <div id="actionsEditor" class="editor">Actions</div>
+    <div id="layoutEditor" class="editor">Layout</div>
+    <div id="console" class="editor">Console</div>
+  </div>
+</body>
+</html>
