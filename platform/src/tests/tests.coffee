@@ -78,7 +78,7 @@ describe "gamEvolve", ->
       expect(model.atVersion(0).version).toBe(0)
 
 
-  describe "runSteps", ->
+  describe "visitNode", ->
     it "calls functions", ->
       # make test function to spy on
       globals.testFunction = jasmine.createSpy()
@@ -87,7 +87,8 @@ describe "gamEvolve", ->
         call: "testFunction"
         params: [1, 2]
 
-      GE.runStep(new GE.Model(), null, null, layout)
+      constants = new GE.NodeVisitorConstants({}, {}, {}, {})
+      GE.visitNode(layout, constants, {})
 
       expect(globals.testFunction).toHaveBeenCalledWith(1, 2)
 
@@ -112,7 +113,8 @@ describe "gamEvolve", ->
           x: 2
           y: "z"
 
-      GE.runStep(new GE.Model(), null, actions, layout)
+      constants = new GE.NodeVisitorConstants({}, {}, {}, actions)
+      GE.visitNode(layout, constants, {})
       expect(isCalled).toBeTruthy()
 
     it "calls children of actions", ->
@@ -137,11 +139,12 @@ describe "gamEvolve", ->
           }
         ]
 
-      GE.runStep(new GE.Model(), null, actions, layout)
+      constants = new GE.NodeVisitorConstants({}, {}, {}, actions)
+      GE.visitNode(layout, constants, {})
       expect(timesCalled).toEqual(3)
 
     it "evaluates parameters for functions", ->
-      model = new GE.Model({ person: { firstName: "bob" } })
+      model = { person: { firstName: "bob" } }
 
       assets = { image: new Image() }
 
@@ -158,12 +161,14 @@ describe "gamEvolve", ->
             params: ["@model:person.firstName", "model", "$lastName", "@asset:image"]
           }
         ]
-      GE.runStep(model, assets, null, layout)
+
+      constants = new GE.NodeVisitorConstants(model, {}, assets, {})
+      GE.visitNode(layout, constants, {})
 
       expect(globals.testFunction).toHaveBeenCalledWith("bob", "model", "jon", assets.image)
 
     it "evaluates parameters for actions", ->
-      oldModel = new GE.Model
+      oldModel = 
         a: 1
         b: 10
         c: 20
@@ -198,19 +203,20 @@ describe "gamEvolve", ->
             y: "$c"
         ]
 
-      [result, patches] = GE.runStep(oldModel, assets, actions, layout)
-      newModel = oldModel.applyPatches(patches)
+      constants = new GE.NodeVisitorConstants(oldModel, {}, assets, actions)
+      results = GE.visitNode(layout, constants, {})
+      newModel = GE.applyPatches(results.modelPatches, oldModel)
 
       # The new model should be changed, but the old one shouldn't be
-      expect(oldModel.data.a).toBe(1)
-      expect(oldModel.data.b).toBe(10)
-      expect(oldModel.data.c).toBe(20)
-      expect(newModel.data.a).toBe(2)
-      expect(newModel.data.b).toBe(9)
-      expect(newModel.data.c).toBe(30)
+      expect(oldModel.a).toBe(1)
+      expect(oldModel.b).toBe(10)
+      expect(oldModel.c).toBe(20)
+      expect(newModel.a).toBe(2)
+      expect(newModel.b).toBe(9)
+      expect(newModel.c).toBe(30)
 
     it "sets the model", ->
-      oldModel = new GE.Model
+      oldModel = 
         a: 
           a1: 1
         b: 10
@@ -221,20 +227,23 @@ describe "gamEvolve", ->
           "a.a1": 2
           "b": "@model:c"
 
-      [result, patches] = GE.runStep(oldModel, null, null, layout)
-      newModel = oldModel.applyPatches(patches)
+      constants = new GE.NodeVisitorConstants(oldModel, {}, {}, {})
+      results = GE.visitNode(layout, constants, {})
+      newModel = GE.applyPatches(results.modelPatches, oldModel)
 
       # The new model should be changed, but the old one shouldn't be
-      expect(oldModel.data.a.a1).toBe(1)
-      expect(oldModel.data.b).toBe(10)
-      expect(newModel.data.a.a1).toBe(2)
-      expect(newModel.data.b).toBe("hi")
+      expect(oldModel.a.a1).toBe(1)
+      expect(oldModel.b).toBe(10)
+      expect(newModel.a.a1).toBe(2)
+      expect(newModel.b).toBe("hi")
 
     it "checks and adjusts activation", ->
-      models = [new GE.Model
-        activeChild: 0
-        child0TimesCalled: 0
-        child1TimesCalled: 0
+      models = [
+        {
+          activeChild: 0
+          child0TimesCalled: 0
+          child1TimesCalled: 0
+        }
       ]
 
       actions = 
@@ -271,22 +280,24 @@ describe "gamEvolve", ->
           }
         ]
 
-      [result, patches] = GE.runStep(models[0], null, actions, layout)
-      models[1] = models[0].applyPatches(patches)
+      constants = new GE.NodeVisitorConstants(models[0], {}, {}, actions)
+      results = GE.visitNode(layout, constants, {})
+      models[1] = GE.applyPatches(results.modelPatches, models[0])
 
-      expect(models[1].data.child0TimesCalled).toBe(1)
-      expect(models[1].data.child1TimesCalled).toBe(0)
-      expect(models[1].data.activeChild).toBe(1)
+      expect(models[1].child0TimesCalled).toBe(1)
+      expect(models[1].child1TimesCalled).toBe(0)
+      expect(models[1].activeChild).toBe(1)
       
-      [result, patches] = GE.runStep(models[1], null, actions, layout)
-      models[2] = models[1].applyPatches(patches)
+      constants = new GE.NodeVisitorConstants(models[1], {}, {}, actions)
+      results = GE.visitNode(layout, constants, {})
+      models[2] = GE.applyPatches(results.modelPatches, models[1])
 
-      expect(models[2].data.child0TimesCalled).toBe(1)
-      expect(models[2].data.child1TimesCalled).toBe(1)
-      expect(models[2].data.activeChild).toBe(2)
+      expect(models[2].child0TimesCalled).toBe(1)
+      expect(models[2].child1TimesCalled).toBe(1)
+      expect(models[2].activeChild).toBe(2)
 
     it "binds across model arrays", ->
-      oldModel = new GE.Model
+      oldModel = 
         people: [
           { first: "bill", last: "bobson" }
           { first: "joe", last: "johnson" }
@@ -312,14 +323,15 @@ describe "gamEvolve", ->
           }
         ]
 
-      [result, patches] = GE.runStep(oldModel, null, actions, layout)
-      newModel = oldModel.applyPatches(patches)
+      constants = new GE.NodeVisitorConstants(oldModel, {}, {}, actions)
+      results = GE.visitNode(layout, constants, {})
+      newModel = GE.applyPatches(results.modelPatches, oldModel)
 
-      expect(newModel.data.people[0].last).toBe("bill")
-      expect(newModel.data.people[1].last).toBe("joe")
+      expect(newModel.people[0].last).toBe("bill")
+      expect(newModel.people[1].last).toBe("joe")
 
     it "binds across constant arrays", ->
-      oldModel = new GE.Model()
+      oldModel = {}
       people = [
         { first: "bill", last: "bobson" }
         { first: "joe", last: "johnson" }
@@ -339,7 +351,8 @@ describe "gamEvolve", ->
           }
         ]
 
-      GE.runStep(oldModel, null, null, layout)
+      constants = new GE.NodeVisitorConstants(oldModel, {}, {}, {})
+      GE.visitNode(layout, constants, {})
 
       for person in people
         expect(globals.testFunction).toHaveBeenCalledWith(person)
