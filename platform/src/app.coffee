@@ -217,8 +217,11 @@ reloadCode = (callback) ->
 # Returns a new model
 executeCode = ->
   modelAtFrame = currentModel.atVersion(currentFrame)
-  [result, patches] = GE.runStep(modelAtFrame, currentLoadedAssets, currentActions, currentLayout)
-  return modelAtFrame.applyPatches(patches)
+
+  constants = new GE.NodeVisitorConstants(modelAtFrame.clonedData(), {}, currentLoadedAssets, currentActions)
+  result = GE.visitNode(currentLayout, constants, {})
+
+  return modelAtFrame.applyPatches(result.modelPatches)
 
 notifyCodeChange = ->
   if automaticallyUpdatingModel then return false
