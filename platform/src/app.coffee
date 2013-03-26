@@ -337,11 +337,7 @@ $(document).ready ->
                       ["layoutEditor", "optics/layout.json"]]
       loadIntoEditor(editors[id], url)
 
-  # TODO replace by resetConsoleContent
-  console.log("Main: doc ready")
-  editors.console.setValue("test");
-  editors.console.selection.clearSelection();
-  editors.console.setReadOnly(true); 
+  resetConsoleContent()
 
   for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
     editors[id].getSession().on "change", -> notifyCodeChange()
