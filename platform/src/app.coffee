@@ -32,7 +32,7 @@ editors = {}
 spinner = new Spinner(SPINNER_OPTS)
 
 currentModel = new GE.Model()
-currentLogger = new GE.Logger()
+currentLogger = GE.logger
 currentFrame = 0
 currentModelData = null
 currentAssets = null
@@ -323,10 +323,7 @@ $(document).ready ->
       editors.console.insert(prefix+": "+text)
 
   # Connect console to logging
-  currentLogger = new GE.Logger(prefixedLog("err"),\
-                                prefixedLog("warn"),\
-                                prefixedLog("info"),\
-                                prefixedLog("log"))
+  GE.setLogger(prefixedLog("error"), prefixedLog("warn"), prefixedLog("info"), prefixedLog("log"))
 
   resetConsoleContent()
 

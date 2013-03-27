@@ -34,14 +34,23 @@ makeConstantSet = (values...) ->
 
 
 # All will be in the "GE" namespace
-GE = 
-  # Class used to log events
-  # TODO add debug level control
-  Logger: class Logger
-    constructor: (@logError = console.error,\
-                  @logWarning = console.warn,\
-                  @logInfo = console.info,\
-                  @logLog = console.log) ->
+GE =
+  # Object used to log events
+  # set by setLogger
+  logger:
+    logError: (text) -> console.error
+    logWarning: (text) -> console.warn
+    logInfo: (text) -> console.info
+    logLog: (text) -> console.log
+
+  setLogger: (logError = console.error,\
+              logWarning = console.warn,\
+              logInfo = console.info,\
+              logLog = console.log) ->
+    GE.logger.logError   = logError
+    GE.logger.logWarning = logWarning
+    GE.logger.logInfo    = logInfo
+    GE.logger.logLog     = logLog
 
   # The model copies itself as you call functions on it, like a Crockford-style monad
   Model: class Model
@@ -170,7 +179,7 @@ GE =
     try
       globals[functionName].apply({}, evaluatedParams)
     catch e
-      GE.Logger.logWarning("Calling function #{functionName} raised an exception #{e}")
+      GE.logger.logWarning("Calling function #{functionName} raised an exception #{e}")
     
   # Catches all errors in the function 
   sandboxActionCall: (model, assets, bindings, actions, actionName, methodName, layoutParameters, childNames, signals) ->
@@ -202,7 +211,7 @@ GE =
       result = action[methodName].apply(locals)
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      GE.Logger.logWarning("Calling action #{action}.#{methodName} raised an exception #{e}")
+      GE.logger.logWarning("Calling action #{action}.#{methodName} raised an exception #{e}")
 
     # Call set() on all parameter functions
     for paramName, paramValue of compiledParams
