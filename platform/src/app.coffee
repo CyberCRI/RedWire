@@ -131,8 +131,6 @@ setupButtonHandlers = ->
   $("#resetButton").on "click", ->
     currentFrame = 0
     currentModel = currentModel.atVersion(0)
-    #TODO remove all console.log
-    console.log("setupButtonHandlers... will call currentLogger.logWarning")
     currentLogger.logWarning("reset button: on click;")
     resetConsoleContent()
 
@@ -302,8 +300,6 @@ clearCodeInCache = ->
 
 # Reset console content
 resetConsoleContent = ->
-  #TODO remove all console.log
-  console.log("resetConsoleContent... will call currentLogger.logWarning")
   currentLogger.logWarning("resetConsoleContent")
   editors.console.setValue("");
   editors.console.selection.clearSelection();
@@ -322,8 +318,6 @@ $(document).ready ->
 
   prefixedLog = (prefix) ->
     (text) ->
-      #TODO remove all console.log
-      console.log(prefix+": "+text)
       editors.console.selection.clearSelection()
       editors.console.navigateFileEnd()
       editors.console.insert(prefix+": "+text)
@@ -336,9 +330,7 @@ $(document).ready ->
 
   resetConsoleContent()
 
-  #TODO remove all console.log
-  console.log("Main: document.ready, preparing editors.console... will call currentLogger.logWarning")
-  currentLogger.logWarning("Main: document.ready, preparing editors.console")
+  currentLogger.logWarning("Main: document ready, prepared console")
 
   # A hash needs to be set, or we won't be able to load the code
   if not window.location.hash then window.location.hash = "optics"
