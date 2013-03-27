@@ -35,26 +35,14 @@ makeConstantSet = (values...) ->
 
 # All will be in the "GE" namespace
 GE =
-  # Object used to log events
-  # set by setLogger
-  logger:
-    logError: (text) -> console.error
-    logWarning: (text) -> console.warn
-    logInfo: (text) -> console.info
-    logLog: (text) -> console.log
 
-  setLogger: (logError = console.error,\
-              logWarning = console.warn,\
-              logInfo = console.info,\
-              logLog = console.log) ->
-    GE.logger.logError   = logError
-    GE.logger.logWarning = logWarning
-    GE.logger.logInfo    = logInfo
-    GE.logger.logLog     = logLog
+  logLevels: makeConstantSet("error", "warn", "info", "log")
+  logger:
+    log:   (logType, message) -> if logLevels[logType] then console[logType](message)
 
   # The model copies itself as you call functions on it, like a Crockford-style monad
   Model: class Model
-    constructor: (data = {}, @previous = null) -> 
+    constructor: (data = {}, @previous = null) ->
       @data = GE.cloneData(data)
       @version = if @previous? then @previous.version + 1 else 0
 

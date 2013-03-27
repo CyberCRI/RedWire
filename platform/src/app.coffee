@@ -32,7 +32,6 @@ editors = {}
 spinner = new Spinner(SPINNER_OPTS)
 
 currentModel = new GE.Model()
-currentLogger = GE.logger
 currentFrame = 0
 currentModelData = null
 currentAssets = null
@@ -131,8 +130,8 @@ setupButtonHandlers = ->
   $("#resetButton").on "click", ->
     currentFrame = 0
     currentModel = currentModel.atVersion(0)
-    currentLogger.logWarning("reset button: on click;")
     resetConsoleContent()
+    GE.logger.log("warn", "reset button: on click;")
 
     # TODO: move these handlers to MVC events
     $("#timeSlider").slider "option", 
@@ -300,7 +299,7 @@ clearCodeInCache = ->
 
 # Reset console content
 resetConsoleContent = ->
-  currentLogger.logWarning("resetConsoleContent")
+  GE.logger.log("warn", "console content is being reset")
   editors.console.setValue("");
   editors.console.selection.clearSelection();
   editors.console.setReadOnly(true);
@@ -316,18 +315,21 @@ $(document).ready ->
     editor = setupEditor(id)
     editors[id] = editor
 
-  prefixedLog = (prefix) ->
-    (text) ->
-      editors.console.selection.clearSelection()
-      editors.console.navigateFileEnd()
-      editors.console.insert(prefix+": "+text)
+  prefixedLog = (logType, message, newLine = true) ->
+      if GE.logLevels[logType]
+        editors.console.selection.clearSelection()
+        editors.console.navigateFileEnd()
+        editors.console.insert(logType+": "+message+if newLine then "\n" else "")
+      else
+        prefixedLog("error", "bad logType parameter '"+logType+"' in log for message '"+message+"'")
 
   # Connect console to logging
-  GE.setLogger(prefixedLog("error"), prefixedLog("warn"), prefixedLog("info"), prefixedLog("log"))
+  console.log("app sets GE.logger.log")
+  GE.logger.log = prefixedLog
 
   resetConsoleContent()
 
-  currentLogger.logWarning("Main: document ready, prepared console")
+  GE.logger.log("info", "Main: document ready, prepared console")
 
   # A hash needs to be set, or we won't be able to load the code
   if not window.location.hash then window.location.hash = "optics"
