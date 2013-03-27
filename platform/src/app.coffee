@@ -32,6 +32,7 @@ editors = {}
 spinner = new Spinner(SPINNER_OPTS)
 
 currentModel = new GE.Model()
+currentLogger = new GE.Logger()
 currentFrame = 0
 currentModelData = null
 currentAssets = null
@@ -130,7 +131,9 @@ setupButtonHandlers = ->
   $("#resetButton").on "click", ->
     currentFrame = 0
     currentModel = currentModel.atVersion(0)
-    console.log("reset button: on click;")
+    #TODO remove all console.log
+    console.log("setupButtonHandlers... will call currentLogger.logWarning")
+    currentLogger.logWarning("reset button: on click;")
     resetConsoleContent()
 
     # TODO: move these handlers to MVC events
@@ -299,8 +302,9 @@ clearCodeInCache = ->
 
 # Reset console content
 resetConsoleContent = ->
-  console.log("resetConsoleContent")
-
+  #TODO remove all console.log
+  console.log("resetConsoleContent... will call currentLogger.logWarning")
+  currentLogger.logWarning("resetConsoleContent")
   editors.console.setValue("");
   editors.console.selection.clearSelection();
   editors.console.setReadOnly(true);
@@ -315,6 +319,23 @@ $(document).ready ->
   for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "console"]
     editor = setupEditor(id)
     editors[id] = editor
+
+  basicLog = (text) ->
+    #TODO remove all console.log
+    console.log("basicLog: '"+text+"'")
+    editors.console.selection.clearSelection()
+    editors.console.setReadOnly(true)
+    editors.console.navigateFileEnd()
+    editors.console.insert("basicLog")
+
+  # Connect console to logging
+  currentLogger = new GE.Logger(basicLog, basicLog)
+
+  resetConsoleContent()
+
+  #TODO remove all console.log
+  console.log("Main: document.ready, preparing editors.console... will call currentLogger.logWarning")
+  currentLogger.logWarning("Main: document.ready, preparing editors.console")
 
   # A hash needs to be set, or we won't be able to load the code
   if not window.location.hash then window.location.hash = "optics"
@@ -336,8 +357,6 @@ $(document).ready ->
                       ["actionsEditor", "optics/actions.js"],
                       ["layoutEditor", "optics/layout.json"]]
       loadIntoEditor(editors[id], url)
-
-  resetConsoleContent()
 
   for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
     editors[id].getSession().on "change", -> notifyCodeChange()

@@ -35,6 +35,10 @@ makeConstantSet = (values...) ->
 
 # All will be in the "GE" namespace
 GE = 
+  # Class used to log events
+  Logger: class Logger
+    constructor: (@logError = console.error, @logWarning = console.warn) ->
+
   # The model copies itself as you call functions on it, like a Crockford-style monad
   Model: class Model
     constructor: (data = {}, @previous = null) -> 
@@ -93,11 +97,6 @@ GE =
 
   # Reject arrays as objects
   isOnlyObject: (o) -> return _.isObject(o) and not _.isArray(o)
-
-  # Logging functions could be used later 
-  logError: (x) -> console.error(x)
-
-  logWarning: (x) -> console.warn(x)
 
   # For accessing a value within an embedded object or array
   # Takes a parent object/array and the "path" as an array
@@ -167,7 +166,7 @@ GE =
     try
       globals[functionName].apply({}, evaluatedParams)
     catch e
-      GE.logWarning("Calling function #{functionName} raised an exception #{e}")
+      GE.Logger.logWarning("Calling function #{functionName} raised an exception #{e}")
     
   # Catches all errors in the function 
   sandboxActionCall: (model, assets, bindings, actions, actionName, methodName, layoutParameters, childNames, signals) ->
@@ -199,7 +198,7 @@ GE =
       result = action[methodName].apply(locals)
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      GE.logWarning("Calling action #{action}.#{methodName} raised an exception #{e}")
+      GE.Logger.logWarning("Calling action #{action}.#{methodName} raised an exception #{e}")
 
     # Call set() on all parameter functions
     for paramName, paramValue of compiledParams
