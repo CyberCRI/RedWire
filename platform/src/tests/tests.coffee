@@ -330,30 +330,26 @@ describe "gamEvolve", ->
       expect(newModel.people[0].last).toBe("bill")
       expect(newModel.people[1].last).toBe("joe")
 
-    it "binds across constant arrays", ->
-      oldModel = {}
-      people = [
-        { first: "bill", last: "bobson" }
-        { first: "joe", last: "johnson" }
-      ]
+    it "communicates with services", ->
+      oldServiceData = 
+        serviceA: 
+          a: 1
 
-      # make test function to spy on
-      globals.testFunction = jasmine.createSpy()
+      actions = 
+        incrementServiceData: 
+          paramDefs:
+            service: "" 
+          update: -> 
+            expect(@params.service.a).toBe(1)
+            @params.service.a++
 
       layout = 
-        bind: 
-          from:
-            person: people
-        children: [
-          { 
-            call: "testFunction"
-            params: ["$person"]
-          }
-        ]
+        action: "incrementServiceData"
+        params:
+          service: "@service:serviceA"
 
-      constants = new GE.NodeVisitorConstants(oldModel, {}, {}, {})
-      GE.visitNode(layout, constants, {})
+      constants = new GE.NodeVisitorConstants({}, oldServiceData, {}, actions)
+      results = GE.visitNode(layout, constants, {})
+      newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
 
-      for person in people
-        expect(globals.testFunction).toHaveBeenCalledWith(person)
-    
+      expect(newServiceData.serviceA.a).toBe(2)
