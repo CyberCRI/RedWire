@@ -320,16 +320,19 @@ $(document).ready ->
     editor = setupEditor(id)
     editors[id] = editor
 
-  basicLog = (text) ->
-    #TODO remove all console.log
-    console.log("basicLog: '"+text+"'")
-    editors.console.selection.clearSelection()
-    editors.console.setReadOnly(true)
-    editors.console.navigateFileEnd()
-    editors.console.insert("basicLog")
+  prefixedLog = (prefix) ->
+    (text) ->
+      #TODO remove all console.log
+      console.log(prefix+": "+text)
+      editors.console.selection.clearSelection()
+      editors.console.navigateFileEnd()
+      editors.console.insert(prefix+": "+text)
 
   # Connect console to logging
-  currentLogger = new GE.Logger(basicLog, basicLog)
+  currentLogger = new GE.Logger(prefixedLog("err"),\
+                                prefixedLog("warn"),\
+                                prefixedLog("info"),\
+                                prefixedLog("log"))
 
   resetConsoleContent()
 

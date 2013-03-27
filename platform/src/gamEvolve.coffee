@@ -36,8 +36,12 @@ makeConstantSet = (values...) ->
 # All will be in the "GE" namespace
 GE = 
   # Class used to log events
+  # TODO add debug level control
   Logger: class Logger
-    constructor: (@logError = console.error, @logWarning = console.warn) ->
+    constructor: (@logError = console.error,\
+                  @logWarning = console.warn,\
+                  @logInfo = console.info,\
+                  @logLog = console.log) ->
 
   # The model copies itself as you call functions on it, like a Crockford-style monad
   Model: class Model
