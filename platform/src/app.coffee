@@ -28,6 +28,7 @@ SPINNER_OPTS =
 ### Globals ###
 
 editors = {}
+log = null
 
 spinner = new Spinner(SPINNER_OPTS)
 
@@ -62,7 +63,9 @@ adjustEditorToSize = (editor) ->
       limit = parseInt(contentWidth / characterWidth, 10)
       session.setWrapLimitRange(limit, limit)
 
-handleResize = -> for editorName, editor of editors then adjustEditorToSize(editor)
+handleResize = -> 
+  for editorName, editor of editors then adjustEditorToSize(editor)
+  adjustEditorToSize(log)
 
 showMessage = (messageType, message) ->
   switch messageType
@@ -129,6 +132,7 @@ setupButtonHandlers = ->
   $("#resetButton").on "click", ->
     currentFrame = 0
     currentModel = currentModel.atVersion(0)
+    resetLogContent()
 
     # TODO: move these handlers to MVC events
     $("#timeSlider").slider "option", 
@@ -137,7 +141,7 @@ setupButtonHandlers = ->
 
     automaticallyUpdatingModel = true
     editors.modelEditor.setValue(JSON.stringify(currentModel.data, null, MODEL_FORMATTING_INDENTATION))
-    # The new contect will be selected by default
+    # The new content will be selected by default
     editors.modelEditor.selection.clearSelection() 
     automaticallyUpdatingModel = false
 
@@ -151,16 +155,17 @@ setupButtonHandlers = ->
     GE.doLater ->
       automaticallyUpdatingModel = true
       editors.modelEditor.setValue(JSON.stringify(currentModel.atVersion(currentFrame).data, null, MODEL_FORMATTING_INDENTATION))
-      # The new contect will be selected by default
+      # The new content will be selected by default
       editors.modelEditor.selection.clearSelection() 
       automaticallyUpdatingModel = false
 
       # Execute again
       executeCode()
 
-setupEditor = (id) ->
+# Mode should be something that ACE Editor recognizes, like "ace/mode/javascript"
+setupEditor = (id, mode = "") ->
   editor = ace.edit(id)
-  editor.getSession().setMode("ace/mode/javascript")
+  if mode then editor.getSession().setMode(mode)
   editor.getSession().setUseWrapMode(true)
   editor.setWrapBehavioursEnabled(true)
   return editor
@@ -172,32 +177,37 @@ loadIntoEditor = (editor, url) ->
     cache: false
     success: (data) -> 
       editor.setValue(data)
-      # The new contect will be selected by default
+      # The new content will be selected by default
       editor.selection.clearSelection() 
 
 reloadCode = (callback) ->
   try
     currentAssets = JSON.parse(editors.assetsEditor.getValue())
   catch error
+    GE.logger.log(GE.logLevels.ERROR, "Assets error. #{error}")
     return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
 
   try
     currentModelData = JSON.parse(editors.modelEditor.getValue())
   catch error
+    GE.logger.log(GE.logLevels.ERROR, "Model error. #{error}")
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
   try
     currentActions = eval(editors.actionsEditor.getValue())
   catch error
+    GE.logger.log(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
   try
     currentLayout = JSON.parse(editors.layoutEditor.getValue())
   catch error
-    return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
+    GE.logger.log(GE.logLevels.ERROR, "Layout error. #{error}")
+    return showMessage(MessageType.Error, "<strong>Layout error.</strong> #{error}")
 
   GE.loadAssets currentAssets, (err, loadedAssets) =>
     if err? 
+      GE.logger.log(GE.logLevels.ERROR, "Cannot load assets")
       showMessage(MessageType.Error, "Cannot load assets")
       callback(err)
 
@@ -210,6 +220,7 @@ reloadCode = (callback) ->
       value: currentFrame
       max: currentFrame
 
+    GE.logger.log(GE.logLevels.INFO, "Game updated")
     showMessage(MessageType.Info, "Game updated")
     callback(null)
 
@@ -294,6 +305,18 @@ clearCodeInCache = ->
 
   localStorage.removeItem(programId)
 
+# Reset log content
+resetLogContent = ->
+  GE.logger.log(GE.logLevels.WARN, "Log content is being reset")
+  log.setValue("");
+  log.clearSelection();
+  
+  GE.logger.log(GE.logLevels.INFO, "Reset log")
+
+getFormattedTime = ->
+  date = new Date()
+  return date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()
+
 ### Main ###
 
 $(document).ready ->
@@ -301,9 +324,25 @@ $(document).ready ->
   setupLayout()
   setupButtonHandlers()
 
+  # Create all the JSON and JS editors
   for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
-    editor = setupEditor(id)
-    editors[id] = editor
+    editors[id] = setupEditor(id, "ace/mode/javascript")
+
+  # Create the log, which is plain text
+  log = setupEditor("log")
+  log.setReadOnly(true)
+ 
+  prefixedLog = (logType, message, newLine = true) ->
+    if GE.logLevels[logType]
+      log.clearSelection()
+      log.navigateFileEnd()
+      log.insert(logType+": "+getFormattedTime()+" "+message+if newLine then "\n" else "")
+    else
+      prefixedLog("error", "bad logType parameter '"+logType+"' in log for message '"+message+"'")
+
+  # Connect log to GE logging
+  GE.logger.log = prefixedLog
+  resetLogContent()
 
   # A hash needs to be set, or we won't be able to load the code
   if not window.location.hash then window.location.hash = "optics"
@@ -320,7 +359,10 @@ $(document).ready ->
 
   # Otherwise just load from the default "optics" directory
   if not loadedCode
-    for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
+    for [id, url] in [["modelEditor", "optics/model.json"], 
+                      ["assetsEditor", "optics/assets.json"], 
+                      ["actionsEditor", "optics/actions.js"],
+                      ["layoutEditor", "optics/layout.json"]]
       loadIntoEditor(editors[id], url)
 
   for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
