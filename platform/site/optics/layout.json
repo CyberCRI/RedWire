@@ -31,6 +31,16 @@
       }
     },
     {
+      "action": "drawText",
+      "params": {
+        "text": "@service:mouse",
+        "x": 2,
+        "y": 40,
+        "style": "white",
+        "font": "20px Arial"
+      }
+    },
+    {
       "action": "calculateLight",
       "params": {
         "pieces": "@model:pieces"
