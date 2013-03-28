@@ -29,9 +29,12 @@ globals = @
 # All will be in the "GE" namespace
 GE = {}
 
+# Can be used to mimic enums in JS
 # Since this is called by the GE namspace definition below, it must be defined first
 GE.makeConstantSet = (values...) ->
-  obj = {}
+  obj =
+    # Checks if the value is in the set
+    contains: (value) -> return value of obj
   for value in values then obj[value] = value
   return Object.freeze(obj)
 
@@ -311,6 +314,28 @@ GE.visitNode = (node, constants, bindings = {}) ->
 
   return new NodeVisitorResult()
 
+# By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
+# If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
+# Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
+# Returns a list of model patches.
+GE.stepLoop = (node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null) ->
+  if outputServiceData != null
+    modelPatches = []
+  else
+    if inputServiceData == null
+      inputServiceData = {}
+      for serviceName, service of services
+        inputServiceData[serviceName] = service.provideData()
+
+    result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions))
+    modelPatches = result.modelPatches
+    outputServiceData = GE.applyPatches(result.servicePatches, inputServiceData)
+
+  for serviceName, service of services
+    service.establishData(outputServiceData[serviceName])
+
+  return modelPatches
+
 # Parameter names are always strings
 GE.makeModelEvaluator = (constants, name) -> 
   if not name? then throw new Error("Model evaluator requires a name")
@@ -440,7 +465,6 @@ GE.deepFreeze = (o) ->
     if _.isObject(prop) and not Object.isFrozen(prop) then GE.deepFreeze(prop)
 
   return o
-
 
 # Install the GE namespace in the global scope
 globals.GE = GE

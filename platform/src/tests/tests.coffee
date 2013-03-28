@@ -5,7 +5,7 @@ describe "gamEvolve", ->
   beforeEach ->
     @addMatchers 
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
-      toBeEmpty: (expected) -> expected.length == 0
+      toBeEmpty: () -> @actual.length == 0
 
   describe "model", ->
     it "can be created empty", ->
@@ -78,7 +78,7 @@ describe "gamEvolve", ->
       expect(model.atVersion(0).version).toBe(0)
 
 
-  describe "visitNode", ->
+  describe "visitNode()", ->
     it "calls functions", ->
       # make test function to spy on
       globals.testFunction = jasmine.createSpy()
@@ -353,3 +353,75 @@ describe "gamEvolve", ->
       newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
 
       expect(newServiceData.serviceA.a).toBe(2)
+
+  describe "stepLoop()", ->
+    it "sends output data directly to services", ->
+      services = 
+        myService:
+          establishData: jasmine.createSpy()
+
+      outputServiceData = 
+        myService:
+          a = 1
+
+      # parameters: node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null
+      modelPatches = GE.stepLoop(null, {}, {}, {}, services, null, outputServiceData)
+
+      expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService)
+      expect(modelPatches).toBeEmpty()
+
+    it "send service input data to visitNode", ->
+      services = 
+        myService:
+          establishData: jasmine.createSpy()
+
+      inputServiceData = 
+        myService:
+          a: 1
+
+      actions = 
+        incrementServiceData: 
+          paramDefs:
+            service: "" 
+          update: -> 
+            expect(@params.service.a).toBe(1)
+            @params.service.a++
+
+      layout = 
+        action: "incrementServiceData"
+        params:
+          service: "@service:myService"
+
+      # parameters: node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null
+      modelPatches = GE.stepLoop(layout, {}, {}, actions, services, inputServiceData)
+
+      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 })
+      expect(modelPatches).toBeEmpty()
+
+    it "gathers service input data, visits nodes, and gives output to services", ->
+      services = 
+        myService:
+          provideData: -> return { a: 1 }
+          establishData: jasmine.createSpy()
+
+      spyOn(services.myService, "provideData").andCallThrough()
+
+      actions = 
+        incrementServiceData: 
+          paramDefs:
+            service: "" 
+          update: -> 
+            expect(@params.service.a).toBe(1)
+            @params.service.a++
+
+      layout = 
+        action: "incrementServiceData"
+        params:
+          service: "@service:myService"
+
+      # parameters: node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null
+      modelPatches = GE.stepLoop(layout, {}, {}, actions, services)
+
+      expect(services.myService.provideData).toHaveBeenCalled()
+      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 })
+      expect(modelPatches).toBeEmpty()
