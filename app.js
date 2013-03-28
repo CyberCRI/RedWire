@@ -4,7 +4,7 @@
 
 
 (function() {
-  var CODE_CHANGE_TIMEOUT, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, editors, executeCode, globals, handleAnimation, handleResize, initCanvas, isPlaying, loadCodeFromCache, loadIntoEditor, notifyCodeChange, reloadCode, saveCodeToCache, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner;
+  var CODE_CHANGE_TIMEOUT, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, editors, executeCode, getFormattedTime, globals, handleAnimation, handleResize, initCanvas, isPlaying, loadCodeFromCache, loadIntoEditor, log, notifyCodeChange, reloadCode, resetLogContent, saveCodeToCache, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner;
 
   globals = this;
 
@@ -37,6 +37,8 @@
 
 
   editors = {};
+
+  log = null;
 
   spinner = new Spinner(SPINNER_OPTS);
 
@@ -87,14 +89,13 @@
   };
 
   handleResize = function() {
-    var editor, editorName, _results;
+    var editor, editorName;
 
-    _results = [];
     for (editorName in editors) {
       editor = editors[editorName];
-      _results.push(adjustEditorToSize(editor));
+      adjustEditorToSize(editor);
     }
-    return _results;
+    return adjustEditorToSize(log);
   };
 
   showMessage = function(messageType, message) {
@@ -193,6 +194,7 @@
     $("#resetButton").on("click", function() {
       currentFrame = 0;
       currentModel = currentModel.atVersion(0);
+      resetLogContent();
       $("#timeSlider").slider("option", {
         value: 0,
         max: 0
@@ -215,11 +217,16 @@
     });
   };
 
-  setupEditor = function(id) {
+  setupEditor = function(id, mode) {
     var editor;
 
+    if (mode == null) {
+      mode = "";
+    }
     editor = ace.edit(id);
-    editor.getSession().setMode("ace/mode/javascript");
+    if (mode) {
+      editor.getSession().setMode(mode);
+    }
     editor.getSession().setUseWrapMode(true);
     editor.setWrapBehavioursEnabled(true);
     return editor;
@@ -245,28 +252,33 @@
       currentAssets = JSON.parse(editors.assetsEditor.getValue());
     } catch (_error) {
       error = _error;
+      GE.logger.log(GE.logLevels.ERROR, "Assets error. " + error);
       return showMessage(MessageType.Error, "<strong>Assets error.</strong> " + error);
     }
     try {
       currentModelData = JSON.parse(editors.modelEditor.getValue());
     } catch (_error) {
       error = _error;
+      GE.logger.log(GE.logLevels.ERROR, "Model error. " + error);
       return showMessage(MessageType.Error, "<strong>Model error.</strong> " + error);
     }
     try {
       currentActions = eval(editors.actionsEditor.getValue());
     } catch (_error) {
       error = _error;
+      GE.logger.log(GE.logLevels.ERROR, "Actions error. " + error);
       return showMessage(MessageType.Error, "<strong>Actions error.</strong> " + error);
     }
     try {
       currentLayout = JSON.parse(editors.layoutEditor.getValue());
     } catch (_error) {
       error = _error;
-      return showMessage(MessageType.Error, "<strong>Assets error.</strong> " + error);
+      GE.logger.log(GE.logLevels.ERROR, "Layout error. " + error);
+      return showMessage(MessageType.Error, "<strong>Layout error.</strong> " + error);
     }
     return GE.loadAssets(currentAssets, function(err, loadedAssets) {
       if (err != null) {
+        GE.logger.log(GE.logLevels.ERROR, "Cannot load assets");
         showMessage(MessageType.Error, "Cannot load assets");
         callback(err);
       }
@@ -276,6 +288,7 @@
         value: currentFrame,
         max: currentFrame
       });
+      GE.logger.log(GE.logLevels.INFO, "Game updated");
       showMessage(MessageType.Info, "Game updated");
       return callback(null);
     });
@@ -379,12 +392,26 @@
     return localStorage.removeItem(programId);
   };
 
+  resetLogContent = function() {
+    GE.logger.log(GE.logLevels.WARN, "Log content is being reset");
+    log.setValue("");
+    log.clearSelection();
+    return GE.logger.log(GE.logLevels.INFO, "Reset log");
+  };
+
+  getFormattedTime = function() {
+    var date;
+
+    date = new Date();
+    return date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds();
+  };
+
   /* Main
   */
 
 
   $(document).ready(function() {
-    var cachedCodeJson, editor, id, loadedCode, url, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
+    var cachedCodeJson, id, loadedCode, prefixedLog, url, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
 
     initCanvas();
     setupLayout();
@@ -392,9 +419,24 @@
     _ref = ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       id = _ref[_i];
-      editor = setupEditor(id);
-      editors[id] = editor;
+      editors[id] = setupEditor(id, "ace/mode/javascript");
     }
+    log = setupEditor("log");
+    log.setReadOnly(true);
+    prefixedLog = function(logType, message, newLine) {
+      if (newLine == null) {
+        newLine = true;
+      }
+      if (GE.logLevels[logType]) {
+        log.clearSelection();
+        log.navigateFileEnd();
+        return log.insert(logType + ": " + getFormattedTime() + " " + message + (newLine ? "\n" : ""));
+      } else {
+        return prefixedLog("error", "bad logType parameter '" + logType + "' in log for message '" + message + "'");
+      }
+    };
+    GE.logger.log = prefixedLog;
+    resetLogContent();
     if (!window.location.hash) {
       window.location.hash = "optics";
     }

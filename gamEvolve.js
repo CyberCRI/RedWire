@@ -43,6 +43,14 @@
   };
 
   GE = {
+    logLevels: makeConstantSet("ERROR", "WARN", "INFO", "LOG"),
+    logger: {
+      log: function(logType, message) {
+        if (logLevels[logType]) {
+          return console[logType](message);
+        }
+      }
+    },
     Model: Model = (function() {
       function Model(data, previous) {
         if (data == null) {
@@ -139,12 +147,6 @@
     },
     isOnlyObject: function(o) {
       return _.isObject(o) && !_.isArray(o);
-    },
-    logError: function(x) {
-      return console.error(x);
-    },
-    logWarning: function(x) {
-      return console.warn(x);
     },
     getParentAndKey: function(parent, pathParts) {
       if (pathParts.length === 0) {
@@ -259,7 +261,7 @@
         return globals[functionName].apply({}, evaluatedParams);
       } catch (_error) {
         e = _error;
-        return GE.logWarning("Calling function " + functionName + " raised an exception " + e);
+        return GE.logger.log(GE.logLevels.WARN, "Calling function " + functionName + " raised an exception " + e);
       }
     },
     sandboxActionCall: function(model, assets, bindings, actions, actionName, methodName, layoutParameters, childNames, signals) {
@@ -292,7 +294,7 @@
         result = action[methodName].apply(locals);
       } catch (_error) {
         e = _error;
-        GE.logWarning("Calling action " + action + "." + methodName + " raised an exception " + e);
+        GE.logger.log(GE.logLevels.WARN, "Calling action " + action + "." + methodName + " raised an exception " + e);
       }
       for (paramName in compiledParams) {
         paramValue = compiledParams[paramName];
