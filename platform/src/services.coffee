@@ -12,7 +12,7 @@ makeKeyboardService = (options) ->
     if event.type == "keydown"
       keysDown[event.which] = true
     else
-      keysDown[event.which]
+      delete keysDown[event.which]
 
   return {
     provideData: -> return { "keysDown": keysDown }
