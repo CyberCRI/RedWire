@@ -36,7 +36,7 @@ makeConstantSet = (values...) ->
 # All will be in the "GE" namespace
 GE =
 
-  logLevels: makeConstantSet("error", "warn", "info", "log")
+  logLevels: makeConstantSet("ERROR", "WARN", "INFO", "LOG")
   logger:
     log:   (logType, message) -> if logLevels[logType] then console[logType](message)
 
@@ -167,7 +167,7 @@ GE =
     try
       globals[functionName].apply({}, evaluatedParams)
     catch e
-      GE.logger.logWarning("Calling function #{functionName} raised an exception #{e}")
+      GE.logger.log(GE.logLevels.WARN, "Calling function #{functionName} raised an exception #{e}")
     
   # Catches all errors in the function 
   sandboxActionCall: (model, assets, bindings, actions, actionName, methodName, layoutParameters, childNames, signals) ->
@@ -199,7 +199,7 @@ GE =
       result = action[methodName].apply(locals)
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      GE.logger.logWarning("Calling action #{action}.#{methodName} raised an exception #{e}")
+      GE.logger.log(GE.logLevels.WARN, "Calling action #{action}.#{methodName} raised an exception #{e}")
 
     # Call set() on all parameter functions
     for paramName, paramValue of compiledParams

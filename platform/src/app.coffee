@@ -6,6 +6,7 @@ CODE_CHANGE_TIMEOUT = 1000
 MODEL_FORMATTING_INDENTATION = 2
 
 MessageType = GE.makeConstantSet("Error", "Info")
+@Modes = GE.makeConstantSet("modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "console")
 
 SPINNER_OPTS = 
   lines: 9
@@ -128,10 +129,10 @@ setupButtonHandlers = ->
           primary: "ui-icon-pause"
 
   $("#resetButton").on "click", ->
+    GE.logger.log(GE.logLevels.INFO, "reset button clicked")
     currentFrame = 0
     currentModel = currentModel.atVersion(0)
     resetConsoleContent()
-    GE.logger.log("warn", "reset button: on click;")
 
     # TODO: move these handlers to MVC events
     $("#timeSlider").slider "option", 
@@ -163,7 +164,8 @@ setupButtonHandlers = ->
 
 setupEditor = (id) ->
   editor = ace.edit(id)
-  editor.getSession().setMode("ace/mode/javascript")
+  if id != Modes.console
+    editor.getSession().setMode("ace/mode/javascript")
   editor.getSession().setUseWrapMode(true)
   editor.setWrapBehavioursEnabled(true)
   return editor
@@ -299,10 +301,16 @@ clearCodeInCache = ->
 
 # Reset console content
 resetConsoleContent = ->
-  GE.logger.log("warn", "console content is being reset")
+  GE.logger.log(GE.logLevels.WARN, "console content is being reset")
   editors.console.setValue("");
-  editors.console.selection.clearSelection();
+  editors.console.clearSelection();
   editors.console.setReadOnly(true);
+  
+  GE.logger.log(GE.logLevels.INFO, "console reset")
+
+getFormattedTime = ->
+  date = new Date()
+  return date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()
 
 ### Main ###
 
@@ -311,25 +319,23 @@ $(document).ready ->
   setupLayout()
   setupButtonHandlers()
 
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "console"]
+  for id,value of Modes
     editor = setupEditor(id)
     editors[id] = editor
 
   prefixedLog = (logType, message, newLine = true) ->
-      if GE.logLevels[logType]
-        editors.console.selection.clearSelection()
-        editors.console.navigateFileEnd()
-        editors.console.insert(logType+": "+message+if newLine then "\n" else "")
-      else
-        prefixedLog("error", "bad logType parameter '"+logType+"' in log for message '"+message+"'")
+    if GE.logLevels[logType]
+      editors.console.clearSelection()
+      editors.console.navigateFileEnd()
+      editors.console.insert(logType+": "+getFormattedTime()+" "+message+if newLine then "\n" else "")
+    else
+      prefixedLog("error", "bad logType parameter '"+logType+"' in log for message '"+message+"'")
 
   # Connect console to logging
   console.log("app sets GE.logger.log")
   GE.logger.log = prefixedLog
-
   resetConsoleContent()
-
-  GE.logger.log("info", "Main: document ready, prepared console")
+  GE.logger.log(GE.logLevels.INFO, "Main: document ready, prepared console")
 
   # A hash needs to be set, or we won't be able to load the code
   if not window.location.hash then window.location.hash = "optics"
