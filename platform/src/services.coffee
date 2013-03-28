@@ -6,12 +6,13 @@ registerService "Keyboard", (options) ->
   keysDown = {}
 
   # Use the KeyboardService event namespace
-  $(options.elementSelector).on "keydown.GE.KeyboardService keyup.GE.KeyboardService", (event) ->
+  $(options.elementSelector).on "keydown.GE.KeyboardService keyup.GE.KeyboardService blur.GE.KeyboardService", (event) ->
     # jQuery standardizes the keycode into http://api.jquery.com/event.which/
-    if event.type == "keydown"
-      keysDown[event.which] = true
-    else
-      delete keysDown[event.which]
+    switch event.type 
+      when "keydown" then keysDown[event.which] = true
+      when "keyup" then delete keysDown[event.which]
+      when "blur" then keysDown = {}
+      else throw new Error("Unexpected event type")      
 
   return {
     provideData: -> return { "keysDown": keysDown }
@@ -47,6 +48,7 @@ registerService "Mouse", (options) ->
         mouse.position = 
           x: event.clientX - rect.left
           y: event.clientY - rect.top
+      else throw new Error("Unexpected event type")
 
   return {
     provideData: -> return mouse
