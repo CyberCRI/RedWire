@@ -29,6 +29,8 @@ SPINNER_OPTS =
 
 editors = {}
 
+services = {}
+
 spinner = new Spinner(SPINNER_OPTS)
 
 currentModel = new GE.Model()
@@ -37,6 +39,7 @@ currentModelData = null
 currentAssets = null
 currentActions = null
 currentLayout = null
+currentServices = null
 currentLoadedAssets = null
 
 isPlaying = false
@@ -196,6 +199,20 @@ reloadCode = (callback) ->
   catch error
     return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
 
+  try
+    serviceDefs = JSON.parse(editors.servicesEditor.getValue())
+
+    # Destroy old services
+    for serviceName, service of currentServices
+      service.destroy()
+
+    # Create new services
+    currentServices = {}
+    for serviceName, serviceDef of serviceDefs
+      currentServices[serviceName] = services[serviceDef.type](serviceDef.options)
+  catch error
+    return showMessage(MessageType.Error, "<strong>Services error.</strong> #{error}")
+
   GE.loadAssets currentAssets, (err, loadedAssets) =>
     if err? 
       showMessage(MessageType.Error, "Cannot load assets")
@@ -218,10 +235,10 @@ reloadCode = (callback) ->
 executeCode = ->
   modelAtFrame = currentModel.atVersion(currentFrame)
 
-  constants = new GE.NodeVisitorConstants(modelAtFrame.clonedData(), {}, currentLoadedAssets, currentActions)
-  result = GE.visitNode(currentLayout, constants, {})
+  # GE.stepLoop = (node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null) 
+  modelPatches = GE.stepLoop(currentLayout, modelAtFrame.clonedData(), currentLoadedAssets, currentActions, currentServices)
 
-  return modelAtFrame.applyPatches(result.modelPatches)
+  return modelAtFrame.applyPatches(modelPatches)
 
 notifyCodeChange = ->
   if automaticallyUpdatingModel then return false
@@ -297,6 +314,12 @@ clearCodeInCache = ->
 
   localStorage.removeItem(programId)
 
+# Add the factory so it can be used later
+registerService = (name, factory) -> services[name] = factory
+
+# TODO: find a better way to export functions
+globals.registerService = registerService
+
 ### Main ###
 
 $(document).ready ->
@@ -304,7 +327,7 @@ $(document).ready ->
   setupLayout()
   setupButtonHandlers()
 
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "servicesEditor"]
     editor = setupEditor(id)
     editors[id] = editor
 
@@ -323,10 +346,10 @@ $(document).ready ->
 
   # Otherwise just load from the default "optics" directory
   if not loadedCode
-    for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"]]
+    for [id, url] in [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["layoutEditor", "optics/layout.json"], ["servicesEditor", "optics/services.json"]]
       loadIntoEditor(editors[id], url)
 
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "servicesEditor"]
     editors[id].getSession().on "change", -> notifyCodeChange()
 
   # TODO: find another way to include global data

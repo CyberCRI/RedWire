@@ -360,7 +360,7 @@ GE.makeServiceEvaluator = (constants, name) ->
   return {
     get: -> 
       [parent, key] = GE.getParentAndKey(constants.serviceData, name.split("."))
-      return parent[key]
+      return GE.cloneData(parent[key])
 
     set: (x) -> 
       # TODO: create patch directly, rather than by comparison

@@ -1,0 +1,8 @@
+{
+  "keyboard": {
+    "type": "Keyboard",
+    "options": {
+      "elementSelector": "#gameCanvas"
+    }
+  }
+}
