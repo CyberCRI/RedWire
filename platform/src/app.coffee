@@ -220,6 +220,7 @@ reloadCode = (callback) ->
     for serviceName, serviceDef of serviceDefs
       currentServices[serviceName] = services[serviceDef.type](serviceDef.options)
   catch error
+    GE.logger.log(GE.logLevels.ERROR, "Services error. #{error}")
     return showMessage(MessageType.Error, "<strong>Services error.</strong> #{error}")
 
   GE.loadAssets currentAssets, (err, loadedAssets) =>
