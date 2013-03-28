@@ -38,6 +38,11 @@ GE.makeConstantSet = (values...) ->
   for value in values then obj[value] = value
   return Object.freeze(obj)
 
+GE.logLevels = GE.makeConstantSet("ERROR", "WARN", "INFO", "LOG")
+
+GE.logger = 
+  log: (logType, message) -> if logLevels[logType] then console[logType](message)
+
 GE.Model = class Model
   constructor: (data = {}, @previous = null) -> 
     @data = GE.deepFreeze(GE.cloneData(data))
@@ -83,7 +88,7 @@ GE.extensions =
     images: ["png", "gif", "jpeg", "jpg"]
     js: ["js"]
 
-# There is pr obably a faster way to do this 
+# There is probably a faster way to do this 
 GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))
 
 # Reject arrays as objects
@@ -344,7 +349,7 @@ GE.makeModelEvaluator = (constants, name) ->
     get: -> 
       [parent, key] = GE.getParentAndKey(constants.modelData, name.split("."))
       return parent[key]
-      
+
     set: (x) -> 
       # TODO: create patch directly, rather than by comparison
       newData = GE.cloneData(constants.modelData)
