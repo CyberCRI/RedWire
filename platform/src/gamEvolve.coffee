@@ -35,8 +35,8 @@ makeConstantSet = (values...) ->
 
 # All will be in the "GE" namespace
 GE =
-
   logLevels: makeConstantSet("ERROR", "WARN", "INFO", "LOG")
+  
   logger:
     log:   (logType, message) -> if logLevels[logType] then console[logType](message)
 
