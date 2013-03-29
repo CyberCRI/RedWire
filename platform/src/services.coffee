@@ -3,15 +3,16 @@ registerService "Keyboard", (options) ->
   options = _.defaults options,
     elementSelector: "#gameCanvas"
 
+  eventNamespace = _.uniqueId("keyboard")
+
   keysDown = {}
 
-  # Use the KeyboardService event namespace
-  $(options.elementSelector).on "keydown.GE.KeyboardService keyup.GE.KeyboardService blur.GE.KeyboardService", (event) ->
+  $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} blur.#{eventNamespace}", (event) ->
     # jQuery standardizes the keycode into http://api.jquery.com/event.which/
     switch event.type 
       when "keydown" then keysDown[event.which] = true
       when "keyup" then delete keysDown[event.which]
-      when "blur" then keysDown = {}
+      when "blur" then keysDown = {} # Lost focus, so will not receive keyup events
       else throw new Error("Unexpected event type")      
 
   return {
@@ -19,8 +20,8 @@ registerService "Keyboard", (options) ->
 
     establishData: -> # NOOP. Input service does not take data
 
-    # Remove all events
-    destroy: -> $(options.elementSelector).off(".GE.KeyboardService")
+    # Remove all event handlers
+    destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
   }
 
 # Define mouse input service
@@ -28,13 +29,13 @@ registerService "Mouse", (options) ->
   options = _.defaults options,
     elementSelector: "#gameCanvas"
 
+  eventNamespace = _.uniqueId("mouse")
+
   mouse =
     down: false
     position: null
 
-  # Use the KeyboardService event namespace
-  $(options.elementSelector).on "mousedown.GE.MouseService mouseup.GE.MouseService mouseup.GE.MouseService mousemove.GE.MouseService mouseleave.GE.MouseService", (event) ->
-    # jQuery standardizes the keycode into http://api.jquery.com/event.which/
+  $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", (event) ->
     switch event.type 
       when "mousedown" then mouse.down = true
       when "mouseup" then mouse.down = false
@@ -55,8 +56,8 @@ registerService "Mouse", (options) ->
 
     establishData: -> # NOOP. Input service does not take data
 
-    # Remove all events
-    destroy: -> $(options.elementSelector).off(".GE.MouseService")
+    # Remove all event handlers
+    destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
   }
 
 
