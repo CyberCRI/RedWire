@@ -25,47 +25,24 @@ Dependencies
 
 Compiling the project requires the following dependencies:
 
-1. [Node.js] and [NPM]
+1. [Node.js](http://nodejs.org/) and [NPM](https://npmjs.org/)
 2. NPM modules:
-  - [Coffeescript]
-  - [win-spawn]
-  - [Docco]
+  - [Coffeescript](http://coffeescript.org/)
+  - [win-spawn](https://npmjs.org/package/win-spawn)
+  - [Docco](http://jashkenas.github.com/docco/)
 
 
-Our GIT Workflow
-----------------
+Wiki
+----
 
-https://github.com/CyberCRI/gamEvolve/wiki/Our-Git-workflow
+Feel free to check these out:
 
-
-Compiling
-----------
-
-https://github.com/CyberCRI/gamEvolve/wiki/Compiling
-
-
-Documentation
--------------
-
-https://github.com/CyberCRI/gamEvolve/wiki/Documentation
-
-
-Code Review
------------
-
-https://github.com/CyberCRI/gamEvolve/wiki/Code-review
-
-
-Regression Tests
-----------------
-
-https://github.com/CyberCRI/gamEvolve/wiki/Regression-Tests
-
-
-Deployment
-----------
-
-https://github.com/CyberCRI/gamEvolve/wiki/Deployment
+- Our [GIT Workflow](https://github.com/CyberCRI/gamEvolve/wiki/Our-Git-workflow)
+- [Compiling](https://github.com/CyberCRI/gamEvolve/wiki/Compiling)
+- [Documentation](https://github.com/CyberCRI/gamEvolve/wiki/Documentation)
+- [Code Review](https://github.com/CyberCRI/gamEvolve/wiki/Code-review)
+- [Regression Tests](https://github.com/CyberCRI/gamEvolve/wiki/Regression-Tests)
+- [Deployment](https://github.com/CyberCRI/gamEvolve/wiki/Deployment)
 
 
 License
