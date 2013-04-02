@@ -30,6 +30,8 @@ SPINNER_OPTS =
 editors = {}
 log = null
 
+services = {}
+
 spinner = new Spinner(SPINNER_OPTS)
 
 currentModel = new GE.Model()
@@ -38,6 +40,7 @@ currentModelData = null
 currentAssets = null
 currentActions = null
 currentLayout = null
+currentServices = null
 currentLoadedAssets = null
 
 isPlaying = false
@@ -205,6 +208,21 @@ reloadCode = (callback) ->
     GE.logger.log(GE.logLevels.ERROR, "Layout error. #{error}")
     return showMessage(MessageType.Error, "<strong>Layout error.</strong> #{error}")
 
+  try
+    serviceDefs = JSON.parse(editors.servicesEditor.getValue())
+
+    # Destroy old services
+    for serviceName, service of currentServices
+      service.destroy()
+
+    # Create new services
+    currentServices = {}
+    for serviceName, serviceDef of serviceDefs
+      currentServices[serviceName] = services[serviceDef.type](serviceDef.options)
+  catch error
+    GE.logger.log(GE.logLevels.ERROR, "Services error. #{error}")
+    return showMessage(MessageType.Error, "<strong>Services error.</strong> #{error}")
+
   GE.loadAssets currentAssets, (err, loadedAssets) =>
     if err? 
       GE.logger.log(GE.logLevels.ERROR, "Cannot load assets")
@@ -228,8 +246,11 @@ reloadCode = (callback) ->
 # Returns a new model
 executeCode = ->
   modelAtFrame = currentModel.atVersion(currentFrame)
-  [result, patches] = GE.runStep(modelAtFrame, currentLoadedAssets, currentActions, currentLayout)
-  return modelAtFrame.applyPatches(patches)
+
+  # GE.stepLoop = (node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null) 
+  modelPatches = GE.stepLoop(currentLayout, modelAtFrame.clonedData(), currentLoadedAssets, currentActions, currentServices)
+
+  return modelAtFrame.applyPatches(modelPatches)
 
 notifyCodeChange = ->
   if automaticallyUpdatingModel then return false
@@ -305,6 +326,12 @@ clearCodeInCache = ->
 
   localStorage.removeItem(programId)
 
+# Add the factory so it can be used later
+registerService = (name, factory) -> services[name] = factory
+
+# TODO: find a better way to export functions
+globals.registerService = registerService
+
 # Reset log content
 resetLogContent = ->
   GE.logger.log(GE.logLevels.WARN, "Log content is being reset")
@@ -325,7 +352,7 @@ $(document).ready ->
   setupButtonHandlers()
 
   # Create all the JSON and JS editors
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "servicesEditor"]
     editors[id] = setupEditor(id, "ace/mode/javascript")
 
   # Create the log, which is plain text
@@ -362,10 +389,11 @@ $(document).ready ->
     for [id, url] in [["modelEditor", "optics/model.json"], 
                       ["assetsEditor", "optics/assets.json"], 
                       ["actionsEditor", "optics/actions.js"],
-                      ["layoutEditor", "optics/layout.json"]]
+                      ["layoutEditor", "optics/layout.json"],
+                      ["servicesEditor", "optics/services.json"]]
       loadIntoEditor(editors[id], url)
 
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor"]
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "servicesEditor"]
     editors[id].getSession().on "change", -> notifyCodeChange()
 
   # TODO: find another way to include global data
