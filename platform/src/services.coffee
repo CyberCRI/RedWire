@@ -71,7 +71,7 @@ registerService "Canvas", (options) ->
   # Default 
   layerOrderForCommand = (command) ->
     if not command.layer? then return 0
-    if command.layer not in options.layers then return 0
+    if command.layer not of options.layers then return 0
     return options.layers[command.layer].order or 0 
 
   commandSorter = (a, b) -> return layerOrderForCommand(a) - layerOrderForCommand(b)
@@ -92,7 +92,7 @@ registerService "Canvas", (options) ->
         text = _.isString(command.text) && command.text || JSON.stringify(command.text)
         ctx.strokeStyle = command.style
         ctx.font = command.font
-        ctx.strokeText(text, this.params.x, this.params.y)
+        ctx.strokeText(text, command.position[0], command.position[1])
       else throw new Error("Unknown or missing command type")
       # TODO: paths       
     ctx.restore()

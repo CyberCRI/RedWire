@@ -34,18 +34,18 @@
       x: 0,
       y: 12,
       style: "black",
-      font: "12px Arial"
+      font: "12px Arial",
+      "graphics": null
     },
     update: function() { 
-      var text = _.isString(this.params.text) && this.params.text || JSON.stringify(this.params.text);
-
-      var canvas = $("#gameCanvas");
-      var context = canvas[0].getContext("2d");
-      context.save();
-      context.strokeStyle = this.params.style;
-      context.font = this.params.font;
-      context.strokeText(String(text), this.params.x, this.params.y);
-      context.restore();
+      this.params.graphics.commands.push({
+        type: "text",
+        layer: "fg",
+        text: this.params.text,
+        style: this.params.style,
+        font: this.params.font,
+        position: [this.params.x, this.params.y]
+      });
     }
   },
 

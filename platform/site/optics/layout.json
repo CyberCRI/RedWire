@@ -11,9 +11,20 @@
       "action": "clearBackground",
       "params": {
         "graphics": "@service:graphics",
-        "color": "red"
+        "color": "black"
       }
-    } 
+    },
+    {
+      "action": "drawText",
+      "params": {
+        "graphics": "@service:graphics",
+        "text": "@model:score",
+        "x": 2,
+        "y": 20,
+        "style": "white",
+        "font": "20px Arial"
+      }
+    }
   ]
 
 }

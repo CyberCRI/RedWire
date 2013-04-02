@@ -139,7 +139,8 @@ GE.applyPatches = (patches, oldValue, prefix = "") ->
       delete parent[key]
     else if "add" of patch
       [parent, key] = GE.getParentAndKey(value, splitPath(patch.add))
-      parent[key] = patch.value
+      if _.isArray(parent) then parent.splice(key, 0, patch.value)
+      else parent[key] = patch.value # For object
     else if "replace" of patch
       [parent, key] = GE.getParentAndKey(value, splitPath(patch.replace))
       if key not of parent then throw new Error("No existing value to replace for patch #{patch}")
