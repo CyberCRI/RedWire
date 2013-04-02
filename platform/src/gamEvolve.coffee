@@ -40,8 +40,7 @@ GE.makeConstantSet = (values...) ->
 
 GE.logLevels = GE.makeConstantSet("ERROR", "WARN", "INFO", "LOG")
 
-GE.logger = 
-  log: (logType, message) -> if logLevels[logType] then console[logType](message)
+GE.log = (logType, message) -> if logLevels[logType] then console[logType](message)
 
 GE.Model = class Model
   constructor: (data = {}, @previous = null) -> 
@@ -96,11 +95,6 @@ GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
 
 # Create new array with the value of these arrays
 GE.concatenate = (rest...) -> _.flatten(rest, true)
-
-# Logging functions could be used later 
-GE.logError = (x) -> console.error(x)
-
-GE.logWarning = (x) -> console.warn(x)
 
 # For accessing a value within an embedded object or array
 # Takes a parent object/array and the "path" as an array
@@ -192,7 +186,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     methodResult = action[methodName].apply(locals)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    GE.logWarning("Calling action #{action}.#{methodName} raised an exception #{e}")
+    GE.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}")
 
   result = new GE.NodeVisitorResult(methodResult)
 
@@ -277,7 +271,7 @@ GE.visitCallNode = (node, constants, bindings) ->
   try
     globals[node.call].apply({}, evaluatedParams)
   catch e
-    GE.logWarning("Calling function #{functionName} raised an exception #{e}")
+    GE.log(GE.logLevels.ERROR, "Calling function #{functionName} raised an exception #{e}")
 
   return new GE.NodeVisitorResult()
   
@@ -315,7 +309,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
     if nodeType of node
       return visitor(node, constants, bindings)
 
-  GE.logError("Layout item is not understood")
+  GE.log(GE.logLevels.ERROR, "Layout item is not understood")
 
   return new NodeVisitorResult()
 

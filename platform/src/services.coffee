@@ -60,5 +60,61 @@ registerService "Mouse", (options) ->
     destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
   }
 
+# Define canvas output service
+registerService "Canvas", (options) ->
+  options = _.defaults options,
+    elementSelector: "#gameCanvas"
+    layers: 
+      default: 
+        order: 0
 
+  # Default 
+  layerOrderForCommand = (command) ->
+    if not command.layer? then return 0
+    if command.layer not in options.layers then return 0
+    return options.layers[command.layer].order or 0 
+
+  commandSorter = (a, b) -> return layerOrderForCommand(a) - layerOrderForCommand(b)
+
+  executeCommand = (command, ctx) ->
+    ctx.save()
+    switch command.type
+      when "rectangle" 
+        if command.fillStyle
+          ctx.fillStyle = command.fillStyle
+          ctx.fillRect(command.position[0], command.position[1], command.size[0], command.size[1])
+        if command.strokeStyle
+          ctx.strokeStyle = command.strokeStyle
+          ctx.strokeRect(command.position[0], command.position[1], command.size[0], command.size[1])
+      when "image"
+        ctx.drawImage(command.image, command.position[0], command.position[1])
+      when "text"
+        text = _.isString(command.text) && command.text || JSON.stringify(command.text)
+        ctx.strokeStyle = command.style
+        ctx.font = command.font
+        ctx.strokeText(text, this.params.x, this.params.y)
+      else throw new Error("Unknown or missing command type")
+      # TODO: paths       
+    ctx.restore()
+
+  return {
+    provideData: -> 
+      canvas = $(options.elementSelector)
+      return {
+        width: canvas.prop("width")
+        height: canvas.prop("height")
+        commands: []
+      }
+
+    establishData: (data) -> 
+      if not data.commands then return 
+
+      ctx = $(options.elementSelector)[0].getContext("2d")
+      data.commands.sort(commandSorter)
+      for command in data.commands
+        # TODO: handle composition for layers
+        executeCommand(command, ctx)
+
+    destroy: -> # NOOP
+  }
 

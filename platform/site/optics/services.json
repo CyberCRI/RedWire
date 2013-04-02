@@ -10,5 +10,15 @@
     "options": {
       "elementSelector": "#gameCanvas"
     }
+  },
+  "graphics": {
+    "type": "Canvas",
+    "options": {
+      "elementSelector": "#gameCanvas",
+      "layers": {
+        "bg": { "order": 0 },
+        "fg": { "order": 1 }
+      }
+    }
   }
 }

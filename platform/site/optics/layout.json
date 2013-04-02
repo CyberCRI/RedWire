@@ -8,75 +8,12 @@
       }
     },
     {
-      "action": "clearBackground"
-    },
-    {
-      "action": "drawText",
+      "action": "clearBackground",
       "params": {
-        "text": "@model:score",
-        "x": 2,
-        "y": 20,
-        "style": "white",
-        "font": "20px Arial"
+        "graphics": "@service:graphics",
+        "color": "red"
       }
-    },
-    {
-      "action": "drawText",
-      "params": {
-        "text": "@service:keyboard.keysDown",
-        "x": 50,
-        "y": 20,
-        "style": "white",
-        "font": "20px Arial"
-      }
-    },
-    {
-      "action": "drawText",
-      "params": {
-        "text": "@service:mouse",
-        "x": 2,
-        "y": 40,
-        "style": "white",
-        "font": "20px Arial"
-      }
-    },
-    {
-      "action": "calculateLight",
-      "params": {
-        "pieces": "@model:pieces"
-      }
-    },
-    {
-      "bind": {
-        "from": {
-          "piece": "@model:pieces"
-        }
-      },
-      "children": [
-        {
-          "action": "drawPiece",
-          "params": {
-            "type" : "$piece.type",
-            "row" : "$piece.row",
-            "col" : "$piece.col",
-            "rotation": "$piece.rotation"
-          }
-        }
-      ]
-    },
-    {
-      "action": "drawSelected",
-      "params": {
-        "row": "@model:selected.row",
-        "col": "@model:selected.col"
-      }
-    },
-    { 
-      "action": "drawImage",
-      "params": {
-        "image": "@asset:background"
-      }
-    }
+    } 
   ]
 
 }
