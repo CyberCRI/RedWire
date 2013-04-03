@@ -48,12 +48,6 @@ automaticallyUpdatingModel = false
 
 ### Functions ###
 
-initCanvas = ->
-  canvas = $("#gameCanvas")
-  context = canvas[0].getContext("2d")
-  context.setFillColor("black")
-  context.fillRect(0, 0, canvas.width(), canvas.height())
-
 adjustEditorToSize = (editor) -> 
   session = editor.session
 
@@ -349,7 +343,6 @@ getFormattedTime = ->
 ### Main ###
 
 $(document).ready ->
-  initCanvas()
   setupLayout()
   setupButtonHandlers()
 

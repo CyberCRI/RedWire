@@ -1,55 +1,55 @@
 # Define keyboard input service
-registerService "Keyboard", (options) ->
+registerService 'Keyboard', (options = {}) ->
   options = _.defaults options,
-    elementSelector: "#gameCanvas"
+    elementSelector: '#gameContent'
 
-  eventNamespace = _.uniqueId("keyboard")
+  eventNamespace = _.uniqueId('keyboard')
 
   keysDown = {}
 
-  $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} blur.#{eventNamespace}", (event) ->
+  $(options.elementSelector).on 'keydown.#{eventNamespace} keyup.#{eventNamespace} blur.#{eventNamespace}', (event) ->
     # jQuery standardizes the keycode into http://api.jquery.com/event.which/
     switch event.type 
-      when "keydown" then keysDown[event.which] = true
-      when "keyup" then delete keysDown[event.which]
-      when "blur" then keysDown = {} # Lost focus, so will not receive keyup events
-      else throw new Error("Unexpected event type")      
+      when 'keydown' then keysDown[event.which] = true
+      when 'keyup' then delete keysDown[event.which]
+      when 'blur' then keysDown = {} # Lost focus, so will not receive keyup events
+      else throw new Error('Unexpected event type')      
 
   return {
-    provideData: -> return { "keysDown": keysDown }
+    provideData: -> return { 'keysDown': keysDown }
 
     establishData: -> # NOOP. Input service does not take data
 
     # Remove all event handlers
-    destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
+    destroy: -> $(options.elementSelector).off('.#{eventNamespace}')
   }
 
 # Define mouse input service
-registerService "Mouse", (options) ->
+registerService 'Mouse', (options = {}) ->
   options = _.defaults options,
-    elementSelector: "#gameCanvas"
+    elementSelector: '#gameContent'
 
-  eventNamespace = _.uniqueId("mouse")
+  eventNamespace = _.uniqueId('mouse')
 
   mouse =
     down: false
     position: null
 
-  $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", (event) ->
+  $(options.elementSelector).on 'mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}', (event) ->
     switch event.type 
-      when "mousedown" then mouse.down = true
-      when "mouseup" then mouse.down = false
-      when "mouseleave" 
+      when 'mousedown' then mouse.down = true
+      when 'mouseup' then mouse.down = false
+      when 'mouseleave' 
         mouse.down = false
         mouse.position = null
-      when "mousemove"
+      when 'mousemove'
         # Get position relative to canvas.
         # Based on http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
         rect = $(options.elementSelector)[0].getBoundingClientRect()
         mouse.position = 
           x: event.clientX - rect.left
           y: event.clientY - rect.top
-      else throw new Error("Unexpected event type")
+      else throw new Error('Unexpected event type')
 
   return {
     provideData: -> return mouse
@@ -57,41 +57,46 @@ registerService "Mouse", (options) ->
     establishData: -> # NOOP. Input service does not take data
 
     # Remove all event handlers
-    destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
+    destroy: -> $(options.elementSelector).off('.#{eventNamespace}')
   }
 
 # Define canvas output service
-registerService "Canvas", (options) ->
-  options = _.defaults options,
-    elementSelector: "#gameCanvas"
-    layers: 
-      default: 
-        order: 0
+registerService 'Canvas', (options = {}) ->
+  # `height: 100%` preserves the aspect ratio. Make the position absolute keeps the layers on top of each other
+  CANVAS_CSS = "height: 100%; position: absolute; left: 0px; top: 0px;"
+
+  createLayers = ->
+    # Convert layers to ordered
+    createdLayers = {}
+    zIndex = 0
+    for layerName in options.layers
+      layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex='0' style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
+      $('#gameContent').append(layer)
+      createdLayers[layerName] = layer
+
+    return createdLayers
 
   # Default 
-  layerOrderForShape = (shape) ->
-    if not shape.layer? then return 0
-    if shape.layer not of options.layers then return 0
-    return options.layers[shape.layer].order or 0 
+  orderForShape = (shape) -> return shape.order || 0
 
-  shapeSorter = (a, b) -> return layerOrderForShape(a) - layerOrderForShape(b)
+  shapeSorter = (a, b) -> return orderForShape(a) - orderForShape(b)
 
   interpretStyle = (style, ctx) ->
     if _.isString(style) then return style
-    if not _.isObject(style) then throw new Error("Style must be string or object")
+    if not _.isObject(style) then throw new Error('Style must be string or object')
 
     switch style.type
-      when "radialGradient"
+      when 'radialGradient'
         grad = ctx.createRadialGradient(style.start.position[0], style.start.position[1], style.start.radius, style.end.position[0], style.end.position[1], style.end.radius)
         for colorStop in style.colorStops
           grad.addColorStop(colorStop.position, colorStop.color)
         return grad
-      when "linearGradient"
+      when 'linearGradient'
         grad = ctx.createLinearGradient(style.startPosition[0], style.startPosition[1], style.endPosition[0], style.endPosition[1])
         for colorStop in style.colorStops
           grad.addColorStop(colorStop.position, colorStop.color)
         return grad
-      else throw new Error("Unknown or missing style type")
+      else throw new Error('Unknown or missing style type')
 
   handleTransformations = (shape, ctx) ->
     # Not sure this is done in the right order
@@ -100,15 +105,16 @@ registerService "Canvas", (options) ->
     if shape.scale 
       if _.isArray(shape.scale) then ctx.scale(shape.scale[0], shape.scale[1])
       else if _.isNumber(shape.scale) then ctx.scale(shape.scale, shape.scale)
-      else throw new Error("Scale argument must be number or array")
+      else throw new Error('Scale argument must be number or array')
 
-  executeShape = (shape, ctx, assets) ->
+  drawShape = (shape, ctx, assets) ->
     # TODO: verify that arguments are of the correct type (the canvas API will not complain, just misfunction!)
     ctx.save()
     handleTransformations(shape, ctx)
+    if shape.composition then ctx.globalCompositionOperation = shape.composition
 
     switch shape.type
-      when "rectangle" 
+      when 'rectangle' 
         if shape.fillStyle
           ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
           ctx.fillRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
@@ -116,14 +122,14 @@ registerService "Canvas", (options) ->
           ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
           if shape.lineWidth then ctx.lineWidth = shape.lineWidth
           ctx.strokeRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
-      when "image"
+      when 'image'
         ctx.drawImage(assets[shape.asset], shape.position[0], shape.position[1])
-      when "text"
+      when 'text'
         text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
         ctx.strokeStyle = interpretStyle(shape.style, ctx)
         ctx.font = shape.font
         ctx.strokeText(text, shape.position[0], shape.position[1])
-      when "path"
+      when 'path'
         ctx.beginPath();
         ctx.moveTo(shape.points[0][0], shape.points[0][1])
         for point in shape.points[1..] then ctx.lineTo(point[0], point[1])
@@ -137,7 +143,7 @@ registerService "Canvas", (options) ->
           if shape.lineJoin then ctx.lineJoin = shape.lineJoin
           if shape.miterLimit then ctx.miterLimit = shape.miterLimit
           ctx.stroke()
-      when "circle"
+      when 'circle'
         ctx.moveTo(shape.position[0], shape.position[1])
         ctx.arc(shape.position[0], shape.position[1], shape.radius, 0, 2 * Math.PI)
         if shape.fillStyle
@@ -146,27 +152,42 @@ registerService "Canvas", (options) ->
         if shape.strokeStyle
           ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
           ctx.stroke()
-      else throw new Error("Unknown or missing shape type")
+      else throw new Error('Unknown or missing shape type')
     ctx.restore()
+
+  options = _.defaults options,
+    layers: ['default'] 
+    size: [960, 540]
+  layers = createLayers()
 
   return {
     provideData: -> 
-      canvas = $(options.elementSelector)
       return {
-        width: canvas.prop("width")
-        height: canvas.prop("height")
+        layers: options.layers
+        size: options.size
         shapes: []
       }
 
     establishData: (data, assets) -> 
       if not data.shapes then return 
 
-      ctx = $(options.elementSelector)[0].getContext("2d")
-      data.shapes.sort(shapeSorter)
-      for shape in data.shapes
-        # TODO: handle composition for layers
-        executeShape(shape, ctx, assets)
+      # Clear layers
+      for layerName, canvas of layers
+        canvas[0].getContext('2d').clearRect(0, 0, options.size[0], options.size[1])
 
-    destroy: -> # NOOP
+      # Sort shapes and send them to their layers
+      data.shapes.sort(shapeSorter)
+
+      # OPT: group all manipulations by layer before drawing them?
+      for shape in data.shapes
+        layerName = shape.layer || 'default'
+        if layerName not of layers then throw new Error('No layer for shape')
+
+        ctx = layers[layerName][0].getContext('2d')
+        # TODO: handle composition for layers
+        drawShape(shape, ctx, assets)
+
+    destroy: -> 
+      for layerName, canvas of layers then canvas.remove()
   }
 

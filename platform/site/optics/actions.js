@@ -10,7 +10,7 @@
         layer: "bg",
         fillStyle: this.params.color,
         position: [0, 0],
-        size: [this.params.graphics.width, this.params.graphics.height]
+        size: this.params.graphics.size
       });
     }
   },
@@ -217,7 +217,8 @@
       }
 
       // all lines are in grid space, not in screen space
-      function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba)
+      // options override default values for all drawn shapes (layer, composition, etc.)
+      function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options)
       {
         var marginV = Vector.create([MARGIN, MARGIN]);
 
@@ -245,13 +246,13 @@
           ]
         };
 
-        that.params.graphics.shapes.push({
+        that.params.graphics.shapes.push(_.extend({
           type: "path",
           layer: "light",
           strokeStyle: strokeGrad,
           lineWidth: 2 * outerRadius,
           points: [originV.elements, destV.elements]
-        });
+        }, options));
 
         fillGrad = {
           type: "radialGradient",
@@ -269,13 +270,13 @@
           ]
         };
 
-        that.params.graphics.shapes.push({
+        that.params.graphics.shapes.push(_.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
           position: originV.elements,
           radius: outerRadius
-        });
+        }, options));
 
         fillGrad = {
           type: "radialGradient",
@@ -293,13 +294,13 @@
           ]
         };
 
-        that.params.graphics.shapes.push({
+        that.params.graphics.shapes.push(_.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
           position: destV.elements,
           radius: outerRadius
-        });
+        }, options));
       }
 
       // Do everything in the "grid space" and change to graphic coordinates at the end
@@ -361,24 +362,33 @@
 
       // DRAW SEGMENTS
 
-      // context.globalCompositeOperation = 'destination-out';
+      // Draw black mask that we will cut away from
+      // based on the method of this fiddle: http://jsfiddle.net/wNYkX/3/
+      that.params.graphics.shapes.push({
+        type: "rectangle",
+        layer: "mask",
+        fillStyle: "black",
+        position: [0, 0],
+        size: that.params.graphics.size,
+        order: 0
+      });
 
-      // TODO: use method in fiddle: http://jsfiddle.net/wNYkX/3/
+      // now cut away, using 'destination-out' composition
+      var maskOptions = { 
+        layer: "mask", 
+        composition: "destination-out", 
+        order: 1 
+      };
+      for(var i = 0; i < lightSegments.length; i++)
+      {
+        drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 30, 40, [255, 255, 255, lightSegments[i].intensity], maskOptions);
+      }
 
-      //for(var i = 0; i < lightSegments.length; i++)
-      //{
-      //  drawGradientLine(context, lightSegments[i].origin, lightSegments[i].destination, 30, 40, [255, 255, 255, lightSegments[i].intensity]);
-      //}
-
-      // context.globalCompositeOperation = 'source-over';
-
+      // draw light ray normally
       for(var i = 0; i < lightSegments.length; i++)
       {
         drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 4, 6, [255, 0, 0, lightSegments[i].intensity]);
       }
-
-      // TODO: move the composition stuff to a dedicated layout function
-      // context.globalCompositeOperation = 'destination-over';
     }
   }
 });

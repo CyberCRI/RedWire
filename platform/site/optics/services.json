@@ -1,27 +1,14 @@
 {
   "keyboard": {
-    "type": "Keyboard",
-    "options": {
-      "elementSelector": "#gameCanvas"
-    }
+    "type": "Keyboard"
   },
   "mouse": {
-    "type": "Mouse",
-    "options": {
-      "elementSelector": "#gameCanvas"
-    }
+    "type": "Mouse"
   },
   "graphics": {
     "type": "Canvas",
     "options": {
-      "elementSelector": "#gameCanvas",
-      "layers": {
-        "bg": { "order": 0 },
-        "pieces": { "order": 1 },
-        "selection": { "order": 2 },
-        "light": { "order": 3 }, 
-        "text": { "order": 10 }
-      }
+      "layers": [ "bg", "pieces", "light", "mask", "selection", "text" ]
     }
   }
 }
