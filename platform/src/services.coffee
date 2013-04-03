@@ -111,7 +111,7 @@ registerService 'Canvas', (options = {}) ->
     # TODO: verify that arguments are of the correct type (the canvas API will not complain, just misfunction!)
     ctx.save()
     handleTransformations(shape, ctx)
-    if shape.composition then ctx.globalCompositionOperation = shape.composition
+    if shape.composition then ctx.globalCompositeOperation = shape.composition
 
     switch shape.type
       when 'rectangle' 
