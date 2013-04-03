@@ -7,11 +7,12 @@
         "number": "@model:score"
       }
     },
-    {
-      "action": "clearBackground",
+    { 
+      "action": "drawImage",
       "params": {
         "graphics": "@service:graphics",
-        "color": "black"
+        "image": "background",
+        "layer": "bg"
       }
     },
     {
