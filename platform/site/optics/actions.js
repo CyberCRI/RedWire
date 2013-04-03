@@ -75,15 +75,24 @@
 
   drawSelected: {
     paramDefs: {
+      graphics: null,
       row: 0,
       col: 0
     },
     update: function() {
       // This could be done by drawImage() if better expressions existed
-      canvas = $("#gameCanvas");
-      context = canvas[0].getContext("2d");
-      context.strokeStyle = "yellow"
-      context.strokeRect(this.params.col * 53 + 33, this.params.row * 53 + 33, 50, 50);
+      // canvas = $("#gameCanvas");
+      // context = canvas[0].getContext("2d");
+      // context.strokeStyle = "yellow"
+      // context.strokeRect(this.params.col * 53 + 33, this.params.row * 53 + 33, 50, 50);
+      this.params.graphics.shapes.push({
+        type: "rectangle",
+        layer: "selection",
+        position: [this.params.col * 53 + 33, this.params.row * 53 + 33],
+        size: [50, 50],
+        strokeStyle: "yellow",
+        lineWidth: 4
+      });
     }
   },
 

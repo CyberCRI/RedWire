@@ -18,7 +18,8 @@
       "layers": {
         "bg": { "order": 0 },
         "pieces": { "order": 1 },
-        "light": { "order": 2 }, 
+        "selection": { "order": 2 },
+        "light": { "order": 3 }, 
         "text": { "order": 10 }
       }
     }

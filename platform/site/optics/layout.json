@@ -72,6 +72,14 @@
           }
         }
       ]
+    },
+    {
+      "action": "drawSelected",
+      "params": {
+        "graphics": "@service:graphics",
+        "row": "@model:selected.row",
+        "col": "@model:selected.col"
+      }
     }
   ]
 

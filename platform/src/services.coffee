@@ -114,6 +114,7 @@ registerService "Canvas", (options) ->
           ctx.fillRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
         if shape.strokeStyle
           ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
+          if shape.lineWidth then ctx.lineWidth = shape.lineWidth
           ctx.strokeRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
       when "image"
         ctx.drawImage(assets[shape.asset], shape.position[0], shape.position[1])
