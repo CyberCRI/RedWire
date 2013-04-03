@@ -24,6 +24,35 @@
         "style": "white",
         "font": "20px Arial"
       }
+    },
+    {
+      "action": "drawText",
+      "params": {
+        "graphics": "@service:graphics",
+        "text": "@service:keyboard.keysDown",
+        "x": 50,
+        "y": 20,
+        "style": "white",
+        "font": "20px Arial"
+      }
+    },
+    {
+      "action": "drawText",
+      "params": {
+        "graphics": "@service:graphics",
+        "text": "@service:mouse",
+        "x": 2,
+        "y": 40,
+        "style": "white",
+        "font": "20px Arial"
+      }
+    },
+    {
+      "action": "drawLight",
+      "params": {
+        "graphics": "@service:graphics",
+        "pieces": "@model:pieces"
+      }
     }
   ]
 
