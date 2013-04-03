@@ -5,7 +5,7 @@
       "graphics": null
     },
     update: function() {
-      this.params.graphics.commands.push({
+      this.params.graphics.shapes.push({
         type: "rectangle",
         layer: "bg",
         fillStyle: this.params.color,
@@ -38,7 +38,7 @@
       "graphics": null
     },
     update: function() { 
-      this.params.graphics.commands.push({
+      this.params.graphics.shapes.push({
         type: "text",
         layer: "text",
         text: this.params.text,
@@ -55,24 +55,21 @@
 
   drawPiece: {
     paramDefs: {
+      graphics: null,
       type: null,
       row: 0,
       col: 0,
       rotation: 0
     },
     update: function() {
-      // This could be done by drawImage() if better expressions existed
-      var canvas = $("#gameCanvas");
-      var context = canvas[0].getContext("2d");
-      var x = this.params.col * 53 + 33 + 26;
-      var y = this.params.row * 53 + 33 + 26;
-
-      context.save();
-      context.translate(x, y);
-      // Convert to radians
-      context.rotate(this.params.rotation * Math.PI / 180);
-      context.drawImage(this.assets[this.params.type], -26, -26);
-      context.restore();
+      this.params.graphics.shapes.push({
+        type: "image",
+        layer: "pieces",
+        asset: this.params.type,
+        position: [-26, -26],
+        translation: [this.params.col * 53 + 33 + 26, this.params.row * 53 + 33 + 26],
+        rotation: this.params.rotation // In degrees 
+      });
     }
   },
 
@@ -240,7 +237,7 @@
           ]
         };
 
-        that.params.graphics.commands.push({
+        that.params.graphics.shapes.push({
           type: "path",
           layer: "light",
           strokeStyle: strokeGrad,
@@ -264,7 +261,7 @@
           ]
         };
 
-        that.params.graphics.commands.push({
+        that.params.graphics.shapes.push({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
@@ -288,7 +285,7 @@
           ]
         };
 
-        that.params.graphics.commands.push({
+        that.params.graphics.shapes.push({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,

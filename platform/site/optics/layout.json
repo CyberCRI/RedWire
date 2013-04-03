@@ -53,6 +53,25 @@
         "graphics": "@service:graphics",
         "pieces": "@model:pieces"
       }
+    },
+    {
+      "bind": {
+        "from": {
+          "piece": "@model:pieces"
+        }
+      },
+      "children": [
+        {
+          "action": "drawPiece",
+          "params": {
+            "graphics": "@service:graphics",
+            "type" : "$piece.type",
+            "row" : "$piece.row",
+            "col" : "$piece.col",
+            "rotation": "$piece.rotation"
+          }
+        }
+      ]
     }
   ]
 

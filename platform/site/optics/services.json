@@ -17,6 +17,7 @@
       "elementSelector": "#gameCanvas",
       "layers": {
         "bg": { "order": 0 },
+        "pieces": { "order": 1 },
         "light": { "order": 2 }, 
         "text": { "order": 10 }
       }

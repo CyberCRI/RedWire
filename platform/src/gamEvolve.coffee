@@ -325,14 +325,14 @@ GE.stepLoop = (node, modelData, assets, actions, services, inputServiceData = nu
     if inputServiceData == null
       inputServiceData = {}
       for serviceName, service of services
-        inputServiceData[serviceName] = service.provideData()
+        inputServiceData[serviceName] = service.provideData(assets)
 
     result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions))
     modelPatches = result.modelPatches
     outputServiceData = GE.applyPatches(result.servicePatches, inputServiceData)
 
   for serviceName, service of services
-    service.establishData(outputServiceData[serviceName])
+    service.establishData(outputServiceData[serviceName], assets)
 
   return modelPatches
 

@@ -69,12 +69,12 @@ registerService "Canvas", (options) ->
         order: 0
 
   # Default 
-  layerOrderForCommand = (command) ->
-    if not command.layer? then return 0
-    if command.layer not of options.layers then return 0
-    return options.layers[command.layer].order or 0 
+  layerOrderForShape = (shape) ->
+    if not shape.layer? then return 0
+    if shape.layer not of options.layers then return 0
+    return options.layers[shape.layer].order or 0 
 
-  commandSorter = (a, b) -> return layerOrderForCommand(a) - layerOrderForCommand(b)
+  shapeSorter = (a, b) -> return layerOrderForShape(a) - layerOrderForShape(b)
 
   interpretStyle = (style, ctx) ->
     if _.isString(style) then return style
@@ -93,48 +93,59 @@ registerService "Canvas", (options) ->
         return grad
       else throw new Error("Unknown or missing style type")
 
-  executeCommand = (command, ctx) ->
+  handleTransformations = (shape, ctx) ->
+    # Not sure this is done in the right order
+    if shape.translation then ctx.translate(shape.translation[0], shape.translation[1])
+    if shape.rotation then ctx.rotate(shape.rotation * Math.PI / 180) # Convert to radians
+    if shape.scale 
+      if _.isArray(shape.scale) then ctx.scale(shape.scale[0], shape.scale[1])
+      else if _.isNumber(shape.scale) then ctx.scale(shape.scale, shape.scale)
+      else throw new Error("Scale argument must be number or array")
+
+  executeShape = (shape, ctx, assets) ->
     # TODO: verify that arguments are of the correct type (the canvas API will not complain, just misfunction!)
     ctx.save()
-    switch command.type
+    handleTransformations(shape, ctx)
+
+    switch shape.type
       when "rectangle" 
-        if command.fillStyle
-          ctx.fillStyle = interpretStyle(command.fillStyle, ctx)
-          ctx.fillRect(command.position[0], command.position[1], command.size[0], command.size[1])
-        if command.strokeStyle
-          ctx.strokeStyle = interpretStyle(command.strokeStyle, ctx)
-          ctx.strokeRect(command.position[0], command.position[1], command.size[0], command.size[1])
+        if shape.fillStyle
+          ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
+          ctx.fillRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
+        if shape.strokeStyle
+          ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
+          ctx.strokeRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
       when "image"
-        ctx.drawImage(command.image, command.position[0], command.position[1])
+        ctx.drawImage(assets[shape.asset], shape.position[0], shape.position[1])
       when "text"
-        text = _.isString(command.text) && command.text || JSON.stringify(command.text)
-        ctx.strokeStyle = interpretStyle(command.style, ctx)
-        ctx.font = command.font
-        ctx.strokeText(text, command.position[0], command.position[1])
+        text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
+        ctx.strokeStyle = interpretStyle(shape.style, ctx)
+        ctx.font = shape.font
+        ctx.strokeText(text, shape.position[0], shape.position[1])
       when "path"
         ctx.beginPath();
-        ctx.moveTo(command.points[0][0], command.points[0][1])
-        for point in command.points[1..] then ctx.lineTo(point[0], point[1])
-        if command.fillStyle
-          ctx.fillStyle = interpretStyle(command.fillStyle, ctx)
+        ctx.moveTo(shape.points[0][0], shape.points[0][1])
+        for point in shape.points[1..] then ctx.lineTo(point[0], point[1])
+        if shape.fillStyle
+          ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
           ctx.fill()
-        if command.strokeStyle
-          ctx.strokeStyle = interpretStyle(command.strokeStyle, ctx)
-          if command.lineWidth then ctx.lineWidth = command.lineWidth
-          if command.lineCap then ctx.lineCap = command.lineCap
-          if command.lineJoin then ctx.lineJoin = command.lineJoin
-          if command.miterLimit then ctx.miterLimit = command.miterLimit
+        if shape.strokeStyle
+          ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
+          if shape.lineWidth then ctx.lineWidth = shape.lineWidth
+          if shape.lineCap then ctx.lineCap = shape.lineCap
+          if shape.lineJoin then ctx.lineJoin = shape.lineJoin
+          if shape.miterLimit then ctx.miterLimit = shape.miterLimit
           ctx.stroke()
       when "circle"
-        ctx.moveTo(command.position[0], command.position[1])
-        ctx.arc(command.position[0], command.position[1], command.radius, 0, 2 * Math.PI)
-        if command.fillStyle
-          ctx.fillStyle = interpretStyle(command.fillStyle, ctx)
+        ctx.moveTo(shape.position[0], shape.position[1])
+        ctx.arc(shape.position[0], shape.position[1], shape.radius, 0, 2 * Math.PI)
+        if shape.fillStyle
+          ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
           ctx.fill()
-        if command.strokeStyle
-          ctx.strokeStyle = interpretStyle(command.strokeStyle, ctx)
+        if shape.strokeStyle
+          ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
           ctx.stroke()
-      else throw new Error("Unknown or missing command type")
+      else throw new Error("Unknown or missing shape type")
     ctx.restore()
 
   return {
@@ -143,17 +154,17 @@ registerService "Canvas", (options) ->
       return {
         width: canvas.prop("width")
         height: canvas.prop("height")
-        commands: []
+        shapes: []
       }
 
-    establishData: (data) -> 
-      if not data.commands then return 
+    establishData: (data, assets) -> 
+      if not data.shapes then return 
 
       ctx = $(options.elementSelector)[0].getContext("2d")
-      data.commands.sort(commandSorter)
-      for command in data.commands
+      data.shapes.sort(shapeSorter)
+      for shape in data.shapes
         # TODO: handle composition for layers
-        executeCommand(command, ctx)
+        executeShape(shape, ctx, assets)
 
     destroy: -> # NOOP
   }
