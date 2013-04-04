@@ -1,0 +1,14 @@
+{
+  "keyboard": {
+    "type": "Keyboard",
+    "options": {
+      "elementSelector": "#gameCanvas"
+    }
+  },
+  "mouse": {
+    "type": "Mouse",
+    "options": {
+      "elementSelector": "#gameCanvas"
+    }
+  }
+}

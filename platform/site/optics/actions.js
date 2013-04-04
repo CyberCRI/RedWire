@@ -37,12 +37,14 @@
       font: "12px Arial"
     },
     update: function() { 
+      var text = _.isString(this.params.text) && this.params.text || JSON.stringify(this.params.text);
+
       var canvas = $("#gameCanvas");
       var context = canvas[0].getContext("2d");
       context.save();
       context.strokeStyle = this.params.style;
       context.font = this.params.font;
-      context.strokeText(String(this.params.text), this.params.x, this.params.y);
+      context.strokeText(String(text), this.params.x, this.params.y);
       context.restore();
     }
   },
