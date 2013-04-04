@@ -367,7 +367,7 @@ describe "gamEvolve", ->
       # parameters: node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null
       modelPatches = GE.stepLoop(null, {}, {}, {}, services, null, outputServiceData)
 
-      expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService)
+      expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {})
       expect(modelPatches).toBeEmpty()
 
     it "send service input data to visitNode", ->
@@ -395,7 +395,7 @@ describe "gamEvolve", ->
       # parameters: node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null
       modelPatches = GE.stepLoop(layout, {}, {}, actions, services, inputServiceData)
 
-      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 })
+      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
       expect(modelPatches).toBeEmpty()
 
     it "gathers service input data, visits nodes, and gives output to services", ->
@@ -422,6 +422,6 @@ describe "gamEvolve", ->
       # parameters: node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null
       modelPatches = GE.stepLoop(layout, {}, {}, actions, services)
 
-      expect(services.myService.provideData).toHaveBeenCalled()
-      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 })
+      expect(services.myService.provideData).toHaveBeenCalledWith({})
+      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
       expect(modelPatches).toBeEmpty()
