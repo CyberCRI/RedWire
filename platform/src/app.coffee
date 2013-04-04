@@ -48,12 +48,6 @@ automaticallyUpdatingModel = false
 
 ### Functions ###
 
-initCanvas = ->
-  canvas = $("#gameCanvas")
-  context = canvas[0].getContext("2d")
-  context.setFillColor("black")
-  context.fillRect(0, 0, canvas.width(), canvas.height())
-
 adjustEditorToSize = (editor) -> 
   session = editor.session
 
@@ -187,25 +181,25 @@ reloadCode = (callback) ->
   try
     currentAssets = JSON.parse(editors.assetsEditor.getValue())
   catch error
-    GE.logger.log(GE.logLevels.ERROR, "Assets error. #{error}")
+    GE.log(GE.logLevels.ERROR, "Assets error. #{error}")
     return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
 
   try
     currentModelData = JSON.parse(editors.modelEditor.getValue())
   catch error
-    GE.logger.log(GE.logLevels.ERROR, "Model error. #{error}")
+    GE.log(GE.logLevels.ERROR, "Model error. #{error}")
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
   try
     currentActions = eval(editors.actionsEditor.getValue())
   catch error
-    GE.logger.log(GE.logLevels.ERROR, "Actions error. #{error}")
+    GE.log(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
   try
     currentLayout = JSON.parse(editors.layoutEditor.getValue())
   catch error
-    GE.logger.log(GE.logLevels.ERROR, "Layout error. #{error}")
+    GE.log(GE.logLevels.ERROR, "Layout error. #{error}")
     return showMessage(MessageType.Error, "<strong>Layout error.</strong> #{error}")
 
   try
@@ -220,12 +214,12 @@ reloadCode = (callback) ->
     for serviceName, serviceDef of serviceDefs
       currentServices[serviceName] = services[serviceDef.type](serviceDef.options)
   catch error
-    GE.logger.log(GE.logLevels.ERROR, "Services error. #{error}")
+    GE.log(GE.logLevels.ERROR, "Services error. #{error}")
     return showMessage(MessageType.Error, "<strong>Services error.</strong> #{error}")
 
   GE.loadAssets currentAssets, (err, loadedAssets) =>
     if err? 
-      GE.logger.log(GE.logLevels.ERROR, "Cannot load assets")
+      GE.log(GE.logLevels.ERROR, "Cannot load assets")
       showMessage(MessageType.Error, "Cannot load assets")
       callback(err)
 
@@ -238,7 +232,7 @@ reloadCode = (callback) ->
       value: currentFrame
       max: currentFrame
 
-    GE.logger.log(GE.logLevels.INFO, "Game updated")
+    GE.log(GE.logLevels.INFO, "Game updated")
     showMessage(MessageType.Info, "Game updated")
     callback(null)
 
@@ -334,20 +328,21 @@ globals.registerService = registerService
 
 # Reset log content
 resetLogContent = ->
-  GE.logger.log(GE.logLevels.WARN, "Log content is being reset")
+  GE.log(GE.logLevels.WARN, "Log content is being reset")
   log.setValue("");
   log.clearSelection();
   
-  GE.logger.log(GE.logLevels.INFO, "Reset log")
+  GE.log(GE.logLevels.INFO, "Reset log")
+
+zeroPad = (number) -> if number < 10 then "0" + number else number
 
 getFormattedTime = ->
   date = new Date()
-  return date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()
+  return "#{zeroPad(date.getHours())}:#{zeroPad(date.getMinutes())}:#{zeroPad(date.getSeconds())}"
 
 ### Main ###
 
 $(document).ready ->
-  initCanvas()
   setupLayout()
   setupButtonHandlers()
 
@@ -368,7 +363,7 @@ $(document).ready ->
       prefixedLog("error", "bad logType parameter '"+logType+"' in log for message '"+message+"'")
 
   # Connect log to GE logging
-  GE.logger.log = prefixedLog
+  GE.log = prefixedLog
   resetLogContent()
 
   # A hash needs to be set, or we won't be able to load the code

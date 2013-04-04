@@ -2,19 +2,6 @@ body {
   font-size: 10pt;
 }
 
-#gameCanvas {
-  /* Preserves aspect ratio */
-  height: 100%;
-}
-
-/*.editor {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}*/
-
 .editor {
   /* TODO: find way to dynamically measure height */
   height: 95%;
