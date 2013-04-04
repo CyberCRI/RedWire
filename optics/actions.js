@@ -1,30 +1,34 @@
 ({
   clearBackground: {
     paramDefs: {
-      "backgroundColor": "black"
+      "color": "black",
+      "graphics": null
     },
     update: function() {
-      var canvas = $("#gameCanvas");
-      var context = canvas[0].getContext("2d");
- 
-      // TODO: this shouldn't be necessary here, if a better drawing layer system existed
-      context.globalCompositeOperation = 'source-over';
-
-      context.setFillColor(this.params.backgroundColor);
-      context.fillRect(0, 0, canvas.prop("width"), canvas.prop("height"));
+      this.params.graphics.shapes.push({
+        type: "rectangle",
+        layer: "bg",
+        fillStyle: this.params.color,
+        position: [0, 0],
+        size: this.params.graphics.size
+      });
     }
   },
 
   drawImage: {
     paramDefs: {
+      graphics: null,
       image: null,
       x: 0,
       y: 0
     },
     update: function() {
-      var canvas = $("#gameCanvas");
-      var context = canvas[0].getContext("2d");
-      context.drawImage(this.params.image, this.params.x, this.params.y);
+      this.params.graphics.shapes.push({
+        type: "image",
+        layer: "bg",
+        asset: this.params.image,
+        position: [this.params.x, this.params.y]
+      });
     }
   },
 
@@ -34,16 +38,18 @@
       x: 0,
       y: 12,
       style: "black",
-      font: "12px Arial"
+      font: "12px Arial",
+      "graphics": null
     },
     update: function() { 
-      var canvas = $("#gameCanvas");
-      var context = canvas[0].getContext("2d");
-      context.save();
-      context.strokeStyle = this.params.style;
-      context.font = this.params.font;
-      context.strokeText(String(this.params.text), this.params.x, this.params.y);
-      context.restore();
+      this.params.graphics.shapes.push({
+        type: "text",
+        layer: "text",
+        text: this.params.text,
+        style: this.params.style,
+        font: this.params.font,
+        position: [this.params.x, this.params.y]
+      });
     }
   },
 
@@ -53,38 +59,39 @@
 
   drawPiece: {
     paramDefs: {
+      graphics: null,
       type: null,
       row: 0,
       col: 0,
       rotation: 0
     },
     update: function() {
-      // This could be done by drawImage() if better expressions existed
-      var canvas = $("#gameCanvas");
-      var context = canvas[0].getContext("2d");
-      var x = this.params.col * 53 + 33 + 26;
-      var y = this.params.row * 53 + 33 + 26;
-
-      context.save();
-      context.translate(x, y);
-      // Convert to radians
-      context.rotate(this.params.rotation * Math.PI / 180);
-      context.drawImage(this.assets[this.params.type], -26, -26);
-      context.restore();
+      this.params.graphics.shapes.push({
+        type: "image",
+        layer: "pieces",
+        asset: this.params.type,
+        position: [-26, -26],
+        translation: [this.params.col * 53 + 33 + 26, this.params.row * 53 + 33 + 26],
+        rotation: this.params.rotation // In degrees 
+      });
     }
   },
 
   drawSelected: {
     paramDefs: {
+      graphics: null,
       row: 0,
       col: 0
     },
     update: function() {
-      // This could be done by drawImage() if better expressions existed
-      canvas = $("#gameCanvas");
-      context = canvas[0].getContext("2d");
-      context.strokeStyle = "yellow"
-      context.strokeRect(this.params.col * 53 + 33, this.params.row * 53 + 33, 50, 50);
+      this.params.graphics.shapes.push({
+        type: "rectangle",
+        layer: "selection",
+        position: [this.params.col * 53 + 33, this.params.row * 53 + 33],
+        size: [50, 50],
+        strokeStyle: "yellow",
+        lineWidth: 4
+      });
     }
   },
 
@@ -97,8 +104,9 @@
     }
   },
 
-  calculateLight: {
+  drawLight: {
     paramDefs: {
+      "graphics": null,
       "pieces": []
     },
     update: function() {
@@ -209,10 +217,9 @@
       }
 
       // all lines are in grid space, not in screen space
-      function drawGradientLine(ctx, origin, dest, innerRadius, outerRadius, colorRgba)
+      // options override default values for all drawn shapes (layer, composition, etc.)
+      function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options)
       {
-        ctx.save();
-
         var marginV = Vector.create([MARGIN, MARGIN]);
 
         // find normal to line (http://stackoverflow.com/questions/1243614/how-do-i-calculate-the-normal-vector-of-a-line-segment)
@@ -227,41 +234,73 @@
         var transRgba = _.clone(colorRgba);
         transRgba[3] = 0;
 
-        var strokeGrad = ctx.createLinearGradient(strokeGradUpper.elements[0], strokeGradUpper.elements[1], strokeGradLower.elements[0], strokeGradLower.elements[1]);
-        strokeGrad.addColorStop(0, "rgba(" + transRgba.join(",") + ")");
-        strokeGrad.addColorStop(innerRadius / outerRadius, "rgba(" + colorRgba.join(",") + ")");
-        strokeGrad.addColorStop(1 - innerRadius / outerRadius, "rgba(" + colorRgba.join(",") + ")");
-        strokeGrad.addColorStop(1, "rgba(" + transRgba.join(",") + ")");
-        ctx.strokeStyle = strokeGrad;
+        strokeGrad = {
+          type: "linearGradient",
+          startPosition: strokeGradUpper.elements,
+          endPosition: strokeGradLower.elements,
+          colorStops: [
+            { position: 0, color: "rgba(" + transRgba.join(",") + ")" },
+            { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
+            { position: 1 - innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
+            { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
+          ]
+        };
 
-        ctx.lineWidth = 2 * outerRadius;
+        that.params.graphics.shapes.push(_.extend({
+          type: "path",
+          layer: "light",
+          strokeStyle: strokeGrad,
+          lineWidth: 2 * outerRadius,
+          points: [originV.elements, destV.elements]
+        }, options));
 
-        ctx.beginPath();
-        ctx.moveTo(originV.elements[0], originV.elements[1]);
-        ctx.lineTo(destV.elements[0], destV.elements[1]);
-        ctx.stroke();
+        fillGrad = {
+          type: "radialGradient",
+          start: {
+            position: originV.elements,
+            radius: 0
+          },
+          end: {
+            position: originV.elements,
+            radius: outerRadius
+          },
+          colorStops: [
+            { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
+            { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
+          ]
+        };
 
-        // draw end caps
-        // TODO: only draw half circles
-        var fillGrad = ctx.createRadialGradient(originV.elements[0], originV.elements[1], 0, originV.elements[0], originV.elements[1], outerRadius);
-        fillGrad.addColorStop(innerRadius / outerRadius, "rgba(" + colorRgba.join(",") + ")");
-        fillGrad.addColorStop(1, "rgba(" + transRgba.join(",") + ")");
-        ctx.fillStyle = fillGrad;
+        that.params.graphics.shapes.push(_.extend({
+          type: "circle",
+          layer: "light",
+          fillStyle: fillGrad,
+          position: originV.elements,
+          radius: outerRadius
+        }, options));
 
-        ctx.moveTo(originV.elements[0], originV.elements[1]);
-        ctx.arc(originV.elements[0], originV.elements[1], outerRadius, 0, 2 * Math.PI);
-        ctx.fill(); 
+        fillGrad = {
+          type: "radialGradient",
+          start: {
+            position: destV.elements,
+            radius: 0
+          },
+          end: {
+            position: destV.elements,
+            radius: outerRadius
+          },
+          colorStops: [
+            { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
+            { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
+          ]
+        };
 
-        fillGrad = ctx.createRadialGradient(destV.elements[0], destV.elements[1], 0, destV.elements[0], destV.elements[1], outerRadius);
-        fillGrad.addColorStop(innerRadius / outerRadius, "rgba(" + colorRgba.join(",") + ")");
-        fillGrad.addColorStop(1, "rgba(" + transRgba.join(",") + ")");
-        ctx.fillStyle = fillGrad;
-
-        ctx.moveTo(destV.elements[0], destV.elements[1]);
-        ctx.arc(destV.elements[0], destV.elements[1], outerRadius, 0, 2 * Math.PI);
-        ctx.fill(); 
-
-        ctx.restore();
+        that.params.graphics.shapes.push(_.extend({
+          type: "circle",
+          layer: "light",
+          fillStyle: fillGrad,
+          position: destV.elements,
+          radius: outerRadius
+        }, options));
       }
 
       // Do everything in the "grid space" and change to graphic coordinates at the end
@@ -323,30 +362,33 @@
 
       // DRAW SEGMENTS
 
-      canvas = $("#gameCanvas");
-      context = canvas[0].getContext("2d");
-      context.save();
+      // Draw black mask that we will cut away from
+      // based on the method of this fiddle: http://jsfiddle.net/wNYkX/3/
+      that.params.graphics.shapes.push({
+        type: "rectangle",
+        layer: "mask",
+        fillStyle: "black",
+        position: [0, 0],
+        size: that.params.graphics.size,
+        order: 0
+      });
 
-      context.globalCompositeOperation = 'destination-out';
-
-      // TODO: use method in fiddle: http://jsfiddle.net/wNYkX/3/
-
+      // now cut away, using 'destination-out' composition
+      var maskOptions = { 
+        layer: "mask", 
+        composition: "destination-out", 
+        order: 1 
+      };
       for(var i = 0; i < lightSegments.length; i++)
       {
-        drawGradientLine(context, lightSegments[i].origin, lightSegments[i].destination, 30, 40, [255, 255, 255, lightSegments[i].intensity]);
+        drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 30, 40, [255, 255, 255, lightSegments[i].intensity], maskOptions);
       }
 
-      context.globalCompositeOperation = 'source-over';
-
+      // draw light ray normally
       for(var i = 0; i < lightSegments.length; i++)
       {
-        drawGradientLine(context, lightSegments[i].origin, lightSegments[i].destination, 4, 6, [255, 0, 0, lightSegments[i].intensity]);
+        drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 4, 6, [255, 0, 0, lightSegments[i].intensity]);
       }
-
-      context.restore();
-
-      // TODO: move the composition stuff to a dedicated layout function
-      context.globalCompositeOperation = 'destination-over';
     }
   }
 });

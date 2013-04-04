@@ -21,6 +21,7 @@
 
   <link rel="stylesheet" type="text/css" href="app.css">
   <script type="text/javascript" src="app.js"></script>
+  <script src="services.js" type="text/javascript" charset="utf-8"></script>
 </head>
 
 <body>
@@ -50,7 +51,7 @@
     </div>
   </div>
   <div class="ui-layout-center">
-    <canvas id="gameCanvas" width="960" height="540"></canvas>
+    <div id="gameContent"></div>
   </div>
   <div id="west" class="ui-layout-west">
     <div class="toolbar">
@@ -61,21 +62,23 @@
     <ul>
       <li><a href="#modelEditor">Model</a></li>
       <li><a href="#assetsEditor">Assets</a></li>
+      <li><a href="#servicesEditor">Services</a></li>
     </ul>
     <div class="ui-layout-content">
       <div id="modelEditor" class="editor">Model</div>
       <div id="assetsEditor" class="editor">Assets</div>
+      <div id="servicesEditor" class="editor">Services</div>
     </div>
   </div>
   <div id="south" class="ui-layout-south">
     <ul>
-      <li><a href="#actionsEditor">Actions</a></li>
-      <li><a href="#layoutEditor">Layout</a></li>
       <li><a href="#log">Log</a></li>
+      <li><a href="#layoutEditor">Layout</a></li>
+      <li><a href="#actionsEditor">Actions</a></li>
     </ul>
-    <div id="actionsEditor" class="editor">Actions</div>
-    <div id="layoutEditor" class="editor">Layout</div>
     <div id="log" class="editor">Log</div>
+    <div id="layoutEditor" class="editor">Layout</div>
+    <div id="actionsEditor" class="editor">Actions</div>
   </div>
 </body>
 </html>

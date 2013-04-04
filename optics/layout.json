@@ -7,12 +7,18 @@
         "number": "@model:score"
       }
     },
-    {
-      "action": "clearBackground"
+    { 
+      "action": "drawImage",
+      "params": {
+        "graphics": "@service:graphics",
+        "image": "background",
+        "layer": "bg"
+      }
     },
     {
       "action": "drawText",
       "params": {
+        "graphics": "@service:graphics",
         "text": "@model:score",
         "x": 2,
         "y": 20,
@@ -21,8 +27,31 @@
       }
     },
     {
-      "action": "calculateLight",
+      "action": "drawText",
       "params": {
+        "graphics": "@service:graphics",
+        "text": "@service:keyboard.keysDown",
+        "x": 50,
+        "y": 20,
+        "style": "white",
+        "font": "20px Arial"
+      }
+    },
+    {
+      "action": "drawText",
+      "params": {
+        "graphics": "@service:graphics",
+        "text": "@service:mouse",
+        "x": 2,
+        "y": 40,
+        "style": "white",
+        "font": "20px Arial"
+      }
+    },
+    {
+      "action": "drawLight",
+      "params": {
+        "graphics": "@service:graphics",
         "pieces": "@model:pieces"
       }
     },
@@ -36,6 +65,7 @@
         {
           "action": "drawPiece",
           "params": {
+            "graphics": "@service:graphics",
             "type" : "$piece.type",
             "row" : "$piece.row",
             "col" : "$piece.col",
@@ -47,14 +77,9 @@
     {
       "action": "drawSelected",
       "params": {
+        "graphics": "@service:graphics",
         "row": "@model:selected.row",
         "col": "@model:selected.col"
-      }
-    },
-    { 
-      "action": "drawImage",
-      "params": {
-        "image": "@asset:background"
       }
     }
   ]
