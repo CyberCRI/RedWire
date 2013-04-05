@@ -112,6 +112,7 @@ registerService 'Canvas', (options = {}) ->
     ctx.save()
     handleTransformations(shape, ctx)
     if shape.composition then ctx.globalCompositeOperation = shape.composition
+    if shape.alpha then ctx.globalAlpha = shape.alpha
 
     switch shape.type
       when 'rectangle' 
