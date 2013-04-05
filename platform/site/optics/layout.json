@@ -81,6 +81,16 @@
         "row": "@model:selected.row",
         "col": "@model:selected.col"
       }
+    },
+    {
+      "action": "clickListener",
+      "params": {
+        "selectedPiece": "@model:selectedPiece",
+        "draggedPiece": "@model:draggedPiece",
+        "pieces": "@model:pieces",
+        "mouse": "@service:mouse",
+        "leftMouseDown": "@model:leftMouseDown"
+      }
     }
   ]
 

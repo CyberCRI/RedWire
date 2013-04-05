@@ -1,4 +1,78 @@
 ({
+  clickListener: {
+    paramDefs: {
+      selectedPiece: null,
+      draggedPiece: null,
+      pieces: [],
+      mouse: null,
+      leftMouseDown: false
+    },
+    update: function() {
+      var newLeftMouseDown = this.params.mouse.down && !this.params.leftMouseDown;
+      var newLeftMouseReleased = !this.params.mouse.down && this.params.leftMouseDown;
+
+      var position = this.params.mouse.position;
+
+      //copied from drawLight
+      var that = this;
+      function findGridElement(point)
+      {
+        if(point) {
+          for(var i in that.params.pieces)
+          {
+           var piece = that.params.pieces[i];
+           if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
+          }
+          return null;
+        }
+        return null;
+      }
+
+      //test whether there is a piece or not
+      if (newLeftMouseDown)
+      {
+        console.log("newLeftMouseDown")
+        
+        //set mouse button flag
+        this.params.leftMouseDown = true
+
+        var piece = findGridElement(position);
+        if (piece)
+        {
+          console.log("the previously selected piece is unselected")
+          this.params.selectedPiece = null;
+
+          console.log("\"piece\" starts to be dragged, even if a piece was already being dragged")
+          this.params.draggedPiece = piece;
+
+        }
+      } else if (newLeftMouseReleased)
+      {
+        console.log("newLeftMouseReleased")
+
+        //reset mouse button flag
+        this.params.leftMouseDown = false
+
+        //test whether there is a piece or not
+        var piece = findGridElement(position);
+        if (piece)
+        {
+          console.log("drag and drop fails: undrag piece")
+          this.params.draggedPiece = null;
+
+          //positioning fails, but keep piece selected
+        } else {
+          if(this.params.selectedPiece) {
+            console.log("position piece if one was selected")
+
+          } else if (this.params.draggedPiece){
+            console.log("position piece if one was being dragged");
+          }
+        }
+      }
+    }
+  },
+
   clearBackground: {
     paramDefs: {
       "color": "black",

@@ -4,6 +4,7 @@
     "col": 2,
     "row": 5
   },
+  "leftMouseDown": false,
   "pieces": [
     { 
       "col": 7,
