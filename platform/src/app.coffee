@@ -76,6 +76,14 @@ showMessage = (messageType, message) ->
 
 clearMessage = -> $("#topAlert, #topInfo").hide()
 
+logWithPrefix = (logType, message, newLine = true) ->
+  if GE.logLevels[logType]
+    log.clearSelection()
+    log.navigateFileEnd()
+    log.insert(logType+": "+getFormattedTime()+" "+message+if newLine then "\n" else "")
+  else
+    logWithPrefix(GE.logLevels.ERROR, "Bad logType parameter '"+logType+"' in log for message '"+message+"'")
+
 setupLayout = ->
   # top
   $("#saveButton").button({ icons: { primary: "ui-icon-transferthick-e-w" }})
@@ -181,25 +189,25 @@ reloadCode = (callback) ->
   try
     currentAssets = JSON.parse(editors.assetsEditor.getValue())
   catch error
-    GE.log(GE.logLevels.ERROR, "Assets error. #{error}")
+    logWithPrefix(GE.logLevels.ERROR, "Assets error. #{error}")
     return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
 
   try
     currentModelData = JSON.parse(editors.modelEditor.getValue())
   catch error
-    GE.log(GE.logLevels.ERROR, "Model error. #{error}")
+    logWithPrefix(GE.logLevels.ERROR, "Model error. #{error}")
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
   try
     currentActions = eval(editors.actionsEditor.getValue())
   catch error
-    GE.log(GE.logLevels.ERROR, "Actions error. #{error}")
+    logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
   try
     currentLayout = JSON.parse(editors.layoutEditor.getValue())
   catch error
-    GE.log(GE.logLevels.ERROR, "Layout error. #{error}")
+    logWithPrefix(GE.logLevels.ERROR, "Layout error. #{error}")
     return showMessage(MessageType.Error, "<strong>Layout error.</strong> #{error}")
 
   try
@@ -214,12 +222,12 @@ reloadCode = (callback) ->
     for serviceName, serviceDef of serviceDefs
       currentServices[serviceName] = services[serviceDef.type](serviceDef.options)
   catch error
-    GE.log(GE.logLevels.ERROR, "Services error. #{error}")
+    logWithPrefix(GE.logLevels.ERROR, "Services error. #{error}")
     return showMessage(MessageType.Error, "<strong>Services error.</strong> #{error}")
 
   GE.loadAssets currentAssets, (err, loadedAssets) =>
     if err? 
-      GE.log(GE.logLevels.ERROR, "Cannot load assets")
+      logWithPrefix(GE.logLevels.ERROR, "Cannot load assets")
       showMessage(MessageType.Error, "Cannot load assets")
       callback(err)
 
@@ -232,7 +240,7 @@ reloadCode = (callback) ->
       value: currentFrame
       max: currentFrame
 
-    GE.log(GE.logLevels.INFO, "Game updated")
+    logWithPrefix(GE.logLevels.INFO, "Game updated")
     showMessage(MessageType.Info, "Game updated")
     callback(null)
 
@@ -241,8 +249,8 @@ reloadCode = (callback) ->
 executeCode = ->
   modelAtFrame = currentModel.atVersion(currentFrame)
 
-  # GE.stepLoop = (node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null) 
-  modelPatches = GE.stepLoop(currentLayout, modelAtFrame.clonedData(), currentLoadedAssets, currentActions, currentServices)
+  # GE.stepLoop = (node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null) 
+  modelPatches = GE.stepLoop(currentLayout, modelAtFrame.clonedData(), currentLoadedAssets, currentActions, currentServices, logWithPrefix)
 
   return modelAtFrame.applyPatches(modelPatches)
 
@@ -328,11 +336,11 @@ globals.registerService = registerService
 
 # Reset log content
 resetLogContent = ->
-  GE.log(GE.logLevels.WARN, "Log content is being reset")
+  logWithPrefix(GE.logLevels.WARN, "Log content is being reset")
   log.setValue("");
   log.clearSelection();
   
-  GE.log(GE.logLevels.INFO, "Reset log")
+  logWithPrefix(GE.logLevels.INFO, "Reset log")
 
 zeroPad = (number) -> if number < 10 then "0" + number else number
 
@@ -353,17 +361,6 @@ $(document).ready ->
   # Create the log, which is plain text
   log = setupEditor("log")
   log.setReadOnly(true)
- 
-  prefixedLog = (logType, message, newLine = true) ->
-    if GE.logLevels[logType]
-      log.clearSelection()
-      log.navigateFileEnd()
-      log.insert(logType+": "+getFormattedTime()+" "+message+if newLine then "\n" else "")
-    else
-      prefixedLog("error", "bad logType parameter '"+logType+"' in log for message '"+message+"'")
-
-  # Connect log to GE logging
-  GE.log = prefixedLog
   resetLogContent()
 
   # A hash needs to be set, or we won't be able to load the code
