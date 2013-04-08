@@ -1,72 +1,99 @@
 ({
-  clickListener: {
+    clickListener: {
     paramDefs: {
       selectedPiece: null,
       draggedPiece: null,
       pieces: [],
       mouse: null,
-      leftMouseDown: false
+      leftMouseDown: false,
+      constants: null
     },
     update: function() {
+
       var newLeftMouseDown = this.params.mouse.down && !this.params.leftMouseDown;
       var newLeftMouseReleased = !this.params.mouse.down && this.params.leftMouseDown;
 
-      var position = this.params.mouse.position;
-
       //copied from drawLight
       var that = this;
-      function findGridElement(point)
-      {
-        if(point) {
-          for(var i in that.params.pieces)
+
+      if(newLeftMouseDown || newLeftMouseReleased){
+        if(that.params.mouse.position)
+        {
+          //x = this.params.col * cellSize + margin2 + margin3
+          //y = this.params.row * cellSize + margin2 + margin3
+
+          //board coordinates
+          var clickedColumn = toBoardCoordinate(that.params.mouse.position.x);
+          var clickedRow = toBoardCoordinate(that.params.mouse.position.y);
+          var boardCoordinates = {"0": clickedColumn, "1": clickedRow};
+
+          function toBoardCoordinate(pixelCoordinate)
           {
-           var piece = that.params.pieces[i];
-           if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
+            var res = Math.floor((pixelCoordinate - that.params.constants.margin2)/that.params.constants.cellSize);
+            console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with margin2="+that.params.constants.margin2+", margin3="+that.params.constants.margin3+", cellSize="+that.params.constants.cellSize);
+            return res;
           }
-          return null;
-        }
-        return null;
-      }
 
-      //test whether there is a piece or not
-      if (newLeftMouseDown)
-      {
-        console.log("newLeftMouseDown")
-        
-        //set mouse button flag
-        this.params.leftMouseDown = true
+          //copied from drawLight
+          function findGridElement()
+          {
+            for(var i in that.params.pieces)
+            {
+              var piece = that.params.pieces[i];
+              console.log("action.js: findGridElement: comparing point position ["+clickedColumn+","+clickedRow+"] with ["+piece.col+","+piece.row+"]");
+              if(piece.col == clickedColumn && piece.row == clickedRow) return piece; 
+            }
+            console.log("action.js: findGridElement: fail: no piece");
+            return null;
+          }
 
-        var piece = findGridElement(position);
-        if (piece)
-        {
-          console.log("the previously selected piece is unselected")
-          this.params.selectedPiece = null;
+          //test whether there is a piece or not
+          if (newLeftMouseDown)
+          {
+            console.log("action.js: newLeftMouseDown");
 
-          console.log("\"piece\" starts to be dragged, even if a piece was already being dragged")
-          this.params.draggedPiece = piece;
+            //set mouse button flag
+            this.params.leftMouseDown = true;
+            
+            //let's select the square that has been clicked on
+            //this.params.selected.col = clickedColumn;
+            //this.params.selected.row = clickedRow;
 
-        }
-      } else if (newLeftMouseReleased)
-      {
-        console.log("newLeftMouseReleased")
+            var piece = findGridElement(boardCoordinates);
+            if (piece)
+            {
+              console.log("action.js: clicked on piece of type \""+piece.type+"\"");
+              console.log("action.js: the previously selected piece is unselected");
+              this.params.selectedPiece = null;
 
-        //reset mouse button flag
-        this.params.leftMouseDown = false
+              console.log("action.js: \""+piece.type+"\" starts to be dragged, even if a piece was already being dragged");
+              this.params.draggedPiece = piece;
 
-        //test whether there is a piece or not
-        var piece = findGridElement(position);
-        if (piece)
-        {
-          console.log("drag and drop fails: undrag piece")
-          this.params.draggedPiece = null;
+            }
+          } else if (newLeftMouseReleased)
+          {
+            console.log("action.js: newLeftMouseReleased");
 
-          //positioning fails, but keep piece selected
-        } else {
-          if(this.params.selectedPiece) {
-            console.log("position piece if one was selected")
+            //reset mouse button flag
+            this.params.leftMouseDown = false;
 
-          } else if (this.params.draggedPiece){
-            console.log("position piece if one was being dragged");
+            //test whether there is a piece or not
+            var piece = findGridElement(boardCoordinates);
+            if (piece)
+            {
+              console.log("action.js: released on piece of type \""+piece.type+"\"");
+              console.log("action.js: drag and drop fails: undrag piece");
+              this.params.draggedPiece = null;
+
+              //positioning fails, but keep piece selected
+            } else {
+              if(this.params.selectedPiece) {
+                console.log("action.js: position piece if one was selected");
+
+              } else if (this.params.draggedPiece){
+                console.log("action.js: position piece if one was being dragged");
+              }
+            }
           }
         }
       }
@@ -137,15 +164,18 @@
       type: null,
       row: 0,
       col: 0,
-      rotation: 0
+      rotation: 0,
+      constants: null
     },
+
     update: function() {
       this.params.graphics.shapes.push({
         type: "image",
         layer: "pieces",
         asset: this.params.type,
-        position: [-26, -26],
-        translation: [this.params.col * 53 + 33 + 26, this.params.row * 53 + 33 + 26],
+        position: [-this.params.constants.margin3, -this.params.constants.margin3],
+        translation: [this.params.col * this.params.constants.cellSize + this.params.constants.margin2 + this.params.constants.margin3, 
+          this.params.row * this.params.constants.cellSize + this.params.constants.margin2 + this.params.constants.margin3],
         rotation: this.params.rotation // In degrees 
       });
     }
@@ -155,13 +185,15 @@
     paramDefs: {
       graphics: null,
       row: 0,
-      col: 0
+      col: 0,
+      constants: null
     },
     update: function() {
       this.params.graphics.shapes.push({
         type: "rectangle",
         layer: "selection",
-        position: [this.params.col * 53 + 33, this.params.row * 53 + 33],
+        position: [this.params.col * this.params.constants.cellSize + this.params.constants.margin2, 
+        this.params.row * this.params.constants.cellSize + this.params.constants.margin2],
         size: [50, 50],
         strokeStyle: "yellow",
         lineWidth: 4
@@ -180,20 +212,19 @@
 
   drawLight: {
     paramDefs: {
-      "graphics": null,
-      "pieces": []
+      graphics: null,
+      pieces: [],
+      constants: null
     },
     update: function() {
-      var MARGIN = 30;
-      var CELL_SIZE = 53;
-      var GRID_SIZE = [14, 9];
-      var MIRROR_ATTENUATION_FACTOR = 0.7;
 
       var that = this;
+      var gridSize = that.params.constants.gridSize
+
 
       function isInGrid(point)
       {
-        return point[0] >= 0 && point[0] < GRID_SIZE[0] && point[1] >= 0 && point[1] < GRID_SIZE[1];        
+        return point[0] >= 0 && point[0] < gridSize[0] && point[1] >= 0 && point[1] < gridSize[1];        
       }
 
       // Attempts to find intersection with the given lines and returns it.
@@ -215,10 +246,10 @@
       {
         var boundaries = 
         [
-          [[0, 0], [GRID_SIZE[0], 0]], // top
-          [[GRID_SIZE[0], 0], [GRID_SIZE[0], GRID_SIZE[1]]], // right
-          [[GRID_SIZE[0], GRID_SIZE[1]], [0, GRID_SIZE[1]]], // bottom
-          [[0, GRID_SIZE[1]], [0, 0]] // left
+          [[0, 0], [gridSize[0], 0]], // top
+          [[gridSize[0], 0], [gridSize[0], gridSize[1]]], // right
+          [[gridSize[0], gridSize[1]], [0, gridSize[1]]], // bottom
+          [[0, gridSize[1]], [0, 0]] // left
         ];
 
         return findIntersection(origin, dest, boundaries);
@@ -269,7 +300,7 @@
           {
             lightSegments[lightSegments.length - 1].destination = intersection;
 
-            lightIntensity *= MIRROR_ATTENUATION_FACTOR;
+            lightIntensity *= that.params.constants.mirrorAttenuationFactor;
             lightSegments.push({ origin: intersection, intensity: lightIntensity });
 
             // reflect around normal (from http://www.gamedev.net/topic/510581-2d-reflection/)
@@ -294,11 +325,11 @@
       // options override default values for all drawn shapes (layer, composition, etc.)
       function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options)
       {
-        var marginV = Vector.create([MARGIN, MARGIN]);
+        var marginV = Vector.create([that.params.constants.margin, that.params.constants.margin]);
 
         // find normal to line (http://stackoverflow.com/questions/1243614/how-do-i-calculate-the-normal-vector-of-a-line-segment)
-        var originV = Vector.create(origin).multiply(CELL_SIZE).add(marginV);
-        var destV = Vector.create(dest).multiply(CELL_SIZE).add(marginV);
+        var originV = Vector.create(origin).multiply(that.params.constants.cellSize).add(marginV);
+        var destV = Vector.create(dest).multiply(that.params.constants.cellSize).add(marginV);
         var d = destV.subtract(originV);
         var normal = Vector.create([-d.elements[1], d.elements[0]]).toUnitVector();
 
@@ -455,12 +486,14 @@
       };
       for(var i = 0; i < lightSegments.length; i++)
       {
+        //TODO extract 30 and 40 values
         drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 30, 40, [255, 255, 255, lightSegments[i].intensity], maskOptions);
       }
 
       // draw light ray normally
       for(var i = 0; i < lightSegments.length; i++)
       {
+        //TODO extract 4 and 6 values
         drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 4, 6, [255, 0, 0, lightSegments[i].intensity]);
       }
     }

@@ -52,7 +52,8 @@
       "action": "drawLight",
       "params": {
         "graphics": "@service:graphics",
-        "pieces": "@model:pieces"
+        "pieces": "@model:pieces",
+        "constants": "@model:constants"
       }
     },
     {
@@ -69,7 +70,8 @@
             "type" : "$piece.type",
             "row" : "$piece.row",
             "col" : "$piece.col",
-            "rotation": "$piece.rotation"
+            "rotation": "$piece.rotation",
+            "constants": "@model:constants"
           }
         }
       ]
@@ -79,7 +81,8 @@
       "params": {
         "graphics": "@service:graphics",
         "row": "@model:selected.row",
-        "col": "@model:selected.col"
+        "col": "@model:selected.col",
+        "constants": "@model:constants"
       }
     },
     {
@@ -89,7 +92,8 @@
         "draggedPiece": "@model:draggedPiece",
         "pieces": "@model:pieces",
         "mouse": "@service:mouse",
-        "leftMouseDown": "@model:leftMouseDown"
+        "leftMouseDown": "@model:leftMouseDown",
+        "constants": "@model:constants"
       }
     }
   ]

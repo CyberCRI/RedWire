@@ -45,10 +45,11 @@ registerService 'Mouse', (options = {}) ->
       when 'mousemove'
         # Get position relative to canvas.
         # Based on http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
-        rect = $(options.elementSelector)[0].getBoundingClientRect()
+        rect = event.target.getBoundingClientRect()
+        target = $(event.target)
         mouse.position = 
-          x: event.clientX - rect.left
-          y: event.clientY - rect.top
+          x: Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width)
+          y: Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)
       else throw new Error('Unexpected event type')
 
   return {

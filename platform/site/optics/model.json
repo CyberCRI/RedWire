@@ -5,6 +5,8 @@
     "row": 5
   },
   "leftMouseDown": false,
+  "selectedPiece": null,
+  "draggedPiece": null,
   "pieces": [
     { 
       "col": 7,
@@ -34,5 +36,13 @@
       "type": "laser-on",
       "rotation": 120
     }
-  ]
+  ],
+  "constants": {
+    "margin": 30,
+    "margin2": 33,
+    "margin3": 26,
+    "cellSize": 53,
+    "gridSize": [14, 9],
+    "mirrorAttenuationFactor": 0.7
+  }
 }
