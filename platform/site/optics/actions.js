@@ -16,6 +16,27 @@
       //copied from drawLight
       var that = this;
 
+      function toBoardCoordinate(pixelCoordinate)
+      {
+        var res = Math.floor((pixelCoordinate - that.params.constants.margin2)/that.params.constants.cellSize);
+        console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with margin2="+that.params.constants.margin2+", margin3="+that.params.constants.margin3+", cellSize="+that.params.constants.cellSize);
+        return res;
+      }
+
+      //copied from drawLight
+      function findGridElement(square, data)
+      {
+        var data = data || that;
+        for(var i in that.params.pieces)
+        {
+          var piece = data.params.pieces[i];
+          //console.log("action.js: findGridElement: comparing point position ["+col+","+row+"] with ["+piece.col+","+piece.row+"]");
+          if(piece.col == square[0] && piece.row == square[1]) return piece; 
+        }
+        console.log("action.js: findGridElement: no piece found");
+        return null;
+      }
+
       if(newLeftMouseDown || newLeftMouseReleased){
         if(that.params.mouse.position)
         {
@@ -26,26 +47,6 @@
           var clickedColumn = toBoardCoordinate(that.params.mouse.position.x);
           var clickedRow = toBoardCoordinate(that.params.mouse.position.y);
           var boardCoordinates = {"0": clickedColumn, "1": clickedRow};
-
-          function toBoardCoordinate(pixelCoordinate)
-          {
-            var res = Math.floor((pixelCoordinate - that.params.constants.margin2)/that.params.constants.cellSize);
-            console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with margin2="+that.params.constants.margin2+", margin3="+that.params.constants.margin3+", cellSize="+that.params.constants.cellSize);
-            return res;
-          }
-
-          //copied from drawLight
-          function findGridElement()
-          {
-            for(var i in that.params.pieces)
-            {
-              var piece = that.params.pieces[i];
-              console.log("action.js: findGridElement: comparing point position ["+clickedColumn+","+clickedRow+"] with ["+piece.col+","+piece.row+"]");
-              if(piece.col == clickedColumn && piece.row == clickedRow) return piece; 
-            }
-            console.log("action.js: findGridElement: fail: no piece");
-            return null;
-          }
 
           //test whether there is a piece or not
           if (newLeftMouseDown)
@@ -70,8 +71,7 @@
               this.params.draggedPiece = piece;
 
             }
-          } else if (newLeftMouseReleased)
-          {
+          } else if (newLeftMouseReleased) {
             console.log("action.js: newLeftMouseReleased");
 
             //reset mouse button flag
@@ -79,19 +79,40 @@
 
             //test whether there is a piece or not
             var piece = findGridElement(boardCoordinates);
-            if (piece)
-            {
+            if (piece) {
               console.log("action.js: released on piece of type \""+piece.type+"\"");
               console.log("action.js: drag and drop fails: undrag piece");
               this.params.draggedPiece = null;
-
               //positioning fails, but keep piece selected
+              this.params.selectedPiece = piece;
             } else {
               if(this.params.selectedPiece) {
-                console.log("action.js: position piece if one was selected");
+                console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
+                var modifiedPiece = findGridElement([that.params.selectedPiece.col, that.params.selectedPiece.row]);
+                if(modifiedPiece) { //defensive code
+                  console.log("action.js: before: modifiedPiece.col="+modifiedPiece.col+", modifiedPiece.row="+modifiedPiece.row);
+                  modifiedPiece.col = clickedColumn;
+                  modifiedPiece.row = clickedRow;
+                  console.log("action.js: after: modifiedPiece.col="+modifiedPiece.col+", modifiedPiece.row="+modifiedPiece.row);
 
-              } else if (this.params.draggedPiece){
-                console.log("action.js: position piece if one was being dragged");
+                  //test
+                  var modifiedPiece2 = findGridElement([that.params.selectedPiece.col, that.params.selectedPiece.row], this);
+                  if(modifiedPiece2){
+                    console.log("action.js: check failed: modifiedPiece.col="+modifiedPiece2.col+", modifiedPiece.row="+modifiedPiece2.row);
+                  } else if(findGridElement([clickedColumn, clickedRow], this)){
+                    console.log("action.js: check successful");
+                  }
+
+                  this.params.selectedPiece = null;
+                }
+              } else if (this.params.draggedPiece) {
+                console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
+                //console.log("action.js: before: draggedPiece.col="+modifiedPiece.col+", draggedPiece.row="+modifiedPiece.row);
+                that.params.draggedPiece.col = clickedColumn;
+                that.params.draggedPiece.row = clickedRow;
+                //console.log("action.js: after: draggedPiece.col="+modifiedPiece.col+", draggedPiece.row="+modifiedPiece.row);
+                this.params.draggedPiece = null;
+                this.params.selectedPiece = null;
               }
             }
           }
