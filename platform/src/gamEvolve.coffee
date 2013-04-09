@@ -176,7 +176,10 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
       paramValue = defaultValue
 
     compiledParams[paramName] = GE.compileParameter(paramValue, constants, bindings)
-    evaluatedParams[paramName] = compiledParams[paramName].get()
+    value = compiledParams[paramName].get()
+    # Let undefined values go through. Otherwise there is no way for missing parameters to be passed. 
+    # TODO: Could be source of silent errors
+    evaluatedParams[paramName] = if typeof(value) isnt 'undefined' then GE.cloneData(value) else value
 
   locals = 
     params: evaluatedParams

@@ -81,6 +81,15 @@
         "row": "@model:selected.row",
         "col": "@model:selected.col"
       }
+    },
+    {
+      "action": "rotateSelectedPiece",
+      "params": {
+        "selected": "@model:selected",
+        "pieces": "@model:pieces",
+        "keyboard": "@service:keyboard",
+        "rotationAmount": 10 
+      }
     }
   ]
 
