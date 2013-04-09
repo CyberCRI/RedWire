@@ -8,12 +8,14 @@ registerService 'Keyboard', (options = {}) ->
   keysDown = {}
 
   $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", (event) ->
+    event.preventDefault()   
+
     # jQuery standardizes the keycode into http://api.jquery.com/event.which/
     switch event.type 
       when 'keydown' then keysDown[event.which] = true
       when 'keyup' then delete keysDown[event.which]
       when 'focusout' then keysDown = {} # Lost focus, so will not receive keyup events
-      else throw new Error('Unexpected event type')      
+      else throw new Error('Unexpected event type')
 
   return {
     provideData: -> return { 'keysDown': keysDown }
