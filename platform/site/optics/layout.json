@@ -88,6 +88,8 @@
     {
       "action": "clickListener",
       "params": {
+        "graphics": "@service:graphics",
+        "selected": "@model:selected",
         "selectedPiece": "@model:selectedPiece",
         "draggedPiece": "@model:draggedPiece",
         "pieces": "@model:pieces",

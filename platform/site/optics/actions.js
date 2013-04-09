@@ -1,6 +1,8 @@
 ({
     clickListener: {
     paramDefs: {
+      graphics: null,
+      selected: null,
       selectedPiece: null,
       draggedPiece: null,
       pieces: [],
@@ -15,6 +17,19 @@
 
       //copied from drawLight
       var that = this;
+      var selected = this.params.selected;
+
+      if(this.params.draggedPiece){
+        this.params.graphics.shapes.push({
+          type: "image",
+          layer: "drag",
+          asset: this.params.draggedPiece.type,
+          alpha: 0.5,
+          position: [-this.params.constants.margin3, -this.params.constants.margin3],
+          translation: [this.params.mouse.position.x, this.params.mouse.position.y],
+          rotation: this.params.draggedPiece.rotation // In degrees 
+        });
+      }
 
       function toBoardCoordinate(pixelCoordinate)
       {
@@ -37,12 +52,27 @@
         return null;
       }
 
+      function movePieceTo(piece, newSquare)
+      {
+        if(piece){
+          console.log("action.js: movePieceTo: "+piece.type+" on ["+piece.col+","+piece.row+"] to ["+newSquare[0]+","+newSquare[1]+"]");
+          var movedPiece = findGridElement([piece.col, piece.row]);
+          if(movedPiece) { //defensive code
+            movedPiece.col = newSquare[0];
+            movedPiece.row = newSquare[1];
+          } 
+        }
+      }
+
+      function selectSquare(square)
+      {
+        selected.col = square[0];
+        selected.row = square[1];
+      }
+
       if(newLeftMouseDown || newLeftMouseReleased){
         if(that.params.mouse.position)
         {
-          //x = this.params.col * cellSize + margin2 + margin3
-          //y = this.params.row * cellSize + margin2 + margin3
-
           //board coordinates
           var clickedColumn = toBoardCoordinate(that.params.mouse.position.x);
           var clickedRow = toBoardCoordinate(that.params.mouse.position.y);
@@ -53,12 +83,11 @@
           {
             console.log("action.js: newLeftMouseDown");
 
+            //let's select the square that has been clicked on
+            selectSquare([clickedColumn, clickedRow])
+
             //set mouse button flag
             this.params.leftMouseDown = true;
-            
-            //let's select the square that has been clicked on
-            //this.params.selected.col = clickedColumn;
-            //this.params.selected.row = clickedRow;
 
             var piece = findGridElement(boardCoordinates);
             if (piece)
@@ -74,6 +103,9 @@
           } else if (newLeftMouseReleased) {
             console.log("action.js: newLeftMouseReleased");
 
+            //let's select the square that has been clicked on
+            selectSquare([clickedColumn, clickedRow])
+
             //reset mouse button flag
             this.params.leftMouseDown = false;
 
@@ -88,29 +120,13 @@
             } else {
               if(this.params.selectedPiece) {
                 console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
-                var modifiedPiece = findGridElement([that.params.selectedPiece.col, that.params.selectedPiece.row]);
-                if(modifiedPiece) { //defensive code
-                  console.log("action.js: before: modifiedPiece.col="+modifiedPiece.col+", modifiedPiece.row="+modifiedPiece.row);
-                  modifiedPiece.col = clickedColumn;
-                  modifiedPiece.row = clickedRow;
-                  console.log("action.js: after: modifiedPiece.col="+modifiedPiece.col+", modifiedPiece.row="+modifiedPiece.row);
-
-                  //test
-                  var modifiedPiece2 = findGridElement([that.params.selectedPiece.col, that.params.selectedPiece.row], this);
-                  if(modifiedPiece2){
-                    console.log("action.js: check failed: modifiedPiece.col="+modifiedPiece2.col+", modifiedPiece.row="+modifiedPiece2.row);
-                  } else if(findGridElement([clickedColumn, clickedRow], this)){
-                    console.log("action.js: check successful");
-                  }
-
-                  this.params.selectedPiece = null;
-                }
+                movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow])
+                this.params.selectedPiece = null;
               } else if (this.params.draggedPiece) {
                 console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
-                //console.log("action.js: before: draggedPiece.col="+modifiedPiece.col+", draggedPiece.row="+modifiedPiece.row);
+                movePieceTo(this.params.draggedPiece, [clickedColumn, clickedRow])
                 that.params.draggedPiece.col = clickedColumn;
                 that.params.draggedPiece.row = clickedRow;
-                //console.log("action.js: after: draggedPiece.col="+modifiedPiece.col+", draggedPiece.row="+modifiedPiece.row);
                 this.params.draggedPiece = null;
                 this.params.selectedPiece = null;
               }
@@ -240,7 +256,7 @@
     update: function() {
 
       var that = this;
-      var gridSize = that.params.constants.gridSize
+      var gridSize = that.params.constants.gridSize;
 
 
       function isInGrid(point)
@@ -283,8 +299,8 @@
         [
           [[cellPos[0], cellPos[1]], [cellPos[0], cellPos[1] + 1]], // top
           [[cellPos[0], cellPos[1] + 1], [cellPos[0] + 1, cellPos[1] + 1]], // right
-          [[cellPos[0] + 1, cellPos[1] + 1], [cellPos[0], cellPos[1] + 1]], // bottom
-          [[cellPos[0], cellPos[1] + 1], [cellPos[0], cellPos[1]]] // left
+          [[cellPos[0] + 1, cellPos[1] + 1], [cellPos[0] + 1, cellPos[1]]], // bottom
+          [[cellPos[0] + 1, cellPos[1]], [cellPos[0], cellPos[1]]] // left
         ];
 
         return findIntersection(origin, dest, boundaries);
@@ -305,7 +321,9 @@
         if(element.type == "wall")
         {
           // find intersection with wall
-          lightSegments[lightSegments.length - 1].destination = intersectsCell(lightSegments[lightSegments.length - 1].origin, origin, [element.col, element.row]);
+          var wallIntersection = intersectsCell(lightSegments[lightSegments.length - 1].origin, origin, [element.col, element.row]);
+          if(wallIntersection == null) throw new Error("Cannot find intersection with wall");
+          lightSegments[lightSegments.length - 1].destination = wallIntersection;
 
           lightIntensity = 0;
         }
@@ -322,15 +340,22 @@
             lightSegments[lightSegments.length - 1].destination = intersection;
 
             lightIntensity *= that.params.constants.mirrorAttenuationFactor;
-            lightSegments.push({ origin: intersection, intensity: lightIntensity });
+            if(lightIntensity < that.params.constants.minimumAttenuation)
+            {
+              lightIntensity = 0;
+            }
+            else
+            {
+              lightSegments.push({ origin: intersection, intensity: lightIntensity });
 
-            // reflect around normal (from http://www.gamedev.net/topic/510581-2d-reflection/)
-            // v' = 2 * (v . n) * n - v;
-            var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
-            var oldLightDirection = Vector.create(lightDirection);
-            lightDirection = normal.multiply(2 * oldLightDirection.dot(normal)).subtract(oldLightDirection).elements;
+              // reflect around normal (from http://www.gamedev.net/topic/510581-2d-reflection/)
+              // v' = 2 * (v . n) * n - v;
+              var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
+              var oldLightDirection = Vector.create(lightDirection);
+              lightDirection = normal.multiply(2 * oldLightDirection.dot(normal)).subtract(oldLightDirection).elements;
 
-            updateLightDirection();
+              updateLightDirection();
+            }
           }
         }
       }
@@ -478,7 +503,9 @@
           lightIntensity = 0;
 
           // find intersection with boundaries
-          lightSegments[lightSegments.length - 1].destination = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, origin);
+          var boundaryIntersection = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, origin);
+          if(boundaryIntersection == null) throw new Error("Cannot find intersection with boundaries");
+          lightSegments[lightSegments.length - 1].destination = boundaryIntersection;
         }
         else if(element = findGridElement(origin))
         {
