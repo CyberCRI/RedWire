@@ -95,6 +95,15 @@
         "leftMouseDown": "@model:leftMouseDown",
         "constants": "@model:constants"
       }
+    },
+    {
+      "action": "rotateSelectedPiece",
+      "params": {
+        "selected": "@model:selected",
+        "pieces": "@model:pieces",
+        "keyboard": "@service:keyboard",
+        "rotationAmount": 10 
+      }
     }
   ]
 

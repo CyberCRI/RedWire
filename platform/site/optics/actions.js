@@ -518,5 +518,37 @@
         drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 4, 6, [255, 0, 0, lightSegments[i].intensity]);
       }
     }
+  },
+
+  rotateSelectedPiece: {
+    paramDefs: {
+      "selected": null,
+      "pieces": [],
+      "keyboard": null,
+      "rotationAmount": 1 // degrees
+    },
+    update: function() {
+      var that = this;
+      function findGridElement(point)
+      {
+        for(var i in that.params.pieces)
+        {
+          var piece = that.params.pieces[i];
+          if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
+        }
+        return null;
+      }
+
+      var selectedPiece = findGridElement([this.params.selected.col, this.params.selected.row]);
+      if(!selectedPiece) return; // nothing selected, so can't rotate
+
+
+      var keysDown = this.params.keyboard.keysDown; // alias
+      if(keysDown[37]) { // left
+        selectedPiece.rotation -= this.params.rotationAmount;
+      } else if(keysDown[39]) { // right
+        selectedPiece.rotation += this.params.rotationAmount;
+      }
+    }
   }
 });

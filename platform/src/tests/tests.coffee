@@ -364,8 +364,8 @@ describe "gamEvolve", ->
         myService:
           a = 1
 
-      # parameters: node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null
-      modelPatches = GE.stepLoop(null, {}, {}, {}, services, null, outputServiceData)
+      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
+      modelPatches = GE.stepLoop(null, {}, {}, {}, services, null, null, outputServiceData)
 
       expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {})
       expect(modelPatches).toBeEmpty()
@@ -392,8 +392,8 @@ describe "gamEvolve", ->
         params:
           service: "@service:myService"
 
-      # parameters: node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null
-      modelPatches = GE.stepLoop(layout, {}, {}, actions, services, inputServiceData)
+      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
+      modelPatches = GE.stepLoop(layout, {}, {}, actions, services, null, inputServiceData)
 
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
       expect(modelPatches).toBeEmpty()
@@ -419,7 +419,7 @@ describe "gamEvolve", ->
         params:
           service: "@service:myService"
 
-      # parameters: node, modelData, assets, actions, services, inputServiceData = null, outputServiceData = null
+      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
       modelPatches = GE.stepLoop(layout, {}, {}, actions, services)
 
       expect(services.myService.provideData).toHaveBeenCalledWith({})
