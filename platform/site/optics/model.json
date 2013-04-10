@@ -38,9 +38,9 @@
     }
   ],
   "constants": {
-    "margin": 30,
-    "margin2": 33,
-    "margin3": 26,
+    "toSquareCenterOffset": 30,
+    "upperLeftBoardMargin": 33,
+    "pieceAssetCentering": 26,
     "cellSize": 53,
     "gridSize": [14, 9],
     "mirrorAttenuationFactor": 0.7,

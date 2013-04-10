@@ -25,7 +25,7 @@
           layer: "drag",
           asset: this.params.draggedPiece.type,
           alpha: 0.5,
-          position: [-this.params.constants.margin3, -this.params.constants.margin3],
+          position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
           translation: [this.params.mouse.position.x, this.params.mouse.position.y],
           rotation: this.params.draggedPiece.rotation // In degrees 
         });
@@ -33,8 +33,8 @@
 
       function toBoardCoordinate(pixelCoordinate)
       {
-        var res = Math.floor((pixelCoordinate - that.params.constants.margin2)/that.params.constants.cellSize);
-        console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with margin2="+that.params.constants.margin2+", margin3="+that.params.constants.margin3+", cellSize="+that.params.constants.cellSize);
+        var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
+        console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with upperLeftBoardMargin="+that.params.constants.upperLeftBoardMargin+", pieceAssetCentering="+that.params.constants.pieceAssetCentering+", cellSize="+that.params.constants.cellSize);
         return res;
       }
 
@@ -210,9 +210,9 @@
         type: "image",
         layer: "pieces",
         asset: this.params.type,
-        position: [-this.params.constants.margin3, -this.params.constants.margin3],
-        translation: [this.params.col * this.params.constants.cellSize + this.params.constants.margin2 + this.params.constants.margin3, 
-          this.params.row * this.params.constants.cellSize + this.params.constants.margin2 + this.params.constants.margin3],
+        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
+        translation: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
+          this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
         rotation: this.params.rotation // In degrees 
       });
     }
@@ -229,8 +229,8 @@
       this.params.graphics.shapes.push({
         type: "rectangle",
         layer: "selection",
-        position: [this.params.col * this.params.constants.cellSize + this.params.constants.margin2, 
-        this.params.row * this.params.constants.cellSize + this.params.constants.margin2],
+        position: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin, 
+        this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin],
         size: [50, 50],
         strokeStyle: "yellow",
         lineWidth: 4
@@ -371,7 +371,7 @@
       // options override default values for all drawn shapes (layer, composition, etc.)
       function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options)
       {
-        var marginV = Vector.create([that.params.constants.margin, that.params.constants.margin]);
+        var marginV = Vector.create([that.params.constants.toSquareCenterOffset, that.params.constants.toSquareCenterOffset]);
 
         // find normal to line (http://stackoverflow.com/questions/1243614/how-do-i-calculate-the-normal-vector-of-a-line-segment)
         var originV = Vector.create(origin).multiply(that.params.constants.cellSize).add(marginV);
