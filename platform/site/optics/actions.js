@@ -41,10 +41,10 @@
       //copied from drawLight
       function findGridElement(square, data)
       {
-        var data = data || that;
+        var gameData = gameData || that;
         for(var i in that.params.pieces)
         {
-          var piece = data.params.pieces[i];
+          var piece = gameData.params.pieces[i];
           //console.log("action.js: findGridElement: comparing point position ["+col+","+row+"] with ["+piece.col+","+piece.row+"]");
           if(piece.col == square[0] && piece.row == square[1]) return piece; 
         }
@@ -84,47 +84,53 @@
             console.log("action.js: newLeftMouseDown");
 
             //let's select the square that has been clicked on
-            selectSquare([clickedColumn, clickedRow])
+            selectSquare([clickedColumn, clickedRow]);
 
             //set mouse button flag
             this.params.leftMouseDown = true;
 
-            var piece = findGridElement(boardCoordinates);
-            if (piece)
+            var pieceClickedOn = findGridElement(boardCoordinates);
+            if (pieceClickedOn)
             {
-              console.log("action.js: clicked on piece of type \""+piece.type+"\"");
+              console.log("action.js: clicked on piece of type \""+pieceClickedOn.type+"\"");
               console.log("action.js: the previously selected piece is unselected");
               this.params.selectedPiece = null;
 
-              console.log("action.js: \""+piece.type+"\" starts to be dragged, even if a piece was already being dragged");
-              this.params.draggedPiece = piece;
+              console.log("action.js: \""+pieceClickedOn.type+"\" starts to be dragged, even if a piece was already being dragged");
+              this.params.draggedPiece = pieceClickedOn;
 
             }
           } else if (newLeftMouseReleased) {
             console.log("action.js: newLeftMouseReleased");
 
             //let's select the square that has been clicked on
-            selectSquare([clickedColumn, clickedRow])
+            selectSquare([clickedColumn, clickedRow]);
 
             //reset mouse button flag
             this.params.leftMouseDown = false;
 
             //test whether there is a piece or not
-            var piece = findGridElement(boardCoordinates);
-            if (piece) {
-              console.log("action.js: released on piece of type \""+piece.type+"\"");
+            var pieceReleasedOn = findGridElement(boardCoordinates);
+            if (pieceReleasedOn) {
+              console.log("action.js: released on piece of type \""+pieceReleasedOn.type+"\"");
               console.log("action.js: drag and drop fails: undrag piece");
+              
               this.params.draggedPiece = null;
-              //positioning fails, but keep piece selected
-              this.params.selectedPiece = piece;
+              
+              if(!this.params.draggedPiece && !this.params.selectedPiece) {
+                this.params.selectedPiece = pieceReleasedOn;
+              } else {
+                this.params.selectedPiece = null;
+              }
+
             } else {
               if(this.params.selectedPiece) {
                 console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
-                movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow])
+                movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow]);
                 this.params.selectedPiece = null;
               } else if (this.params.draggedPiece) {
                 console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
-                movePieceTo(this.params.draggedPiece, [clickedColumn, clickedRow])
+                movePieceTo(this.params.draggedPiece, [clickedColumn, clickedRow]);
                 that.params.draggedPiece.col = clickedColumn;
                 that.params.draggedPiece.row = clickedRow;
                 this.params.draggedPiece = null;
@@ -215,6 +221,37 @@
           this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
         rotation: this.params.rotation // In degrees 
       });
+    }
+  },
+
+  // draws a boxed piece in the box according to its index in the "boxedPiece" table
+  drawBoxedPiece: {
+    paramDefs: {
+      graphics: null,
+      type: null,
+      index: 0,
+      constants: null
+    },
+    update: function() {
+      console.log("drawBoxedPiece starts");
+      var offset = [860, 305];
+      var cellSize = [49, 46];
+      var boxPosition = [this.params.index % 2, (this.params.index >> 1)];
+      var screenPosition = [offset[0] + boxPosition[0] * cellSize[0], offset[1] + boxPosition[1] * cellSize[1]];
+      console.log("will draw boxed piece of type "+this.params.type
+        +" and index "+this.params.index
+        +" on box position ["+boxPosition[0]+","+boxPosition[1]+"]"
+        +" (screen position ["+screenPosition[0]+","+screenPosition[1]+"])");
+      this.params.graphics.shapes.push({
+        type: "image",
+        layer: "pieces",
+        asset: this.params.type,
+        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
+        translation: [screenPosition[0], //+ this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
+          screenPosition[1]], // + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
+        rotation: 0 // In degrees 
+      });
+      console.log("drawBoxedPiece ends");
     }
   },
 

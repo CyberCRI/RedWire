@@ -37,6 +37,24 @@
       "rotation": 120
     }
   ],
+  "boxedPieces": [
+    {
+      "type": "mirror",
+      "index": 0
+    },
+    {
+      "type": "squarePrism",
+      "index": 1
+    },
+    {
+      "type": "wall",
+      "index": 2
+    },
+    {
+      "type": "wall",
+      "index": 3
+    }
+  ],
   "constants": {
     "toSquareCenterOffset": 30,
     "upperLeftBoardMargin": 33,

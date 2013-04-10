@@ -77,6 +77,24 @@
       ]
     },
     {
+      "bind": {
+        "from": {
+          "piece": "@model:boxedPieces"
+        }
+      },
+      "children": [
+        {
+          "action": "drawBoxedPiece",
+          "params": {
+            "graphics": "@service:graphics",
+            "type" : "$piece.type",
+            "index" : "$piece.index",
+            "constants": "@model:constants"
+          }
+        }
+      ]
+    },
+    {
       "action": "drawSelected",
       "params": {
         "graphics": "@service:graphics",
