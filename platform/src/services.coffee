@@ -162,6 +162,8 @@ registerService 'Canvas', (options = {}) ->
   options = _.defaults options,
     layers: ['default'] 
     size: [960, 540]
+    playableBoardOffset: [30, 30]
+    playableBoardSize: [745, 480]
   layers = createLayers()
 
   return {
@@ -169,6 +171,8 @@ registerService 'Canvas', (options = {}) ->
       return {
         layers: options.layers
         size: options.size
+        playableBoardOffset: options.playableBoardOffset
+        playableBoardSize: options.playableBoardSize
         shapes: []
       }
 

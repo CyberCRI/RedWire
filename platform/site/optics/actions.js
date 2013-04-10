@@ -521,8 +521,8 @@
         type: "rectangle",
         layer: "mask",
         fillStyle: "black",
-        position: [30, 30],
-        size: [745, 480],
+        position: this.params.graphics.playableBoardOffset,
+        size: this.params.graphics.playableBoardSize,
         order: 0
       });
 
