@@ -104,7 +104,7 @@
         "selected": "@model:selected",
         "pieces": "@model:pieces",
         "keyboard": "@service:keyboard",
-        "rotationAmount": 10 
+        "constants": "@model:constants"
       }
     }
   ]

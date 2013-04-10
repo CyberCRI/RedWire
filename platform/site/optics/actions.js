@@ -521,8 +521,8 @@
         type: "rectangle",
         layer: "mask",
         fillStyle: "black",
-        position: [0, 0],
-        size: that.params.graphics.size,
+        position: [30, 30],
+        size: [745, 480],
         order: 0
       });
 
@@ -552,7 +552,7 @@
       "selected": null,
       "pieces": [],
       "keyboard": null,
-      "rotationAmount": 1 // degrees
+      "constants": null
     },
     update: function() {
       var that = this;
@@ -572,9 +572,9 @@
 
       var keysDown = this.params.keyboard.keysDown; // alias
       if(keysDown[37]) { // left
-        selectedPiece.rotation -= this.params.rotationAmount;
+        selectedPiece.rotation -= this.params.constants.rotationAmount;
       } else if(keysDown[39]) { // right
-        selectedPiece.rotation += this.params.rotationAmount;
+        selectedPiece.rotation += this.params.constants.rotationAmount;
       }
     }
   }

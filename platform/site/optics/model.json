@@ -44,6 +44,7 @@
     "cellSize": 53,
     "gridSize": [14, 9],
     "mirrorAttenuationFactor": 0.7,
-    "minimumAttenuation": 0.1
+    "minimumAttenuation": 0.1,
+    "rotationAmount": 1
   }
 }
