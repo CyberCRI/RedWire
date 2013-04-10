@@ -234,7 +234,7 @@
     },
     update: function() {
       console.log("drawBoxedPiece starts");
-      var offset = [860, 305];
+      var offset = [862, 308];
       var cellSize = [49, 46];
       var boxPosition = [this.params.index % 2, (this.params.index >> 1)];
       var screenPosition = [offset[0] + boxPosition[0] * cellSize[0], offset[1] + boxPosition[1] * cellSize[1]];
@@ -246,6 +246,7 @@
         type: "image",
         layer: "pieces",
         asset: this.params.type,
+        scale: 0.67,
         position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
         translation: [screenPosition[0], //+ this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
           screenPosition[1]], // + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
