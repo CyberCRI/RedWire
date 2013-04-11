@@ -179,7 +179,7 @@
         if(element.type == "wall")
         {
           // find intersection with wall
-          lightSegments[lightSegments.length - 1].destination = intersectsCell(lightSegments[lightSegments.length - 1].origin, origin, [element.col, element.row]);
+          lightSegments[lightSegments.length - 1].destination = intersectsCell(lightSegments[lightSegments.length - 1].origin, currentCell, [element.col, element.row]);
 
           lightIntensity = 0;
         }
@@ -190,7 +190,7 @@
           var rotation = (element.rotation + 90) * Math.PI / 180; 
           var centralLineDiff = [.5 * Math.cos(rotation), .5 * Math.sin(rotation)];
           var centralLine = [[element.col + 0.5 + centralLineDiff[0], element.row + 0.5 + centralLineDiff[1]], [element.col + 0.5 - centralLineDiff[0], element.row + 0.5 - centralLineDiff[1]]];
-          var lineDestination = Vector.create(origin).add(Vector.create(lightDirection));
+          var lineDestination = Vector.create(currentCell).add(Vector.create(lightDirection));
           if(intersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lineDestination.elements, [centralLine]))
           {
             lightSegments[lightSegments.length - 1].destination = intersection;
@@ -327,34 +327,35 @@
       var lightIntensity = 1.0; // start at full itensity
 
       // follow light path through the grid, checking for intersections with pieces
-      // Based on Bresenham's line algorithm (http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)      
+      // Based on Bresenham's "simplified" line algorithm (http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)      
       var d, s, r;
       updateLightDirection();
 
       var origin = [lightSource.col + .5, lightSource.row + .5]
+      var currentCell = [lightSource.col + .5, lightSource.row + .5]
 
-      var lightSegments = [ { origin: [origin[0], origin[1]], intensity: lightIntensity }];
+      var lightSegments = [ { origin: [currentCell[0], currentCell[1]], intensity: lightIntensity }];
       var element;
       do
       { 
         var err2 = 2 * err;
         if(err2 > -d[1]) {
           err = err - d[1];
-          origin[0] += s[0]
+          currentCell[0] += s[0]
         }
         if(err2 < d[0]) {
           err = err + d[0];
-          origin[1] += s[1]
+          currentCell[1] += s[1]
         }
 
-        if(!isInGrid(origin)) 
+        if(!isInGrid(currentCell)) 
         {
           lightIntensity = 0;
 
           // find intersection with boundaries
-          lightSegments[lightSegments.length - 1].destination = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, origin);
+          lightSegments[lightSegments.length - 1].destination = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, currentCell);
         }
-        else if(element = findGridElement(origin))
+        else if(element = findGridElement(currentCell))
         {
           handleGridElement();
         }
