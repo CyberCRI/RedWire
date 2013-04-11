@@ -344,14 +344,24 @@
       // Else returns null.
       function findIntersection(origin, dest, lines)
       {
-        var intersection = null;
+        var closestIntersection = null;
+        var distanceToClosestIntersection = Infinity;
         for(var i = 0; i < lines.length; i++)
         {
-          intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(lines[i][0], lines[i][1]));
-          if(intersection) return intersection.elements.slice(0, 2); // return only 2D part
+          var intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(lines[i][0], lines[i][1]));
+          if(intersection) 
+          {
+            // the intersection will be in 3D, so we need to cast the origin to 3D as well or distance calculation will fail (returns null)
+            var distanceToIntersection = Vector.create(origin).to3D().distanceFrom(intersection);
+            if(distanceToIntersection < distanceToClosestIntersection) 
+            {
+              closestIntersection = intersection;
+              distanceToClosestIntersection = distanceToIntersection;
+            }
+          }
         }
 
-        return null;
+        return closestIntersection == null ? null : closestIntersection.elements.slice(0, 2); // return only 2D part
       }
 
       // Returns an intersection point with walls, or null otherwise
