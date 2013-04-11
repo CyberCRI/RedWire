@@ -440,6 +440,8 @@
               var oldLightDirection = Vector.create(lightDirection);
               lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;
 
+              currentCell = GE.cloneData(intersection);
+
               lightDirectionUpdated();
             }
           }
