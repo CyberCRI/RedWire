@@ -406,7 +406,6 @@
         else if(element.type == "mirror")
         {
           // find intersection with central line
-          // HACK: adding 90 degrees to rotation seems to work, but doesn't seem necessary
           var rotation = element.rotation * Math.PI / 180; 
           var centralLineDiff = [.5 * Math.cos(rotation), .5 * Math.sin(rotation)];
           var centralLine = [[element.col + 0.5 + centralLineDiff[0], element.row + 0.5 + centralLineDiff[1]], [element.col + 0.5 - centralLineDiff[0], element.row + 0.5 - centralLineDiff[1]]];
