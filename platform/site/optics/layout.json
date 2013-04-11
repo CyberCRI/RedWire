@@ -111,6 +111,7 @@
         "selectedPiece": "@model:selectedPiece",
         "draggedPiece": "@model:draggedPiece",
         "pieces": "@model:pieces",
+        "boxedPieces": "@model:boxedPieces",
         "mouse": "@service:mouse",
         "leftMouseDown": "@model:leftMouseDown",
         "constants": "@model:constants"
