@@ -52,7 +52,8 @@
       "action": "drawLight",
       "params": {
         "graphics": "@service:graphics",
-        "pieces": "@model:pieces"
+        "pieces": "@model:pieces",
+        "constants": "@model:constants"
       }
     },
     {
@@ -69,7 +70,26 @@
             "type" : "$piece.type",
             "row" : "$piece.row",
             "col" : "$piece.col",
-            "rotation": "$piece.rotation"
+            "rotation": "$piece.rotation",
+            "constants": "@model:constants"
+          }
+        }
+      ]
+    },
+    {
+      "bind": {
+        "from": {
+          "piece": "@model:boxedPieces"
+        }
+      },
+      "children": [
+        {
+          "action": "drawBoxedPiece",
+          "params": {
+            "graphics": "@service:graphics",
+            "type" : "$piece.type",
+            "index" : "$piece.index",
+            "constants": "@model:constants"
           }
         }
       ]
@@ -79,7 +99,22 @@
       "params": {
         "graphics": "@service:graphics",
         "row": "@model:selected.row",
-        "col": "@model:selected.col"
+        "col": "@model:selected.col",
+        "constants": "@model:constants"
+      }
+    },
+    {
+      "action": "clickListener",
+      "params": {
+        "graphics": "@service:graphics",
+        "selected": "@model:selected",
+        "selectedPiece": "@model:selectedPiece",
+        "draggedPiece": "@model:draggedPiece",
+        "pieces": "@model:pieces",
+        "boxedPieces": "@model:boxedPieces",
+        "mouse": "@service:mouse",
+        "leftMouseDown": "@model:leftMouseDown",
+        "constants": "@model:constants"
       }
     },
     {
@@ -88,7 +123,7 @@
         "selected": "@model:selected",
         "pieces": "@model:pieces",
         "keyboard": "@service:keyboard",
-        "rotationAmount": 10 
+        "constants": "@model:constants"
       }
     }
   ]
