@@ -51,12 +51,6 @@
 
   GE.logLevels = GE.makeConstantSet("ERROR", "WARN", "INFO", "LOG");
 
-  GE.log = function(logType, message) {
-    if (logLevels[logType]) {
-      return console[logType](message);
-    }
-  };
-
   GE.Model = Model = (function() {
 
     function Model(data, previous) {
@@ -108,13 +102,18 @@
 
   })();
 
+  GE.logToConsole = function(type, message) {
+    return window.console[logType.toLowerCase()](message);
+  };
+
   GE.NodeVisitorConstants = NodeVisitorConstants = (function() {
 
-    function NodeVisitorConstants(modelData, serviceData, assets, actions) {
+    function NodeVisitorConstants(modelData, serviceData, assets, actions, log) {
       this.modelData = modelData;
       this.serviceData = serviceData;
       this.assets = assets;
       this.actions = actions;
+      this.log = log != null ? log : GE.logToConsole;
     }
 
     return NodeVisitorConstants;
@@ -252,7 +251,7 @@
   };
 
   GE.sandboxActionCall = function(node, constants, bindings, methodName, signals) {
-    var action, childNames, compiledParams, defaultValue, evaluatedParams, locals, methodResult, paramName, paramValue, result, _i, _ref, _ref1, _results;
+    var action, childNames, compiledParams, defaultValue, evaluatedParams, locals, methodResult, paramName, paramValue, result, value, _i, _ref, _ref1, _results;
     if (signals == null) {
       signals = {};
     }
@@ -275,18 +274,24 @@
         paramValue = defaultValue;
       }
       compiledParams[paramName] = GE.compileParameter(paramValue, constants, bindings);
-      evaluatedParams[paramName] = compiledParams[paramName].get();
+      value = compiledParams[paramName].get();
+      try {
+        evaluatedParams[paramName] = GE.cloneData(value);
+      } catch (e) {
+        evaluatedParams[paramName] = value;
+      }
     }
     locals = {
       params: evaluatedParams,
       children: childNames,
       signals: signals,
-      assets: constants.assets
+      assets: constants.assets,
+      log: constants.log
     };
     try {
       methodResult = action[methodName].apply(locals);
     } catch (e) {
-      GE.log(GE.logLevels.ERROR, "Calling action " + node.action + "." + methodName + " raised an exception " + e);
+      constants.log(GE.logLevels.ERROR, "Calling action " + node.action + "." + methodName + " raised an exception " + e);
     }
     result = new GE.NodeVisitorResult(methodResult);
     for (paramName in compiledParams) {
@@ -391,7 +396,7 @@
     try {
       globals[node.call].apply({}, evaluatedParams);
     } catch (e) {
-      GE.log(GE.logLevels.ERROR, "Calling function " + functionName + " raised an exception " + e);
+      constants.log(GE.logLevels.ERROR, "Calling function " + functionName + " raised an exception " + e);
     }
     return new GE.NodeVisitorResult();
   };
@@ -443,12 +448,15 @@
         return visitor(node, constants, bindings);
       }
     }
-    GE.log(GE.logLevels.ERROR, "Layout item is not understood");
+    constants.log(GE.logLevels.ERROR, "Layout item is not understood");
     return new NodeVisitorResult();
   };
 
-  GE.stepLoop = function(node, modelData, assets, actions, services, inputServiceData, outputServiceData) {
+  GE.stepLoop = function(node, modelData, assets, actions, services, log, inputServiceData, outputServiceData) {
     var modelPatches, result, service, serviceName;
+    if (log == null) {
+      log = null;
+    }
     if (inputServiceData == null) {
       inputServiceData = null;
     }
@@ -465,7 +473,7 @@
           inputServiceData[serviceName] = service.provideData(assets);
         }
       }
-      result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions));
+      result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions, log));
       modelPatches = result.modelPatches;
       outputServiceData = GE.applyPatches(result.servicePatches, inputServiceData);
     }

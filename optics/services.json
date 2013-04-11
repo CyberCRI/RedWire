@@ -1,0 +1,14 @@
+{
+  "keyboard": {
+    "type": "Keyboard"
+  },
+  "mouse": {
+    "type": "Mouse"
+  },
+  "graphics": {
+    "type": "Canvas",
+    "options": {
+      "layers": [ "bg", "pieces", "light", "mask", "selection", "text" ]
+    }
+  }
+}

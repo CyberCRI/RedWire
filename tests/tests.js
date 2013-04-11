@@ -430,7 +430,7 @@
         outputServiceData = {
           myService: a = 1
         };
-        modelPatches = GE.stepLoop(null, {}, {}, {}, services, null, outputServiceData);
+        modelPatches = GE.stepLoop(null, {}, {}, {}, services, null, null, outputServiceData);
         expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {});
         return expect(modelPatches).toBeEmpty();
       });
@@ -463,7 +463,7 @@
             service: "@service:myService"
           }
         };
-        modelPatches = GE.stepLoop(layout, {}, {}, actions, services, inputServiceData);
+        modelPatches = GE.stepLoop(layout, {}, {}, actions, services, null, inputServiceData);
         expect(services.myService.establishData).toHaveBeenCalledWith({
           a: 2
         }, {});

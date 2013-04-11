@@ -5,7 +5,7 @@
 
 
 (function() {
-  var CODE_CHANGE_TIMEOUT, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, currentServices, editors, executeCode, getFormattedTime, globals, handleAnimation, handleResize, isPlaying, loadCodeFromCache, loadIntoEditor, log, notifyCodeChange, registerService, reloadCode, resetLogContent, saveCodeToCache, services, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner, zeroPad;
+  var CODE_CHANGE_TIMEOUT, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, currentServices, editors, executeCode, getFormattedTime, globals, handleAnimation, handleResize, isPlaying, loadCodeFromCache, loadIntoEditor, log, logWithPrefix, notifyCodeChange, registerService, reloadCode, resetLogContent, saveCodeToCache, services, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner, zeroPad;
 
   globals = this;
 
@@ -107,6 +107,19 @@
 
   clearMessage = function() {
     return $("#topAlert, #topInfo").hide();
+  };
+
+  logWithPrefix = function(logType, message, newLine) {
+    if (newLine == null) {
+      newLine = true;
+    }
+    if (GE.logLevels[logType]) {
+      log.clearSelection();
+      log.navigateFileEnd();
+      return log.insert(logType + ": " + getFormattedTime() + " " + message + (newLine ? "\n" : ""));
+    } else {
+      return logWithPrefix(GE.logLevels.ERROR, "Bad logType parameter '" + logType + "' in log for message '" + message + "'");
+    }
   };
 
   setupLayout = function() {
@@ -242,25 +255,25 @@
     try {
       currentAssets = JSON.parse(editors.assetsEditor.getValue());
     } catch (error) {
-      GE.log(GE.logLevels.ERROR, "Assets error. " + error);
+      logWithPrefix(GE.logLevels.ERROR, "Assets error. " + error);
       return showMessage(MessageType.Error, "<strong>Assets error.</strong> " + error);
     }
     try {
       currentModelData = JSON.parse(editors.modelEditor.getValue());
     } catch (error) {
-      GE.log(GE.logLevels.ERROR, "Model error. " + error);
+      logWithPrefix(GE.logLevels.ERROR, "Model error. " + error);
       return showMessage(MessageType.Error, "<strong>Model error.</strong> " + error);
     }
     try {
       currentActions = eval(editors.actionsEditor.getValue());
     } catch (error) {
-      GE.log(GE.logLevels.ERROR, "Actions error. " + error);
+      logWithPrefix(GE.logLevels.ERROR, "Actions error. " + error);
       return showMessage(MessageType.Error, "<strong>Actions error.</strong> " + error);
     }
     try {
       currentLayout = JSON.parse(editors.layoutEditor.getValue());
     } catch (error) {
-      GE.log(GE.logLevels.ERROR, "Layout error. " + error);
+      logWithPrefix(GE.logLevels.ERROR, "Layout error. " + error);
       return showMessage(MessageType.Error, "<strong>Layout error.</strong> " + error);
     }
     try {
@@ -275,12 +288,12 @@
         currentServices[serviceName] = services[serviceDef.type](serviceDef.options);
       }
     } catch (error) {
-      GE.log(GE.logLevels.ERROR, "Services error. " + error);
+      logWithPrefix(GE.logLevels.ERROR, "Services error. " + error);
       return showMessage(MessageType.Error, "<strong>Services error.</strong> " + error);
     }
     return GE.loadAssets(currentAssets, function(err, loadedAssets) {
       if (err != null) {
-        GE.log(GE.logLevels.ERROR, "Cannot load assets");
+        logWithPrefix(GE.logLevels.ERROR, "Cannot load assets");
         showMessage(MessageType.Error, "Cannot load assets");
         callback(err);
       }
@@ -290,7 +303,7 @@
         value: currentFrame,
         max: currentFrame
       });
-      GE.log(GE.logLevels.INFO, "Game updated");
+      logWithPrefix(GE.logLevels.INFO, "Game updated");
       showMessage(MessageType.Info, "Game updated");
       return callback(null);
     });
@@ -299,7 +312,7 @@
   executeCode = function() {
     var modelAtFrame, modelPatches;
     modelAtFrame = currentModel.atVersion(currentFrame);
-    modelPatches = GE.stepLoop(currentLayout, modelAtFrame.clonedData(), currentLoadedAssets, currentActions, currentServices);
+    modelPatches = GE.stepLoop(currentLayout, modelAtFrame.clonedData(), currentLoadedAssets, currentActions, currentServices, logWithPrefix);
     return modelAtFrame.applyPatches(modelPatches);
   };
 
@@ -395,10 +408,10 @@
   globals.registerService = registerService;
 
   resetLogContent = function() {
-    GE.log(GE.logLevels.WARN, "Log content is being reset");
+    logWithPrefix(GE.logLevels.WARN, "Log content is being reset");
     log.setValue("");
     log.clearSelection();
-    return GE.log(GE.logLevels.INFO, "Reset log");
+    return logWithPrefix(GE.logLevels.INFO, "Reset log");
   };
 
   zeroPad = function(number) {
@@ -420,7 +433,7 @@
 
 
   $(document).ready(function() {
-    var cachedCodeJson, id, loadedCode, prefixedLog, url, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
+    var cachedCodeJson, id, loadedCode, url, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
     setupLayout();
     setupButtonHandlers();
     _ref = ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "servicesEditor"];
@@ -430,19 +443,6 @@
     }
     log = setupEditor("log");
     log.setReadOnly(true);
-    prefixedLog = function(logType, message, newLine) {
-      if (newLine == null) {
-        newLine = true;
-      }
-      if (GE.logLevels[logType]) {
-        log.clearSelection();
-        log.navigateFileEnd();
-        return log.insert(logType + ": " + getFormattedTime() + " " + message + (newLine ? "\n" : ""));
-      } else {
-        return prefixedLog("error", "bad logType parameter '" + logType + "' in log for message '" + message + "'");
-      }
-    };
-    GE.log = prefixedLog;
     resetLogContent();
     if (!window.location.hash) {
       window.location.hash = "optics";
