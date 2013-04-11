@@ -4,6 +4,9 @@
     "col": 7,
     "row": 2
   },
+  "leftMouseDown": false,
+  "selectedPiece": null,
+  "draggedPiece": null,
   "pieces": [
     { 
       "col": 7,
@@ -33,5 +36,35 @@
       "type": "laser-on",
       "rotation": 120
     }
-  ]
+  ],
+  "boxedPieces": [
+    {
+      "type": "mirror",
+      "index": 0
+    },
+    {
+      "type": "squarePrism",
+      "index": 1
+    },
+    {
+      "type": "wall",
+      "index": 2
+    },
+    {
+      "type": "wall",
+      "index": 3
+    }
+  ],
+  "constants": {
+    "toSquareCenterOffset": 30,
+    "upperLeftBoardMargin": 33,
+    "pieceAssetCentering": 26,
+    "cellSize": 53,
+    "gridSize": [14, 9],
+    "mirrorAttenuationFactor": 0.7,
+    "minimumAttenuation": 0.1,
+    "rotationAmount": 1,
+    "playableBoardOffset": [30, 30],
+    "playableBoardSize": [745, 480]
+  }
 }

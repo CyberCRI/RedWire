@@ -1,4 +1,193 @@
 ({
+    clickListener: {
+    paramDefs: {
+      graphics: null,
+      selected: null,
+      selectedPiece: null,
+      draggedPiece: null,
+      pieces: [],
+      boxedPieces: [],
+      mouse: null,
+      leftMouseDown: false,
+      constants: null
+    },
+    update: function() {
+
+      var newLeftMouseDown = this.params.mouse.down && !this.params.leftMouseDown;
+      var newLeftMouseReleased = !this.params.mouse.down && this.params.leftMouseDown;
+
+      //copied from drawLight
+      var that = this;
+      var selected = this.params.selected;
+
+      if(this.params.draggedPiece){
+        this.params.graphics.shapes.push({
+          type: "image",
+          layer: "drag",
+          asset: this.params.draggedPiece.type,
+          alpha: 0.5,
+          position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
+          translation: [this.params.mouse.position.x, this.params.mouse.position.y],
+          rotation: this.params.draggedPiece.rotation // In degrees 
+        });
+      }
+
+      //converts a pixel coordinate to a board coordinate
+      //assumes that the board is made out of squares
+      function toBoardCoordinate(pixelCoordinate)
+      {
+        var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
+        console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with upperLeftBoardMargin="+that.params.constants.upperLeftBoardMargin+", pieceAssetCentering="+that.params.constants.pieceAssetCentering+", cellSize="+that.params.constants.cellSize);
+        return res;
+      }
+
+      //copied from drawLight
+      function findGridElement(square, data)
+      {
+        var gameData = data || that;
+        for(var i in gameData.params.pieces)
+        {
+          var piece = gameData.params.pieces[i];
+          //console.log("action.js: findGridElement: comparing point position ["+col+","+row+"] with ["+piece.col+","+piece.row+"]");
+          if(piece.col == square[0] && piece.row == square[1]) return piece; 
+        }
+        console.log("action.js: findGridElement: no piece found");
+        return null;
+      }
+
+      //moves a piece from the board to another square on the board
+      function movePieceTo(piece, newSquare)
+      {
+        if (piece && isOnBoard(newSquare)) {
+          console.log("action.js: movePieceTo: "+piece.type+" on ["+piece.col+","+piece.row+"] to ["+newSquare[0]+","+newSquare[1]+"]");
+          var movedPiece = findGridElement([piece.col, piece.row]);
+          if(movedPiece) { //defensive code
+            movedPiece.col = newSquare[0];
+            movedPiece.row = newSquare[1];
+          } 
+        }
+      }
+
+      //selects a square if it is on the board
+      function selectSquare(square)
+      {
+        if(isOnBoard(square)) {
+          selected.col = square[0];
+          selected.row = square[1];
+        }
+      }
+
+      //returns the coordinates of the square that was clicked on in the box, or null if outside of the box
+      //@position: array of coordinates in pixels
+      function getIndexInBox(position) {
+        var boxLeft = 837;
+        var boxRight = 935;
+        var boxTop = 284;
+        var boxBottom = 514;
+        if ((position[0] > boxLeft) && (position[0] < boxRight) && (position[1] > boxTop) && (position[1] < boxBottom)) {
+          return 0;
+        }
+        return null;
+      }
+
+      //updates selected piece and dragged piece when the mouse button is pressed on a piece
+      function mouseDownOnPiece(piecePressed, data) {
+        var gameData = data || that;
+        if(piecePressed) {
+          console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
+          console.log("action.js: the previously selected piece is unselected");
+          gameData.params.selectedPiece = null;
+
+          console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
+          gameData.params.draggedPiece = piecePressed;
+        }
+      }
+
+      //tests whether a given position is inside the board or not
+      //@positionOnBoard: array of coordinates as column and row position
+      function isOnBoard(positionOnBoard) {
+        return ((positionOnBoard[0] <= 13) && (positionOnBoard[0] >= 0) && (positionOnBoard[1] <= 8) && (positionOnBoard[1] >= 0));
+      }
+
+      if(newLeftMouseDown || newLeftMouseReleased) {
+        if(that.params.mouse.position)
+        {
+          //board coordinates
+          var clickedColumn = toBoardCoordinate(that.params.mouse.position.x);
+          var clickedRow = toBoardCoordinate(that.params.mouse.position.y);
+          var boardCoordinates = [clickedColumn, clickedRow];
+
+          //test whether there is a piece or not
+          if (newLeftMouseDown)
+          {
+            console.log("action.js: newLeftMouseDown");
+
+            //set mouse button flag
+            this.params.leftMouseDown = true;
+
+            if(!isOnBoard(boardCoordinates)){
+              var boxIndex = getIndexInBox([that.params.mouse.position.x, that.params.mouse.position.y]);
+              //check whether the click happened in the box or not
+              if(boxIndex !== null) {
+                //clicked in box
+                var boxedPiece = this.params.boxedPieces[boxIndex];
+                var pieceType = null;
+                if(boxedPiece) {
+                  pieceType = boxedPiece.type;
+                }
+                console.log("clicked in box at position "+boxIndex+" on piece of type \""+pieceType+"\"");
+                mouseDownOnPiece(boxedPiece, this);
+              } // else clicked outsite of the box, out of the board: nothing to be done
+            } else { //clicked on board
+              //let's select the square that has been clicked on
+              selectSquare([clickedColumn, clickedRow]);
+              var pieceClickedOn = findGridElement(boardCoordinates);
+              mouseDownOnPiece(pieceClickedOn, this);
+            }
+
+          } else if (newLeftMouseReleased) {
+            console.log("action.js: newLeftMouseReleased");
+
+            //let's select the square that has been clicked on
+            selectSquare([clickedColumn, clickedRow]);
+
+            //reset mouse button flag
+            this.params.leftMouseDown = false;
+
+            //test whether there is a piece or not
+            var pieceReleasedOn = findGridElement(boardCoordinates);
+            if (pieceReleasedOn) {
+              console.log("action.js: released on piece of type \""+pieceReleasedOn.type+"\"");
+              console.log("action.js: drag and drop fails: undrag piece");
+              
+              this.params.draggedPiece = null;
+              
+              if(!this.params.draggedPiece && !this.params.selectedPiece) {
+                this.params.selectedPiece = pieceReleasedOn;
+              } else {
+                this.params.selectedPiece = null;
+              }
+
+            } else {
+              if(this.params.selectedPiece) {
+                console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
+                movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow]);
+                this.params.selectedPiece = null;
+              } else if (this.params.draggedPiece) {
+                console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
+                movePieceTo(this.params.draggedPiece, [clickedColumn, clickedRow]);
+                that.params.draggedPiece.col = clickedColumn;
+                that.params.draggedPiece.row = clickedRow;
+                this.params.draggedPiece = null;
+                this.params.selectedPiece = null;
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
   clearBackground: {
     paramDefs: {
       "color": "black",
@@ -63,16 +252,44 @@
       type: null,
       row: 0,
       col: 0,
-      rotation: 0
+      rotation: 0,
+      constants: null
     },
+
     update: function() {
       this.params.graphics.shapes.push({
         type: "image",
         layer: "pieces",
         asset: this.params.type,
-        position: [-26, -26],
-        translation: [this.params.col * 53 + 33 + 26, this.params.row * 53 + 33 + 26],
+        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
+        translation: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
+          this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
         rotation: this.params.rotation // In degrees 
+      });
+    }
+  },
+
+  // draws a boxed piece in the box according to its index in the "boxedPiece" table
+  drawBoxedPiece: {
+    paramDefs: {
+      graphics: null,
+      type: null,
+      index: 0,
+      constants: null
+    },
+    update: function() {
+      //var offset = [862, 308];
+      var offset = [837, 284];
+      var cellSize = [49, 46];
+      var boxPosition = [this.params.index % 2, this.params.index >> 1];
+      this.params.graphics.shapes.push({
+        type: "image",
+        layer: "pieces",
+        asset: this.params.type,
+        scale: 0.67,
+        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
+        translation: [offset[0] + (boxPosition[0]+.5) * cellSize[0], offset[1] + (boxPosition[1]+.5) * cellSize[1]],
+        rotation: 0 // In degrees 
       });
     }
   },
@@ -81,13 +298,15 @@
     paramDefs: {
       graphics: null,
       row: 0,
-      col: 0
+      col: 0,
+      constants: null
     },
     update: function() {
       this.params.graphics.shapes.push({
         type: "rectangle",
         layer: "selection",
-        position: [this.params.col * 53 + 33, this.params.row * 53 + 33],
+        position: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin, 
+        this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin],
         size: [50, 50],
         strokeStyle: "yellow",
         lineWidth: 4
@@ -106,20 +325,19 @@
 
   drawLight: {
     paramDefs: {
-      "graphics": null,
-      "pieces": []
+      graphics: null,
+      pieces: [],
+      constants: null
     },
     update: function() {
-      var MARGIN = 30;
-      var CELL_SIZE = 53;
-      var GRID_SIZE = [14, 9];
-      var MIRROR_ATTENUATION_FACTOR = 0.7;
 
       var that = this;
+      var gridSize = that.params.constants.gridSize;
+
 
       function isInGrid(point)
       {
-        return point[0] >= 0 && point[0] < GRID_SIZE[0] && point[1] >= 0 && point[1] < GRID_SIZE[1];        
+        return point[0] >= 0 && point[0] < gridSize[0] && point[1] >= 0 && point[1] < gridSize[1];        
       }
 
       // Attempts to find intersection with the given lines and returns it.
@@ -141,10 +359,10 @@
       {
         var boundaries = 
         [
-          [[0, 0], [GRID_SIZE[0], 0]], // top
-          [[GRID_SIZE[0], 0], [GRID_SIZE[0], GRID_SIZE[1]]], // right
-          [[GRID_SIZE[0], GRID_SIZE[1]], [0, GRID_SIZE[1]]], // bottom
-          [[0, GRID_SIZE[1]], [0, 0]] // left
+          [[0, 0], [gridSize[0], 0]], // top
+          [[gridSize[0], 0], [gridSize[0], gridSize[1]]], // right
+          [[gridSize[0], gridSize[1]], [0, gridSize[1]]], // bottom
+          [[0, gridSize[1]], [0, 0]] // left
         ];
 
         return findIntersection(origin, dest, boundaries);
@@ -157,8 +375,8 @@
         [
           [[cellPos[0], cellPos[1]], [cellPos[0], cellPos[1] + 1]], // top
           [[cellPos[0], cellPos[1] + 1], [cellPos[0] + 1, cellPos[1] + 1]], // right
-          [[cellPos[0] + 1, cellPos[1] + 1], [cellPos[0], cellPos[1] + 1]], // bottom
-          [[cellPos[0], cellPos[1] + 1], [cellPos[0], cellPos[1]]] // left
+          [[cellPos[0] + 1, cellPos[1] + 1], [cellPos[0] + 1, cellPos[1]]], // bottom
+          [[cellPos[0] + 1, cellPos[1]], [cellPos[0], cellPos[1]]] // left
         ];
 
         return findIntersection(origin, dest, boundaries);
@@ -179,7 +397,9 @@
         if(element.type == "wall")
         {
           // find intersection with wall
-          lightSegments[lightSegments.length - 1].destination = intersectsCell(lightSegments[lightSegments.length - 1].origin, origin, [element.col, element.row]);
+          var wallIntersection = intersectsCell(lightSegments[lightSegments.length - 1].origin, origin, [element.col, element.row]);
+          if(wallIntersection == null) throw new Error("Cannot find intersection with wall");
+          lightSegments[lightSegments.length - 1].destination = wallIntersection;
 
           lightIntensity = 0;
         }
@@ -195,16 +415,23 @@
           {
             lightSegments[lightSegments.length - 1].destination = intersection;
 
-            lightIntensity *= MIRROR_ATTENUATION_FACTOR;
-            lightSegments.push({ origin: intersection, intensity: lightIntensity });
+            lightIntensity *= that.params.constants.mirrorAttenuationFactor;
+            if(lightIntensity < that.params.constants.minimumAttenuation)
+            {
+              lightIntensity = 0;
+            }
+            else
+            {
+              lightSegments.push({ origin: intersection, intensity: lightIntensity });
 
-            // reflect around normal (from http://www.gamedev.net/topic/510581-2d-reflection/)
-            // v' = 2 * (v . n) * n - v;
-            var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
-            var oldLightDirection = Vector.create(lightDirection);
-            lightDirection = normal.multiply(2 * oldLightDirection.dot(normal)).subtract(oldLightDirection).elements;
+              // reflect around normal (from http://www.gamedev.net/topic/510581-2d-reflection/)
+              // v' = 2 * (v . n) * n - v;
+              var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
+              var oldLightDirection = Vector.create(lightDirection);
+              lightDirection = normal.multiply(2 * oldLightDirection.dot(normal)).subtract(oldLightDirection).elements;
 
-            updateLightDirection();
+              updateLightDirection();
+            }
           }
         }
       }
@@ -220,11 +447,11 @@
       // options override default values for all drawn shapes (layer, composition, etc.)
       function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options)
       {
-        var marginV = Vector.create([MARGIN, MARGIN]);
+        var marginV = Vector.create([that.params.constants.toSquareCenterOffset, that.params.constants.toSquareCenterOffset]);
 
         // find normal to line (http://stackoverflow.com/questions/1243614/how-do-i-calculate-the-normal-vector-of-a-line-segment)
-        var originV = Vector.create(origin).multiply(CELL_SIZE).add(marginV);
-        var destV = Vector.create(dest).multiply(CELL_SIZE).add(marginV);
+        var originV = Vector.create(origin).multiply(that.params.constants.cellSize).add(marginV);
+        var destV = Vector.create(dest).multiply(that.params.constants.cellSize).add(marginV);
         var d = destV.subtract(originV);
         var normal = Vector.create([-d.elements[1], d.elements[0]]).toUnitVector();
 
@@ -352,7 +579,9 @@
           lightIntensity = 0;
 
           // find intersection with boundaries
-          lightSegments[lightSegments.length - 1].destination = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, origin);
+          var boundaryIntersection = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, origin);
+          if(boundaryIntersection == null) throw new Error("Cannot find intersection with boundaries");
+          lightSegments[lightSegments.length - 1].destination = boundaryIntersection;
         }
         else if(element = findGridElement(origin))
         {
@@ -368,8 +597,8 @@
         type: "rectangle",
         layer: "mask",
         fillStyle: "black",
-        position: [0, 0],
-        size: that.params.graphics.size,
+        position: this.params.constants.playableBoardOffset,
+        size: this.params.constants.playableBoardSize,
         order: 0
       });
 
@@ -381,12 +610,14 @@
       };
       for(var i = 0; i < lightSegments.length; i++)
       {
+        //TODO extract 30 and 40 values
         drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 30, 40, [255, 255, 255, lightSegments[i].intensity], maskOptions);
       }
 
       // draw light ray normally
       for(var i = 0; i < lightSegments.length; i++)
       {
+        //TODO extract 4 and 6 values
         drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 4, 6, [255, 0, 0, lightSegments[i].intensity]);
       }
     }
@@ -397,7 +628,7 @@
       "selected": null,
       "pieces": [],
       "keyboard": null,
-      "rotationAmount": 1 // degrees
+      "constants": null
     },
     update: function() {
       var that = this;
@@ -417,9 +648,9 @@
 
       var keysDown = this.params.keyboard.keysDown; // alias
       if(keysDown[37]) { // left
-        selectedPiece.rotation -= this.params.rotationAmount;
+        selectedPiece.rotation -= this.params.constants.rotationAmount;
       } else if(keysDown[39]) { // right
-        selectedPiece.rotation += this.params.rotationAmount;
+        selectedPiece.rotation += this.params.constants.rotationAmount;
       }
     }
   }
