@@ -32,6 +32,8 @@
         });
       }
 
+      //converts a pixel coordinate to a board coordinate
+      //assumes that the board is made out of squares
       function toBoardCoordinate(pixelCoordinate)
       {
         var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
@@ -53,9 +55,10 @@
         return null;
       }
 
+      //moves a piece from the board to another square on the board
       function movePieceTo(piece, newSquare)
       {
-        if(piece){
+        if (piece && isOnBoard(newSquare)) {
           console.log("action.js: movePieceTo: "+piece.type+" on ["+piece.col+","+piece.row+"] to ["+newSquare[0]+","+newSquare[1]+"]");
           var movedPiece = findGridElement([piece.col, piece.row]);
           if(movedPiece) { //defensive code
@@ -65,6 +68,7 @@
         }
       }
 
+      //selects a square if it is on the board
       function selectSquare(square)
       {
         if(isOnBoard(square)) {
@@ -86,6 +90,7 @@
         return null;
       }
 
+      //updates selected piece and dragged piece when the mouse button is pressed on a piece
       function mouseDownOnPiece(piecePressed, data) {
         var gameData = data || that;
         if(piecePressed) {
@@ -592,8 +597,8 @@
         type: "rectangle",
         layer: "mask",
         fillStyle: "black",
-        position: this.params.graphics.playableBoardOffset,
-        size: this.params.graphics.playableBoardSize,
+        position: this.params.constants.playableBoardOffset,
+        size: this.params.constants.playableBoardSize,
         order: 0
       });
 

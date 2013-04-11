@@ -63,6 +63,8 @@
     "gridSize": [14, 9],
     "mirrorAttenuationFactor": 0.7,
     "minimumAttenuation": 0.1,
-    "rotationAmount": 1
+    "rotationAmount": 1,
+    "playableBoardOffset": [30, 30],
+    "playableBoardSize": [745, 480]
   }
 }
