@@ -344,14 +344,24 @@
       // Else returns null.
       function findIntersection(origin, dest, lines)
       {
-        var intersection = null;
+        var closestIntersection = null;
+        var distanceToClosestIntersection = Infinity;
         for(var i = 0; i < lines.length; i++)
         {
-          intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(lines[i][0], lines[i][1]));
-          if(intersection) return intersection.elements.slice(0, 2); // return only 2D part
+          var intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(lines[i][0], lines[i][1]));
+          if(intersection) 
+          {
+            // the intersection will be in 3D, so we need to cast the origin to 3D as well or distance calculation will fail (returns null)
+            var distanceToIntersection = Vector.create(origin).to3D().distanceFrom(intersection);
+            if(distanceToIntersection < distanceToClosestIntersection) 
+            {
+              closestIntersection = intersection;
+              distanceToClosestIntersection = distanceToIntersection;
+            }
+          }
         }
 
-        return null;
+        return closestIntersection == null ? null : closestIntersection.elements.slice(0, 2); // return only 2D part
       }
 
       // Returns an intersection point with walls, or null otherwise
@@ -397,7 +407,7 @@
         if(element.type == "wall")
         {
           // find intersection with wall
-          var wallIntersection = intersectsCell(lightSegments[lightSegments.length - 1].origin, origin, [element.col, element.row]);
+          var wallIntersection = intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [element.col, element.row]);
           if(wallIntersection == null) throw new Error("Cannot find intersection with wall");
           lightSegments[lightSegments.length - 1].destination = wallIntersection;
 
@@ -406,12 +416,10 @@
         else if(element.type == "mirror")
         {
           // find intersection with central line
-          // HACK: adding 90 degrees to rotation seems to work, but doesn't seem necessary
-          var rotation = (element.rotation + 90) * Math.PI / 180; 
+          var rotation = element.rotation * Math.PI / 180; 
           var centralLineDiff = [.5 * Math.cos(rotation), .5 * Math.sin(rotation)];
           var centralLine = [[element.col + 0.5 + centralLineDiff[0], element.row + 0.5 + centralLineDiff[1]], [element.col + 0.5 - centralLineDiff[0], element.row + 0.5 - centralLineDiff[1]]];
-          var lineDestination = Vector.create(origin).add(Vector.create(lightDirection));
-          if(intersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lineDestination.elements, [centralLine]))
+          if(intersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine]))
           {
             lightSegments[lightSegments.length - 1].destination = intersection;
 
@@ -424,23 +432,31 @@
             {
               lightSegments.push({ origin: intersection, intensity: lightIntensity });
 
-              // reflect around normal (from http://www.gamedev.net/topic/510581-2d-reflection/)
-              // v' = 2 * (v . n) * n - v;
+              // reflect around normal
+              // normal caluclation from http://www.gamedev.net/topic/510581-2d-reflection/)
+              // reflection calculation from http://paulbourke.net/geometry/reflected/ 
+              // Rr = Ri - 2 N (Ri . N)
               var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
               var oldLightDirection = Vector.create(lightDirection);
-              lightDirection = normal.multiply(2 * oldLightDirection.dot(normal)).subtract(oldLightDirection).elements;
+              lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;
 
-              updateLightDirection();
+              currentCell = GE.cloneData(intersection);
+
+              lightDirectionUpdated();
             }
           }
         }
       }
 
-      function updateLightDirection()
+      function lightDirectionUpdated()
       {
         d = [Math.abs(lightDirection[0]), Math.abs(lightDirection[1])];
         s = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
         err = d[0] - d[1];
+
+        var distanceOutOfGrid = Math.sqrt(gridSize[0]*gridSize[0] + gridSize[1]*gridSize[1]);
+        var lastOrigin = lightSegments[lightSegments.length - 1].origin;
+        lightDestination = Sylvester.Vector.create(lastOrigin).add(Sylvester.Vector.create(lightDirection).multiply(distanceOutOfGrid)).elements.slice();
       }
 
       // all lines are in grid space, not in screen space
@@ -554,36 +570,37 @@
       var lightIntensity = 1.0; // start at full itensity
 
       // follow light path through the grid, checking for intersections with pieces
-      // Based on Bresenham's line algorithm (http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)      
+      // Based on Bresenham's "simplified" line algorithm (http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)      
+      var currentCell = [lightSource.col + .5, lightSource.row + .5]
+      var lightSegments = [ { origin: [currentCell[0], currentCell[1]], intensity: lightIntensity }];
+
       var d, s, r;
-      updateLightDirection();
+      var lightDestination; // represents a point outside of the grid that the light could reach if unimpeded 
+      lightDirectionUpdated();
 
-      var origin = [lightSource.col + .5, lightSource.row + .5]
-
-      var lightSegments = [ { origin: [origin[0], origin[1]], intensity: lightIntensity }];
       var element;
       do
       { 
         var err2 = 2 * err;
         if(err2 > -d[1]) {
           err = err - d[1];
-          origin[0] += s[0]
+          currentCell[0] += s[0]
         }
         if(err2 < d[0]) {
           err = err + d[0];
-          origin[1] += s[1]
+          currentCell[1] += s[1]
         }
 
-        if(!isInGrid(origin)) 
+        if(!isInGrid(currentCell)) 
         {
           lightIntensity = 0;
 
           // find intersection with boundaries
-          var boundaryIntersection = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, origin);
+          var boundaryIntersection = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, lightDestination);
           if(boundaryIntersection == null) throw new Error("Cannot find intersection with boundaries");
           lightSegments[lightSegments.length - 1].destination = boundaryIntersection;
         }
-        else if(element = findGridElement(origin))
+        else if(element = findGridElement(currentCell))
         {
           handleGridElement();
         }
