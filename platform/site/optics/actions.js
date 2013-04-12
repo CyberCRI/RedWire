@@ -118,10 +118,15 @@
         //boxedPieces.splice(newIndex, 0, boxedPiece);
         boxedPieces.push(boxedPiece);
 
-        var index = pieces.indexOf(piece);
-        pieces.splice(index, 1);
-
-        console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+        for(var i in pieces)
+        {
+          var somePiece = pieces[i];
+          if((piece.col == somePiece.col) &&(piece.row == somePiece.row)) {
+            pieces.splice(i, 1);
+            console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+            return;
+          }
+        }
       }
 
       //selects a square if it is on the board
