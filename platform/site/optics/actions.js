@@ -69,8 +69,9 @@
           console.log("movePieceTo: correct arguments");
           if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
             console.log("movePieceTo: piece was on board");
-            piece.col = newSquare[0];
-            piece.row = newSquare[1];
+            var movedPiece = findGridElement([piece.col, piece.row], pieces);
+            movedPiece.col = newSquare[0];
+            movedPiece.row = newSquare[1];
           } else { //the piece was in the box, let's put it on the board
             //remove the piece from the "boxedPieces"
             console.log("movePieceTo: piece was in box");
