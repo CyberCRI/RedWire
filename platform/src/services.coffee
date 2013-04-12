@@ -169,27 +169,32 @@ registerService 'Canvas', (options = {}) ->
       return {
         layers: options.layers
         size: options.size
-        shapes: []
+        shapes: {}
       }
 
     establishData: (data, assets) -> 
       if not data.shapes then return 
 
-      # Clear layers
+      # Clear layers and create shapeArrays
+      shapeArrays = {}
       for layerName, canvas of layers
         canvas[0].getContext('2d').clearRect(0, 0, options.size[0], options.size[1])
+        shapeArrays[layerName] = []
 
-      # Sort shapes and send them to their layers
-      data.shapes.sort(shapeSorter)
-
-      # OPT: group all manipulations by layer before drawing them?
-      for shape in data.shapes
+      # Copy shapes from object into arrays based on their layer
+      for id, shape of data.shapes
         layerName = shape.layer || 'default'
         if layerName not of layers then throw new Error('No layer for shape')
 
-        ctx = layers[layerName][0].getContext('2d')
+        shapeArrays[layerName].push(shape)
+
+      # For each layer, sort shapes and then draw them
+      for layerName, shapeArray of shapeArrays
+        shapeArray.sort(shapeSorter)
+
         # TODO: handle composition for layers
-        drawShape(shape, ctx, assets)
+        ctx = layers[layerName][0].getContext('2d')
+        for shape in shapeArray then drawShape(shape, ctx, assets)
 
     destroy: -> 
       for layerName, canvas of layers then canvas.remove()

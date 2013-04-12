@@ -105,6 +105,7 @@ GE.getParentAndKey = (parent, pathParts) ->
   return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
 
 # Compare new object and old object to create list of patches.
+# The top-level oldValue must be an object
 # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
 # TODO: handle arrays
 # TODO: handle escape syntax
@@ -117,6 +118,9 @@ GE.makePatches = (oldValue, newValue, prefix = "", patches = []) ->
     patches.push { remove: prefix }
   else if not _.isObject(newValue) or not _.isObject(oldValue) or typeof(oldValue) != typeof(newValue)
     patches.push { replace: prefix, value: GE.cloneData(newValue) }
+  else if _.isArray(oldValue) and oldValue.length != newValue.length
+    # In the case that we modified an array, we need to replace the whole thing  
+    patches.push { replace: prefix, value: GE.cloneData(newValue) }
   else 
     # both elements are objects or arrays
     keys = _.union _.keys(oldValue), _.keys(newValue)
@@ -125,6 +129,7 @@ GE.makePatches = (oldValue, newValue, prefix = "", patches = []) ->
   return patches
 
 # Takes an oldValue and list of patches and creates a new value
+# The top-level oldValue must be an object
 # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
 # TODO: handle arrays
 # TODO: handle escape syntax
@@ -478,6 +483,9 @@ GE.deepFreeze = (o) ->
     if _.isObject(prop) and not Object.isFrozen(prop) then GE.deepFreeze(prop)
 
   return o
+
+# Adds value to the given object, associating it with an unique (and meaningless) key
+GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value
 
 # Install the GE namespace in the global scope
 globals.GE = GE
