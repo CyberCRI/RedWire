@@ -7,6 +7,18 @@ describe "gamEvolve", ->
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
       toBeEmpty: () -> @actual.length == 0
 
+  describe "patches", ->
+    it "can remove value from array", ->
+      a = 
+        v: [10..15]
+      b = 
+        v: [10, 12, 13, 14, 15] # Missing 11
+
+      patches = GE.makePatches(a, b)
+      patchResult = GE.applyPatches(patches, a)
+
+      expect(patchResult).toDeeplyEqual(b)
+
   describe "model", ->
     it "can be created empty", ->
       model = new GE.Model()

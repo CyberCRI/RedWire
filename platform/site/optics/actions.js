@@ -21,7 +21,7 @@
       var selected = this.params.selected;
 
       if(this.params.draggedPiece){
-        this.params.graphics.shapes.push({
+        GE.addUnique(this.params.graphics.shapes, {
           type: "image",
           layer: "drag",
           asset: this.params.draggedPiece.type,
@@ -290,7 +290,7 @@
       "graphics": null
     },
     update: function() {
-      this.params.graphics.shapes.push({
+      GE.addUnique(this.params.graphics.shapes, {
         type: "rectangle",
         layer: "bg",
         fillStyle: this.params.color,
@@ -308,7 +308,7 @@
       y: 0
     },
     update: function() {
-      this.params.graphics.shapes.push({
+      GE.addUnique(this.params.graphics.shapes, {
         type: "image",
         layer: "bg",
         asset: this.params.image,
@@ -327,7 +327,7 @@
       "graphics": null
     },
     update: function() { 
-      this.params.graphics.shapes.push({
+      GE.addUnique(this.params.graphics.shapes, {
         type: "text",
         layer: "text",
         text: this.params.text,
@@ -353,7 +353,7 @@
     },
 
     update: function() {
-      this.params.graphics.shapes.push({
+      GE.addUnique(this.params.graphics.shapes, {
         type: "image",
         layer: "pieces",
         asset: this.params.type,
@@ -378,7 +378,7 @@
       var offset = [837, 284];
       var cellSize = [49, 46];
       var boxPosition = [this.params.index % 2, this.params.index >> 1];
-      this.params.graphics.shapes.push({
+      GE.addUnique(this.params.graphics.shapes, {
         type: "image",
         layer: "pieces",
         asset: this.params.type,
@@ -398,7 +398,7 @@
       constants: null
     },
     update: function() {
-      this.params.graphics.shapes.push({
+      GE.addUnique(this.params.graphics.shapes, {
         type: "rectangle",
         layer: "selection",
         position: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin, 
@@ -569,7 +569,7 @@
           ]
         };
 
-        that.params.graphics.shapes.push(_.extend({
+        GE.addUnique(that.params.graphics.shapes, _.extend({
           type: "path",
           layer: "light",
           strokeStyle: strokeGrad,
@@ -593,7 +593,7 @@
           ]
         };
 
-        that.params.graphics.shapes.push(_.extend({
+        GE.addUnique(that.params.graphics.shapes, _.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
@@ -617,7 +617,7 @@
           ]
         };
 
-        that.params.graphics.shapes.push(_.extend({
+        GE.addUnique(that.params.graphics.shapes, _.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
@@ -689,7 +689,7 @@
 
       // Draw black mask that we will cut away from
       // based on the method of this fiddle: http://jsfiddle.net/wNYkX/3/
-      that.params.graphics.shapes.push({
+      GE.addUnique(this.params.graphics.shapes, {
         type: "rectangle",
         layer: "mask",
         fillStyle: "black",
