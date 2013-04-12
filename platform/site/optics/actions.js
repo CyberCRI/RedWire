@@ -69,7 +69,8 @@
             movedPiece.row = newSquare[1];
           } else { //the piece was in the box, let's put it on the board
             //remove the piece from the "boxedPieces"
-            removeBoxedPiece(piece.index);
+            takePieceOutOfBox(piece.type, srcData.params.boxedPieces);
+
             //add it to the "pieces" with the appropriate coordinates
             var insertedPiece = {
               "col": newSquare[0],
@@ -83,8 +84,33 @@
       }
 
       //removes a piece form the boxed pieces and rearranges the remaining pieces
-      function removeBoxedPiece(pieceIndex) {
+      function takePieceOutOfBox(pieceType, boxedPieces) {
+        for(var i in boxedPieces)
+        {
+          var piece = boxedPieces[i];
+          if(piece.type == pieceType) {
+            boxedPieces.splice(i, 1);
+            return;
+          }
+        }
+      }
 
+      //TODO remove
+      function takePieceOutOfBox2(pieceIndex, srcData) {
+        srcData.params.boxedPieces.splice(pieceIndex, 1);
+      }
+
+      function putPieceIntoBox(piece, srcData) {
+        var newIndex = srcData.params.boxedPieces.length;
+        var boxedPiece = {
+          "type": piece.type,
+          "index": newIndex
+        };
+        //srcData.params.boxedPieces.splice(newIndex, 0, boxedPiece);
+        srcData.params.boxedPieces.push(boxedPiece);
+
+        var index = srcData.params.pieces.indexOf(piece);
+        srcData.params.pieces.splice(index, 1);
       }
 
       //selects a square if it is on the board
@@ -172,7 +198,15 @@
 
             if(!isOnBoard(boardCoordinates)){
               //dragged out of board: put piece in box
-
+                if(this.params.selectedPiece) {
+                  putPieceIntoBox(that.params.selectedPiece, this);
+                  this.params.draggedPiece = null;
+                  this.params.selectedPiece = null;
+                } else if(this.params.draggedPiece) {
+                  putPieceIntoBox(that.params.draggedPiece, this);
+                  this.params.draggedPiece = null;
+                  this.params.selectedPiece = null;
+                }
             } else {
               //dragged on board: check if square is empty, then move piece
 

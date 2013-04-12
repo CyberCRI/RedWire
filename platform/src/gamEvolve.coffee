@@ -215,9 +215,12 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
       # Evaluate values of the "from" clauses
       # TODO: in the case of models, get reference to model rather than evaluate the data here
       bindingValues = GE.compileParameter(bindingExpression, constants, oldBindings).get()
+      index = 0
       for bindingIndex in [0..bindingValues.length - 1]
         # Avoid polluting old object, and avoid creating new properties
         newBindings = Object.create(oldBindings)
+        newBindings["#{bindingName}Index"] = index
+        index++
         if _.isString(bindingExpression)
           # WRONG: Works for models, but maybe not for other things
           newBindings[bindingName] = "#{bindingExpression}.#{bindingIndex}"
