@@ -140,14 +140,22 @@
 
       //returns the coordinates of the square that was clicked on in the box, or null if outside of the box
       //@position: array of coordinates in pixels
-      function getIndexInBox(position) {
-        var boxLeft = 837;
-        var boxRight = 935;
-        var boxTop = 284;
-        var boxBottom = 514;
-        if ((position[0] > boxLeft) && (position[0] < boxRight) && (position[1] > boxTop) && (position[1] < boxBottom)) {
-          return 0;
+      //@position: warning: needed attributes are not checked!
+      function getIndexInBox(position, constants) {
+        //tests whether is in box or not
+        var relativeX = position[0] - constants.boxLeft;
+        var relativeY = position[1] - constants.boxTop;
+
+        var col = Math.floor(relativeX/constants.boxCellSize[0]);
+        var row = Math.floor(relativeY/constants.boxCellSize[1]);
+
+        if((0 <= col) && (1 >= col) && (0 <= row) && (4 >= row)) {
+          var index = 2*row+col;
+
+          console.log("getIndexInBox returns "+index);
+          return index;
         }
+        console.log("getIndexInBox: out of box");
         return null;
       }
 
@@ -223,7 +231,7 @@
             //check whether the click happened on the board or not
             if(!isOnBoard(boardCoordinates)){
               console.log("clicked outside of board");
-              var boxIndex = getIndexInBox([that.params.mouse.position.x, that.params.mouse.position.y]);
+              var boxIndex = getIndexInBox([that.params.mouse.position.x, that.params.mouse.position.y], this.params.constants);
               //check whether the click happened in the box or not
               if(boxIndex !== null) {
                 console.log("clicked in box");
@@ -232,9 +240,12 @@
                 var pieceType = null;
                 if(boxedPiece) {
                   pieceType = boxedPiece.type;
+                  console.log("clicked in box at position "+boxIndex+" on piece of type \""+pieceType+"\"");
+                  mouseDownOnPiece(boxedPiece, this.params);
+                } else {
+                  console.log("clicked in box at position "+boxIndex+" on no piece, will try to put selected piece "+pieceToString(this.params.selectedPiece));
+                  putPieceIntoBox(this.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
                 }
-                console.log("clicked in box at position "+boxIndex+" on piece of type \""+pieceType+"\"");
-                mouseDownOnPiece(boxedPiece, this.params);
                 console.log("<<<<<<<<<< finished click in box, "+paramsToString(this.params));
               } // else clicked outsite of the box, out of the board: nothing to be done
             } else { //clicked on board
@@ -411,9 +422,6 @@
       constants: null
     },
     update: function() {
-      //var offset = [862, 308];
-      var offset = [837, 284];
-      var cellSize = [49, 46];
       var boxPosition = [this.params.index % 2, this.params.index >> 1];
       GE.addUnique(this.params.graphics.shapes, {
         type: "image",
@@ -421,7 +429,7 @@
         asset: this.params.type,
         scale: 0.67,
         position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
-        translation: [offset[0] + (boxPosition[0]+.5) * cellSize[0], offset[1] + (boxPosition[1]+.5) * cellSize[1]],
+        translation: [this.params.constants.boxLeft + (boxPosition[0]+.5) * this.params.constants.boxCellSize[0], this.params.constants.boxTop + (boxPosition[1]+.5) * this.params.constants.boxCellSize[1]],
         rotation: 0 // In degrees 
       });
     }
