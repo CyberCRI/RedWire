@@ -330,7 +330,6 @@
       constants: null
     },
     update: function() {
-
       var that = this;
       var gridSize = that.params.constants.gridSize;
 
@@ -440,8 +439,6 @@
               var oldLightDirection = Vector.create(lightDirection);
               lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;
 
-              currentCell = GE.cloneData(intersection);
-
               lightDirectionUpdated();
             }
           }
@@ -450,9 +447,7 @@
 
       function lightDirectionUpdated()
       {
-        d = [Math.abs(lightDirection[0]), Math.abs(lightDirection[1])];
-        s = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
-        err = d[0] - d[1];
+        lightSigns = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
 
         var distanceOutOfGrid = Math.sqrt(gridSize[0]*gridSize[0] + gridSize[1]*gridSize[1]);
         var lastOrigin = lightSegments[lightSegments.length - 1].origin;
@@ -571,24 +566,51 @@
 
       // follow light path through the grid, checking for intersections with pieces
       // Based on Bresenham's "simplified" line algorithm (http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)      
-      var currentCell = [lightSource.col + .5, lightSource.row + .5]
-      var lightSegments = [ { origin: [currentCell[0], currentCell[1]], intensity: lightIntensity }];
+      var currentCell = [lightSource.col, lightSource.row]
+      var lightSegments = [ { origin: [currentCell[0] + 0.5, currentCell[1] + 0.5], intensity: lightIntensity }];
 
-      var d, s, r;
+      var lightSigns;
       var lightDestination; // represents a point outside of the grid that the light could reach if unimpeded 
       lightDirectionUpdated();
 
       var element;
+      var nextCells = [];
       do
       { 
-        var err2 = 2 * err;
-        if(err2 > -d[1]) {
-          err = err - d[1];
-          currentCell[0] += s[0]
+        var verticalIntersection = null;
+        if(Math.abs(lightDirection[0]) > Sylvester.precision)
+        {
+          var x = currentCell[0] + (lightDirection[0] > 0 ? 1 : 0);
+          var line = [[x, currentCell[1]], [x, currentCell[1] + 1]];
+          verticalIntersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line]);
+        } 
+        var horizontalIntersection = null;
+        if(Math.abs(lightDirection[1]) > Sylvester.precision)
+        {
+          var y = currentCell[1] + (lightDirection[1] > 0 ? 1 : 0);
+          var line = [[currentCell[0], y], [currentCell[0] + 1, y]]
+          horizontalIntersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line]);
+        } 
+
+        if(verticalIntersection && horizontalIntersection)
+        {
+          // move diagonally
+          currentCell = [currentCell[0] + lightSigns[0], currentCell[1] + lightSigns[1]];
         }
-        if(err2 < d[0]) {
-          err = err + d[0];
-          currentCell[1] += s[1]
+        else if(verticalIntersection)
+        {
+          // move horizontally
+          currentCell = [currentCell[0] + lightSigns[0], currentCell[1]];          
+        }
+        else if(horizontalIntersection)
+        {
+          // move vertically
+          currentCell = [currentCell[0], currentCell[1] + lightSigns[1]];          
+        }
+        else 
+        {
+          // this is WEIRD!
+          throw new Error("Light vector is NULL");
         }
 
         if(!isInGrid(currentCell)) 
