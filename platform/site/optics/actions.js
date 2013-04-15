@@ -109,23 +109,27 @@
       //@boxedPieces: pieces outside of the board, in the so-called box
       function putPieceIntoBox(piece, pieces, boxedPieces) {
         console.log("putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
-        var newIndex = boxedPieces.length;
-        var boxedPiece = {
-          "type": piece.type,
-          "index": newIndex
-        };
-        //put at the right place
-        //boxedPieces.splice(newIndex, 0, boxedPiece);
-        boxedPieces.push(boxedPiece);
+        if(piece.index == null) { //source of drag isn't the box
+          var newIndex = boxedPieces.length;
+          var boxedPiece = {
+            "type": piece.type,
+            "index": newIndex
+          };
+          //put at the right place
+          //boxedPieces.splice(newIndex, 0, boxedPiece);
+          boxedPieces.push(boxedPiece);
 
-        for(var i in pieces)
-        {
-          var somePiece = pieces[i];
-          if((piece.col == somePiece.col) &&(piece.row == somePiece.row)) {
-            pieces.splice(i, 1);
-            console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
-            return;
+          for(var i in pieces)
+          {
+            var somePiece = pieces[i];
+            if((piece.col == somePiece.col) &&(piece.row == somePiece.row)) {
+              pieces.splice(i, 1);
+              console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+              return;
+            }
           }
+        } else { //the piece was dragged from the box
+          console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - did nothing");
         }
       }
 
