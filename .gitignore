@@ -8,3 +8,6 @@ platform/site/tests/*.js
 
 # Ignore generated documentation
 docs/
+
+# Ignore node modules
+platform/node_modules/
