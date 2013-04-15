@@ -220,6 +220,9 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
       # Evaluate values of the "from" clauses
       # TODO: in the case of models, get reference to model rather than evaluate the data here
       bindingValues = GE.compileParameter(bindingExpression, constants, oldBindings).get()
+      # If bindingValues is empty, drop out 
+      if bindingValues.length == 0 then return []
+
       index = 0
       for bindingIndex in [0..bindingValues.length - 1]
         # Avoid polluting old object, and avoid creating new properties
