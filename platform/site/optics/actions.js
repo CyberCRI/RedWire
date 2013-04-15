@@ -692,5 +692,64 @@
         selectedPiece.rotation += this.params.constants.rotationAmount;
       }
     }
+  },
+
+  drawCursors: {
+    paramDefs: {
+      "pieces": [],
+      "boxedPieces": [],
+      "mouse": null,
+      "constants": {}
+    },
+    update: function() {
+      var that = this;
+
+      //converts a pixel coordinate to a board coordinate
+      //assumes that the board is made out of squares
+      function toBoardCoordinate(pixelCoordinate)
+      {
+        var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
+        return res;
+      }
+
+      function findGridElement(point)
+      {
+        for(var i in that.params.pieces)
+        {
+          var piece = that.params.pieces[i];
+          if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
+        }
+        return null;
+      }
+
+      //returns the coordinates of the square that was clicked on in the box, or null if outside of the box
+      //@position: array of coordinates in pixels
+      //@position: warning: needed attributes are not checked!
+      function getIndexInBox(position, constants) {
+        //tests whether is in box or not
+        var relativeX = position[0] - constants.boxLeft;
+        var relativeY = position[1] - constants.boxTop;
+
+        var col = Math.floor(relativeX/constants.boxCellSize[0]);
+        var row = Math.floor(relativeY/constants.boxCellSize[1]);
+
+        if((0 <= col) && (1 >= col) && (0 <= row) && (4 >= row)) {
+          var index = 2*row+col;
+          return index;
+        }
+        return null;
+      }
+
+      function getBoxedPiece(index) {
+        return index == null ? null : that.params.boxedPieces[index];
+      }
+
+      if(!this.params.mouse.position) return;
+
+      var mousePos = [this.params.mouse.position.x, this.params.mouse.position.y];
+      var gridCell = [toBoardCoordinate(mousePos[0]), toBoardCoordinate(mousePos[1])];
+      if(findGridElement(gridCell) || getBoxedPiece(getIndexInBox(mousePos, this.params.constants)))
+        this.params.mouse.cursor = "hand";
+    }
   }
 });

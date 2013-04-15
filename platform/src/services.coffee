@@ -26,7 +26,7 @@ registerService 'Keyboard', (options = {}) ->
     destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
   }
 
-# Define mouse input service
+# Define mouse input/output service
 registerService 'Mouse', (options = {}) ->
   options = _.defaults options,
     elementSelector: '#gameContent'
@@ -36,6 +36,7 @@ registerService 'Mouse', (options = {}) ->
   mouse =
     down: false
     position: null
+    cursor: null
 
   $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", (event) ->
     switch event.type 
@@ -57,7 +58,8 @@ registerService 'Mouse', (options = {}) ->
   return {
     provideData: -> return mouse
 
-    establishData: -> # NOOP. Input service does not take data
+    establishData: (data) -> 
+      $(options.elementSelector).css("cursor", data.cursor || "")
 
     # Remove all event handlers
     destroy: -> $(options.elementSelector).off(".#{eventNamespace}")

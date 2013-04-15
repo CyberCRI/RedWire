@@ -125,6 +125,15 @@
         "keyboard": "@service:keyboard",
         "constants": "@model:constants"
       }
+    },
+    {
+      "action": "drawCursors",
+      "params": {
+        "mouse": "@service:mouse",
+        "pieces": "@model:pieces",
+        "boxedPieces": "@model:boxedPieces",
+        "constants": "@model:constants"
+      }
     }
   ]
 
