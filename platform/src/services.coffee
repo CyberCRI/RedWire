@@ -38,6 +38,9 @@ registerService 'Mouse', (options = {}) ->
     position: null
     cursor: null
 
+  # This disables selection, which allows the cursor to change in Chrome
+  $(options.elementSelector).on("selectstart.#{eventNamespace}", -> false)
+
   $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", (event) ->
     switch event.type 
       when 'mousedown' then mouse.down = true

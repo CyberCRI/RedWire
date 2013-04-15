@@ -699,7 +699,8 @@
       "pieces": [],
       "boxedPieces": [],
       "mouse": null,
-      "constants": {}
+      "constants": {},
+      "draggedPiece": null
     },
     update: function() {
       var that = this;
@@ -746,10 +747,16 @@
 
       if(!this.params.mouse.position) return;
 
-      var mousePos = [this.params.mouse.position.x, this.params.mouse.position.y];
-      var gridCell = [toBoardCoordinate(mousePos[0]), toBoardCoordinate(mousePos[1])];
-      if(findGridElement(gridCell) || getBoxedPiece(getIndexInBox(mousePos, this.params.constants)))
-        this.params.mouse.cursor = "hand";
+      if(this.params.draggedPiece) {
+        this.params.mouse.cursor = "move";
+      }
+      else
+      {
+        var mousePos = [this.params.mouse.position.x, this.params.mouse.position.y];
+        var gridCell = [toBoardCoordinate(mousePos[0]), toBoardCoordinate(mousePos[1])];
+        if(findGridElement(gridCell) || getBoxedPiece(getIndexInBox(mousePos, this.params.constants)))
+          this.params.mouse.cursor = "hand";
+      }
     }
   }
 });

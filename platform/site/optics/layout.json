@@ -131,8 +131,9 @@
       "params": {
         "mouse": "@service:mouse",
         "pieces": "@model:pieces",
-        "boxedPieces": "@model:boxedPieces",
-        "constants": "@model:constants"
+        "boxedPieces": "@model:boxedPieces",  
+        "constants": "@model:constants",
+        "draggedPiece": "@model:draggedPiece"
       }
     }
   ]
