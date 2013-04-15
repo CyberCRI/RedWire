@@ -242,9 +242,11 @@
                   pieceType = boxedPiece.type;
                   console.log("clicked in box at position "+boxIndex+" on piece of type \""+pieceType+"\"");
                   mouseDownOnPiece(boxedPiece, this.params);
-                } else {
+                } else if (this.params.selectedPiece != null) {
                   console.log("clicked in box at position "+boxIndex+" on no piece, will try to put selected piece "+pieceToString(this.params.selectedPiece));
                   putPieceIntoBox(this.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
+                } else {
+                  console.log("clicked in box at position "+boxIndex+" on no piece, nothing to be done");
                 }
                 console.log("<<<<<<<<<< finished click in box, "+paramsToString(this.params));
               } // else clicked outsite of the box, out of the board: nothing to be done
