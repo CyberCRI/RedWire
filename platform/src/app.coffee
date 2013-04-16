@@ -120,14 +120,18 @@ setupButtonHandlers = ->
   $("#playButton").on "click", ->
     if isPlaying
       isPlaying = false
-      for editorId, editor of editors then editor.setReadOnly(false)
+      for editorId, editor of editors
+        editor.setReadOnly(false)
+        $('#'+editorId).fadeTo('slow', 1)
       $(this).button "option",
         label: "Play" 
         icons: 
           primary: "ui-icon-play"
     else
       isPlaying = true
-      for editorId, editor of editors then editor.setReadOnly(true)
+      for editorId, editor of editors
+        editor.setReadOnly(true)
+        $('#'+editorId).fadeTo('slow', 0.2)
       handleAnimation()
       $(this).button "option",
         label: "Pause" 
