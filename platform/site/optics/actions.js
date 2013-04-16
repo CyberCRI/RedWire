@@ -37,23 +37,23 @@
       function toBoardCoordinate(pixelCoordinate)
       {
         var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
-        console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with upperLeftBoardMargin="+that.params.constants.upperLeftBoardMargin+", pieceAssetCentering="+that.params.constants.pieceAssetCentering+", cellSize="+that.params.constants.cellSize);
+        //console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with upperLeftBoardMargin="+that.params.constants.upperLeftBoardMargin+", pieceAssetCentering="+that.params.constants.pieceAssetCentering+", cellSize="+that.params.constants.cellSize);
         return res;
       }
 
       //copied from drawLight
       function findGridElement(square, pieces)
       {
-        console.log("findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+")");
+        //console.log("findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+")");
         for(var i in pieces)
         {
           var piece = pieces[i];
           if(piece.col == square[0] && piece.row == square[1]) {
-            console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (found "+pieceToString(piece)+")");
+            //console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (found "+pieceToString(piece)+")");
             return piece;
           } 
         }
-        console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (no piece found)");
+        //console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (no piece found)");
         return null;
       }
 
@@ -64,17 +64,17 @@
       //which is determined by examining the attributes of "piece"
       function movePieceTo(piece, newSquare, pieces, boxedPieces)
       {
-        console.log("movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+        //console.log("movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
         if (piece && isOnBoard(newSquare)) { //defensive code
-          console.log("movePieceTo: correct arguments");
+          //console.log("movePieceTo: correct arguments");
           if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
-            console.log("movePieceTo: piece was on board");
+            //console.log("movePieceTo: piece was on board");
             var movedPiece = findGridElement([piece.col, piece.row], pieces);
             movedPiece.col = newSquare[0];
             movedPiece.row = newSquare[1];
           } else { //the piece was in the box, let's put it on the board
             //remove the piece from the "boxedPieces"
-            console.log("movePieceTo: piece was in box");
+            //console.log("movePieceTo: piece was in box");
             takePieceOutOfBox(piece.type, boxedPieces);
 
             //add it to the "pieces" with the appropriate coordinates
@@ -87,31 +87,31 @@
             pieces.push(insertedPiece);
           }
         } else {
-          console.log("movePieceTo: put outside of board, put piece in box");
+          //console.log("movePieceTo: put outside of board, put piece in box");
           putPieceIntoBox(piece, pieces, boxedPieces);
         }
-        console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+        //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
       }
 
       //removes a piece form the boxed pieces and rearranges the remaining pieces
       function takePieceOutOfBox(pieceType, boxedPieces) {
-        console.log("takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
+        //console.log("takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
         for(var i in boxedPieces)
         {
           var piece = boxedPieces[i];
           if(piece.type == pieceType) {
             boxedPieces.splice(i, 1);
-            console.log("finished takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
+            //console.log("finished takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
             return;
           }
         }
-        console.log("failed takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
+        //console.log("failed takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
       }
 
       //@pieces: pieces on board
       //@boxedPieces: pieces outside of the board, in the so-called box
       function putPieceIntoBox(piece, pieces, boxedPieces) {
-        console.log("putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+        //console.log("putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
         if(piece.index == null) { //source of movement isn't the box
           var newIndex = boxedPieces.length;
           var boxedPiece = {
@@ -127,12 +127,12 @@
             var somePiece = pieces[i];
             if((piece.col == somePiece.col) &&(piece.row == somePiece.row)) {
               pieces.splice(i, 1);
-              console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+              //console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
               return;
             }
           }
         } else { //the piece was moved from the box
-          console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - did nothing");
+          //console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - did nothing");
         }
       }
 
@@ -159,10 +159,10 @@
         if((0 <= col) && (1 >= col) && (0 <= row) && (4 >= row)) {
           var index = 2*row+col;
 
-          console.log("getIndexInBox returns "+index);
+          //console.log("getIndexInBox returns "+index);
           return index;
         }
-        console.log("getIndexInBox: out of box");
+        //console.log("getIndexInBox: out of box");
         return null;
       }
 
@@ -199,17 +199,17 @@
 
       //updates selected piece and dragged piece when the mouse button is pressed on a piece
       function mouseDownOnPiece(piecePressed, params) {
-        console.log("mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
+        //console.log("mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
         if(piecePressed) {
-          console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
-          console.log("action.js: the previously selected piece is unselected");
+          //console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
+          //console.log("action.js: the previously selected piece is unselected");
           params.selectedPiece = null;
 
-          console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
+          //console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
           params.draggedPiece = piecePressed;
-          console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
+          //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
         } else {
-          console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+"), nothing done");
+          //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+"), nothing done");
         }
       }
 
@@ -230,55 +230,55 @@
           //test whether there is a piece or not
           if (newLeftMouseDown)
           {
-            console.log(">>>>>>>>>> action.js: newLeftMouseDown, "+paramsToString(this.params));
+            //console.log(">>>>>>>>>> action.js: newLeftMouseDown, "+paramsToString(this.params));
 
             //set mouse button flag
             this.params.leftMouseDown = true;
 
             //check whether the click happened on the board or not
             if(!isOnBoard(boardCoordinates)){
-              console.log("clicked outside of board");
+              //console.log("clicked outside of board");
               var boxIndex = getIndexInBox([that.params.mouse.position.x, that.params.mouse.position.y], this.params.constants);
               //check whether the click happened in the box or not
               if(boxIndex !== null) {
-                console.log("clicked in box");
+                //console.log("clicked in box");
                 //clicked in box
                 var boxedPiece = this.params.boxedPieces[boxIndex];
                 var pieceType = null;
                 if(boxedPiece) {
                   pieceType = boxedPiece.type;
-                  console.log("clicked in box at position "+boxIndex+" on piece of type \""+pieceType+"\"");
+                  //console.log("clicked in box at position "+boxIndex+" on piece of type \""+pieceType+"\"");
                   mouseDownOnPiece(boxedPiece, this.params);
                 } else if (this.params.selectedPiece != null) {
-                  console.log("clicked in box at position "+boxIndex+" on no piece, will try to put selected piece "+pieceToString(this.params.selectedPiece));
+                  //console.log("clicked in box at position "+boxIndex+" on no piece, will try to put selected piece "+pieceToString(this.params.selectedPiece));
                   putPieceIntoBox(this.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
                 } else {
-                  console.log("clicked in box at position "+boxIndex+" on no piece, nothing to be done");
+                  //console.log("clicked in box at position "+boxIndex+" on no piece, nothing to be done");
                 }
-                console.log("<<<<<<<<<< finished click in box, "+paramsToString(this.params));
+                //console.log("<<<<<<<<<< finished click in box, "+paramsToString(this.params));
               } // else clicked outsite of the box, out of the board: nothing to be done
             } else { //clicked on board
               //let's select the square that has been clicked on
-              console.log("clicked on board");
+              //console.log("clicked on board");
               selectSquare([clickedColumn, clickedRow]);
               var pieceClickedOn = findGridElement(boardCoordinates, this.params.pieces);
               mouseDownOnPiece(pieceClickedOn, this.params);
-              console.log("<<<<<<<<<<<< finished click on board, "+paramsToString(this.params));
+              //console.log("<<<<<<<<<<<< finished click on board, "+paramsToString(this.params));
             }
 
           } else if (newLeftMouseReleased) {
-            console.log(">>>>>>>>>>>>>> action.js: newLeftMouseReleased, "+paramsToString(this.params));
+            //console.log(">>>>>>>>>>>>>> action.js: newLeftMouseReleased, "+paramsToString(this.params));
             
             //reset mouse button flag
             this.params.leftMouseDown = false;
 
             if(!isOnBoard(boardCoordinates)){
               //put out of board: put piece in box
-              console.log("released outside of board");
+              //console.log("released outside of board");
               var boxIndex = getIndexInBox([that.params.mouse.position.x, that.params.mouse.position.y], this.params.constants);
               //check whether the click happened in the box or not
               if(boxIndex !== null) {
-                console.log("clicked in box");
+                //console.log("clicked in box");
                 //clicked in box
                 var boxedPiece = this.params.boxedPieces[boxIndex];
                 var pieceType = null;
@@ -286,71 +286,71 @@
                   this.params.selectedPiece = boxedPiece;
                   this.params.draggedPiece = null;
                 } else {
-                  console.log("action.js: put out of board: put piece in box");
+                  //console.log("action.js: put out of board: put piece in box");
                   if(this.params.selectedPiece) {
-                    console.log("action.js: this.params.selectedPiece");
+                    //console.log("action.js: this.params.selectedPiece");
                     putPieceIntoBox(that.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
                     this.params.draggedPiece = null;
                     this.params.selectedPiece = null;
                   } else if(this.params.draggedPiece) {
-                    console.log("action.js: this.params.draggedPiece");
+                    //console.log("action.js: this.params.draggedPiece");
                     putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
                     this.params.draggedPiece = null;
                     this.params.selectedPiece = null;
                   } else {
-                    console.log("action.js: nothing to put in box");
+                    //console.log("action.js: nothing to put in box");
                   }
                 }
               } else {
-                console.log("released outside of board, outside of box");
+                //console.log("released outside of board, outside of box");
                 putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
                 this.params.draggedPiece = null;
                 this.params.selectedPiece = null;
               }
             } else {
               //put on board: check if square is empty, then move piece
-              console.log("action.js: put on board: check if square is empty, then move piece");
+              //console.log("action.js: put on board: check if square is empty, then move piece");
 
               //let's select the square that has been clicked on
               //selectSquare([clickedColumn, clickedRow]);
 
               //test whether there is a piece or not
-              console.log("1");
+              //console.log("1");
               var pieceReleasedOn = findGridElement(boardCoordinates, this.params.pieces);
-              console.log("2");
+              //console.log("2");
               if (pieceReleasedOn) {
-                console.log("action.js: released on piece of type \""+pieceReleasedOn.type+"\"");
-                console.log("action.js: drag and drop fails: undrag piece");
+                //console.log("action.js: released on piece of type \""+pieceReleasedOn.type+"\"");
+                //console.log("action.js: drag and drop fails: undrag piece");
                 
                 if(this.params.draggedPiece &&  (this.params.draggedPiece.col == boardCoordinates[0]) && (this.params.draggedPiece.row == boardCoordinates[1])) {
-                  console.log("released on same piece, select");
+                  //console.log("released on same piece, select");
                   this.params.selectedPiece = pieceReleasedOn;
                 }
                 else if(!this.params.draggedPiece && !this.params.selectedPiece) {
-                  console.log("released on piece, was neither selected nor dragged, select");
+                  //console.log("released on piece, was neither selected nor dragged, select");
                   this.params.selectedPiece = pieceReleasedOn;
                 } else {
-                  console.log("default, unselect");
+                  //console.log("default, unselect");
                   this.params.selectedPiece = null;
                 }
                 this.params.draggedPiece = null;
 
-               console.log("<<<<<<<<<<< finished released on piece, "+paramsToString(this.params)); 
+               //console.log("<<<<<<<<<<< finished released on piece, "+paramsToString(this.params)); 
               } else {
-                console.log("released on free square");
+                //console.log("released on free square");
                 if(this.params.selectedPiece) {
-                  console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
+                  //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
                   movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
                   this.params.selectedPiece = null;
-                  console.log("<<<<<<<<<<< selected, "+paramsToString(this.params)); 
+                  //console.log("<<<<<<<<<<< selected, "+paramsToString(this.params)); 
                 } else if (this.params.draggedPiece) {
-                  console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
+                  //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
                   movePieceTo(this.params.draggedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
                   this.params.draggedPiece = null;
                   this.params.selectedPiece = null;
-                  console.log("<<<<<<<<<<< dragged, "+paramsToString(this.params)); 
+                  //console.log("<<<<<<<<<<< dragged, "+paramsToString(this.params)); 
                 } else {
-                  console.log("<<<<<<<<<<< neither selected nor dragged, "+paramsToString(this.params)); 
+                  //console.log("<<<<<<<<<<< neither selected nor dragged, "+paramsToString(this.params)); 
                 }
               }
             }
