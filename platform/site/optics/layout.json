@@ -88,7 +88,7 @@
           "params": {
             "graphics": "@service:graphics",
             "type" : "$piece.type",
-            "index" : "$piece.index",
+            "index" : "$pieceIndex",
             "constants": "@model:constants"
           }
         }

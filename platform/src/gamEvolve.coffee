@@ -105,6 +105,7 @@ GE.getParentAndKey = (parent, pathParts) ->
   return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
 
 # Compare new object and old object to create list of patches.
+# The top-level oldValue must be an object
 # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
 # TODO: handle arrays
 # TODO: handle escape syntax
@@ -117,6 +118,9 @@ GE.makePatches = (oldValue, newValue, prefix = "", patches = []) ->
     patches.push { remove: prefix }
   else if not _.isObject(newValue) or not _.isObject(oldValue) or typeof(oldValue) != typeof(newValue)
     patches.push { replace: prefix, value: GE.cloneData(newValue) }
+  else if _.isArray(oldValue) and oldValue.length != newValue.length
+    # In the case that we modified an array, we need to replace the whole thing  
+    patches.push { replace: prefix, value: GE.cloneData(newValue) }
   else 
     # both elements are objects or arrays
     keys = _.union _.keys(oldValue), _.keys(newValue)
@@ -125,6 +129,7 @@ GE.makePatches = (oldValue, newValue, prefix = "", patches = []) ->
   return patches
 
 # Takes an oldValue and list of patches and creates a new value
+# The top-level oldValue must be an object
 # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
 # TODO: handle arrays
 # TODO: handle escape syntax
@@ -215,9 +220,15 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
       # Evaluate values of the "from" clauses
       # TODO: in the case of models, get reference to model rather than evaluate the data here
       bindingValues = GE.compileParameter(bindingExpression, constants, oldBindings).get()
+      # If bindingValues is empty, drop out 
+      if bindingValues.length == 0 then return []
+
+      index = 0
       for bindingIndex in [0..bindingValues.length - 1]
         # Avoid polluting old object, and avoid creating new properties
         newBindings = Object.create(oldBindings)
+        newBindings["#{bindingName}Index"] = index
+        index++
         if _.isString(bindingExpression)
           # WRONG: Works for models, but maybe not for other things
           newBindings[bindingName] = "#{bindingExpression}.#{bindingIndex}"
@@ -475,6 +486,9 @@ GE.deepFreeze = (o) ->
     if _.isObject(prop) and not Object.isFrozen(prop) then GE.deepFreeze(prop)
 
   return o
+
+# Adds value to the given object, associating it with an unique (and meaningless) key
+GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value
 
 # Install the GE namespace in the global scope
 globals.GE = GE
