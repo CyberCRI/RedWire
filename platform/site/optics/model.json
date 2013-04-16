@@ -65,6 +65,11 @@
     "minimumAttenuation": 0.1,
     "rotationAmount": 1,
     "playableBoardOffset": [30, 30],
-    "playableBoardSize": [745, 480]
+    "playableBoardSize": [745, 480],
+    "boxLeft": 837,
+    "boxRight": 935,
+    "boxTop": 284,
+    "boxBottom": 514,
+    "boxCellSize": [49, 46]
   }
 }
