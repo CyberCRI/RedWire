@@ -607,10 +607,16 @@
               var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
               var oldLightDirection = Vector.create(lightDirection);
               lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;
-
+ 
               lightDirectionUpdated();
             }
           }
+        }
+        else if(element.type == "squarePrism")
+        {
+          alert("You Win !!!\nStart Again?");
+          currentFrame = 0;
+          currentModel = currentModel.atVersion(0);
         }
       }
 
