@@ -164,6 +164,15 @@
     }
   ],
   "constants": {
+    "unmovablePieces": [
+      "wall",
+      "laser-on",
+      "squarePrism"
+    ],
+    "unrotatablePieces": [
+      "squarePrism",
+      "wall"
+    ],
     "toSquareCenterOffset": 30,
     "upperLeftBoardMargin": 33,
     "pieceAssetCentering": 26,
