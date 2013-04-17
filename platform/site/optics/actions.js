@@ -251,7 +251,10 @@
                   mouseDownOnPiece(boxedPiece, this.params);
                 } else if (this.params.selectedPiece != null) {
                   //console.log("clicked in box at position "+boxIndex+" on no piece, will try to put selected piece "+pieceToString(this.params.selectedPiece));
-                  putPieceIntoBox(this.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
+
+                  //uncomment this line to enable move by simple clic
+                  //putPieceIntoBox(this.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
+                  this.params.selectedPiece = null;
                 } else {
                   //console.log("clicked in box at position "+boxIndex+" on no piece, nothing to be done");
                 }
@@ -283,15 +286,17 @@
                 var boxedPiece = this.params.boxedPieces[boxIndex];
                 var pieceType = null;
                 if(boxedPiece) { //there was a piece
-                  this.params.selectedPiece = boxedPiece;
+                  //uncomment this line to enable move by simple clic
+                  //this.params.selectedPiece = boxedPiece;
                   this.params.draggedPiece = null;
                 } else {
                   //console.log("action.js: put out of board: put piece in box");
                   if(this.params.selectedPiece) {
                     //console.log("action.js: this.params.selectedPiece");
-                    putPieceIntoBox(that.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
-                    this.params.draggedPiece = null;
-                    this.params.selectedPiece = null;
+                    //uncomment this line to enable move by simple clic
+                    //putPieceIntoBox(that.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
+                    //this.params.draggedPiece = null;
+                    //this.params.selectedPiece = null;
                   } else if(this.params.draggedPiece) {
                     //console.log("action.js: this.params.draggedPiece");
                     putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
@@ -340,7 +345,8 @@
                 //console.log("released on free square");
                 if(this.params.selectedPiece) {
                   //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
-                  movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
+                  //uncomment this line to enable move by simple clic
+                  //movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
                   this.params.selectedPiece = null;
                   //console.log("<<<<<<<<<<< selected, "+paramsToString(this.params)); 
                 } else if (this.params.draggedPiece) {
