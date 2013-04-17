@@ -32,6 +32,35 @@
         });
       }
 
+      if(this.params.selectedPiece && this.params.mouse.position){
+        //angle between axis Ox and axis Om where m is mouse position, O is piece center, and Ox is colinear to x-Axis
+        var objectPosition = {};
+        objectPosition.x = (this.params.selectedPiece.col + 0.5)*(this.params.constants.cellSize-1) + this.params.constants.upperLeftBoardMargin;
+        objectPosition.y = (this.params.selectedPiece.row + 0.5)*(this.params.constants.cellSize-1) + this.params.constants.upperLeftBoardMargin;
+        var hxPosition = this.params.mouse.position.x - objectPosition.x;
+        var hyPosition = this.params.mouse.position.y - objectPosition.y;
+        var omDistance = Math.sqrt(hxPosition*hxPosition + hyPosition*hyPosition);
+        var ohxDistance = hxPosition;
+        var ratio = ohxDistance/omDistance;
+        var angle = 0;
+        if(omDistance != 0) {
+          var absValueAngle = Math.acos(ratio)*180/Math.PI;;
+          if(hyPosition <= 0) {
+            angle = 90-absValueAngle;
+          } else {
+            angle = 90+absValueAngle;
+          }
+        }
+        //console.log("objectPos="+xyCoordinatesToString(objectPosition)
+        //  +", mousePos="+xyCoordinatesToString(this.params.mouse.position)
+        //  +", omDist="+omDistance
+        //  +", ohxDist="+ohxDistance
+        //  +", ratio="+ratio
+        //  +", angle="+angle);
+        var piece = findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
+        piece.rotation = angle;
+      }
+
       //converts a pixel coordinate to a board coordinate
       //assumes that the board is made out of squares
       function toBoardCoordinate(pixelCoordinate)
@@ -169,6 +198,11 @@
       //2D coordinates
       function coordinatesToString(coordinates) {
         return "["+coordinates[0]+", "+coordinates[1]+"]";
+      }
+
+      //2D coordinates
+      function xyCoordinatesToString(coordinates) {
+        return "["+coordinates.x+", "+coordinates.y+"]";
       }
 
       function pieceToString(piece) {
