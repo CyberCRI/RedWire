@@ -346,8 +346,9 @@
                 } else if (this.params.draggedPiece) {
                   //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
                   movePieceTo(this.params.draggedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
+                  this.params.selectedPiece = this.params.draggedPiece;
+                  selectSquare([clickedColumn, clickedRow]);
                   this.params.draggedPiece = null;
-                  this.params.selectedPiece = null;
                   //console.log("<<<<<<<<<<< dragged, "+paramsToString(this.params)); 
                 } else {
                   //console.log("<<<<<<<<<<< neither selected nor dragged, "+paramsToString(this.params)); 
