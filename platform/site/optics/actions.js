@@ -57,6 +57,11 @@
         return null;
       }
 
+      function isMovable(piece)
+      {
+        return (piece && that.params.constants.unmovablePieces.indexOf(piece.type) == -1)
+      }
+
       //moves a piece from the board or the box to a square on the board
       //@piece: if on board has attributes "type", "col", "row" and "rotation"; if in box: has attributes "type" and "index"
       //@pieces: pieces on board
@@ -64,33 +69,37 @@
       //which is determined by examining the attributes of "piece"
       function movePieceTo(piece, newSquare, pieces, boxedPieces)
       {
-        //console.log("movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
-        if (piece && isOnBoard(newSquare)) { //defensive code
-          //console.log("movePieceTo: correct arguments");
-          if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
-            //console.log("movePieceTo: piece was on board");
-            var movedPiece = findGridElement([piece.col, piece.row], pieces);
-            movedPiece.col = newSquare[0];
-            movedPiece.row = newSquare[1];
-          } else { //the piece was in the box, let's put it on the board
-            //remove the piece from the "boxedPieces"
-            //console.log("movePieceTo: piece was in box");
-            takePieceOutOfBox(piece.type, boxedPieces);
+        if(isMovable(piece)) {
+          //console.log("movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - piece is movable");
+          if (isOnBoard(newSquare)) { //defensive code
+            //console.log("movePieceTo: correct arguments");
+            if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
+              //console.log("movePieceTo: piece was on board");
+              var movedPiece = findGridElement([piece.col, piece.row], pieces);
+              movedPiece.col = newSquare[0];
+              movedPiece.row = newSquare[1];
+            } else { //the piece was in the box, let's put it on the board
+              //remove the piece from the "boxedPieces"
+              //console.log("movePieceTo: piece was in box");
+              takePieceOutOfBox(piece.type, boxedPieces);
 
-            //add it to the "pieces" with the appropriate coordinates
-            var insertedPiece = {
-              "col": newSquare[0],
-              "row": newSquare[1],
-              "type": piece.type,
-              "rotation": 0
-            };
-            pieces.push(insertedPiece);
+              //add it to the "pieces" with the appropriate coordinates
+              var insertedPiece = {
+                "col": newSquare[0],
+                "row": newSquare[1],
+                "type": piece.type,
+                "rotation": 0
+              };
+              pieces.push(insertedPiece);
+            }
+          } else {
+            //console.log("movePieceTo: put outside of board, put piece in box");
+            putPieceIntoBox(piece, pieces, boxedPieces);
           }
+          //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
         } else {
-          //console.log("movePieceTo: put outside of board, put piece in box");
-          putPieceIntoBox(piece, pieces, boxedPieces);
+          //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - piece is not movable");
         }
-        //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
       }
 
       //removes a piece form the boxed pieces and rearranges the remaining pieces
@@ -206,7 +215,9 @@
           params.selectedPiece = null;
 
           //console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
-          params.draggedPiece = piecePressed;
+          if(isMovable(piecePressed)) {
+            params.draggedPiece = piecePressed;
+          }
           //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
         } else {
           //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+"), nothing done");
@@ -857,8 +868,13 @@
         return null;
       }
 
+      function isRotatable(piece)
+      {
+        return (piece && that.params.constants.unrotatablePieces.indexOf(piece.type) == -1)
+      }
+
       var selectedPiece = findGridElement([this.params.selected.col, this.params.selected.row]);
-      if(!selectedPiece) return; // nothing selected, so can't rotate
+      if(!selectedPiece || !isRotatable(selectedPiece)) return; // nothing selected, so can't rotate
 
 
       var keysDown = this.params.keyboard.keysDown; // alias
