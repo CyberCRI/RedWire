@@ -130,9 +130,13 @@ registerService 'Canvas', (options = {}) ->
         ctx.drawImage(assets[shape.asset], shape.position[0], shape.position[1])
       when 'text'
         text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
-        ctx.strokeStyle = interpretStyle(shape.style, ctx)
         ctx.font = shape.font
-        ctx.strokeText(text, shape.position[0], shape.position[1])
+        if shape.fillStyle
+          ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
+          ctx.fillText(text, shape.position[0], shape.position[1])
+        if shape.strokeStyle
+          ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
+          ctx.strokeText(text, shape.position[0], shape.position[1])
       when 'path'
         ctx.beginPath();
         ctx.moveTo(shape.points[0][0], shape.points[0][1])

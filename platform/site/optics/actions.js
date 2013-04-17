@@ -407,7 +407,8 @@
         type: "text",
         layer: "text",
         text: this.params.text,
-        style: this.params.style,
+        strokeStyle: this.params.style,
+        fillStyle: this.params.style,
         font: this.params.font,
         position: [this.params.x, this.params.y]
       });
@@ -860,6 +861,35 @@
       } else if(keysDown[39]) { // right
         selectedPiece.rotation += this.params.constants.rotationAmount;
       }
+    }
+  },
+
+  switchOnItemInList: {
+    paramDefs: {
+      "list": [],
+      "item": null
+    },
+    listActiveChildren: function() {
+      if(this.params.list.length != this.children.length) throw new Error("The list must match the number of child nodes");
+
+      var index = this.params.list.indexOf(this.params.item);
+      if(index == -1) throw new Error("The item cannot be found in the list");
+
+      // Activate only the corresponding child at the same position as item in the list
+      return [this.children[index]];
+    }
+  },
+
+  activateWhenEqual: {
+    paramDefs: {
+      "a": null,
+      "b": null
+    },
+    listActiveChildren: function() {
+      // when equal, activate all children
+      // else none
+      if(this.params.a === this.params.b) return this.children;
+      else return [];
     }
   }
 });

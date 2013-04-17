@@ -1,132 +1,187 @@
 {
-  "action": "group",
+  "action": "switchOnItemInList",
+  "params": {
+    "item": "@model:state",
+    "list": ["starting", "playing", "won"]
+  },
   "children": [
     {
-      "action": "incrementNumber",
-      "params": {
-        "number": "@model:score"
-      }
+      "action": "group",
+      "children": [
+        {
+          "action": "incrementNumber",
+          "params": {
+            "number": "@model:timer"
+          }
+        },
+        {
+          "action": "drawText",
+          "params": {
+            "graphics": "@service:graphics",
+            "text": "Starting...",
+            "x": 50,
+            "y": 50,
+            "style": "black",
+            "font": "30px Arial"
+          }
+        },
+        {
+          "action": "activateWhenEqual",
+          "params": {
+            "a": "@model:timer",
+            "b": "@model:constants.startingTime"
+          },
+          "children": [
+            {
+              "setModel": {
+                "state": "playing"
+              }
+            }
+          ]
+        }
+      ]
     },
-    { 
-      "action": "drawImage",
-      "params": {
-        "graphics": "@service:graphics",
-        "image": "background",
-        "layer": "bg"
-      }
+    {
+      "action": "group",
+      "children": [
+        {
+          "action": "incrementNumber",
+          "params": {
+            "number": "@model:score"
+          }
+        },
+        { 
+          "action": "drawImage",
+          "params": {
+            "graphics": "@service:graphics",
+            "image": "background",
+            "layer": "bg"
+          }
+        },
+        {
+          "action": "drawText",
+          "params": {
+            "graphics": "@service:graphics",
+            "text": "@model:score",
+            "x": 2,
+            "y": 20,
+            "style": "white",
+            "font": "20px Arial"
+          }
+        },
+        {
+          "action": "drawText",
+          "params": {
+            "graphics": "@service:graphics",
+            "text": "@service:keyboard.keysDown",
+            "x": 50,
+            "y": 20,
+            "style": "white",
+            "font": "20px Arial"
+          }
+        },
+        {
+          "action": "drawText",
+          "params": {
+            "graphics": "@service:graphics",
+            "text": "@service:mouse",
+            "x": 2,
+            "y": 40,
+            "style": "white",
+            "font": "20px Arial"
+          }
+        },
+        {
+          "action": "drawLight",
+          "params": {
+            "graphics": "@service:graphics",
+            "pieces": "@model:pieces",
+            "constants": "@model:constants"
+          }
+        },
+        {
+          "bind": {
+            "from": {
+              "piece": "@model:pieces"
+            }
+          },
+          "children": [
+            {
+              "action": "drawPiece",
+              "params": {
+                "graphics": "@service:graphics",
+                "type" : "$piece.type",
+                "row" : "$piece.row",
+                "col" : "$piece.col",
+                "rotation": "$piece.rotation",
+                "constants": "@model:constants"
+              }
+            }
+          ]
+        },
+        {
+          "bind": {
+            "from": {
+              "piece": "@model:boxedPieces"
+            }
+          },
+          "children": [
+            {
+              "action": "drawBoxedPiece",
+              "params": {
+                "graphics": "@service:graphics",
+                "type" : "$piece.type",
+                "index" : "$pieceIndex",
+                "constants": "@model:constants"
+              }
+            }
+          ]
+        },
+        {
+          "action": "drawSelected",
+          "params": {
+            "graphics": "@service:graphics",
+            "row": "@model:selected.row",
+            "col": "@model:selected.col",
+            "constants": "@model:constants"
+          }
+        },
+        {
+          "action": "clickListener",
+          "params": {
+            "graphics": "@service:graphics",
+            "selected": "@model:selected",
+            "selectedPiece": "@model:selectedPiece",
+            "draggedPiece": "@model:draggedPiece",
+            "pieces": "@model:pieces",
+            "boxedPieces": "@model:boxedPieces",
+            "mouse": "@service:mouse",
+            "leftMouseDown": "@model:leftMouseDown",
+            "constants": "@model:constants"
+          }
+        },
+        {
+          "action": "rotateSelectedPiece",
+          "params": {
+            "selected": "@model:selected",
+            "pieces": "@model:pieces",
+            "keyboard": "@service:keyboard",
+            "constants": "@model:constants"
+          }
+        }
+      ]
     },
     {
       "action": "drawText",
       "params": {
         "graphics": "@service:graphics",
-        "text": "@model:score",
-        "x": 2,
-        "y": 20,
-        "style": "white",
-        "font": "20px Arial"
-      }
-    },
-    {
-      "action": "drawText",
-      "params": {
-        "graphics": "@service:graphics",
-        "text": "@service:keyboard.keysDown",
+        "text": "Done!",
         "x": 50,
-        "y": 20,
-        "style": "white",
-        "font": "20px Arial"
-      }
-    },
-    {
-      "action": "drawText",
-      "params": {
-        "graphics": "@service:graphics",
-        "text": "@service:mouse",
-        "x": 2,
-        "y": 40,
-        "style": "white",
-        "font": "20px Arial"
-      }
-    },
-    {
-      "action": "drawLight",
-      "params": {
-        "graphics": "@service:graphics",
-        "pieces": "@model:pieces",
-        "constants": "@model:constants"
-      }
-    },
-    {
-      "bind": {
-        "from": {
-          "piece": "@model:pieces"
-        }
-      },
-      "children": [
-        {
-          "action": "drawPiece",
-          "params": {
-            "graphics": "@service:graphics",
-            "type" : "$piece.type",
-            "row" : "$piece.row",
-            "col" : "$piece.col",
-            "rotation": "$piece.rotation",
-            "constants": "@model:constants"
-          }
-        }
-      ]
-    },
-    {
-      "bind": {
-        "from": {
-          "piece": "@model:boxedPieces"
-        }
-      },
-      "children": [
-        {
-          "action": "drawBoxedPiece",
-          "params": {
-            "graphics": "@service:graphics",
-            "type" : "$piece.type",
-            "index" : "$pieceIndex",
-            "constants": "@model:constants"
-          }
-        }
-      ]
-    },
-    {
-      "action": "drawSelected",
-      "params": {
-        "graphics": "@service:graphics",
-        "row": "@model:selected.row",
-        "col": "@model:selected.col",
-        "constants": "@model:constants"
-      }
-    },
-    {
-      "action": "clickListener",
-      "params": {
-        "graphics": "@service:graphics",
-        "selected": "@model:selected",
-        "selectedPiece": "@model:selectedPiece",
-        "draggedPiece": "@model:draggedPiece",
-        "pieces": "@model:pieces",
-        "boxedPieces": "@model:boxedPieces",
-        "mouse": "@service:mouse",
-        "leftMouseDown": "@model:leftMouseDown",
-        "constants": "@model:constants"
-      }
-    },
-    {
-      "action": "rotateSelectedPiece",
-      "params": {
-        "selected": "@model:selected",
-        "pieces": "@model:pieces",
-        "keyboard": "@service:keyboard",
-        "constants": "@model:constants"
+        "y": 50,
+        "style": "black",
+        "font": "30px Arial"
       }
     }
   ]
-
 }
   

@@ -55,7 +55,10 @@
       "index": 3
     }
   ],
+  "state": "starting",
+  "timer": 0,
   "constants": {
+    "startingTime": 60,
     "toSquareCenterOffset": 30,
     "upperLeftBoardMargin": 33,
     "pieceAssetCentering": 26,
