@@ -70,7 +70,12 @@
       if(keysDown[38]) { // ?
         console.log("this.params.rotating = "+this.params.rotating);
         console.log("this.params.rotating = !this.params.rotating;");
-        this.params.rotating = !this.params.rotating;
+        this.params.rotating = true;
+        console.log("this.params.rotating = "+this.params.rotating);
+      } else if(keysDown[40]) { // ?
+        console.log("this.params.rotating = "+this.params.rotating);
+        console.log("this.params.rotating = !this.params.rotating;");
+        this.params.rotating = false;
         console.log("this.params.rotating = "+this.params.rotating);
       }
 
@@ -81,6 +86,11 @@
         var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
         //console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with upperLeftBoardMargin="+that.params.constants.upperLeftBoardMargin+", pieceAssetCentering="+that.params.constants.pieceAssetCentering+", cellSize="+that.params.constants.cellSize);
         return res;
+      }
+
+      function toPixelCoordinate(boardCoordinate)
+      {
+        return (boardCoordinate + 0.5)*(that.params.constants.cellSize-1) + that.params.constants.upperLeftBoardMargin;
       }
 
       //copied from drawLight
@@ -267,6 +277,20 @@
         return ((positionOnBoard[0] <= 13) && (positionOnBoard[0] >= 0) && (positionOnBoard[1] <= 8) && (positionOnBoard[1] >= 0));
       }
 
+      function distance(point1, point2) {
+        var point1x = point1[0] || point1.x;
+        var point1y = point1[1] || point1.y;
+        var point2x = point2[0] || point2.x;
+        var point2y = point2[1] || point2.y;
+        var diffX = point1x - point2x;
+        var diffY = point1y - point2y;
+        return Math.sqrt(diffX*diffX + diffY*diffY);        
+      }
+
+      function areSamePiece(piece1, piece2) {
+        return ((piece1.col == piece2.col) && (piece1.row == piece2.row))
+      }
+
       if(newLeftMouseDown || newLeftMouseReleased) {
         if(that.params.mouse.position)
         {
@@ -313,8 +337,28 @@
               //let's select the square that has been clicked on
               //console.log("clicked on board");
               selectSquare([clickedColumn, clickedRow]);
+
               var pieceClickedOn = findGridElement(boardCoordinates, this.params.pieces);
-              mouseDownOnPiece(pieceClickedOn, this.params);
+              //check whether tries to rotate piece
+
+              if(this.params.selectedPiece) {
+                //var selectedPiecePosition = {};
+                //selectedPiecePosition.x = toPixelCoordinate(this.params.selectedPiece.x);
+                //selectedPiecePosition.y = toPixelCoordinate(this.params.selectedPiece.y);
+                //console.log("clicked close: selectedPiecePosition="+xyCoordinatesToString(selectedPiecePosition)+", this.params.mouse.position="+xyCoordinatesToString(this.params.mouse.position));
+                //if(distance(this.params.mouse.position, selectedPiecePosition) < this.params.constants.cellSize/2) {
+                //  console.log("close enough!");
+                //}
+                //if(areSamePiece(this.params.selectedPiece, pieceClickedOn) || (distance(this.params.mouse.position, selectedPiecePosition) < this.params.constants.cellSize/2)) {
+                if(areSamePiece(this.params.selectedPiece, pieceClickedOn)) {
+                  this.params.rotating = true;
+                } else {
+                  mouseDownOnPiece(pieceClickedOn, this.params);
+                }
+              } else {
+                mouseDownOnPiece(pieceClickedOn, this.params);
+              }
+
               //console.log("<<<<<<<<<<<< finished click on board, "+paramsToString(this.params));
             }
 
@@ -501,7 +545,7 @@
         rotation: this.params.rotation // In degrees 
       });
 
-      if(this.params.selectedPiece && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
+      if(this.params.selectedPiece && this.params.selectedPiece.col && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
         var assetImage = "can-rotate";
         if(this.params.rotating){
           assetImage = "is-rotating";
