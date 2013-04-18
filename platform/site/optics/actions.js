@@ -502,20 +502,21 @@
       });
 
       if(this.params.selectedPiece && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
-        var assetImage = "laser-on";
+        var assetImage = "can-rotate";
         if(this.params.rotating){
-          assetImage = "squarePrism";
+          assetImage = "is-rotating";
         }
-      GE.addUnique(this.params.graphics.shapes, {
-        type: "image",
-        layer: "rotating",
-        asset: assetImage,
-        scale: 2,
-        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
-        translation: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
-          this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
-        rotation: this.params.rotation // In degrees 
-      });
+        var scaleFactor = 1.5;
+        GE.addUnique(this.params.graphics.shapes, {
+          type: "image",
+          layer: "rotating",
+          asset: assetImage,
+          scale: scaleFactor,
+          position: [-this.params.constants.pieceAssetCentering*1.5/scaleFactor, -this.params.constants.pieceAssetCentering*1.5/scaleFactor],
+          translation: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
+            this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
+          rotation: this.params.rotation // In degrees 
+        });
 
       }
     }
