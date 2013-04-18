@@ -288,7 +288,7 @@
       }
 
       function areSamePiece(piece1, piece2) {
-        return ((piece1.col == piece2.col) && (piece1.row == piece2.row))
+        return (piece1 && piece2 && (piece1.col == piece2.col) && (piece1.row == piece2.row))
       }
 
       if(newLeftMouseDown || newLeftMouseReleased) {
@@ -336,27 +336,24 @@
             } else { //clicked on board
               //let's select the square that has been clicked on
               //console.log("clicked on board");
-              selectSquare([clickedColumn, clickedRow]);
 
               var pieceClickedOn = findGridElement(boardCoordinates, this.params.pieces);
               //check whether tries to rotate piece
 
               if(this.params.selectedPiece) {
-                //var selectedPiecePosition = {};
-                //selectedPiecePosition.x = toPixelCoordinate(this.params.selectedPiece.x);
-                //selectedPiecePosition.y = toPixelCoordinate(this.params.selectedPiece.y);
+                var selectedPiecePosition = {};
+                selectedPiecePosition.x = toPixelCoordinate(this.params.selectedPiece.col);
+                selectedPiecePosition.y = toPixelCoordinate(this.params.selectedPiece.row);
                 //console.log("clicked close: selectedPiecePosition="+xyCoordinatesToString(selectedPiecePosition)+", this.params.mouse.position="+xyCoordinatesToString(this.params.mouse.position));
-                //if(distance(this.params.mouse.position, selectedPiecePosition) < this.params.constants.cellSize/2) {
-                //  console.log("close enough!");
-                //}
-                //if(areSamePiece(this.params.selectedPiece, pieceClickedOn) || (distance(this.params.mouse.position, selectedPiecePosition) < this.params.constants.cellSize/2)) {
-                if(areSamePiece(this.params.selectedPiece, pieceClickedOn)) {
+                if(areSamePiece(this.params.selectedPiece, pieceClickedOn) || (distance(this.params.mouse.position, selectedPiecePosition) < this.params.constants.cellSize)) {
                   this.params.rotating = true;
                 } else {
                   mouseDownOnPiece(pieceClickedOn, this.params);
+                  selectSquare([clickedColumn, clickedRow]);
                 }
               } else {
                 mouseDownOnPiece(pieceClickedOn, this.params);
+                selectSquare([clickedColumn, clickedRow]);
               }
 
               //console.log("<<<<<<<<<<<< finished click on board, "+paramsToString(this.params));
@@ -440,11 +437,15 @@
               } else {
                 //console.log("released on free square");
                 if(this.params.selectedPiece) {
-                  //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
-                  //uncomment this line to enable move by simple clic
-                  //movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
-                  this.params.selectedPiece = null;
-                  this.params.rotating = false;
+                  if(this.params.rotating) {
+                    this.params.rotating = false;
+                  } else {
+                    //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
+                    //uncomment this line to enable move by simple clic
+                    //movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
+                    this.params.selectedPiece = null;
+                    this.params.rotating = false;
+                  }
                   //console.log("<<<<<<<<<<< selected, "+paramsToString(this.params)); 
                 } else if (this.params.draggedPiece) {
                   //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
