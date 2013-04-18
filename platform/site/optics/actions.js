@@ -22,6 +22,7 @@
       var that = this;
       var selected = this.params.selected;
 
+      //DRAGGING: GRAPHICS (DRAGGED PIECE DRAWING)
       if(this.params.draggedPiece && this.params.mouse.position){
         GE.addUnique(this.params.graphics.shapes, {
           type: "image",
@@ -34,6 +35,7 @@
         });
       }
 
+      //ROTATION: LOGIC (ANGLE COMPUTATION & SETTING)
       if(this.params.rotating && this.params.selectedPiece && this.params.mouse.position){
         //angle between axis Ox and axis Om where m is mouse position, O is piece center, and Ox is colinear to x-Axis
         var objectPosition = {};
@@ -63,7 +65,7 @@
         piece.rotation = angle;
       }
 
-
+      // ROTATION: LOGIC (flag update) (debug)
       var keysDown = this.params.keyboard.keysDown; // alias
       if(keysDown[38]) { // ?
         console.log("this.params.rotating = "+this.params.rotating);
@@ -249,6 +251,7 @@
           //console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
           //console.log("action.js: the previously selected piece is unselected");
           params.selectedPiece = null;
+          params.rotating = false;
 
           //console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
           params.draggedPiece = piecePressed;
@@ -300,6 +303,7 @@
                   //uncomment this line to enable move by simple clic
                   //putPieceIntoBox(this.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
                   this.params.selectedPiece = null;
+                  this.params.rotating = false;
                 } else {
                   //console.log("clicked in box at position "+boxIndex+" on no piece, nothing to be done");
                 }
@@ -347,6 +351,7 @@
                     putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
                     this.params.draggedPiece = null;
                     this.params.selectedPiece = null;
+                    this.params.rotating = false;
                   } else {
                     //console.log("action.js: nothing to put in box");
                   }
@@ -356,6 +361,7 @@
                 putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
                 this.params.draggedPiece = null;
                 this.params.selectedPiece = null;
+                this.params.rotating = false;
               }
             } else {
               //put on board: check if square is empty, then move piece
@@ -382,6 +388,7 @@
                 } else {
                   //console.log("default, unselect");
                   this.params.selectedPiece = null;
+                  this.params.rotating = false;
                 }
                 this.params.draggedPiece = null;
 
@@ -393,12 +400,14 @@
                   //uncomment this line to enable move by simple clic
                   //movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
                   this.params.selectedPiece = null;
+                  this.params.rotating = false;
                   //console.log("<<<<<<<<<<< selected, "+paramsToString(this.params)); 
                 } else if (this.params.draggedPiece) {
                   //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
                   movePieceTo(this.params.draggedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
                   this.params.draggedPiece = null;
                   this.params.selectedPiece = null;
+                  this.params.rotating = false;
                   //console.log("<<<<<<<<<<< dragged, "+paramsToString(this.params)); 
                 } else {
                   //console.log("<<<<<<<<<<< neither selected nor dragged, "+paramsToString(this.params)); 
@@ -476,7 +485,9 @@
       row: 0,
       col: 0,
       rotation: 0,
-      constants: null
+      constants: null,
+      rotating: false,
+      selectedPiece: null
     },
 
     update: function() {
@@ -489,6 +500,20 @@
           this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
         rotation: this.params.rotation // In degrees 
       });
+
+      if(this.params.selectedPiece && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
+      GE.addUnique(this.params.graphics.shapes, {
+        type: "image",
+        layer: "rotating",
+        asset: "laser-on",
+        scale: 2,
+        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
+        translation: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
+          this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
+        rotation: this.params.rotation // In degrees 
+      });
+
+      }
     }
   },
 

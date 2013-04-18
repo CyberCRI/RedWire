@@ -71,7 +71,9 @@
             "row" : "$piece.row",
             "col" : "$piece.col",
             "rotation": "$piece.rotation",
-            "constants": "@model:constants"
+            "constants": "@model:constants",
+            "rotating": "@model:rotating",
+            "selectedPiece": "@model:selectedPiece"
           }
         }
       ]
