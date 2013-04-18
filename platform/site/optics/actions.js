@@ -502,10 +502,14 @@
       });
 
       if(this.params.selectedPiece && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
+        var assetImage = "laser-on";
+        if(this.params.rotating){
+          assetImage = "squarePrism";
+        }
       GE.addUnique(this.params.graphics.shapes, {
         type: "image",
         layer: "rotating",
-        asset: "laser-on",
+        asset: assetImage,
         scale: 2,
         position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
         translation: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
