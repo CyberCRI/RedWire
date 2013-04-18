@@ -2,9 +2,11 @@
     clickListener: {
     paramDefs: {
       graphics: null,
+      keyboard: null,
       selected: null,
       selectedPiece: null,
       draggedPiece: null,
+      rotating: false,
       pieces: [],
       boxedPieces: [],
       mouse: null,
@@ -32,7 +34,7 @@
         });
       }
 
-      if(this.params.selectedPiece && this.params.mouse.position){
+      if(this.params.rotating && this.params.selectedPiece && this.params.mouse.position){
         //angle between axis Ox and axis Om where m is mouse position, O is piece center, and Ox is colinear to x-Axis
         var objectPosition = {};
         objectPosition.x = (this.params.selectedPiece.col + 0.5)*(this.params.constants.cellSize-1) + this.params.constants.upperLeftBoardMargin;
@@ -59,6 +61,15 @@
         //  +", angle="+angle);
         var piece = findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
         piece.rotation = angle;
+      }
+
+
+      var keysDown = this.params.keyboard.keysDown; // alias
+      if(keysDown[38]) { // ?
+        console.log("this.params.rotating = "+this.params.rotating);
+        console.log("this.params.rotating = !this.params.rotating;");
+        this.params.rotating = !this.params.rotating;
+        console.log("this.params.rotating = "+this.params.rotating);
       }
 
       //converts a pixel coordinate to a board coordinate
@@ -895,11 +906,11 @@
 
 
       var keysDown = this.params.keyboard.keysDown; // alias
-      if(keysDown[37]) { // left
-        selectedPiece.rotation -= this.params.constants.rotationAmount;
-      } else if(keysDown[39]) { // right
-        selectedPiece.rotation += this.params.constants.rotationAmount;
-      }
+      //if(keysDown[37]) { // left
+      //  selectedPiece.rotation -= this.params.constants.rotationAmount;
+      //} else if(keysDown[39]) { // right
+      //  selectedPiece.rotation += this.params.constants.rotationAmount;
+      //}
     }
   }
 });

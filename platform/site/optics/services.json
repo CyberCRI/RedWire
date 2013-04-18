@@ -8,7 +8,7 @@
   "graphics": {
     "type": "Canvas",
     "options": {
-      "layers": [ "bg", "pieces", "light", "mask", "drag", "selection", "text" ]
+      "layers": [ "bg", "pieces", "rotating", "light", "mask", "drag", "selection", "text" ]
     }
   }
 }

@@ -107,9 +107,11 @@
       "action": "clickListener",
       "params": {
         "graphics": "@service:graphics",
+        "keyboard": "@service:keyboard",
         "selected": "@model:selected",
         "selectedPiece": "@model:selectedPiece",
         "draggedPiece": "@model:draggedPiece",
+        "rotating": "@model:rotating",
         "pieces": "@model:pieces",
         "boxedPieces": "@model:boxedPieces",
         "mouse": "@service:mouse",

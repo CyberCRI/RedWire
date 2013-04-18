@@ -7,6 +7,7 @@
   "leftMouseDown": false,
   "selectedPiece": null,
   "draggedPiece": null,
+  "rotating" : false,
   "pieces": [
     { 
       "col": 7,
