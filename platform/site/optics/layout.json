@@ -1,19 +1,16 @@
 {
-  "action": "switchOnItemInList",
+  "action": "doInSequence",
   "params": {
-    "item": "@model:gameState",
-    "list": "@model:constants.gameStates"
+    "activeChild": "@model:topLevelActiveChild"
   },
   "children": [
     {
-      "action": "group",
+      "action": "doForSomeTime",
+      "params": {
+        "timer": "@model:timer",
+        "time": "@model:constants.startingTime"
+      },
       "children": [
-        {
-          "action": "incrementNumber",
-          "params": {
-            "number": "@model:timer"
-          }
-        },
         {
           "action": "drawText",
           "params": {
@@ -26,24 +23,21 @@
           }
         },
         {
-          "action": "activateWhenEqual",
-          "params": {
-            "a": "@model:timer",
-            "b": "@model:constants.startingTime"
-          },
-          "children": [
-            {
-              "setModel": {
-                "gameState": "playing"
-              }
-            }
-          ]
+          "setModel": {
+            "pieces": "@model:constants.level.pieces",
+            "boxedPieces": "@model:constants.level.boxedPieces",
+            "goalReached": false
+          }
         }
       ]
     },
     {
-      "action": "group",
-      "children": [
+      "action": "doWhile",
+      "params": {
+        "a": "@model:goalReached",
+        "b": false
+      },
+      "children": [ 
         {
           "action": "incrementNumber",
           "params": {
@@ -97,7 +91,7 @@
             "graphics": "@service:graphics",
             "pieces": "@model:pieces",
             "constants": "@model:constants",
-            "gameState": "@model:gameState"
+            "goalReached": "@model:goalReached"
           }
         },
         {
@@ -183,15 +177,24 @@
       ]
     },
     {
-      "action": "drawText",
+      "action": "doForSomeTime",
       "params": {
-        "graphics": "@service:graphics",
-        "text": "Done!",
-        "x": 50,
-        "y": 50,
-        "style": "black",
-        "font": "30px Arial"
-      }
+        "timer": "@model:timer",
+        "time": "@model:constants.endingTime"
+      },
+      "children": [
+        {
+          "action": "drawText",
+          "params": {
+            "graphics": "@service:graphics",
+            "text": "You won!",
+            "x": 50,
+            "y": 50,
+            "style": "black",
+            "font": "30px Arial"
+          } 
+        }
+      ]
     }
   ]
 }

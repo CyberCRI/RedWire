@@ -510,7 +510,7 @@
       graphics: null,
       pieces: [],
       constants: null,
-      gameState: ""
+      goalReached: false
     },
     update: function() {
       var EXTEND_LINES_FACTOR = Sylvester.precision;
@@ -638,7 +638,7 @@
         }
         else if(element.type == "squarePrism")
         {
-          that.params.gameState = "won";
+          that.params.goalReached = true;
         }
       }
 
@@ -896,32 +896,43 @@
     }
   },
 
-  switchOnItemInList: {
+  doInSequence: {
     paramDefs: {
-      "list": [],
-      "item": null
+      activeChild: 0,
     },
-    listActiveChildren: function() {
-      if(this.params.list.length != this.children.length) throw new Error("The list must match the number of child nodes");
+    listActiveChildren: function() { return [this.params.activeChild]; },
+    handleSignals: function() { 
+      if(this.signals[this.params.activeChild] == GE.signals.DONE)
+        this.params.activeChild++;
 
-      var index = this.params.list.indexOf(this.params.item);
-      if(index == -1) throw new Error("The item cannot be found in the list");
+      if(this.params.activeChild > this.children.length - 1)
+      {
+        this.params.activeChild = 0;
+        return GE.signals.DONE;
+      }
+    } 
+  },
 
-      // Activate only the corresponding child at the same position as item in the list
-      return [this.children[index]];
+  doForSomeTime: {
+    paramDefs: {
+      timer: 0,
+      time: 0
+    },
+    update: function() { 
+      if(this.params.timer++ >= this.params.time) {
+        this.params.timer = 0;
+        return GE.signals.DONE;
+      }
     }
   },
 
-  activateWhenEqual: {
+  doWhile: {
     paramDefs: {
-      "a": null,
-      "b": null
+      a: 0,
+      b: 0
     },
-    listActiveChildren: function() {
-      // when equal, activate all children
-      // else none
-      if(this.params.a === this.params.b) return this.children;
-      else return [];
+    update: function() { 
+      if(this.params.a !== this.params.b) return GE.signals.DONE;
     }
   },
 
