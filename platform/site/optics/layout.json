@@ -1,8 +1,8 @@
 {
   "action": "switchOnItemInList",
   "params": {
-    "item": "@model:state",
-    "list": ["starting", "playing", "won"]
+    "item": "@model:gameState",
+    "list": "@model:constants.gameStates"
   },
   "children": [
     {
@@ -34,7 +34,7 @@
           "children": [
             {
               "setModel": {
-                "state": "playing"
+                "gameState": "playing"
               }
             }
           ]
@@ -96,7 +96,8 @@
           "params": {
             "graphics": "@service:graphics",
             "pieces": "@model:pieces",
-            "constants": "@model:constants"
+            "constants": "@model:constants",
+            "gameState": "@model:gameState"
           }
         },
         {
@@ -167,6 +168,16 @@
             "pieces": "@model:pieces",
             "keyboard": "@service:keyboard",
             "constants": "@model:constants"
+          }
+        },
+        {
+          "action": "drawCursors",
+          "params": {
+            "mouse": "@service:mouse",
+            "pieces": "@model:pieces",
+            "boxedPieces": "@model:boxedPieces",  
+            "constants": "@model:constants",
+            "draggedPiece": "@model:draggedPiece"
           }
         }
       ]
