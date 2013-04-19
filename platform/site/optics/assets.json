@@ -4,5 +4,6 @@
   "squarePrism": "optics/images/asset_prism_square_idle.png",
   "mirror": "optics/images/asset_mirror_poly_idle.png",
   "laser-on": "optics/images/asset_laser_red_start_work.png",
+  "title": "optics/images/panneau.png",
   "sylvester": "optics/lib/sylvester/sylvester.js"
 }

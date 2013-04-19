@@ -392,13 +392,14 @@
     paramDefs: {
       graphics: null,
       image: null,
+      layer: "",
       x: 0,
       y: 0
     },
     update: function() {
       GE.addUnique(this.params.graphics.shapes, {
         type: "image",
-        layer: "bg",
+        layer: this.params.layer,
         asset: this.params.image,
         position: [this.params.x, this.params.y]
       });
