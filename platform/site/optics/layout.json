@@ -1,12 +1,6 @@
 {
   "action": "group",
   "children": [
-    {
-      "action": "incrementNumber",
-      "params": {
-        "number": "@model:score"
-      }
-    },
     { 
       "action": "drawImage",
       "params": {
@@ -16,127 +10,189 @@
       }
     },
     {
-      "action": "drawText",
+      "action": "doInSequence",
       "params": {
-        "graphics": "@service:graphics",
-        "text": "@model:score",
-        "x": 2,
-        "y": 20,
-        "style": "white",
-        "font": "20px Arial"
-      }
-    },
-    {
-      "action": "drawText",
-      "params": {
-        "graphics": "@service:graphics",
-        "text": "@service:keyboard.keysDown",
-        "x": 50,
-        "y": 20,
-        "style": "white",
-        "font": "20px Arial"
-      }
-    },
-    {
-      "action": "drawText",
-      "params": {
-        "graphics": "@service:graphics",
-        "text": "@service:mouse",
-        "x": 2,
-        "y": 40,
-        "style": "white",
-        "font": "20px Arial"
-      }
-    },
-    {
-      "action": "drawLight",
-      "params": {
-        "graphics": "@service:graphics",
-        "pieces": "@model:pieces",
-        "constants": "@model:constants"
-      }
-    },
-    {
-      "bind": {
-        "from": {
-          "piece": "@model:pieces"
-        }
+        "activeChild": "@model:topLevelActiveChild"
       },
       "children": [
         {
-          "action": "drawPiece",
+          "action": "doForSomeTime",
           "params": {
-            "graphics": "@service:graphics",
-            "type" : "$piece.type",
-            "row" : "$piece.row",
-            "col" : "$piece.col",
-            "rotation": "$piece.rotation",
-            "constants": "@model:constants"
-          }
-        }
-      ]
-    },
-    {
-      "bind": {
-        "from": {
-          "piece": "@model:boxedPieces"
-        }
-      },
-      "children": [
+            "timer": "@model:timer",
+            "time": "@model:constants.startingTime"
+          },
+          "children": [
+            { 
+              "action": "drawImage",
+              "params": {
+                "graphics": "@service:graphics",
+                "image": "title",
+                "layer": "pieces",
+                "x": 100,
+                "y": 150
+              }
+            },
+            {
+              "action": "drawText",
+              "params": {
+                "graphics": "@service:graphics",
+                "text": "Ready...",
+                "x": 840,
+                "y": 150,
+                "style": "white",
+                "font": "20px Courier New"
+              }
+            },
+            {
+              "setModel": {
+                "pieces": "@model:constants.level.pieces",
+                "boxedPieces": "@model:constants.level.boxedPieces",
+                "goalReached": false,
+                "selected": "@model:constants.level.selected"
+              }
+            }
+          ]
+        },
         {
-          "action": "drawBoxedPiece",
+          "action": "doWhile",
           "params": {
-            "graphics": "@service:graphics",
-            "type" : "$piece.type",
-            "index" : "$pieceIndex",
-            "constants": "@model:constants"
-          }
+            "a": "@model:goalReached",
+            "b": false
+          },
+          "children": [ 
+            {
+              "action": "drawLight",
+              "params": {
+                "graphics": "@service:graphics",
+                "pieces": "@model:pieces",
+                "constants": "@model:constants",
+                "goalReached": "@model:goalReached"
+              }
+            },
+            {
+              "bind": {
+                "from": {
+                  "piece": "@model:pieces"
+                }
+              },
+              "children": [
+                {
+                  "action": "drawPiece",
+                  "params": {
+                    "graphics": "@service:graphics",
+                    "type" : "$piece.type",
+                    "row" : "$piece.row",
+                    "col" : "$piece.col",
+                    "rotation": "$piece.rotation",
+                    "constants": "@model:constants"
+                  }
+                }
+              ]
+            },
+            {
+              "bind": {
+                "from": {
+                  "piece": "@model:boxedPieces"
+                }
+              },
+              "children": [
+                {
+                  "action": "drawBoxedPiece",
+                  "params": {
+                    "graphics": "@service:graphics",
+                    "type" : "$piece.type",
+                    "index" : "$pieceIndex",
+                    "constants": "@model:constants"
+                  }
+                }
+              ]
+            },
+            {
+              "action": "drawSelected",
+              "params": {
+                "graphics": "@service:graphics",
+                "row": "@model:selected.row",
+                "col": "@model:selected.col",
+                "constants": "@model:constants"
+              }
+            },
+            {
+              "action": "clickListener",
+              "params": {
+                "graphics": "@service:graphics",
+                "selected": "@model:selected",
+                "selectedPiece": "@model:selectedPiece",
+                "draggedPiece": "@model:draggedPiece",
+                "pieces": "@model:pieces",
+                "boxedPieces": "@model:boxedPieces",
+                "mouse": "@service:mouse",
+                "leftMouseDown": "@model:leftMouseDown",
+                "constants": "@model:constants"
+              }
+            },
+            {
+              "action": "rotateSelectedPiece",
+              "params": {
+                "selected": "@model:selected",
+                "pieces": "@model:pieces",
+                "keyboard": "@service:keyboard",
+                "constants": "@model:constants"
+              }
+            },
+            {
+              "action": "drawCursors",
+              "params": {
+                "mouse": "@service:mouse",
+                "pieces": "@model:pieces",
+                "boxedPieces": "@model:boxedPieces",  
+                "constants": "@model:constants",
+                "draggedPiece": "@model:draggedPiece"
+              }
+            }
+          ]
+        },
+        {
+          "action": "doForSomeTime",
+          "params": {
+            "timer": "@model:timer",
+            "time": "@model:constants.endingTime"
+          },
+          "children": [
+            {
+              "action": "drawText",
+              "params": {
+                "graphics": "@service:graphics",
+                "text": "You won!",
+                "x": 840,
+                "y": 150,
+                "style": "white",
+                "font": "20px Courier New"
+              } 
+            },
+            {
+              "bind": {
+                "from": {
+                  "piece": "@model:pieces"
+                }
+              },
+              "children": [
+                {
+                  "action": "drawPiece",
+                  "params": {
+                    "graphics": "@service:graphics",
+                    "type" : "$piece.type",
+                    "row" : "$piece.row",
+                    "col" : "$piece.col",
+                    "rotation": "$piece.rotation",
+                    "constants": "@model:constants"
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
-    },
-    {
-      "action": "drawSelected",
-      "params": {
-        "graphics": "@service:graphics",
-        "row": "@model:selected.row",
-        "col": "@model:selected.col",
-        "constants": "@model:constants"
-      }
-    },
-    {
-      "action": "clickListener",
-      "params": {
-        "graphics": "@service:graphics",
-        "selected": "@model:selected",
-        "selectedPiece": "@model:selectedPiece",
-        "draggedPiece": "@model:draggedPiece",
-        "pieces": "@model:pieces",
-        "boxedPieces": "@model:boxedPieces",
-        "mouse": "@service:mouse",
-        "leftMouseDown": "@model:leftMouseDown",
-        "constants": "@model:constants"
-      }
-    },
-    {
-      "action": "rotateSelectedPiece",
-      "params": {
-        "selected": "@model:selected",
-        "pieces": "@model:pieces",
-        "keyboard": "@service:keyboard",
-        "constants": "@model:constants"
-      }
-    },
-    {
-      "action": "drawCursors",
-      "params": {
-        "mouse": "@service:mouse",
-        "pieces": "@model:pieces",
-        "boxedPieces": "@model:boxedPieces",  
-        "constants": "@model:constants",
-        "draggedPiece": "@model:draggedPiece"
-      }
     }
   ]
-
 }
   

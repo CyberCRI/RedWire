@@ -392,13 +392,14 @@
     paramDefs: {
       graphics: null,
       image: null,
+      layer: "",
       x: 0,
       y: 0
     },
     update: function() {
       GE.addUnique(this.params.graphics.shapes, {
         type: "image",
-        layer: "bg",
+        layer: this.params.layer,
         asset: this.params.image,
         position: [this.params.x, this.params.y]
       });
@@ -419,7 +420,8 @@
         type: "text",
         layer: "text",
         text: this.params.text,
-        style: this.params.style,
+        strokeStyle: this.params.style,
+        fillStyle: this.params.style,
         font: this.params.font,
         position: [this.params.x, this.params.y]
       });
@@ -508,7 +510,8 @@
     paramDefs: {
       graphics: null,
       pieces: [],
-      constants: null
+      constants: null,
+      goalReached: false
     },
     update: function() {
       var EXTEND_LINES_FACTOR = Sylvester.precision;
@@ -636,9 +639,7 @@
         }
         else if(element.type == "squarePrism")
         {
-          alert("You Win !!!\nStart Again?");
-          currentFrame = 0;
-          currentModel = currentModel.atVersion(0);
+          that.params.goalReached = true;
         }
       }
 
@@ -893,6 +894,46 @@
       } else if(keysDown[39]) { // right
         selectedPiece.rotation += this.params.constants.rotationAmount;
       }
+    }
+  },
+
+  doInSequence: {
+    paramDefs: {
+      activeChild: 0,
+    },
+    listActiveChildren: function() { return [this.params.activeChild]; },
+    handleSignals: function() { 
+      if(this.signals[this.params.activeChild] == GE.signals.DONE)
+        this.params.activeChild++;
+
+      if(this.params.activeChild > this.children.length - 1)
+      {
+        this.params.activeChild = 0;
+        return GE.signals.DONE;
+      }
+    } 
+  },
+
+  doForSomeTime: {
+    paramDefs: {
+      timer: 0,
+      time: 0
+    },
+    update: function() { 
+      if(this.params.timer++ >= this.params.time) {
+        this.params.timer = 0;
+        return GE.signals.DONE;
+      }
+    }
+  },
+
+  doWhile: {
+    paramDefs: {
+      a: 0,
+      b: 0
+    },
+    update: function() { 
+      if(this.params.a !== this.params.b) return GE.signals.DONE;
     }
   },
 
