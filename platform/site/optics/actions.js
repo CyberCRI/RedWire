@@ -511,9 +511,9 @@
       constants: null
     },
     update: function() {
+      var EXTEND_LINES_FACTOR = Sylvester.precision;
       var that = this;
       var gridSize = that.params.constants.gridSize;
-
 
       function isInGrid(point)
       {
@@ -528,7 +528,17 @@
         var distanceToClosestIntersection = Infinity;
         for(var i = 0; i < lines.length; i++)
         {
-          var intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(lines[i][0], lines[i][1]));
+          // extend lines slightly
+          var a = Vector.create(lines[i][0]);
+          var b = Vector.create(lines[i][1]);
+          var aToB = b.subtract(a);
+          var midpoint = a.add(aToB.multiply(0.5));
+          var newLength = (1 + EXTEND_LINES_FACTOR) * aToB.modulus();
+          var unit = aToB.toUnitVector();
+          var aExtend = midpoint.add(unit.multiply(-0.5 * newLength));
+          var bExtend = midpoint.add(unit.multiply(0.5 * newLength));
+ 
+          var intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(aExtend, bExtend));
           if(intersection) 
           {
             // the intersection will be in 3D, so we need to cast the origin to 3D as well or distance calculation will fail (returns null)
