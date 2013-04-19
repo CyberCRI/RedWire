@@ -46,6 +46,9 @@ currentLoadedAssets = null
 isPlaying = false
 automaticallyUpdatingModel = false
 
+requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+  window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+
 ### Functions ###
 
 adjustEditorToSize = (editor) -> 
