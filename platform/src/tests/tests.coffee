@@ -437,3 +437,64 @@ describe "gamEvolve", ->
       expect(services.myService.provideData).toHaveBeenCalledWith({})
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
       expect(modelPatches).toBeEmpty()
+
+    it "rejects conflicting patches", ->
+      # Create old data, new data, and the patches between
+      oldData = 
+        a: 0
+
+      services = 
+        myService:
+          provideData: -> return { a: 0 }
+          establishData: jasmine.createSpy()
+
+      actions = 
+        group:
+          paramDefs: {}
+          update: ->
+        setDataTo: 
+          paramDefs:
+            var: null
+            value: null
+          update: -> @params.var = @params.value
+
+      layoutA = 
+        action: "group"
+        children: [
+          {
+            action: "setDataTo"
+            params:
+              var: "@model:a"
+              value: 1
+          },
+          {
+            action: "setDataTo"
+            params:
+              var: "@model:a"
+              value: 2
+          }
+        ]
+
+      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
+      expect(-> GE.stepLoop(layoutA, oldData, {}, actions, {})).toThrow()
+      
+      layoutB = 
+        action: "group"
+        children: [
+          {
+            action: "setDataTo"
+            params:
+              var: "@service:myService.a"
+              value: 1
+          },
+          {
+            action: "setDataTo"
+            params:
+              var: "@service:myService.a"
+              value: 2
+          }
+        ]
+
+      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
+      expect(-> GE.stepLoop(layoutB, {}, {}, actions, services)).toThrow()
+      
