@@ -356,7 +356,8 @@ GE.makeModelEvaluator = (constants, name) ->
   return {
     get: -> 
       [parent, key] = GE.getParentAndKey(constants.modelData, name.split("."))
-      return GE.cloneData(parent[key])
+      if key of parent then return GE.cloneData(parent[key])
+      else return undefined
 
     set: (x) -> 
       # TODO: create patch directly, rather than by comparison
@@ -373,7 +374,8 @@ GE.makeServiceEvaluator = (constants, name) ->
   return {
     get: -> 
       [parent, key] = GE.getParentAndKey(constants.serviceData, name.split("."))
-      return GE.cloneData(parent[key])
+      if key of parent then return GE.cloneData(parent[key])
+      else return undefined
 
     set: (x) -> 
       # TODO: create patch directly, rather than by comparison
