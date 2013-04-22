@@ -998,7 +998,7 @@
         var mousePos = [this.params.mouse.position.x, this.params.mouse.position.y];
         var gridCell = [toBoardCoordinate(mousePos[0]), toBoardCoordinate(mousePos[1])];
         if(findGridElement(gridCell) || getBoxedPiece(getIndexInBox(mousePos, this.params.constants)))
-          this.params.mouse.cursor = "hand";
+          this.params.mouse.cursor = "pointer";
       }
     }
   }
