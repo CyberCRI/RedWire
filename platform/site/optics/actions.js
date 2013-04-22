@@ -536,33 +536,30 @@
     },
 
     update: function() {
-      GE.addUnique(this.params.graphics.shapes, {
-        type: "image",
-        layer: "pieces",
-        asset: this.params.type,
-        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
-        translation: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
-          this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
-        rotation: this.params.rotation // In degrees 
-      });
+      
+      var that = this;
+
+      function drawObject(layer, assetName, assetSize, scale, col, row, constants, rotation) {
+        GE.addUnique(that.params.graphics.shapes, {
+          type: "image",
+          layer: layer,
+          asset: assetName,
+          scale: scale,
+          position: [-assetSize/2, -assetSize/2],
+          translation: [(col+0.5) * constants.cellSize + constants.upperLeftBoardMargin, 
+                        (row+0.5) * constants.cellSize + constants.upperLeftBoardMargin],
+          rotation: rotation // In degrees 
+        });
+      }
+
+      drawObject("pieces", that.params.type, 50, 1, that.params.col, that.params.row, that.params.constants, that.params.rotation);
 
       if(this.params.selectedPiece && this.params.selectedPiece.col && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
         var assetImage = "can-rotate";
         if(this.params.rotating){
           assetImage = "is-rotating";
         }
-        var scaleFactor = 1.5;
-        GE.addUnique(this.params.graphics.shapes, {
-          type: "image",
-          layer: "rotating",
-          asset: assetImage,
-          scale: scaleFactor,
-          position: [-this.params.constants.pieceAssetCentering*1.5/scaleFactor, -this.params.constants.pieceAssetCentering*1.5/scaleFactor],
-          translation: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
-            this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
-          rotation: this.params.rotation // In degrees 
-        });
-
+        drawObject("rotating", assetImage, 208, 0.5, that.params.col, that.params.row, that.params.constants, that.params.rotation);
       }
     }
   },
