@@ -412,7 +412,7 @@
       x: 0,
       y: 12,
       style: "black",
-      font: "12px Arial",
+      font: "12px Rix",
       "graphics": null
     },
     update: function() { 

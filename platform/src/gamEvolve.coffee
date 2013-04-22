@@ -86,6 +86,7 @@ GE.signals = GE.makeConstantSet("DONE", "ERROR")
 GE.extensions =
     images: ["png", "gif", "jpeg", "jpg"]
     js: ["js"]
+    css: ["css"]
 
 # There is probably a faster way to do this 
 GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))
@@ -469,6 +470,17 @@ GE.loadAssets = (assets, callback) ->
         cache: false
         success: onLoad
         error: onError
+    else if extension in GE.extensions.css
+      # Based on http://stackoverflow.com/a/805406/209505
+      # TODO: need way to remove loaded styles later
+      $.ajax
+        url: url
+        dataType: "text"
+        cache: false
+        error: onError
+        success: (css) ->
+          $('<style type="text/css"></style>').html(css).appendTo("head")
+          onLoad()
     else 
       return callback(new Error("Do not know how to load #{url}"))
 
