@@ -6,5 +6,7 @@
   "laser-on": "optics/images/asset_laser_red_start_work.png",
   "sylvester": "optics/lib/sylvester/sylvester.js",
   "can-rotate": "optics/images/asset_can_rotate.png",
-  "is-rotating": "optics/images/asset_is_rotating.png"
+  "is-rotating": "optics/images/asset_is_rotating.png",
+  "title": "optics/images/panneau.png",
+  "rix": "optics/fonts/rix.css"
 }

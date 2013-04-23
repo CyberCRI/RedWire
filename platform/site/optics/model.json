@@ -1,78 +1,216 @@
 {
-  "score": 0,
-  "selected": {
-    "col": 7,
-    "row": 2
-  },
+  "selected": { },
   "leftMouseDown": false,
   "selectedPiece": null,
   "originalRotation": null,
   "originalPieceRotation": null,
   "draggedPiece": null,
   "rotating" : false,
-  "pieces": [
-    { 
-      "col": 7,
-      "row": 2,
-      "type": "mirror",
-      "rotation": 15
-    },
-    { 
-      "col": 11,
-      "row": 2,
-      "type": "mirror",
-      "rotation": 50
-    },
-    { 
-      "col": 10,
-      "row": 3,
-      "type": "wall"
-    },
-    { 
-      "col": 4,
-      "row": 2,
-      "type": "squarePrism"
-    },
-    { 
-      "col": 3,
-      "row": 0,
-      "type": "laser-on",
-      "rotation": 120
-    }
-  ],
-  "boxedPieces": [
-    {
-      "type": "mirror",
-      "index": 0
-    },
-    {
-      "type": "squarePrism",
-      "index": 1
-    },
-    {
-      "type": "wall",
-      "index": 2
-    },
-    {
-      "type": "wall",
-      "index": 3
-    }
-  ],
+  "pieces": [],
+  "boxedPieces": [],
+  "timer": 0,
+  "topLevelActiveChild": 0,
+  "goalReached": false,
   "constants": {
+    "startingTime": 60,
+    "endingTime": 60,
+    "unmovablePieces": [
+      "wall",
+      "laser-on",
+      "squarePrism"
+    ],
+    "unrotatablePieces": [
+      "squarePrism",
+      "wall"
+    ],
     "toSquareCenterOffset": 30,
     "upperLeftBoardMargin": 33,
     "pieceAssetCentering": 26,
     "cellSize": 53,
-    "gridSize": [14, 9],
-    "mirrorAttenuationFactor": 0.7,
+    "gridSize": [
+      14,
+      9
+    ],
+    "mirrorAttenuationFactor": 0.9,
     "minimumAttenuation": 0.1,
     "rotationAmount": 1,
-    "playableBoardOffset": [30, 30],
-    "playableBoardSize": [745, 480],
+    "playableBoardOffset": [
+      30,
+      30
+    ],
+    "playableBoardSize": [
+      745,
+      480
+    ],
     "boxLeft": 837,
     "boxRight": 935,
     "boxTop": 284,
     "boxBottom": 514,
-    "boxCellSize": [49, 46]
+    "boxCellSize": [
+      49,
+      46
+    ],
+    "level": {
+      "selected": {
+        "col": 0,
+        "row": 0
+      },
+      "pieces": [
+        {
+          "col": 0,
+          "row": 0,
+          "type": "laser-on",
+          "rotation": 135
+        },
+        {
+          "col": 13,
+          "row": 8,
+          "type": "squarePrism"
+        },
+        {
+          "col": 2,
+          "row": 0,
+          "type": "wall"
+        },
+        {
+          "col": 2,
+          "row": 1,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 2,
+          "row": 2,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 2,
+          "row": 3,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 2,
+          "row": 4,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 2,
+          "row": 5,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 6,
+          "row": 8,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 6,
+          "row": 7,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 6,
+          "row": 6,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 6,
+          "row": 5,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 6,
+          "row": 4,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 13,
+          "row": 3,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 12,
+          "row": 3,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 11,
+          "row": 3,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 10,
+          "row": 3,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 9,
+          "row": 3,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 8,
+          "row": 3,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 10,
+          "row": 8,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 10,
+          "row": 7,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 10,
+          "row": 6,
+          "type": "wall",
+          "rotation": 0
+        },
+        {
+          "col": 10,
+          "row": 5,
+          "type": "wall",
+          "rotation": 0
+        }
+      ],
+      "boxedPieces": [
+        {
+          "type": "mirror",
+          "index": 0
+        },
+        {
+          "type": "mirror",
+          "index": 1
+        },
+        {
+          "type": "mirror",
+          "index": 2
+        },
+        {
+          "type": "mirror",
+          "index": 3
+        }
+      ]
+    }
   }
 }

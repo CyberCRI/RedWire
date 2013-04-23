@@ -46,6 +46,9 @@ currentLoadedAssets = null
 isPlaying = false
 automaticallyUpdatingModel = false
 
+requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+  window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
+
 ### Functions ###
 
 adjustEditorToSize = (editor) -> 
@@ -231,9 +234,9 @@ reloadCode = (callback) ->
 
   GE.loadAssets currentAssets, (err, loadedAssets) =>
     if err? 
-      logWithPrefix(GE.logLevels.ERROR, "Cannot load assets")
-      showMessage(MessageType.Error, "Cannot load assets")
-      callback(err)
+      logWithPrefix(GE.logLevels.ERROR, "Cannot load assets. #{err}")
+      showMessage(MessageType.Error, "Cannot load assets. #{err}")
+      return callback(err)
 
     currentLoadedAssets = loadedAssets
 

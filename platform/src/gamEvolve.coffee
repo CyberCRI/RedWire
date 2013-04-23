@@ -86,6 +86,7 @@ GE.signals = GE.makeConstantSet("DONE", "ERROR")
 GE.extensions =
     images: ["png", "gif", "jpeg", "jpg"]
     js: ["js"]
+    css: ["css"]
 
 # There is probably a faster way to do this 
 GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))
@@ -181,16 +182,8 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
       paramValue = defaultValue
 
     compiledParams[paramName] = GE.compileParameter(paramValue, constants, bindings)
-    value = compiledParams[paramName].get()
+    evaluatedParams[paramName] = compiledParams[paramName].get()
     
-    # Let undefined or non-serializable values go through. 
-    # Otherwise there is no way for missing parameters, or native components to be passed. 
-    # TODO: Could be source of silent errors
-    try 
-      evaluatedParams[paramName] = GE.cloneData(value)
-    catch e
-      evaluatedParams[paramName] = value
-
   locals = 
     params: evaluatedParams
     children: childNames
@@ -349,7 +342,11 @@ GE.stepLoop = (node, modelData, assets, actions, services, log = null, inputServ
         inputServiceData[serviceName] = service.provideData(assets)
 
     result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions, log))
+    
+    if GE.doPatchesConflict(result.modelPatches) then throw new Error("Model patches conflict: #{result.modelPatches}")
     modelPatches = result.modelPatches
+
+    if GE.doPatchesConflict(result.servicePatches) then throw new Error("Service patches conflict: #{result.servicePatches}")
     outputServiceData = GE.applyPatches(result.servicePatches, inputServiceData)
 
   for serviceName, service of services
@@ -364,7 +361,8 @@ GE.makeModelEvaluator = (constants, name) ->
   return {
     get: -> 
       [parent, key] = GE.getParentAndKey(constants.modelData, name.split("."))
-      return parent[key]
+      if key of parent then return GE.cloneData(parent[key])
+      else return undefined
 
     set: (x) -> 
       # TODO: create patch directly, rather than by comparison
@@ -381,7 +379,8 @@ GE.makeServiceEvaluator = (constants, name) ->
   return {
     get: -> 
       [parent, key] = GE.getParentAndKey(constants.serviceData, name.split("."))
-      return GE.cloneData(parent[key])
+      if key of parent then return GE.cloneData(parent[key])
+      else return undefined
 
     set: (x) -> 
       # TODO: create patch directly, rather than by comparison
@@ -395,6 +394,7 @@ GE.makeAssetEvaluator = (constants, name) ->
   if not name? then throw new Error("Asset evaluator requires a name")
 
   return {
+    # The getter does not clone the asset. This could be a potential source of problems.
     get: -> return constants.assets[name]
     set: (x) -> return new GE.NodeVisitorResult() # Noop. Cannot set asset
   }
@@ -469,6 +469,17 @@ GE.loadAssets = (assets, callback) ->
         cache: false
         success: onLoad
         error: onError
+    else if extension in GE.extensions.css
+      # Based on http://stackoverflow.com/a/805406/209505
+      # TODO: need way to remove loaded styles later
+      $.ajax
+        url: url
+        dataType: "text"
+        cache: false
+        error: onError
+        success: (css) ->
+          $('<style type="text/css"></style>').html(css).appendTo("head")
+          onLoad()
     else 
       return callback(new Error("Do not know how to load #{url}"))
 

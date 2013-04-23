@@ -26,7 +26,7 @@ registerService 'Keyboard', (options = {}) ->
     destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
   }
 
-# Define mouse input service
+# Define mouse input/output service
 registerService 'Mouse', (options = {}) ->
   options = _.defaults options,
     elementSelector: '#gameContent'
@@ -36,6 +36,10 @@ registerService 'Mouse', (options = {}) ->
   mouse =
     down: false
     position: null
+    cursor: null
+
+  # This disables selection, which allows the cursor to change in Chrome
+  $(options.elementSelector).on("selectstart.#{eventNamespace}", -> false)
 
   $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", (event) ->
     switch event.type 
@@ -57,7 +61,8 @@ registerService 'Mouse', (options = {}) ->
   return {
     provideData: -> return mouse
 
-    establishData: -> # NOOP. Input service does not take data
+    establishData: (data) -> 
+      $(options.elementSelector).css("cursor", data.cursor || "")
 
     # Remove all event handlers
     destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
@@ -130,9 +135,14 @@ registerService 'Canvas', (options = {}) ->
         ctx.drawImage(assets[shape.asset], shape.position[0], shape.position[1])
       when 'text'
         text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
-        ctx.strokeStyle = interpretStyle(shape.style, ctx)
         ctx.font = shape.font
-        ctx.strokeText(text, shape.position[0], shape.position[1])
+        ctx.textAlign = shape.align
+        if shape.fillStyle
+          ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
+          ctx.fillText(text, shape.position[0], shape.position[1])
+        if shape.strokeStyle
+          ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
+          ctx.strokeText(text, shape.position[0], shape.position[1])
       when 'path'
         ctx.beginPath();
         ctx.moveTo(shape.points[0][0], shape.points[0][1])

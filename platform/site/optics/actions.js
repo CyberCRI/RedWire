@@ -40,7 +40,7 @@
       //ROTATION: LOGIC (ANGLE COMPUTATION & SETTING)
       if(this.params.rotating && this.params.selectedPiece && this.params.mouse.position){
         if(this.params.originalPieceRotation == null) {
-          console.log("!!!this.params.originalRotation == null!!!");
+          //console.log("!!!this.params.originalRotation == null!!!");
           this.params.originalPieceRotation = this.params.selectedPiece.rotation;
         }
         //angle between axis Ox and axis Om where m is mouse position, O is piece center, and Ox is colinear to x-Axis
@@ -64,7 +64,7 @@
           }
         }
         if(this.params.originalRotation == null) {
-          console.log("!!!this.params.originalRotation == null!!!");
+          //console.log("!!!this.params.originalRotation == null!!!");
           this.params.originalRotation = angle;
         }
         //console.log("objectPos="+xyCoordinatesToString(objectPosition)
@@ -75,7 +75,7 @@
         //  +", angle="+angle);
         var piece = findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
         var newRotation = angle-this.params.originalRotation+this.params.originalPieceRotation;
-        console.log("original rotation="+this.params.originalRotation+", angle="+angle+", new rotation="+newRotation);
+        //console.log("original rotation="+this.params.originalRotation+", angle="+angle+", new rotation="+newRotation);
         piece.rotation = newRotation % 360;
       }
 
@@ -109,6 +109,11 @@
         return null;
       }
 
+      function isMovable(piece)
+      {
+        return (piece && that.params.constants.unmovablePieces.indexOf(piece.type) == -1)
+      }
+
       //moves a piece from the board or the box to a square on the board
       //@piece: if on board has attributes "type", "col", "row" and "rotation"; if in box: has attributes "type" and "index"
       //@pieces: pieces on board
@@ -116,33 +121,37 @@
       //which is determined by examining the attributes of "piece"
       function movePieceTo(piece, newSquare, pieces, boxedPieces)
       {
-        //console.log("movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
-        if (piece && isOnBoard(newSquare)) { //defensive code
-          //console.log("movePieceTo: correct arguments");
-          if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
-            //console.log("movePieceTo: piece was on board");
-            var movedPiece = findGridElement([piece.col, piece.row], pieces);
-            movedPiece.col = newSquare[0];
-            movedPiece.row = newSquare[1];
-          } else { //the piece was in the box, let's put it on the board
-            //remove the piece from the "boxedPieces"
-            //console.log("movePieceTo: piece was in box");
-            takePieceOutOfBox(piece.type, boxedPieces);
+        if(isMovable(piece)) {
+          //console.log("movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - piece is movable");
+          if (isOnBoard(newSquare)) { //defensive code
+            //console.log("movePieceTo: correct arguments");
+            if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
+              //console.log("movePieceTo: piece was on board");
+              var movedPiece = findGridElement([piece.col, piece.row], pieces);
+              movedPiece.col = newSquare[0];
+              movedPiece.row = newSquare[1];
+            } else { //the piece was in the box, let's put it on the board
+              //remove the piece from the "boxedPieces"
+              //console.log("movePieceTo: piece was in box");
+              takePieceOutOfBox(piece.type, boxedPieces);
 
-            //add it to the "pieces" with the appropriate coordinates
-            var insertedPiece = {
-              "col": newSquare[0],
-              "row": newSquare[1],
-              "type": piece.type,
-              "rotation": 0
-            };
-            pieces.push(insertedPiece);
+              //add it to the "pieces" with the appropriate coordinates
+              var insertedPiece = {
+                "col": newSquare[0],
+                "row": newSquare[1],
+                "type": piece.type,
+                "rotation": 0
+              };
+              pieces.push(insertedPiece);
+            }
+          } else {
+            //console.log("movePieceTo: put outside of board, put piece in box");
+            putPieceIntoBox(piece, pieces, boxedPieces);
           }
+          //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
         } else {
-          //console.log("movePieceTo: put outside of board, put piece in box");
-          putPieceIntoBox(piece, pieces, boxedPieces);
+          //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - piece is not movable");
         }
-        //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
       }
 
       //removes a piece form the boxed pieces and rearranges the remaining pieces
@@ -261,13 +270,15 @@
           //console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
           //console.log("action.js: the previously selected piece is unselected");
           params.selectedPiece = null;
-          console.log("rotating = false");
+          //console.log("rotating = false");
           params.rotating = false;
           params.originalRotation = null;
           params.originalPieceRotation = null;
 
           //console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
-          params.draggedPiece = piecePressed;
+          if(isMovable(piecePressed)) {
+            params.draggedPiece = piecePressed;
+          }
           //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
         } else {
           //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+"), nothing done");
@@ -357,7 +368,7 @@
                   var rotatedPiece = findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
                   this.params.originalPieceRotation = 0;
                   if(rotatedPiece) this.params.originalPieceRotation = rotatedPiece.rotation;
-                  console.log("this.params.rotating = true; this.params.originalPieceRotation = "+this.params.originalPieceRotation);
+                  //console.log("this.params.rotating = true; this.params.originalPieceRotation = "+this.params.originalPieceRotation);
                 } else {
                   mouseDownOnPiece(pieceClickedOn, this.params);
                   selectSquare([clickedColumn, clickedRow]);
@@ -473,6 +484,8 @@
                 } else if (this.params.draggedPiece) {
                   //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
                   movePieceTo(this.params.draggedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
+                  this.params.selectedPiece = this.params.draggedPiece;
+                  selectSquare([clickedColumn, clickedRow]);
                   this.params.draggedPiece = null;
                   this.params.selectedPiece = null;
                   this.params.rotating = false;
@@ -510,13 +523,14 @@
     paramDefs: {
       graphics: null,
       image: null,
+      layer: "",
       x: 0,
       y: 0
     },
     update: function() {
       GE.addUnique(this.params.graphics.shapes, {
         type: "image",
-        layer: "bg",
+        layer: this.params.layer,
         asset: this.params.image,
         position: [this.params.x, this.params.y]
       });
@@ -530,6 +544,7 @@
       y: 12,
       style: "black",
       font: "12px Arial",
+      align: "left",
       "graphics": null
     },
     update: function() { 
@@ -537,8 +552,10 @@
         type: "text",
         layer: "text",
         text: this.params.text,
-        style: this.params.style,
+        strokeStyle: this.params.style,
+        fillStyle: this.params.style,
         font: this.params.font,
+        align: this.params.align,
         position: [this.params.x, this.params.y]
       });
     }
@@ -579,7 +596,7 @@
 
       drawObject("pieces", that.params.type, 50, 1, that.params.col, that.params.row, that.params.constants, that.params.rotation);
 
-      if(this.params.selectedPiece && this.params.selectedPiece.col && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
+      if(this.params.selectedPiece && this.params.selectedPiece.col != null && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
         var assetImage = "can-rotate";
         if(this.params.rotating){
           assetImage = "is-rotating";
@@ -644,12 +661,13 @@
     paramDefs: {
       graphics: null,
       pieces: [],
-      constants: null
+      constants: null,
+      goalReached: false
     },
     update: function() {
+      var EXTEND_LINES_FACTOR = Sylvester.precision;
       var that = this;
       var gridSize = that.params.constants.gridSize;
-
 
       function isInGrid(point)
       {
@@ -664,7 +682,17 @@
         var distanceToClosestIntersection = Infinity;
         for(var i = 0; i < lines.length; i++)
         {
-          var intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(lines[i][0], lines[i][1]));
+          // extend lines slightly
+          var a = Vector.create(lines[i][0]);
+          var b = Vector.create(lines[i][1]);
+          var aToB = b.subtract(a);
+          var midpoint = a.add(aToB.multiply(0.5));
+          var newLength = (1 + EXTEND_LINES_FACTOR) * aToB.modulus();
+          var unit = aToB.toUnitVector();
+          var aExtend = midpoint.add(unit.multiply(-0.5 * newLength));
+          var bExtend = midpoint.add(unit.multiply(0.5 * newLength));
+ 
+          var intersection = Line.Segment.create(origin, dest).intersectionWith(Line.Segment.create(aExtend, bExtend));
           if(intersection) 
           {
             // the intersection will be in 3D, so we need to cast the origin to 3D as well or distance calculation will fail (returns null)
@@ -755,10 +783,14 @@
               var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
               var oldLightDirection = Vector.create(lightDirection);
               lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;
-
+ 
               lightDirectionUpdated();
             }
           }
+        }
+        else if(element.type == "squarePrism")
+        {
+          that.params.goalReached = true;
         }
       }
 
@@ -998,8 +1030,13 @@
         return null;
       }
 
+      function isRotatable(piece)
+      {
+        return (piece && that.params.constants.unrotatablePieces.indexOf(piece.type) == -1)
+      }
+
       var selectedPiece = findGridElement([this.params.selected.col, this.params.selected.row]);
-      if(!selectedPiece) return; // nothing selected, so can't rotate
+      if(!selectedPiece || !isRotatable(selectedPiece)) return; // nothing selected, so can't rotate
 
 
       var keysDown = this.params.keyboard.keysDown; // alias
@@ -1008,6 +1045,112 @@
       //} else if(keysDown[39]) { // right
       //  selectedPiece.rotation += this.params.constants.rotationAmount;
       //}
+    }
+  },
+
+  doInSequence: {
+    paramDefs: {
+      activeChild: 0,
+    },
+    listActiveChildren: function() { return [this.params.activeChild]; },
+    handleSignals: function() { 
+      if(this.signals[this.params.activeChild] == GE.signals.DONE)
+        this.params.activeChild++;
+
+      if(this.params.activeChild > this.children.length - 1)
+      {
+        this.params.activeChild = 0;
+        return GE.signals.DONE;
+      }
+    } 
+  },
+
+  doForSomeTime: {
+    paramDefs: {
+      timer: 0,
+      time: 0
+    },
+    update: function() { 
+      if(this.params.timer++ >= this.params.time) {
+        this.params.timer = 0;
+        return GE.signals.DONE;
+      }
+    }
+  },
+
+  doWhile: {
+    paramDefs: {
+      a: 0,
+      b: 0
+    },
+    update: function() { 
+      if(this.params.a !== this.params.b) return GE.signals.DONE;
+    }
+  },
+
+  drawCursors: {
+    paramDefs: {
+      "pieces": [],
+      "boxedPieces": [],
+      "mouse": null,
+      "constants": {},
+      "draggedPiece": null
+    },
+    update: function() {
+      var that = this;
+
+      //converts a pixel coordinate to a board coordinate
+      //assumes that the board is made out of squares
+      function toBoardCoordinate(pixelCoordinate)
+      {
+        var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
+        return res;
+      }
+
+      function findGridElement(point)
+      {
+        for(var i in that.params.pieces)
+        {
+          var piece = that.params.pieces[i];
+          if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
+        }
+        return null;
+      }
+
+      //returns the coordinates of the square that was clicked on in the box, or null if outside of the box
+      //@position: array of coordinates in pixels
+      //@position: warning: needed attributes are not checked!
+      function getIndexInBox(position, constants) {
+        //tests whether is in box or not
+        var relativeX = position[0] - constants.boxLeft;
+        var relativeY = position[1] - constants.boxTop;
+
+        var col = Math.floor(relativeX/constants.boxCellSize[0]);
+        var row = Math.floor(relativeY/constants.boxCellSize[1]);
+
+        if((0 <= col) && (1 >= col) && (0 <= row) && (4 >= row)) {
+          var index = 2*row+col;
+          return index;
+        }
+        return null;
+      }
+
+      function getBoxedPiece(index) {
+        return index == null ? null : that.params.boxedPieces[index];
+      }
+
+      if(!this.params.mouse.position) return;
+
+      if(this.params.draggedPiece) {
+        this.params.mouse.cursor = "move";
+      }
+      else
+      {
+        var mousePos = [this.params.mouse.position.x, this.params.mouse.position.y];
+        var gridCell = [toBoardCoordinate(mousePos[0]), toBoardCoordinate(mousePos[1])];
+        if(findGridElement(gridCell) || getBoxedPiece(getIndexInBox(mousePos, this.params.constants)))
+          this.params.mouse.cursor = "pointer";
+      }
     }
   }
 });
