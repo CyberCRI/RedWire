@@ -2,9 +2,13 @@
     clickListener: {
     paramDefs: {
       graphics: null,
+      keyboard: null,
       selected: null,
       selectedPiece: null,
       draggedPiece: null,
+      rotating: false,
+      originalRotation: null,
+      originalPieceRotation: null,
       pieces: [],
       boxedPieces: [],
       mouse: null,
@@ -20,6 +24,7 @@
       var that = this;
       var selected = this.params.selected;
 
+      //DRAGGING: GRAPHICS (DRAGGED PIECE DRAWING)
       if(this.params.draggedPiece && this.params.mouse.position){
         GE.addUnique(this.params.graphics.shapes, {
           type: "image",
@@ -32,6 +37,48 @@
         });
       }
 
+      //ROTATION: LOGIC (ANGLE COMPUTATION & SETTING)
+      if(this.params.rotating && this.params.selectedPiece && this.params.mouse.position){
+        if(this.params.originalPieceRotation == null) {
+          //console.log("!!!this.params.originalRotation == null!!!");
+          this.params.originalPieceRotation = this.params.selectedPiece.rotation;
+        }
+        //angle between axis Ox and axis Om where m is mouse position, O is piece center, and Ox is colinear to x-Axis
+        var objectPosition = {};
+        objectPosition.x = (this.params.selectedPiece.col + 0.5)*(this.params.constants.cellSize-1) + this.params.constants.upperLeftBoardMargin;
+        objectPosition.y = (this.params.selectedPiece.row + 0.5)*(this.params.constants.cellSize-1) + this.params.constants.upperLeftBoardMargin;
+        var hxPosition = this.params.mouse.position.x - objectPosition.x;
+        var hyPosition = this.params.mouse.position.y - objectPosition.y;
+        var omDistance = Math.sqrt(hxPosition*hxPosition + hyPosition*hyPosition);
+        //var ohxDistance = hxPosition;
+        var ohyDistance = -hyPosition;
+        //var ratio = ohxDistance/omDistance;
+        var ratio = ohyDistance/omDistance;
+        var angle = 0;
+        if(omDistance != 0) {
+          var absValueAngle = Math.acos(ratio)*180/Math.PI;
+          if(hxPosition <= 0) {
+            angle = -absValueAngle;
+          } else {
+            angle = absValueAngle;
+          }
+        }
+        if(this.params.originalRotation == null) {
+          //console.log("!!!this.params.originalRotation == null!!!");
+          this.params.originalRotation = angle;
+        }
+        //console.log("objectPos="+xyCoordinatesToString(objectPosition)
+        //  +", mousePos="+xyCoordinatesToString(this.params.mouse.position)
+        //  +", omDist="+omDistance
+        //  +", ohxDist="+ohxDistance
+        //  +", ratio="+ratio
+        //  +", angle="+angle);
+        var piece = findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
+        var newRotation = angle-this.params.originalRotation+this.params.originalPieceRotation;
+        //console.log("original rotation="+this.params.originalRotation+", angle="+angle+", new rotation="+newRotation);
+        piece.rotation = newRotation % 360;
+      }
+
       //converts a pixel coordinate to a board coordinate
       //assumes that the board is made out of squares
       function toBoardCoordinate(pixelCoordinate)
@@ -39,6 +86,11 @@
         var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
         //console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with upperLeftBoardMargin="+that.params.constants.upperLeftBoardMargin+", pieceAssetCentering="+that.params.constants.pieceAssetCentering+", cellSize="+that.params.constants.cellSize);
         return res;
+      }
+
+      function toPixelCoordinate(boardCoordinate)
+      {
+        return (boardCoordinate + 0.5)*(that.params.constants.cellSize-1) + that.params.constants.upperLeftBoardMargin;
       }
 
       //copied from drawLight
@@ -180,6 +232,11 @@
         return "["+coordinates[0]+", "+coordinates[1]+"]";
       }
 
+      //2D coordinates
+      function xyCoordinatesToString(coordinates) {
+        return "["+coordinates.x+", "+coordinates.y+"]";
+      }
+
       function pieceToString(piece) {
         if(piece) return "{col:"+piece.col+", row:"+piece.row+", type:"+piece.type+"}";
         else return piece;
@@ -213,6 +270,10 @@
           //console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
           //console.log("action.js: the previously selected piece is unselected");
           params.selectedPiece = null;
+          //console.log("rotating = false");
+          params.rotating = false;
+          params.originalRotation = null;
+          params.originalPieceRotation = null;
 
           //console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
           if(isMovable(piecePressed)) {
@@ -228,6 +289,20 @@
       //@positionOnBoard: array of coordinates as column and row position
       function isOnBoard(positionOnBoard) {
         return ((positionOnBoard[0] <= 13) && (positionOnBoard[0] >= 0) && (positionOnBoard[1] <= 8) && (positionOnBoard[1] >= 0));
+      }
+
+      function distance(point1, point2) {
+        var point1x = point1[0] || point1.x;
+        var point1y = point1[1] || point1.y;
+        var point2x = point2[0] || point2.x;
+        var point2y = point2[1] || point2.y;
+        var diffX = point1x - point2x;
+        var diffY = point1y - point2y;
+        return Math.sqrt(diffX*diffX + diffY*diffY);        
+      }
+
+      function areSamePiece(piece1, piece2) {
+        return (piece1 && piece2 && (piece1.col == piece2.col) && (piece1.row == piece2.row))
       }
 
       if(newLeftMouseDown || newLeftMouseReleased) {
@@ -262,7 +337,13 @@
                   mouseDownOnPiece(boxedPiece, this.params);
                 } else if (this.params.selectedPiece != null) {
                   //console.log("clicked in box at position "+boxIndex+" on no piece, will try to put selected piece "+pieceToString(this.params.selectedPiece));
-                  putPieceIntoBox(this.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
+
+                  //uncomment this line to enable move by simple clic
+                  //putPieceIntoBox(this.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
+                  this.params.selectedPiece = null;
+                  this.params.rotating = false;
+                  this.params.originalRotation = null;
+                  this.params.originalPieceRotation = null;
                 } else {
                   //console.log("clicked in box at position "+boxIndex+" on no piece, nothing to be done");
                 }
@@ -271,9 +352,32 @@
             } else { //clicked on board
               //let's select the square that has been clicked on
               //console.log("clicked on board");
-              selectSquare([clickedColumn, clickedRow]);
+
               var pieceClickedOn = findGridElement(boardCoordinates, this.params.pieces);
-              mouseDownOnPiece(pieceClickedOn, this.params);
+              //check whether tries to rotate piece
+
+              if(this.params.selectedPiece) {
+                var selectedPiecePosition = {};
+                selectedPiecePosition.x = toPixelCoordinate(this.params.selectedPiece.col);
+                selectedPiecePosition.y = toPixelCoordinate(this.params.selectedPiece.row);
+                //console.log("clicked close: selectedPiecePosition="+xyCoordinatesToString(selectedPiecePosition)+", this.params.mouse.position="+xyCoordinatesToString(this.params.mouse.position));
+                if((distance(this.params.mouse.position, selectedPiecePosition) < this.params.constants.cellSize*1.2)
+                 &&(distance(this.params.mouse.position, selectedPiecePosition) > this.params.constants.cellSize*0.7))
+                {
+                  this.params.rotating = true;
+                  var rotatedPiece = findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
+                  this.params.originalPieceRotation = 0;
+                  if(rotatedPiece) this.params.originalPieceRotation = rotatedPiece.rotation;
+                  //console.log("this.params.rotating = true; this.params.originalPieceRotation = "+this.params.originalPieceRotation);
+                } else {
+                  mouseDownOnPiece(pieceClickedOn, this.params);
+                  selectSquare([clickedColumn, clickedRow]);
+                }
+              } else {
+                mouseDownOnPiece(pieceClickedOn, this.params);
+                selectSquare([clickedColumn, clickedRow]);
+              }
+
               //console.log("<<<<<<<<<<<< finished click on board, "+paramsToString(this.params));
             }
 
@@ -294,20 +398,25 @@
                 var boxedPiece = this.params.boxedPieces[boxIndex];
                 var pieceType = null;
                 if(boxedPiece) { //there was a piece
-                  this.params.selectedPiece = boxedPiece;
+                  //uncomment this line to enable move by simple clic
+                  //this.params.selectedPiece = boxedPiece;
                   this.params.draggedPiece = null;
                 } else {
                   //console.log("action.js: put out of board: put piece in box");
                   if(this.params.selectedPiece) {
                     //console.log("action.js: this.params.selectedPiece");
-                    putPieceIntoBox(that.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
-                    this.params.draggedPiece = null;
-                    this.params.selectedPiece = null;
+                    //uncomment this line to enable move by simple clic
+                    //putPieceIntoBox(that.params.selectedPiece, this.params.pieces, this.params.boxedPieces);
+                    //this.params.draggedPiece = null;
+                    //this.params.selectedPiece = null;
                   } else if(this.params.draggedPiece) {
                     //console.log("action.js: this.params.draggedPiece");
                     putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
                     this.params.draggedPiece = null;
                     this.params.selectedPiece = null;
+                    this.params.rotating = false;
+                    this.params.originalRotation = null;
+                    this.params.originalPieceRotation = null;
                   } else {
                     //console.log("action.js: nothing to put in box");
                   }
@@ -317,6 +426,9 @@
                 putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
                 this.params.draggedPiece = null;
                 this.params.selectedPiece = null;
+                this.params.rotating = false;
+                this.params.originalRotation = null;
+                this.params.originalPieceRotation = null;
               }
             } else {
               //put on board: check if square is empty, then move piece
@@ -336,13 +448,18 @@
                 if(this.params.draggedPiece &&  (this.params.draggedPiece.col == boardCoordinates[0]) && (this.params.draggedPiece.row == boardCoordinates[1])) {
                   //console.log("released on same piece, select");
                   this.params.selectedPiece = pieceReleasedOn;
+                  //this.params.originalRotation = pieceReleasedOn.rotation;
                 }
                 else if(!this.params.draggedPiece && !this.params.selectedPiece) {
                   //console.log("released on piece, was neither selected nor dragged, select");
                   this.params.selectedPiece = pieceReleasedOn;
+                  //this.params.originalRotation = pieceReleasedOn.rotation;
                 } else {
                   //console.log("default, unselect");
                   this.params.selectedPiece = null;
+                  this.params.rotating = false;
+                  this.params.originalRotation = null;
+                  this.params.originalPieceRotation = null;
                 }
                 this.params.draggedPiece = null;
 
@@ -350,9 +467,19 @@
               } else {
                 //console.log("released on free square");
                 if(this.params.selectedPiece) {
-                  //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
-                  movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
-                  this.params.selectedPiece = null;
+                  if(this.params.rotating) {
+                    this.params.rotating = false;
+                    this.params.originalRotation = null;
+                    this.params.originalPieceRotation = null;
+                  } else {
+                    //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
+                    //uncomment this line to enable move by simple clic
+                    //movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
+                    this.params.selectedPiece = null;
+                    this.params.rotating = false;
+                    this.params.originalRotation = null;
+                    this.params.originalPieceRotation = null;
+                  }
                   //console.log("<<<<<<<<<<< selected, "+paramsToString(this.params)); 
                 } else if (this.params.draggedPiece) {
                   //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
@@ -360,6 +487,10 @@
                   this.params.selectedPiece = this.params.draggedPiece;
                   selectSquare([clickedColumn, clickedRow]);
                   this.params.draggedPiece = null;
+                  this.params.selectedPiece = null;
+                  this.params.rotating = false;
+                  this.params.originalRotation = null;
+                  this.params.originalPieceRotation = null;
                   //console.log("<<<<<<<<<<< dragged, "+paramsToString(this.params)); 
                 } else {
                   //console.log("<<<<<<<<<<< neither selected nor dragged, "+paramsToString(this.params)); 
@@ -441,19 +572,37 @@
       row: 0,
       col: 0,
       rotation: 0,
-      constants: null
+      constants: null,
+      rotating: false,
+      selectedPiece: null
     },
 
     update: function() {
-      GE.addUnique(this.params.graphics.shapes, {
-        type: "image",
-        layer: "pieces",
-        asset: this.params.type,
-        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
-        translation: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering, 
-          this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin + this.params.constants.pieceAssetCentering],
-        rotation: this.params.rotation // In degrees 
-      });
+      
+      var that = this;
+
+      function drawObject(layer, assetName, assetSize, scale, col, row, constants, rotation) {
+        GE.addUnique(that.params.graphics.shapes, {
+          type: "image",
+          layer: layer,
+          asset: assetName,
+          scale: scale,
+          position: [-assetSize/2, -assetSize/2],
+          translation: [(col+0.5) * constants.cellSize + constants.upperLeftBoardMargin, 
+                        (row+0.5) * constants.cellSize + constants.upperLeftBoardMargin],
+          rotation: rotation // In degrees 
+        });
+      }
+
+      drawObject("pieces", that.params.type, 50, 1, that.params.col, that.params.row, that.params.constants, that.params.rotation);
+
+      if(this.params.selectedPiece && this.params.selectedPiece.col != null && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
+        var assetImage = "can-rotate";
+        if(this.params.rotating){
+          assetImage = "is-rotating";
+        }
+        drawObject("rotating", assetImage, 208, 0.5, that.params.col, that.params.row, that.params.constants, that.params.rotation);
+      }
     }
   },
 
@@ -891,11 +1040,11 @@
 
 
       var keysDown = this.params.keyboard.keysDown; // alias
-      if(keysDown[37]) { // left
-        selectedPiece.rotation -= this.params.constants.rotationAmount;
-      } else if(keysDown[39]) { // right
-        selectedPiece.rotation += this.params.constants.rotationAmount;
-      }
+      //if(keysDown[37]) { // left
+      //  selectedPiece.rotation -= this.params.constants.rotationAmount;
+      //} else if(keysDown[39]) { // right
+      //  selectedPiece.rotation += this.params.constants.rotationAmount;
+      //}
     }
   },
 
