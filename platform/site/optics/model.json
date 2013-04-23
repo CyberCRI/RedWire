@@ -6,6 +6,8 @@
   },
   "leftMouseDown": false,
   "selectedPiece": null,
+  "originalRotation": null,
+  "originalPieceRotation": null,
   "draggedPiece": null,
   "rotating" : false,
   "pieces": [

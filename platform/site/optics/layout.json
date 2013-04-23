@@ -114,6 +114,8 @@
         "selectedPiece": "@model:selectedPiece",
         "draggedPiece": "@model:draggedPiece",
         "rotating": "@model:rotating",
+        "originalRotation": "@model:originalRotation",
+        "originalPieceRotation": "@model:originalPieceRotation",
         "pieces": "@model:pieces",
         "boxedPieces": "@model:boxedPieces",
         "mouse": "@service:mouse",
