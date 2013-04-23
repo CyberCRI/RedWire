@@ -182,16 +182,8 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
       paramValue = defaultValue
 
     compiledParams[paramName] = GE.compileParameter(paramValue, constants, bindings)
-    value = compiledParams[paramName].get()
+    evaluatedParams[paramName] = compiledParams[paramName].get()
     
-    # Let undefined or non-serializable values go through. 
-    # Otherwise there is no way for missing parameters, or native components to be passed. 
-    # TODO: Could be source of silent errors
-    try 
-      evaluatedParams[paramName] = GE.cloneData(value)
-    catch e
-      evaluatedParams[paramName] = value
-
   locals = 
     params: evaluatedParams
     children: childNames
@@ -369,7 +361,8 @@ GE.makeModelEvaluator = (constants, name) ->
   return {
     get: -> 
       [parent, key] = GE.getParentAndKey(constants.modelData, name.split("."))
-      return parent[key]
+      if key of parent then return GE.cloneData(parent[key])
+      else return undefined
 
     set: (x) -> 
       # TODO: create patch directly, rather than by comparison
@@ -386,7 +379,8 @@ GE.makeServiceEvaluator = (constants, name) ->
   return {
     get: -> 
       [parent, key] = GE.getParentAndKey(constants.serviceData, name.split("."))
-      return GE.cloneData(parent[key])
+      if key of parent then return GE.cloneData(parent[key])
+      else return undefined
 
     set: (x) -> 
       # TODO: create patch directly, rather than by comparison
@@ -400,6 +394,7 @@ GE.makeAssetEvaluator = (constants, name) ->
   if not name? then throw new Error("Asset evaluator requires a name")
 
   return {
+    # The getter does not clone the asset. This could be a potential source of problems.
     get: -> return constants.assets[name]
     set: (x) -> return new GE.NodeVisitorResult() # Noop. Cannot set asset
   }
