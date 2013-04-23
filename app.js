@@ -5,7 +5,7 @@
 
 
 (function() {
-  var CODE_CHANGE_TIMEOUT, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, currentServices, editors, executeCode, getFormattedTime, globals, handleAnimation, handleResize, isPlaying, loadCodeFromCache, loadIntoEditor, log, logWithPrefix, notifyCodeChange, registerService, reloadCode, resetLogContent, saveCodeToCache, services, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner, zeroPad;
+  var CODE_CHANGE_TIMEOUT, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, currentServices, editors, executeCode, getFormattedTime, globals, handleAnimation, handleResize, isPlaying, loadCodeFromCache, loadIntoEditor, log, logWithPrefix, notifyCodeChange, registerService, reloadCode, requestAnimationFrame, resetLogContent, saveCodeToCache, services, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner, zeroPad;
 
   globals = this;
 
@@ -64,6 +64,8 @@
   isPlaying = false;
 
   automaticallyUpdatingModel = false;
+
+  requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 
   /* Functions
   */
@@ -175,6 +177,7 @@
         for (editorId in editors) {
           editor = editors[editorId];
           editor.setReadOnly(false);
+          $('#' + editorId).fadeTo('slow', 1);
         }
         return $(this).button("option", {
           label: "Play",
@@ -187,6 +190,7 @@
         for (editorId in editors) {
           editor = editors[editorId];
           editor.setReadOnly(true);
+          $('#' + editorId).fadeTo('slow', 0.2);
         }
         handleAnimation();
         return $(this).button("option", {
@@ -293,9 +297,9 @@
     }
     return GE.loadAssets(currentAssets, function(err, loadedAssets) {
       if (err != null) {
-        logWithPrefix(GE.logLevels.ERROR, "Cannot load assets");
-        showMessage(MessageType.Error, "Cannot load assets");
-        callback(err);
+        logWithPrefix(GE.logLevels.ERROR, "Cannot load assets. " + err);
+        showMessage(MessageType.Error, "Cannot load assets. " + err);
+        return callback(err);
       }
       currentLoadedAssets = loadedAssets;
       currentModel.atVersion(currentFrame).data = currentModelData;

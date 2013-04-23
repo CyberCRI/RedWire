@@ -143,7 +143,8 @@
 
   GE.extensions = {
     images: ["png", "gif", "jpeg", "jpg"],
-    js: ["js"]
+    js: ["js"],
+    css: ["css"]
   };
 
   GE.cloneData = function(o) {
@@ -191,6 +192,11 @@
         remove: prefix
       });
     } else if (!_.isObject(newValue) || !_.isObject(oldValue) || typeof oldValue !== typeof newValue) {
+      patches.push({
+        replace: prefix,
+        value: GE.cloneData(newValue)
+      });
+    } else if (_.isArray(oldValue) && oldValue.length !== newValue.length) {
       patches.push({
         replace: prefix,
         value: GE.cloneData(newValue)
@@ -251,7 +257,7 @@
   };
 
   GE.sandboxActionCall = function(node, constants, bindings, methodName, signals) {
-    var action, childNames, compiledParams, defaultValue, evaluatedParams, locals, methodResult, paramName, paramValue, result, value, _i, _ref, _ref1, _results;
+    var action, childNames, compiledParams, defaultValue, evaluatedParams, locals, methodResult, paramName, paramValue, result, _i, _ref, _ref1, _results;
     if (signals == null) {
       signals = {};
     }
@@ -274,12 +280,7 @@
         paramValue = defaultValue;
       }
       compiledParams[paramName] = GE.compileParameter(paramValue, constants, bindings);
-      value = compiledParams[paramName].get();
-      try {
-        evaluatedParams[paramName] = GE.cloneData(value);
-      } catch (e) {
-        evaluatedParams[paramName] = value;
-      }
+      evaluatedParams[paramName] = compiledParams[paramName].get();
     }
     locals = {
       params: evaluatedParams,
@@ -302,15 +303,21 @@
   };
 
   GE.calculateBindingSet = function(node, constants, oldBindings) {
-    var bindingExpression, bindingIndex, bindingName, bindingSet, bindingValues, name, newBindings, value, _i, _ref, _ref1, _ref2, _ref3;
+    var bindingExpression, bindingIndex, bindingName, bindingSet, bindingValues, index, name, newBindings, value, _i, _ref, _ref1, _ref2, _ref3;
     bindingSet = [];
     if ("from" in node.bind) {
       _ref = node.bind.from;
       for (bindingName in _ref) {
         bindingExpression = _ref[bindingName];
         bindingValues = GE.compileParameter(bindingExpression, constants, oldBindings).get();
+        if (bindingValues.length === 0) {
+          return [];
+        }
+        index = 0;
         for (bindingIndex = _i = 0, _ref1 = bindingValues.length - 1; 0 <= _ref1 ? _i <= _ref1 : _i >= _ref1; bindingIndex = 0 <= _ref1 ? ++_i : --_i) {
           newBindings = Object.create(oldBindings);
+          newBindings["" + bindingName + "Index"] = index;
+          index++;
           if (_.isString(bindingExpression)) {
             newBindings[bindingName] = "" + bindingExpression + "." + bindingIndex;
           } else {
@@ -474,7 +481,13 @@
         }
       }
       result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions, log));
+      if (GE.doPatchesConflict(result.modelPatches)) {
+        throw new Error("Model patches conflict: " + result.modelPatches);
+      }
       modelPatches = result.modelPatches;
+      if (GE.doPatchesConflict(result.servicePatches)) {
+        throw new Error("Service patches conflict: " + result.servicePatches);
+      }
       outputServiceData = GE.applyPatches(result.servicePatches, inputServiceData);
     }
     for (serviceName in services) {
@@ -492,7 +505,11 @@
       get: function() {
         var key, parent, _ref;
         _ref = GE.getParentAndKey(constants.modelData, name.split(".")), parent = _ref[0], key = _ref[1];
-        return parent[key];
+        if (key in parent) {
+          return GE.cloneData(parent[key]);
+        } else {
+          return void 0;
+        }
       },
       set: function(x) {
         var key, newData, parent, _ref;
@@ -512,7 +529,11 @@
       get: function() {
         var key, parent, _ref;
         _ref = GE.getParentAndKey(constants.serviceData, name.split(".")), parent = _ref[0], key = _ref[1];
-        return GE.cloneData(parent[key]);
+        if (key in parent) {
+          return GE.cloneData(parent[key]);
+        } else {
+          return void 0;
+        }
       },
       set: function(x) {
         var key, newData, parent, _ref;
@@ -612,6 +633,17 @@
           success: onLoad,
           error: onError
         });
+      } else if (__indexOf.call(GE.extensions.css, extension) >= 0) {
+        $.ajax({
+          url: url,
+          dataType: "text",
+          cache: false,
+          error: onError,
+          success: function(css) {
+            $('<style type="text/css"></style>').html(css).appendTo("head");
+            return onLoad();
+          }
+        });
       } else {
         return callback(new Error("Do not know how to load " + url));
       }
@@ -633,6 +665,10 @@
       }
     }
     return o;
+  };
+
+  GE.addUnique = function(obj, value) {
+    return obj[_.uniqueId()] = value;
   };
 
   globals.GE = GE;

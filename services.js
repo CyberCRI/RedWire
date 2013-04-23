@@ -48,10 +48,14 @@
     eventNamespace = _.uniqueId('mouse');
     mouse = {
       down: false,
-      position: null
+      position: null,
+      cursor: null
     };
+    $(options.elementSelector).on("selectstart." + eventNamespace, function() {
+      return false;
+    });
     $(options.elementSelector).on("mousedown." + eventNamespace + " mouseup." + eventNamespace + " mousemove." + eventNamespace + " mouseleave." + eventNamespace, function(event) {
-      var rect;
+      var rect, target;
       switch (event.type) {
         case 'mousedown':
           return mouse.down = true;
@@ -61,10 +65,11 @@
           mouse.down = false;
           return mouse.position = null;
         case 'mousemove':
-          rect = $(options.elementSelector)[0].getBoundingClientRect();
+          rect = event.target.getBoundingClientRect();
+          target = $(event.target);
           return mouse.position = {
-            x: event.clientX - rect.left,
-            y: event.clientY - rect.top
+            x: Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width),
+            y: Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)
           };
         default:
           throw new Error('Unexpected event type');
@@ -74,7 +79,9 @@
       provideData: function() {
         return mouse;
       },
-      establishData: function() {},
+      establishData: function(data) {
+        return $(options.elementSelector).css("cursor", data.cursor || "");
+      },
       destroy: function() {
         return $(options.elementSelector).off("." + eventNamespace);
       }
@@ -181,9 +188,16 @@
           break;
         case 'text':
           text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text);
-          ctx.strokeStyle = interpretStyle(shape.style, ctx);
           ctx.font = shape.font;
-          ctx.strokeText(text, shape.position[0], shape.position[1]);
+          ctx.textAlign = shape.align;
+          if (shape.fillStyle) {
+            ctx.fillStyle = interpretStyle(shape.fillStyle, ctx);
+            ctx.fillText(text, shape.position[0], shape.position[1]);
+          }
+          if (shape.strokeStyle) {
+            ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx);
+            ctx.strokeText(text, shape.position[0], shape.position[1]);
+          }
           break;
         case 'path':
           ctx.beginPath();
@@ -241,29 +255,43 @@
         return {
           layers: options.layers,
           size: options.size,
-          shapes: []
+          shapes: {}
         };
       },
       establishData: function(data, assets) {
-        var canvas, ctx, layerName, shape, _i, _len, _ref, _results;
+        var canvas, ctx, id, layerName, shape, shapeArray, shapeArrays, _ref, _results;
         if (!data.shapes) {
           return;
         }
+        shapeArrays = {};
         for (layerName in layers) {
           canvas = layers[layerName];
           canvas[0].getContext('2d').clearRect(0, 0, options.size[0], options.size[1]);
+          shapeArrays[layerName] = [];
         }
-        data.shapes.sort(shapeSorter);
         _ref = data.shapes;
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          shape = _ref[_i];
+        for (id in _ref) {
+          shape = _ref[id];
           layerName = shape.layer || 'default';
           if (!(layerName in layers)) {
             throw new Error('No layer for shape');
           }
+          shapeArrays[layerName].push(shape);
+        }
+        _results = [];
+        for (layerName in shapeArrays) {
+          shapeArray = shapeArrays[layerName];
+          shapeArray.sort(shapeSorter);
           ctx = layers[layerName][0].getContext('2d');
-          _results.push(drawShape(shape, ctx, assets));
+          _results.push((function() {
+            var _i, _len, _results1;
+            _results1 = [];
+            for (_i = 0, _len = shapeArray.length; _i < _len; _i++) {
+              shape = shapeArray[_i];
+              _results1.push(drawShape(shape, ctx, assets));
+            }
+            return _results1;
+          })());
         }
         return _results;
       },

@@ -15,6 +15,20 @@
         }
       });
     });
+    describe("patches", function() {
+      return it("can remove value from array", function() {
+        var a, b, patchResult, patches;
+        a = {
+          v: [10, 11, 12, 13, 14, 15]
+        };
+        b = {
+          v: [10, 12, 13, 14, 15]
+        };
+        patches = GE.makePatches(a, b);
+        patchResult = GE.applyPatches(patches, a);
+        return expect(patchResult).toDeeplyEqual(b);
+      });
+    });
     describe("model", function() {
       it("can be created empty", function() {
         var model;
@@ -469,7 +483,7 @@
         }, {});
         return expect(modelPatches).toBeEmpty();
       });
-      return it("gathers service input data, visits nodes, and gives output to services", function() {
+      it("gathers service input data, visits nodes, and gives output to services", function() {
         var actions, layout, modelPatches, services;
         services = {
           myService: {
@@ -505,6 +519,79 @@
           a: 2
         }, {});
         return expect(modelPatches).toBeEmpty();
+      });
+      return it("rejects conflicting patches", function() {
+        var actions, layoutA, layoutB, oldData, services;
+        oldData = {
+          a: 0
+        };
+        services = {
+          myService: {
+            provideData: function() {
+              return {
+                a: 0
+              };
+            },
+            establishData: jasmine.createSpy()
+          }
+        };
+        actions = {
+          group: {
+            paramDefs: {},
+            update: function() {}
+          },
+          setDataTo: {
+            paramDefs: {
+              "var": null,
+              value: null
+            },
+            update: function() {
+              return this.params["var"] = this.params.value;
+            }
+          }
+        };
+        layoutA = {
+          action: "group",
+          children: [
+            {
+              action: "setDataTo",
+              params: {
+                "var": "@model:a",
+                value: 1
+              }
+            }, {
+              action: "setDataTo",
+              params: {
+                "var": "@model:a",
+                value: 2
+              }
+            }
+          ]
+        };
+        expect(function() {
+          return GE.stepLoop(layoutA, oldData, {}, actions, {});
+        }).toThrow();
+        layoutB = {
+          action: "group",
+          children: [
+            {
+              action: "setDataTo",
+              params: {
+                "var": "@service:myService.a",
+                value: 1
+              }
+            }, {
+              action: "setDataTo",
+              params: {
+                "var": "@service:myService.a",
+                value: 2
+              }
+            }
+          ]
+        };
+        return expect(function() {
+          return GE.stepLoop(layoutB, {}, {}, actions, services);
+        }).toThrow();
       });
     });
   });
