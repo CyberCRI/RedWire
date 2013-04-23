@@ -37,10 +37,11 @@
               "params": {
                 "graphics": "@service:graphics",
                 "text": "Ready...",
-                "x": 840,
+                "x": 885,
                 "y": 150,
                 "style": "white",
-                "font": "20px Rix"
+                "font": "16px Rix",
+                "align": "center"
               }
             },
             {
@@ -162,11 +163,12 @@
               "action": "drawText",
               "params": {
                 "graphics": "@service:graphics",
-                "text": "You won!",
-                "x": 840,
+                "text": "You win",
+                "x": 885,
                 "y": 150,
                 "style": "white",
-                "font": "20px Rix"
+                "font": "18px Rix",
+                "align": "center"
               } 
             },
             {
