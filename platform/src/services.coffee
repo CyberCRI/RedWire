@@ -136,6 +136,7 @@ registerService 'Canvas', (options = {}) ->
       when 'text'
         text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
         ctx.font = shape.font
+        ctx.textAlign = shape.align
         if shape.fillStyle
           ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
           ctx.fillText(text, shape.position[0], shape.position[1])
