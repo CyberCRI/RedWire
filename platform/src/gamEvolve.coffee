@@ -350,7 +350,11 @@ GE.stepLoop = (node, modelData, assets, actions, services, log = null, inputServ
         inputServiceData[serviceName] = service.provideData(assets)
 
     result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions, log))
+    
+    if GE.doPatchesConflict(result.modelPatches) then throw new Error("Model patches conflict: #{result.modelPatches}")
     modelPatches = result.modelPatches
+
+    if GE.doPatchesConflict(result.servicePatches) then throw new Error("Service patches conflict: #{result.servicePatches}")
     outputServiceData = GE.applyPatches(result.servicePatches, inputServiceData)
 
   for serviceName, service of services
