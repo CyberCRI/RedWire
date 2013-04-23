@@ -413,6 +413,7 @@
       y: 12,
       style: "black",
       font: "12px Arial",
+      align: "left",
       "graphics": null
     },
     update: function() { 
@@ -423,6 +424,7 @@
         strokeStyle: this.params.style,
         fillStyle: this.params.style,
         font: this.params.font,
+        align: this.params.align,
         position: [this.params.x, this.params.y]
       });
     }
