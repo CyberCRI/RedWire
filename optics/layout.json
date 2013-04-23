@@ -85,7 +85,9 @@
                     "row" : "$piece.row",
                     "col" : "$piece.col",
                     "rotation": "$piece.rotation",
-                    "constants": "@model:constants"
+                    "constants": "@model:constants",
+                    "rotating": "@model:rotating",
+                    "selectedPiece": "@model:selectedPiece"
                   }
                 }
               ]
@@ -121,9 +123,13 @@
               "action": "clickListener",
               "params": {
                 "graphics": "@service:graphics",
+                "keyboard": "@service:keyboard",
                 "selected": "@model:selected",
                 "selectedPiece": "@model:selectedPiece",
                 "draggedPiece": "@model:draggedPiece",
+                "rotating": "@model:rotating",
+                "originalRotation": "@model:originalRotation",
+                "originalPieceRotation": "@model:originalPieceRotation",
                 "pieces": "@model:pieces",
                 "boxedPieces": "@model:boxedPieces",
                 "mouse": "@service:mouse",
