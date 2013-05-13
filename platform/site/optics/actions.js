@@ -73,7 +73,7 @@
         //  +", ohxDist="+ohxDistance
         //  +", ratio="+ratio
         //  +", angle="+angle);
-        var piece = findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
+        var piece = this.tools.findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
         var newRotation = angle-this.params.originalRotation+this.params.originalPieceRotation;
         //console.log("original rotation="+this.params.originalRotation+", angle="+angle+", new rotation="+newRotation);
         piece.rotation = newRotation % 360;
@@ -93,21 +93,21 @@
         return (boardCoordinate + 0.5)*(that.params.constants.cellSize-1) + that.params.constants.upperLeftBoardMargin;
       }
 
-      //copied from drawLight
-      function findGridElement(square, pieces)
-      {
-        //console.log("findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+")");
-        for(var i in pieces)
-        {
-          var piece = pieces[i];
-          if(piece.col == square[0] && piece.row == square[1]) {
-            //console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (found "+pieceToString(piece)+")");
-            return piece;
-          } 
-        }
-        //console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (no piece found)");
-        return null;
-      }
+      ////copied from drawLight
+      //function findGridElement(square, pieces)
+      //{
+      //  //console.log("findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+")");
+      //  for(var i in pieces)
+      //  {
+      //    var piece = pieces[i];
+      //    if(piece.col == square[0] && piece.row == square[1]) {
+      //      //console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (found "+pieceToString(piece)+")");
+      //      return piece;
+      //    } 
+      //  }
+      //  //console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (no piece found)");
+      //  return null;
+      //}
 
       function isMovable(piece)
       {
@@ -127,7 +127,7 @@
             //console.log("movePieceTo: correct arguments");
             if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
               //console.log("movePieceTo: piece was on board");
-              var movedPiece = findGridElement([piece.col, piece.row], pieces);
+              var movedPiece = that.tools.findGridElement([piece.col, piece.row], pieces);
               movedPiece.col = newSquare[0];
               movedPiece.row = newSquare[1];
             } else { //the piece was in the box, let's put it on the board
@@ -352,8 +352,7 @@
             } else { //clicked on board
               //let's select the square that has been clicked on
               //console.log("clicked on board");
-
-              var pieceClickedOn = findGridElement(boardCoordinates, this.params.pieces);
+              var pieceClickedOn = this.tools.findGridElement(boardCoordinates, this.params.pieces);
               //check whether tries to rotate piece
 
               if(this.params.selectedPiece) {
@@ -365,7 +364,7 @@
                  &&(distance(this.params.mouse.position, selectedPiecePosition) > this.params.constants.cellSize*0.7))
                 {
                   this.params.rotating = true;
-                  var rotatedPiece = findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
+                  var rotatedPiece = this.tools.findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
                   this.params.originalPieceRotation = 0;
                   if(rotatedPiece) this.params.originalPieceRotation = rotatedPiece.rotation;
                   //console.log("this.params.rotating = true; this.params.originalPieceRotation = "+this.params.originalPieceRotation);
@@ -439,7 +438,7 @@
 
               //test whether there is a piece or not
               //console.log("1");
-              var pieceReleasedOn = findGridElement(boardCoordinates, this.params.pieces);
+              var pieceReleasedOn = this.tools.findGridElement(boardCoordinates, this.params.pieces);
               //console.log("2");
               if (pieceReleasedOn) {
                 //console.log("action.js: released on piece of type \""+pieceReleasedOn.type+"\"");

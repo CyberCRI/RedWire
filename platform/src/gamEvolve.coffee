@@ -189,6 +189,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     children: childNames
     signals: signals
     assets: constants.assets
+    tools: constants.tools
     log: constants.log
   try
     methodResult = action[methodName].apply(locals)

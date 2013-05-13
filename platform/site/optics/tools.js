@@ -1,20 +1,20 @@
-(function() {
+({
   //converts a pixel coordinate to a board coordinate
   //assumes that the board is made out of squares
-  function toBoardCoordinate(pixelCoordinate)
+  toBoardCoordinate: function(pixelCoordinate)
   {
     var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
     //console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with upperLeftBoardMargin="+that.params.constants.upperLeftBoardMargin+", pieceAssetCentering="+that.params.constants.pieceAssetCentering+", cellSize="+that.params.constants.cellSize);
     return res;
-  }
+  },
 
-  function toPixelCoordinate(boardCoordinate)
+  toPixelCoordinate: function(boardCoordinate)
   {
     return (boardCoordinate + 0.5)*(that.params.constants.cellSize-1) + that.params.constants.upperLeftBoardMargin;
-  }
+  },
 
   //copied from drawLight
-  function findGridElement(square, pieces)
+  findGridElement: function(square, pieces)
   {
     //console.log("findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+")");
     for(var i in pieces)
@@ -27,19 +27,19 @@
     }
     //console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (no piece found)");
     return null;
-  }
+  },
 
-  function isMovable(piece)
+  isMovable: function(piece)
   {
     return (piece && that.params.constants.unmovablePieces.indexOf(piece.type) == -1)
-  }
+  },
 
   //moves a piece from the board or the box to a square on the board
   //@piece: if on board has attributes "type", "col", "row" and "rotation"; if in box: has attributes "type" and "index"
   //@pieces: pieces on board
   //@boxedPieces: pieces outside of the board, in the so-called box
   //which is determined by examining the attributes of "piece"
-  function movePieceTo(piece, newSquare, pieces, boxedPieces)
+  movePieceTo: function(piece, newSquare, pieces, boxedPieces)
   {
     if(isMovable(piece)) {
       //console.log("movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - piece is movable");
@@ -72,10 +72,10 @@
     } else {
       //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - piece is not movable");
     }
-  }
+  },
 
   //removes a piece form the boxed pieces and rearranges the remaining pieces
-  function takePieceOutOfBox(pieceType, boxedPieces)
+  takePieceOutOfBox: function(pieceType, boxedPieces)
   {
     //console.log("takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
     for(var i in boxedPieces)
@@ -88,11 +88,11 @@
       }
     }
     //console.log("failed takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
-  }
+  },
 
   //@pieces: pieces on board
   //@boxedPieces: pieces outside of the board, in the so-called box
-  function putPieceIntoBox(piece, pieces, boxedPieces)
+  putPieceIntoBox: function(piece, pieces, boxedPieces)
   {
     //console.log("putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
     if(piece.index == null) { //source of movement isn't the box
@@ -117,21 +117,21 @@
     } else { //the piece was moved from the box
       //console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - did nothing");
     }
-  }
+  },
 
   //selects a square if it is on the board
-  function selectSquare(square)
+  selectSquare: function(square)
   {
     if(isOnBoard(square)) {
       selected.col = square[0];
       selected.row = square[1];
     }
-  }
+  },
 
   //returns the coordinates of the square that was clicked on in the box, or null if outside of the box
   //@position: array of coordinates in pixels
   //@position: warning: needed attributes are not checked!
-  function getIndexInBox(position, constants)
+  getIndexInBox: function(position, constants)
   {
     //tests whether is in box or not
     var relativeX = position[0] - constants.boxLeft;
@@ -148,24 +148,24 @@
     }
     //console.log("getIndexInBox: out of box");
     return null;
-  }
+  },
 
   //2D coordinates
-  function coordinatesToString(coordinates) {
+  coordinatesToString: function(coordinates) {
     return "["+coordinates[0]+", "+coordinates[1]+"]";
-  }
+  },
 
   //2D coordinates
-  function xyCoordinatesToString(coordinates) {
+  xyCoordinatesToString: function(coordinates) {
     return "["+coordinates.x+", "+coordinates.y+"]";
-  }
+  },
 
-  function pieceToString(piece) {
+  pieceToString: function(piece) {
     if(piece) return "{col:"+piece.col+", row:"+piece.row+", type:"+piece.type+"}";
     else return piece;
-  }
+  },
 
-  function piecesToString(pieces) {
+  piecesToString: function(pieces) {
     var printed = "{";
     for(var i in pieces)
     {
@@ -177,17 +177,17 @@
     }
     printed += "}";
     return printed;
-  }
+  },
 
-  function paramsToString(params) {
+  paramsToString: function(params) {
     if (params)
       return "params={selectedPiece="+pieceToString(params.selectedPiece)+", draggedPiece="+pieceToString(params.draggedPiece)+")";
     else
       return params;
-  }
+  },
 
   //updates selected piece and dragged piece when the mouse button is pressed on a piece
-  function mouseDownOnPiece(piecePressed, params) {
+  mouseDownOnPiece: function(piecePressed, params) {
     //console.log("mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
     if(piecePressed) {
       //console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
@@ -206,15 +206,15 @@
     } else {
       //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+"), nothing done");
     }
-  }
+  },
 
   //tests whether a given position is inside the board or not
   //@positionOnBoard: array of coordinates as column and row position
-  function isOnBoard(positionOnBoard) {
+  isOnBoard: function(positionOnBoard) {
     return ((positionOnBoard[0] <= 13) && (positionOnBoard[0] >= 0) && (positionOnBoard[1] <= 8) && (positionOnBoard[1] >= 0));
-  }
+  },
 
-  function distance(point1, point2) {
+  distance: function(point1, point2) {
     var point1x = point1[0] || point1.x;
     var point1y = point1[1] || point1.y;
     var point2x = point2[0] || point2.x;
@@ -222,13 +222,13 @@
     var diffX = point1x - point2x;
     var diffY = point1y - point2y;
     return Math.sqrt(diffX*diffX + diffY*diffY);        
-  }
+  },
 
-  function areSamePiece(piece1, piece2) {
+  areSamePiece: function(piece1, piece2) {
     return (piece1 && piece2 && (piece1.col == piece2.col) && (piece1.row == piece2.row))
-  }
+  },
 
-  function drawObject(layer, assetName, assetSize, scale, col, row, constants, rotation) {
+  drawObject: function(layer, assetName, assetSize, scale, col, row, constants, rotation) {
     GE.addUnique(that.params.graphics.shapes, {
       type: "image",
       layer: layer,
@@ -239,16 +239,16 @@
                     (row+0.5) * constants.cellSize + constants.upperLeftBoardMargin],
       rotation: rotation // In degrees 
     });
-  }
+  },
 
-  function isInGrid(point)
+  isInGrid: function(point)
   {
     return point[0] >= 0 && point[0] < gridSize[0] && point[1] >= 0 && point[1] < gridSize[1];        
-  }
+  },
 
   // Attempts to find intersection with the given lines and returns it.
   // Else returns null.
-  function findIntersection(origin, dest, lines)
+  findIntersection: function(origin, dest, lines)
   {
     var closestIntersection = null;
     var distanceToClosestIntersection = Infinity;
@@ -278,10 +278,10 @@
     }
 
     return closestIntersection == null ? null : closestIntersection.elements.slice(0, 2); // return only 2D part
-  }
+  },
 
   // Returns an intersection point with walls, or null otherwise
-  function intersectsBoundaries(origin, dest)
+  intersectsBoundaries: function(origin, dest)
   {
     var boundaries = 
     [
@@ -292,10 +292,10 @@
     ];
 
     return findIntersection(origin, dest, boundaries);
-  }
+  },
 
   // Returns an intersection point with walls, or null otherwise
-  function intersectsCell(origin, dest, cellPos)
+  intersectsCell: function(origin, dest, cellPos)
   {
     var boundaries = 
     [
@@ -306,9 +306,9 @@
     ];
 
     return findIntersection(origin, dest, boundaries);
-  }
+  },
 
-  function findGridElement(point)
+  findGridElement: function(point)
   {
     for(var i in that.params.pieces)
     {
@@ -316,9 +316,9 @@
       if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
     }
     return null;
-  }
+  },
 
-  function handleGridElement()
+  handleGridElement: function()
   {
     if(element.type == "wall")
     {
@@ -364,20 +364,20 @@
     {
       that.params.goalReached = true;
     }
-  }
+  },
 
-  function lightDirectionUpdated()
+  lightDirectionUpdated: function()
   {
     lightSigns = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
 
     var distanceOutOfGrid = Math.sqrt(gridSize[0]*gridSize[0] + gridSize[1]*gridSize[1]);
     var lastOrigin = lightSegments[lightSegments.length - 1].origin;
     lightDestination = Sylvester.Vector.create(lastOrigin).add(Sylvester.Vector.create(lightDirection).multiply(distanceOutOfGrid)).elements.slice();
-  }
+  },
 
   // all lines are in grid space, not in screen space
   // options override default values for all drawn shapes (layer, composition, etc.)
-  function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options)
+  drawGradientLine: function(origin, dest, innerRadius, outerRadius, colorRgba, options)
   {
     var marginV = Vector.create([that.params.constants.toSquareCenterOffset, that.params.constants.toSquareCenterOffset]);
 
@@ -460,9 +460,9 @@
       position: destV.elements,
       radius: outerRadius
     }, options));
-  }
+  },
 
-  function findGridElement(point)
+  findGridElement: function(point)
   {
     for(var i in that.params.pieces)
     {
@@ -470,22 +470,22 @@
       if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
     }
     return null;
-  }
+  },
 
-  function isRotatable(piece)
+  isRotatable: function(piece)
   {
     return (piece && that.params.constants.unrotatablePieces.indexOf(piece.type) == -1)
-  }
+  },
 
   //converts a pixel coordinate to a board coordinate
   //assumes that the board is made out of squares
-  function toBoardCoordinate(pixelCoordinate)
+  toBoardCoordinate: function(pixelCoordinate)
   {
     var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
     return res;
-  }
+  },
 
-  function findGridElement(point)
+  findGridElement: function(point)
   {
     for(var i in that.params.pieces)
     {
@@ -493,12 +493,12 @@
       if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
     }
     return null;
-  }
+  },
 
   //returns the coordinates of the square that was clicked on in the box, or null if outside of the box
   //@position: array of coordinates in pixels
   //@position: warning: needed attributes are not checked!
-  function getIndexInBox(position, constants) {
+  getIndexInBox: function(position, constants) {
     //tests whether is in box or not
     var relativeX = position[0] - constants.boxLeft;
     var relativeY = position[1] - constants.boxTop;
@@ -511,9 +511,9 @@
       return index;
     }
     return null;
-  }
+  },
 
-  function getBoxedPiece(index) {
+  getBoxedPiece: function(index) {
     return index == null ? null : that.params.boxedPieces[index];
   }
-}).call(this);
+})
