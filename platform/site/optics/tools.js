@@ -1,37 +1,34 @@
 ({
   //converts a pixel coordinate to a board coordinate
   //assumes that the board is made out of squares
-  toBoardCoordinate: function(pixelCoordinate)
+  toBoardCoordinate: function(pixelCoordinate, upperLeftBoardMargin, cellSize)
   {
-    var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
-    //console.log("toBoardCoordinates("+pixelCoordinate+")="+res+" with upperLeftBoardMargin="+that.params.constants.upperLeftBoardMargin+", pieceAssetCentering="+that.params.constants.pieceAssetCentering+", cellSize="+that.params.constants.cellSize);
+    var res = Math.floor((pixelCoordinate - upperLeftBoardMargin)/cellSize);
     return res;
   },
 
-  toPixelCoordinate: function(boardCoordinate)
+  //does the opposite of toBoardCoordinate
+  toPixelCoordinate: function(boardCoordinate, upperLeftBoardMargin, cellSize)
   {
-    return (boardCoordinate + 0.5)*(that.params.constants.cellSize-1) + that.params.constants.upperLeftBoardMargin;
+    return (boardCoordinate + 0.5)*(cellSize-1) + upperLeftBoardMargin;
   },
 
-  //copied from drawLight
+  //returns the piece at position 'square' on the board, or null if there is none
   findGridElement: function(square, pieces)
   {
-    //console.log("findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+")");
     for(var i in pieces)
     {
       var piece = pieces[i];
       if(piece.col == square[0] && piece.row == square[1]) {
-        //console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (found "+pieceToString(piece)+")");
         return piece;
       } 
     }
-    //console.log("finished findGridElement(square="+coordinatesToString(square)+", pieces="+piecesToString(pieces)+") (no piece found)");
     return null;
   },
 
-  isMovable: function(piece)
+  isMovable: function(piece, unmovablePieces)
   {
-    return (piece && that.params.constants.unmovablePieces.indexOf(piece.type) == -1)
+    return (piece && unmovablePieces.indexOf(piece.type) == -1);
   },
 
   //moves a piece from the board or the box to a square on the board
@@ -39,42 +36,71 @@
   //@pieces: pieces on board
   //@boxedPieces: pieces outside of the board, in the so-called box
   //which is determined by examining the attributes of "piece"
+  //
+  //returns {piece, pieces, boxedPiece}
+  //piece is the updated piece
+  //pieces is the update table of board pieces
+  //boxedPieces is the update table of boxed pieces
   movePieceTo: function(piece, newSquare, pieces, boxedPieces)
   {
-    if(isMovable(piece)) {
-      //console.log("movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - piece is movable");
-      if (isOnBoard(newSquare)) { //defensive code
-        //console.log("movePieceTo: correct arguments");
+    var newPiece = null;
+    var newPieces = {};
+    var newBoxedPieces = {};
+
+    if(this.isMovable(piece)) {
+      if (this.isOnBoard(newSquare)) { //defensive code
         if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
-          //console.log("movePieceTo: piece was on board");
-          var movedPiece = findGridElement([piece.col, piece.row], pieces);
-          movedPiece.col = newSquare[0];
-          movedPiece.row = newSquare[1];
+          console.log("movePieceTo the piece was on the board, let's change its coordinates");
+          //var movedPiece = findGridElement([piece.col, piece.row], pieces);
+          //movedPiece.col = newSquare[0];
+          //movedPiece.row = newSquare[1];
+          newPiece.col = newSquare[0];
+          newPiece.row = newSquare[1];
+
         } else { //the piece was in the box, let's put it on the board
+          console.log("movePieceTo the piece was in the box, let's put it on the board");
           //remove the piece from the "boxedPieces"
-          //console.log("movePieceTo: piece was in box");
-          takePieceOutOfBox(piece.type, boxedPieces);
+          newBoxedPieces = takePieceOutOfBox(piece.type, boxedPieces);
 
           //add it to the "pieces" with the appropriate coordinates
-          var insertedPiece = {
+          newPiece = {
             "col": newSquare[0],
             "row": newSquare[1],
             "type": piece.type,
             "rotation": 0
           };
-          pieces.push(insertedPiece);
+          newPieces = pieces.concat([newPiece]);
         }
       } else {
-        //console.log("movePieceTo: put outside of board, put piece in box");
-        putPieceIntoBox(piece, pieces, boxedPieces);
+        //the new square position is outside of the board: let's box the piece
+        console.log("movePieceTo the new square position is outside of the board: let's box the piece");
+        var put = putPieceIntoBox(piece, pieces, boxedPieces);
+        newPiece = put.newPiece;
+        newPieces = put.newPieces;
+        newBoxedPieces = put.newBoxedPieces;
       }
       //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
     } else {
       //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - piece is not movable");
     }
+
+    var toReturn = {};
+    toReturn.piece = newPiece;
+    toReturn.pieces = newPieces;
+    toReturn.boxedPieces = newBoxedPieces;
+
+    return toReturn;
   },
 
-  //removes a piece form the boxed pieces and rearranges the remaining pieces
+  pureRemove: function(index, tab)
+  {
+    var length = tab.length;
+    var res = tab.slice(0, index).concat(tab.slice(index+1, length+1));
+    return res;
+  },
+
+  //returns boxedPieces minus a piece of type "pieceType"
+  //besides, boxedPieces is still sorted afterwards
   takePieceOutOfBox: function(pieceType, boxedPieces)
   {
     //console.log("takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
@@ -82,63 +108,69 @@
     {
       var piece = boxedPieces[i];
       if(piece.type == pieceType) {
-        boxedPieces.splice(i, 1);
+        var res = this.pureRemove(i, boxedPieces);
         //console.log("finished takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
-        return;
+        console.log("takePieceOutOfBox("+pieceType+", "+this.piecesToString(boxedPieces)+")="+this.piecesToString(res));
+        return res;
       }
     }
     //console.log("failed takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
   },
 
+  //takes a piece 'piece' from the board, i.e. 'pieces', and puts it into the box, i.e. 'boxedPieces'
+  //@piece: the piece to be moved
   //@pieces: pieces on board
   //@boxedPieces: pieces outside of the board, in the so-called box
+  //returns {newBoxedPiece, newPieces, newBoxedPieces}
   putPieceIntoBox: function(piece, pieces, boxedPieces)
   {
-    //console.log("putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
-    if(piece.index == null) { //source of movement isn't the box
+    console.log("putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+
+    var res = {};
+
+    if(piece.index === null) { //source of movement isn't the box
+      console.log("putPieceIntoBox: source of movement isn't the box");
       var newIndex = boxedPieces.length;
-      var boxedPiece = {
+      res.newBoxedPiece = {
         "type": piece.type,
         "index": newIndex
       };
       //put at the right place
       //boxedPieces.splice(newIndex, 0, boxedPiece);
-      boxedPieces.push(boxedPiece);
+      res.newBoxedPieces = boxedPieces.concat(boxedPiece);
 
       for(var i in pieces)
       {
         var somePiece = pieces[i];
         if((piece.col == somePiece.col) &&(piece.row == somePiece.row)) {
-          pieces.splice(i, 1);
-          //console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
-          return;
+          res.newPieces = this.pureRemove(i, pieces);
+          console.log("finished putPieceIntoBox: res={newBoxedPiece="+pieceToString(res.newBoxedPiece)+", newPieces="+piecesToString(res.newPieces)+", newBoxedPieces="+piecesToString(res.newBoxedPieces)+"}");
+          return res;
         }
       }
     } else { //the piece was moved from the box
+      console.log("putPieceIntoBox: the piece was moved from the box");
       //console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - did nothing");
     }
-  },
 
-  //selects a square if it is on the board
-  selectSquare: function(square)
-  {
-    if(isOnBoard(square)) {
-      selected.col = square[0];
-      selected.row = square[1];
-    }
+    res.newBoxedPiece = piece;
+    res.newPieces = pieces;
+    res.newBoxedPieces = boxedPieces;
+
+    return res;
   },
 
   //returns the coordinates of the square that was clicked on in the box, or null if outside of the box
   //@position: array of coordinates in pixels
   //@position: warning: needed attributes are not checked!
-  getIndexInBox: function(position, constants)
+  getIndexInBox: function(position, boxLeft, boxTop, boxCellSize)
   {
     //tests whether is in box or not
-    var relativeX = position[0] - constants.boxLeft;
-    var relativeY = position[1] - constants.boxTop;
+    var relativeX = position[0] - boxLeft;
+    var relativeY = position[1] - boxTop;
 
-    var col = Math.floor(relativeX/constants.boxCellSize[0]);
-    var row = Math.floor(relativeY/constants.boxCellSize[1]);
+    var col = Math.floor(relativeX/boxCellSize[0]);
+    var row = Math.floor(relativeY/boxCellSize[1]);
 
     if((0 <= col) && (1 >= col) && (0 <= row) && (4 >= row)) {
       var index = 2*row+col;
@@ -152,12 +184,9 @@
 
   //2D coordinates
   coordinatesToString: function(coordinates) {
-    return "["+coordinates[0]+", "+coordinates[1]+"]";
-  },
-
-  //2D coordinates
-  xyCoordinatesToString: function(coordinates) {
-    return "["+coordinates.x+", "+coordinates.y+"]";
+    var x = coordinates[0] || coordinates.x;
+    var y = coordinates[1] || coordinates.y;
+    return "["+x+", "+y+"]";
   },
 
   pieceToString: function(piece) {
@@ -171,47 +200,26 @@
     {
       var piece = pieces[i];
       if(printed !== "{") {
-        printed+=", ";
+        printed += ", ";
       }
-      printed+=pieceToString(piece);
+      printed += this.pieceToString(piece);
     }
     printed += "}";
     return printed;
   },
 
+  //@params: must have attributes "selectedPiece" and "draggedPiece"
   paramsToString: function(params) {
     if (params)
-      return "params={selectedPiece="+pieceToString(params.selectedPiece)+", draggedPiece="+pieceToString(params.draggedPiece)+")";
+      return "params={selectedPiece="+this.pieceToString(params.selectedPiece)+", draggedPiece="+this.pieceToString(params.draggedPiece)+")";
     else
       return params;
   },
 
-  //updates selected piece and dragged piece when the mouse button is pressed on a piece
-  mouseDownOnPiece: function(piecePressed, params) {
-    //console.log("mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
-    if(piecePressed) {
-      //console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
-      //console.log("action.js: the previously selected piece is unselected");
-      params.selectedPiece = null;
-      //console.log("rotating = false");
-      params.rotating = false;
-      params.originalRotation = null;
-      params.originalPieceRotation = null;
-
-      //console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
-      if(isMovable(piecePressed)) {
-        params.draggedPiece = piecePressed;
-      }
-      //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
-    } else {
-      //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+"), nothing done");
-    }
-  },
-
   //tests whether a given position is inside the board or not
   //@positionOnBoard: array of coordinates as column and row position
-  isOnBoard: function(positionOnBoard) {
-    return ((positionOnBoard[0] <= 13) && (positionOnBoard[0] >= 0) && (positionOnBoard[1] <= 8) && (positionOnBoard[1] >= 0));
+  isOnBoard: function(positionOnBoard, rows, columns) {
+    return ((positionOnBoard[0] < rows) && (positionOnBoard[0] >= 0) && (positionOnBoard[1] < columns) && (positionOnBoard[1] >= 0));
   },
 
   distance: function(point1, point2) {
@@ -277,7 +285,7 @@
       }
     }
 
-    return closestIntersection == null ? null : closestIntersection.elements.slice(0, 2); // return only 2D part
+    return closestIntersection === null ? null : closestIntersection.elements.slice(0, 2); // return only 2D part
   },
 
   // Returns an intersection point with walls, or null otherwise
@@ -324,7 +332,7 @@
     {
       // find intersection with wall
       var wallIntersection = intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [element.col, element.row]);
-      if(wallIntersection == null) throw new Error("Cannot find intersection with wall");
+      if(wallIntersection === null) throw new Error("Cannot find intersection with wall");
       lightSegments[lightSegments.length - 1].destination = wallIntersection;
 
       lightIntensity = 0;
@@ -514,6 +522,6 @@
   },
 
   getBoxedPiece: function(index) {
-    return index == null ? null : that.params.boxedPieces[index];
+    return index === null ? null : that.params.boxedPieces[index];
   }
 })

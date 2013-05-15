@@ -1,4 +1,46 @@
 ({
+    //selects a square if it is on the board
+    selectSquare: {
+      paramDefs: {
+        selected: null,
+        square: []
+      },
+      update: function() {
+        if(this.tools.isOnBoard(square)) {
+          selected.col = square[0];
+          selected.row = square[1];
+        }
+      }
+    },
+
+    //updates selected piece and dragged piece when the mouse button is pressed on a piece
+    mouseDownOnPiece: {
+      paramDefs: {
+        piecePressed: null,
+        params: []
+      },
+      update: function() {
+        console.log("mouseDownOnPiece(piecePressed="+this.tools.pieceToString(piecePressed)+", "+this.tools.paramsToString(params)+")");
+        if(piecePressed) {
+          console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
+          console.log("action.js: the previously selected piece is unselected");
+          params.selectedPiece = null;
+          console.log("rotating = false");
+          params.rotating = false;
+          params.originalRotation = null;
+          params.originalPieceRotation = null;
+
+          console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
+          if(this.tools.isMovable(piecePressed)) {
+            params.draggedPiece = piecePressed;
+          }
+          console.log("finished mouseDownOnPiece(piecePressed="+this.tools.pieceToString(piecePressed)+", "+this.tools.paramsToString(params)+")");
+        } else {
+          console.log("finished mouseDownOnPiece(piecePressed="+this.tools.pieceToString(piecePressed)+", "+this.tools.paramsToString(params)+"), nothing done");
+        }
+      }
+    },
+
     clickListener: {
     paramDefs: {
       graphics: null,
@@ -39,8 +81,8 @@
 
       //ROTATION: LOGIC (ANGLE COMPUTATION & SETTING)
       if(this.params.rotating && this.params.selectedPiece && this.params.mouse.position){
-        if(this.params.originalPieceRotation == null) {
-          //console.log("!!!this.params.originalRotation == null!!!");
+        if(this.params.originalPieceRotation === null) {
+          //console.log("!!!this.params.originalRotation === null!!!");
           this.params.originalPieceRotation = this.params.selectedPiece.rotation;
         }
         //angle between axis Ox and axis Om where m is mouse position, O is piece center, and Ox is colinear to x-Axis
@@ -55,7 +97,7 @@
         //var ratio = ohxDistance/omDistance;
         var ratio = ohyDistance/omDistance;
         var angle = 0;
-        if(omDistance != 0) {
+        if(omDistance !== 0) {
           var absValueAngle = Math.acos(ratio)*180/Math.PI;
           if(hxPosition <= 0) {
             angle = -absValueAngle;
@@ -63,12 +105,12 @@
             angle = absValueAngle;
           }
         }
-        if(this.params.originalRotation == null) {
-          //console.log("!!!this.params.originalRotation == null!!!");
+        if(this.params.originalRotation === null) {
+          //console.log("!!!this.params.originalRotation === null!!!");
           this.params.originalRotation = angle;
         }
-        //console.log("objectPos="+xyCoordinatesToString(objectPosition)
-        //  +", mousePos="+xyCoordinatesToString(this.params.mouse.position)
+        //console.log("objectPos="+coordinatesToString(objectPosition)
+        //  +", mousePos="+coordinatesToString(this.params.mouse.position)
         //  +", omDist="+omDistance
         //  +", ohxDist="+ohxDistance
         //  +", ratio="+ratio
@@ -111,7 +153,7 @@
 
       function isMovable(piece)
       {
-        return (piece && that.params.constants.unmovablePieces.indexOf(piece.type) == -1)
+        return (piece && that.params.constants.unmovablePieces.indexOf(piece.type) == -1);
       }
 
       //moves a piece from the board or the box to a square on the board
@@ -173,7 +215,7 @@
       //@boxedPieces: pieces outside of the board, in the so-called box
       function putPieceIntoBox(piece, pieces, boxedPieces) {
         //console.log("putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
-        if(piece.index == null) { //source of movement isn't the box
+        if(piece.index === null) { //source of movement isn't the box
           var newIndex = boxedPieces.length;
           var boxedPiece = {
             "type": piece.type,
@@ -194,15 +236,6 @@
           }
         } else { //the piece was moved from the box
           //console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - did nothing");
-        }
-      }
-
-      //selects a square if it is on the board
-      function selectSquare(square)
-      {
-        if(isOnBoard(square)) {
-          selected.col = square[0];
-          selected.row = square[1];
         }
       }
 
@@ -261,28 +294,6 @@
           return "params={selectedPiece="+pieceToString(params.selectedPiece)+", draggedPiece="+pieceToString(params.draggedPiece)+")";
         else
           return params;
-      }
-
-      //updates selected piece and dragged piece when the mouse button is pressed on a piece
-      function mouseDownOnPiece(piecePressed, params) {
-        //console.log("mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
-        if(piecePressed) {
-          //console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
-          //console.log("action.js: the previously selected piece is unselected");
-          params.selectedPiece = null;
-          //console.log("rotating = false");
-          params.rotating = false;
-          params.originalRotation = null;
-          params.originalPieceRotation = null;
-
-          //console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
-          if(isMovable(piecePressed)) {
-            params.draggedPiece = piecePressed;
-          }
-          //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+")");
-        } else {
-          //console.log("finished mouseDownOnPiece(piecePressed="+pieceToString(piecePressed)+", "+paramsToString(params)+"), nothing done");
-        }
       }
 
       //tests whether a given position is inside the board or not
@@ -359,7 +370,7 @@
                 var selectedPiecePosition = {};
                 selectedPiecePosition.x = toPixelCoordinate(this.params.selectedPiece.col);
                 selectedPiecePosition.y = toPixelCoordinate(this.params.selectedPiece.row);
-                //console.log("clicked close: selectedPiecePosition="+xyCoordinatesToString(selectedPiecePosition)+", this.params.mouse.position="+xyCoordinatesToString(this.params.mouse.position));
+                //console.log("clicked close: selectedPiecePosition="+coordinatesToString(selectedPiecePosition)+", this.params.mouse.position="+coordinatesToString(this.params.mouse.position));
                 if((distance(this.params.mouse.position, selectedPiecePosition) < this.params.constants.cellSize*1.2)
                  &&(distance(this.params.mouse.position, selectedPiecePosition) > this.params.constants.cellSize*0.7))
                 {
@@ -704,7 +715,7 @@
           }
         }
 
-        return closestIntersection == null ? null : closestIntersection.elements.slice(0, 2); // return only 2D part
+        return closestIntersection === null ? null : closestIntersection.elements.slice(0, 2); // return only 2D part
       }
 
       // Returns an intersection point with walls, or null otherwise
@@ -751,7 +762,7 @@
         {
           // find intersection with wall
           var wallIntersection = intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [element.col, element.row]);
-          if(wallIntersection == null) throw new Error("Cannot find intersection with wall");
+          if(wallIntersection === null) throw new Error("Cannot find intersection with wall");
           lightSegments[lightSegments.length - 1].destination = wallIntersection;
 
           lightIntensity = 0;
@@ -967,7 +978,7 @@
 
           // find intersection with boundaries
           var boundaryIntersection = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, lightDestination);
-          if(boundaryIntersection == null) throw new Error("Cannot find intersection with boundaries");
+          if(boundaryIntersection === null) throw new Error("Cannot find intersection with boundaries");
           lightSegments[lightSegments.length - 1].destination = boundaryIntersection;
         }
         else if(element = findGridElement(currentCell))
@@ -1135,7 +1146,7 @@
       }
 
       function getBoxedPiece(index) {
-        return index == null ? null : that.params.boxedPieces[index];
+        return index === null ? null : that.params.boxedPieces[index];
       }
 
       if(!this.params.mouse.position) return;
