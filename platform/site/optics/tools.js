@@ -1,4 +1,12 @@
 ({
+  //returns a copy of 'tab' without the element at position 'index'
+  pureRemove: function(index, tab)
+  {
+    var length = tab.length;
+    var res = tab.slice(0, index).concat(tab.slice(index+1, length+1));
+    return res;
+  },
+
   //converts a pixel coordinate to a board coordinate
   //assumes that the board is made out of squares
   toBoardCoordinate: function(pixelCoordinate, upperLeftBoardMargin, cellSize)
@@ -41,14 +49,14 @@
   //piece is the updated piece
   //pieces is the update table of board pieces
   //boxedPieces is the update table of boxed pieces
-  movePieceTo: function(piece, newSquare, pieces, boxedPieces)
+  movePieceTo: function(piece, newSquare, pieces, boxedPieces, gridSize)
   {
     var newPiece = null;
     var newPieces = {};
     var newBoxedPieces = {};
 
     if(this.isMovable(piece)) {
-      if (this.isOnBoard(newSquare)) { //defensive code
+      if (this.isInGrid(newSquare, gridSize)) { //defensive code
         if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
           console.log("movePieceTo the piece was on the board, let's change its coordinates");
           //var movedPiece = findGridElement([piece.col, piece.row], pieces);
@@ -90,13 +98,6 @@
     toReturn.boxedPieces = newBoxedPieces;
 
     return toReturn;
-  },
-
-  pureRemove: function(index, tab)
-  {
-    var length = tab.length;
-    var res = tab.slice(0, index).concat(tab.slice(index+1, length+1));
-    return res;
   },
 
   //returns boxedPieces minus a piece of type "pieceType"
@@ -163,7 +164,7 @@
   //returns the coordinates of the square that was clicked on in the box, or null if outside of the box
   //@position: array of coordinates in pixels
   //@position: warning: needed attributes are not checked!
-  getIndexInBox: function(position, boxLeft, boxTop, boxCellSize)
+  getIndexInBox: function(position, boxLeft, boxTop, boxCellSize, boxRowsCount, boxColumnsCount)
   {
     //tests whether is in box or not
     var relativeX = position[0] - boxLeft;
@@ -172,7 +173,7 @@
     var col = Math.floor(relativeX/boxCellSize[0]);
     var row = Math.floor(relativeY/boxCellSize[1]);
 
-    if((0 <= col) && (1 >= col) && (0 <= row) && (4 >= row)) {
+    if((0 <= col) && (boxColumnsCount > col) && (0 <= row) && (boxRowsCount > row)) {
       var index = 2*row+col;
 
       //console.log("getIndexInBox returns "+index);
@@ -216,12 +217,6 @@
       return params;
   },
 
-  //tests whether a given position is inside the board or not
-  //@positionOnBoard: array of coordinates as column and row position
-  isOnBoard: function(positionOnBoard, rows, columns) {
-    return ((positionOnBoard[0] < rows) && (positionOnBoard[0] >= 0) && (positionOnBoard[1] < columns) && (positionOnBoard[1] >= 0));
-  },
-
   distance: function(point1, point2) {
     var point1x = point1[0] || point1.x;
     var point1y = point1[1] || point1.y;
@@ -236,27 +231,30 @@
     return (piece1 && piece2 && (piece1.col == piece2.col) && (piece1.row == piece2.row))
   },
 
-  drawObject: function(layer, assetName, assetSize, scale, col, row, constants, rotation) {
-    GE.addUnique(that.params.graphics.shapes, {
+  //returns a drawable object that represents a device of type 'assetName' on the board, at position [col, row]
+  getDrawableObject: function(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation) {
+    return {
       type: "image",
       layer: layer,
       asset: assetName,
       scale: scale,
       position: [-assetSize/2, -assetSize/2],
-      translation: [(col+0.5) * constants.cellSize + constants.upperLeftBoardMargin, 
-                    (row+0.5) * constants.cellSize + constants.upperLeftBoardMargin],
+      translation: [(col+0.5) * cellSize + upperLeftBoardMargin, 
+                    (row+0.5) * cellSize + upperLeftBoardMargin],
       rotation: rotation // In degrees 
-    });
+    };
   },
 
-  isInGrid: function(point)
+  //tests whether a given position is inside the board or not
+  //@positionOnBoard: array of coordinates as column and row position
+  isInGrid: function(point, gridSize)
   {
-    return point[0] >= 0 && point[0] < gridSize[0] && point[1] >= 0 && point[1] < gridSize[1];        
+    return (point[0] >= 0) && (point[0] < gridSize[0]) && (point[1] >= 0) && (point[1] < gridSize[1]);        
   },
 
   // Attempts to find intersection with the given lines and returns it.
   // Else returns null.
-  findIntersection: function(origin, dest, lines)
+  findIntersection: function(origin, dest, lines, extendLinesFactor)
   {
     var closestIntersection = null;
     var distanceToClosestIntersection = Infinity;
@@ -267,7 +265,7 @@
       var b = Vector.create(lines[i][1]);
       var aToB = b.subtract(a);
       var midpoint = a.add(aToB.multiply(0.5));
-      var newLength = (1 + EXTEND_LINES_FACTOR) * aToB.modulus();
+      var newLength = (1 + extendLinesFactor) * aToB.modulus();
       var unit = aToB.toUnitVector();
       var aExtend = midpoint.add(unit.multiply(-0.5 * newLength));
       var bExtend = midpoint.add(unit.multiply(0.5 * newLength));
@@ -289,7 +287,7 @@
   },
 
   // Returns an intersection point with walls, or null otherwise
-  intersectsBoundaries: function(origin, dest)
+  intersectsBoundaries: function(origin, dest, gridSize, extendLinesFactor)
   {
     var boundaries = 
     [
@@ -299,11 +297,11 @@
       [[0, gridSize[1]], [0, 0]] // left
     ];
 
-    return findIntersection(origin, dest, boundaries);
+    return this.findIntersection(origin, dest, boundaries, extendLinesFactor);
   },
 
   // Returns an intersection point with walls, or null otherwise
-  intersectsCell: function(origin, dest, cellPos)
+  intersectsCell: function(origin, dest, cellPos, extendLinesFactor)
   {
     var boundaries = 
     [
@@ -313,215 +311,15 @@
       [[cellPos[0] + 1, cellPos[1]], [cellPos[0], cellPos[1]]] // left
     ];
 
-    return findIntersection(origin, dest, boundaries);
+    return this.findIntersection(origin, dest, boundaries, extendLinesFactor);
   },
 
-  findGridElement: function(point)
+  isRotatable: function(piece, unrotatablePieces)
   {
-    for(var i in that.params.pieces)
-    {
-      var piece = that.params.pieces[i];
-      if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
-    }
-    return null;
+    return (piece && unrotatablePieces.indexOf(piece.type) == -1)
   },
 
-  handleGridElement: function()
-  {
-    if(element.type == "wall")
-    {
-      // find intersection with wall
-      var wallIntersection = intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [element.col, element.row]);
-      if(wallIntersection === null) throw new Error("Cannot find intersection with wall");
-      lightSegments[lightSegments.length - 1].destination = wallIntersection;
-
-      lightIntensity = 0;
-    }
-    else if(element.type == "mirror")
-    {
-      // find intersection with central line
-      var rotation = element.rotation * Math.PI / 180; 
-      var centralLineDiff = [.5 * Math.cos(rotation), .5 * Math.sin(rotation)];
-      var centralLine = [[element.col + 0.5 + centralLineDiff[0], element.row + 0.5 + centralLineDiff[1]], [element.col + 0.5 - centralLineDiff[0], element.row + 0.5 - centralLineDiff[1]]];
-      if(intersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine]))
-      {
-        lightSegments[lightSegments.length - 1].destination = intersection;
-
-        lightIntensity *= that.params.constants.mirrorAttenuationFactor;
-        if(lightIntensity < that.params.constants.minimumAttenuation)
-        {
-          lightIntensity = 0;
-        }
-        else
-        {
-          lightSegments.push({ origin: intersection, intensity: lightIntensity });
-
-          // reflect around normal
-          // normal caluclation from http://www.gamedev.net/topic/510581-2d-reflection/)
-          // reflection calculation from http://paulbourke.net/geometry/reflected/ 
-          // Rr = Ri - 2 N (Ri . N)
-          var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
-          var oldLightDirection = Vector.create(lightDirection);
-          lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;
-
-          lightDirectionUpdated();
-        }
-      }
-    }
-    else if(element.type == "squarePrism")
-    {
-      that.params.goalReached = true;
-    }
-  },
-
-  lightDirectionUpdated: function()
-  {
-    lightSigns = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
-
-    var distanceOutOfGrid = Math.sqrt(gridSize[0]*gridSize[0] + gridSize[1]*gridSize[1]);
-    var lastOrigin = lightSegments[lightSegments.length - 1].origin;
-    lightDestination = Sylvester.Vector.create(lastOrigin).add(Sylvester.Vector.create(lightDirection).multiply(distanceOutOfGrid)).elements.slice();
-  },
-
-  // all lines are in grid space, not in screen space
-  // options override default values for all drawn shapes (layer, composition, etc.)
-  drawGradientLine: function(origin, dest, innerRadius, outerRadius, colorRgba, options)
-  {
-    var marginV = Vector.create([that.params.constants.toSquareCenterOffset, that.params.constants.toSquareCenterOffset]);
-
-    // find normal to line (http://stackoverflow.com/questions/1243614/how-do-i-calculate-the-normal-vector-of-a-line-segment)
-    var originV = Vector.create(origin).multiply(that.params.constants.cellSize).add(marginV);
-    var destV = Vector.create(dest).multiply(that.params.constants.cellSize).add(marginV);
-    var d = destV.subtract(originV);
-    var normal = Vector.create([-d.elements[1], d.elements[0]]).toUnitVector();
-
-    var strokeGradUpper = originV.add(normal.multiply(outerRadius));
-    var strokeGradLower = originV.add(normal.multiply(-outerRadius));
-
-    var transRgba = _.clone(colorRgba);
-    transRgba[3] = 0;
-
-    strokeGrad = {
-      type: "linearGradient",
-      startPosition: strokeGradUpper.elements,
-      endPosition: strokeGradLower.elements,
-      colorStops: [
-        { position: 0, color: "rgba(" + transRgba.join(",") + ")" },
-        { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
-        { position: 1 - innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
-        { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
-      ]
-    };
-
-    GE.addUnique(that.params.graphics.shapes, _.extend({
-      type: "path",
-      layer: "light",
-      strokeStyle: strokeGrad,
-      lineWidth: 2 * outerRadius,
-      points: [originV.elements, destV.elements]
-    }, options));
-
-    fillGrad = {
-      type: "radialGradient",
-      start: {
-        position: originV.elements,
-        radius: 0
-      },
-      end: {
-        position: originV.elements,
-        radius: outerRadius
-      },
-      colorStops: [
-        { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
-        { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
-      ]
-    };
-
-    GE.addUnique(that.params.graphics.shapes, _.extend({
-      type: "circle",
-      layer: "light",
-      fillStyle: fillGrad,
-      position: originV.elements,
-      radius: outerRadius
-    }, options));
-
-    fillGrad = {
-      type: "radialGradient",
-      start: {
-        position: destV.elements,
-        radius: 0
-      },
-      end: {
-        position: destV.elements,
-        radius: outerRadius
-      },
-      colorStops: [
-        { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
-        { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
-      ]
-    };
-
-    GE.addUnique(that.params.graphics.shapes, _.extend({
-      type: "circle",
-      layer: "light",
-      fillStyle: fillGrad,
-      position: destV.elements,
-      radius: outerRadius
-    }, options));
-  },
-
-  findGridElement: function(point)
-  {
-    for(var i in that.params.pieces)
-    {
-      var piece = that.params.pieces[i];
-      if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
-    }
-    return null;
-  },
-
-  isRotatable: function(piece)
-  {
-    return (piece && that.params.constants.unrotatablePieces.indexOf(piece.type) == -1)
-  },
-
-  //converts a pixel coordinate to a board coordinate
-  //assumes that the board is made out of squares
-  toBoardCoordinate: function(pixelCoordinate)
-  {
-    var res = Math.floor((pixelCoordinate - that.params.constants.upperLeftBoardMargin)/that.params.constants.cellSize);
-    return res;
-  },
-
-  findGridElement: function(point)
-  {
-    for(var i in that.params.pieces)
-    {
-      var piece = that.params.pieces[i];
-      if(piece.col == Math.floor(point[0]) && piece.row == Math.floor(point[1])) return piece; 
-    }
-    return null;
-  },
-
-  //returns the coordinates of the square that was clicked on in the box, or null if outside of the box
-  //@position: array of coordinates in pixels
-  //@position: warning: needed attributes are not checked!
-  getIndexInBox: function(position, constants) {
-    //tests whether is in box or not
-    var relativeX = position[0] - constants.boxLeft;
-    var relativeY = position[1] - constants.boxTop;
-
-    var col = Math.floor(relativeX/constants.boxCellSize[0]);
-    var row = Math.floor(relativeY/constants.boxCellSize[1]);
-
-    if((0 <= col) && (1 >= col) && (0 <= row) && (4 >= row)) {
-      var index = 2*row+col;
-      return index;
-    }
-    return null;
-  },
-
-  getBoxedPiece: function(index) {
-    return index === null ? null : that.params.boxedPieces[index];
+  getBoxedPiece: function(index, boxedPieces) {
+    return index === null ? null : boxedPieces[index];
   }
 })
