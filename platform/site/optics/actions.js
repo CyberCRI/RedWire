@@ -18,16 +18,17 @@
 
     update: function() {
       //selects a square if it is on the board
-      function selectSquare(selected,square) {
-        if(this.tools.isOnBoard(square)) {
-          selected.col = square[0];
-          selected.row = square[1];
+      var that = this;
+
+      function selectSquare(square, params) {
+        if(that.tools.isInGrid(square, that.params.constants.gridSize)) {
+          params.selected = {col: square[0], row: square[1]};
         }
       }
 
       //updates selected piece and dragged piece when the mouse button is pressed on a piece
       function mouseDownOnPiece(piecePressed, params) {
-        console.log("mouseDownOnPiece(piecePressed="+this.tools.pieceToString(piecePressed)+", "+this.tools.paramsToString(params)+")");
+        console.log("mouseDownOnPiece(piecePressed="+that.tools.pieceToString(piecePressed)+", "+that.tools.paramsToString(params)+")");
         if(piecePressed) {
           console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
           console.log("action.js: the previously selected piece is unselected");
@@ -38,12 +39,12 @@
           params.originalPieceRotation = null;
 
           console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
-          if(this.tools.isMovable(piecePressed)) {
+          if(that.tools.isMovable(piecePressed, that.params.constants.unmovablePieces)) {
             params.draggedPiece = piecePressed;
           }
-          console.log("finished mouseDownOnPiece(piecePressed="+this.tools.pieceToString(piecePressed)+", "+this.tools.paramsToString(params)+")");
+          console.log("finished mouseDownOnPiece(piecePressed="+that.tools.pieceToString(piecePressed)+", "+that.tools.paramsToString(params)+")");
         } else {
-          console.log("finished mouseDownOnPiece(piecePressed="+this.tools.pieceToString(piecePressed)+", "+this.tools.paramsToString(params)+"), nothing done");
+          console.log("finished mouseDownOnPiece(piecePressed="+that.tools.pieceToString(piecePressed)+", "+that.tools.paramsToString(params)+"), nothing done");
         }
       }
 
@@ -103,7 +104,10 @@
         //  +", ohxDist="+ohxDistance
         //  +", ratio="+ratio
         //  +", angle="+angle);
-        var piece = this.tools.findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
+        var piece = this.tools.findGridElement(
+                                [this.params.selectedPiece.col, this.params.selectedPiece.row],
+                                this.params.pieces
+                              );
         var newRotation = angle-this.params.originalRotation+this.params.originalPieceRotation;
         //console.log("original rotation="+this.params.originalRotation+", angle="+angle+", new rotation="+newRotation);
         piece.rotation = newRotation % 360;
@@ -113,22 +117,37 @@
         if(that.params.mouse.position)
         {
           //board coordinates
-          var clickedColumn = this.tools.toBoardCoordinate(that.params.mouse.position.x);
-          var clickedRow = this.tools.toBoardCoordinate(that.params.mouse.position.y);
+          var clickedColumn = this.tools.toBoardCoordinate(
+            that.params.mouse.position.x, 
+            this.params.constants.upperLeftBoardMargin, 
+            this.params.constants.cellSize
+            );
+          var clickedRow = this.tools.toBoardCoordinate(
+            that.params.mouse.position.y, 
+            this.params.constants.upperLeftBoardMargin, 
+            this.params.constants.cellSize
+            );
           var boardCoordinates = [clickedColumn, clickedRow];
 
           //test whether there is a piece or not
           if (newLeftMouseDown)
           {
-            //console.log(">>>>>>>>>> action.js: newLeftMouseDown, "+paramsToString(this.params));
+            //console.log(">>>>>>>>>> action.js: newLeftMouseDown, "+this.tools.paramsToString(this.params));
 
             //set mouse button flag
             this.params.leftMouseDown = true;
 
             //check whether the click happened on the board or not
-            if(!isOnBoard(boardCoordinates)){
+            if(!this.tools.isInGrid(boardCoordinates, this.params.constants.gridSize)){
               //console.log("clicked outside of board");
-              var boxIndex = getIndexInBox([that.params.mouse.position.x, that.params.mouse.position.y], this.params.constants);
+              var boxIndex = this.tools.getIndexInBox(
+                    [that.params.mouse.position.x, that.params.mouse.position.y],
+                    this.params.constants.boxLeft,
+                    this.params.constants.boxTop,
+                    this.params.constants.boxCellSize,
+                    this.params.constants.boxRowsCount,
+                    this.params.constants.boxColumnsCount
+                  );
               //check whether the click happened in the box or not
               if(boxIndex !== null) {
                 //console.log("clicked in box");
@@ -151,7 +170,7 @@
                 } else {
                   //console.log("clicked in box at position "+boxIndex+" on no piece, nothing to be done");
                 }
-                //console.log("<<<<<<<<<< finished click in box, "+paramsToString(this.params));
+                //console.log("<<<<<<<<<< finished click in box, "+this.tools.paramsToString(this.params));
               } // else clicked outsite of the box, out of the board: nothing to be done
             } else { //clicked on board
               //let's select the square that has been clicked on
@@ -161,39 +180,57 @@
 
               if(this.params.selectedPiece) {
                 var selectedPiecePosition = {};
-                selectedPiecePosition.x = toPixelCoordinate(this.params.selectedPiece.col);
-                selectedPiecePosition.y = toPixelCoordinate(this.params.selectedPiece.row);
+                selectedPiecePosition.x = this.tools.toPixelCoordinate(
+                                            this.params.selectedPiece.col,
+                                            this.params.constants.upperLeftBoardMargin,
+                                            this.params.constants.cellSize
+                                          );
+                selectedPiecePosition.y = this.tools.toPixelCoordinate(
+                                            this.params.selectedPiece.row,
+                                            this.params.constants.upperLeftBoardMargin,
+                                            this.params.constants.cellSize
+                                          );
                 //console.log("clicked close: selectedPiecePosition="+coordinatesToString(selectedPiecePosition)+", this.params.mouse.position="+coordinatesToString(this.params.mouse.position));
-                if((distance(this.params.mouse.position, selectedPiecePosition) < this.params.constants.cellSize*1.2)
-                 &&(distance(this.params.mouse.position, selectedPiecePosition) > this.params.constants.cellSize*0.7))
+                if((this.tools.distance(this.params.mouse.position, selectedPiecePosition) < this.params.constants.cellSize*1.2)
+                 &&(this.tools.distance(this.params.mouse.position, selectedPiecePosition) > this.params.constants.cellSize*0.7))
                 {
                   this.params.rotating = true;
-                  var rotatedPiece = this.tools.findGridElement([this.params.selectedPiece.col, this.params.selectedPiece.row], this.params.pieces);
+                  var rotatedPiece = this.tools.findGridElement(
+                                                  [this.params.selectedPiece.col, this.params.selectedPiece.row],
+                                                  this.params.pieces
+                                                );
                   this.params.originalPieceRotation = 0;
                   if(rotatedPiece) this.params.originalPieceRotation = rotatedPiece.rotation;
                   //console.log("this.params.rotating = true; this.params.originalPieceRotation = "+this.params.originalPieceRotation);
                 } else {
                   mouseDownOnPiece(pieceClickedOn, this.params);
-                  selectSquare([clickedColumn, clickedRow]);
+                  selectSquare([clickedColumn, clickedRow], this.params);
                 }
               } else {
                 mouseDownOnPiece(pieceClickedOn, this.params);
-                selectSquare([clickedColumn, clickedRow]);
+                selectSquare([clickedColumn, clickedRow], this.params);
               }
 
-              //console.log("<<<<<<<<<<<< finished click on board, "+paramsToString(this.params));
+              //console.log("<<<<<<<<<<<< finished click on board, "+this.tools.paramsToString(this.params));
             }
 
           } else if (newLeftMouseReleased) {
-            //console.log(">>>>>>>>>>>>>> action.js: newLeftMouseReleased, "+paramsToString(this.params));
+            //console.log(">>>>>>>>>>>>>> action.js: newLeftMouseReleased, "+this.tools.paramsToString(this.params));
             
             //reset mouse button flag
             this.params.leftMouseDown = false;
 
-            if(!isOnBoard(boardCoordinates)){
+            if(!this.tools.isInGrid(boardCoordinates, this.params.constants.gridSize)){
               //put out of board: put piece in box
               //console.log("released outside of board");
-              var boxIndex = getIndexInBox([that.params.mouse.position.x, that.params.mouse.position.y], this.params.constants);
+              var boxIndex = this.tools.getIndexInBox(
+                    [that.params.mouse.position.x, that.params.mouse.position.y],
+                    this.params.constants.boxLeft,
+                    this.params.constants.boxTop,
+                    this.params.constants.boxCellSize,
+                    this.params.constants.boxRowsCount,
+                    this.params.constants.boxColumnsCount
+                  );
               //check whether the click happened in the box or not
               if(boxIndex !== null) {
                 //console.log("clicked in box");
@@ -214,7 +251,12 @@
                     //this.params.selectedPiece = null;
                   } else if(this.params.draggedPiece) {
                     //console.log("action.js: this.params.draggedPiece");
-                    putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
+        
+                    var put = this.tools.putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
+
+                    this.params.pieces = put.pieces;
+                    this.params.boxedPieces = put.boxedPieces;
+
                     this.params.draggedPiece = null;
                     this.params.selectedPiece = null;
                     this.params.rotating = false;
@@ -226,7 +268,12 @@
                 }
               } else {
                 //console.log("released outside of board, outside of box");
-                putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
+
+                var put = this.tools.putPieceIntoBox(that.params.draggedPiece, this.params.pieces, this.params.boxedPieces);
+
+                this.params.pieces = put.pieces;
+                this.params.boxedPieces = put.boxedPieces;
+
                 this.params.draggedPiece = null;
                 this.params.selectedPiece = null;
                 this.params.rotating = false;
@@ -238,7 +285,7 @@
               //console.log("action.js: put on board: check if square is empty, then move piece");
 
               //let's select the square that has been clicked on
-              //selectSquare([clickedColumn, clickedRow]);
+              //selectSquare([clickedColumn, clickedRow], this.params.selected);
 
               //test whether there is a piece or not
               //console.log("1");
@@ -247,7 +294,7 @@
               if (pieceReleasedOn) {
                 //console.log("action.js: released on piece of type \""+pieceReleasedOn.type+"\"");
                 //console.log("action.js: drag and drop fails: undrag piece");
-                
+
                 if(this.params.draggedPiece &&  (this.params.draggedPiece.col == boardCoordinates[0]) && (this.params.draggedPiece.row == boardCoordinates[1])) {
                   //console.log("released on same piece, select");
                   this.params.selectedPiece = pieceReleasedOn;
@@ -266,7 +313,7 @@
                 }
                 this.params.draggedPiece = null;
 
-               //console.log("<<<<<<<<<<< finished released on piece, "+paramsToString(this.params)); 
+               //console.log("<<<<<<<<<<< finished released on piece, "+this.tools.paramsToString(this.params)); 
               } else {
                 //console.log("released on free square");
                 if(this.params.selectedPiece) {
@@ -277,26 +324,38 @@
                   } else {
                     //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
                     //uncomment this line to enable move by simple clic
-                    //movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
+                    //XXXmovePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
                     this.params.selectedPiece = null;
                     this.params.rotating = false;
                     this.params.originalRotation = null;
                     this.params.originalPieceRotation = null;
                   }
-                  //console.log("<<<<<<<<<<< selected, "+paramsToString(this.params)); 
+                  //console.log("<<<<<<<<<<< selected, "+this.tools.paramsToString(this.params)); 
                 } else if (this.params.draggedPiece) {
                   //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was being dragged");
-                  movePieceTo(this.params.draggedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
-                  this.params.selectedPiece = this.params.draggedPiece;
-                  selectSquare([clickedColumn, clickedRow]);
-                  this.params.draggedPiece = null;
-                  this.params.selectedPiece = null;
-                  this.params.rotating = false;
-                  this.params.originalRotation = null;
-                  this.params.originalPieceRotation = null;
-                  //console.log("<<<<<<<<<<< dragged, "+paramsToString(this.params)); 
+                  selectSquare([clickedColumn, clickedRow], this.params);
+
+                  var move = this.tools.movePieceTo(
+                              this.params.draggedPiece, 
+                              [clickedColumn, clickedRow], 
+                              this.params.pieces, 
+                              this.params.boxedPieces,
+                              this.params.constants.gridSize,
+                              this.params.constants.unmovablePieces
+                            );
+
+                  this.params.piece                 = move.piece;
+                  this.params.pieces                = move.pieces;
+                  this.params.boxedPieces           = move.boxedPieces;
+                  this.params.selectedPiece         = move.selectedPiece;
+                  this.params.draggedPiece          = move.draggedPiece;
+                  this.params.rotating              = move.rotating;
+                  this.params.originalRotation      = move.originalRotation;
+                  this.params.originalPieceRotation = move.originalPieceRotation;
+
+                  console.log("<<<<<<<<<<< dragged, "+this.tools.paramsToString(this.params)); 
                 } else {
-                  //console.log("<<<<<<<<<<< neither selected nor dragged, "+paramsToString(this.params)); 
+                  //console.log("<<<<<<<<<<< neither selected nor dragged, "+this.tools.paramsToString(this.params)); 
                 }
               }
             }
@@ -385,7 +444,7 @@
       var that = this;
 
       function drawObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation) {
-        GE.addUnique(that.params.graphics.shapes, getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation));
+        GE.addUnique(that.params.graphics.shapes, that.tools.getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation));
       }
 
       drawObject("pieces", that.params.type, 1, 50, that.params.col, that.params.row, that.params.constants.cellSize, that.params.constants.upperLeftBoardMargin, that.params.rotation);
@@ -468,7 +527,7 @@
         if(element.type == "wall")
         {
           // find intersection with wall
-          var wallIntersection = intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [element.col, element.row], EXTEND_LINES_FACTOR);
+          var wallIntersection = that.tools.intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [element.col, element.row], EXTEND_LINES_FACTOR);
           if(wallIntersection === null) throw new Error("Cannot find intersection with wall");
           lightSegments[lightSegments.length - 1].destination = wallIntersection;
 
@@ -480,7 +539,7 @@
           var rotation = element.rotation * Math.PI / 180; 
           var centralLineDiff = [.5 * Math.cos(rotation), .5 * Math.sin(rotation)];
           var centralLine = [[element.col + 0.5 + centralLineDiff[0], element.row + 0.5 + centralLineDiff[1]], [element.col + 0.5 - centralLineDiff[0], element.row + 0.5 - centralLineDiff[1]]];
-          if(intersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine], EXTEND_LINES_FACTOR))
+          if(intersection = this.tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine], EXTEND_LINES_FACTOR))
           {
             lightSegments[lightSegments.length - 1].destination = intersection;
 
@@ -518,6 +577,7 @@
         var distanceOutOfGrid = Math.sqrt(gridSize[0]*gridSize[0] + gridSize[1]*gridSize[1]);
         var lastOrigin = lightSegments[lightSegments.length - 1].origin;
         lightDestination = Sylvester.Vector.create(lastOrigin).add(Sylvester.Vector.create(lightDirection).multiply(distanceOutOfGrid)).elements.slice();
+
       }
 
       // all lines are in grid space, not in screen space
@@ -621,7 +681,9 @@
           break;
         }
       }
-      if(!lightSource) return;
+      if(!lightSource) {
+        return;
+      }
 
       // calculate origin coordinates of light 
       // the piece starts vertically, so we rotate it 90 degrees clockwise by default
@@ -648,14 +710,14 @@
         {
           var x = currentCell[0] + (lightDirection[0] > 0 ? 1 : 0);
           var line = [[x, currentCell[1]], [x, currentCell[1] + 1]];
-          verticalIntersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);
+          verticalIntersection = this.tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);
         } 
         var horizontalIntersection = null;
         if(Math.abs(lightDirection[1]) > Sylvester.precision)
         {
           var y = currentCell[1] + (lightDirection[1] > 0 ? 1 : 0);
           var line = [[currentCell[0], y], [currentCell[0] + 1, y]]
-          horizontalIntersection = findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);
+          horizontalIntersection = this.tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);
         } 
 
         if(verticalIntersection && horizontalIntersection)
@@ -679,16 +741,16 @@
           throw new Error("Light vector is NULL");
         }
 
-        if(!isInGrid(currentCell)) 
+        if(!this.tools.isInGrid(currentCell, this.params.constants.gridSize))
         {
           lightIntensity = 0;
 
           // find intersection with boundaries
-          var boundaryIntersection = intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, lightDestination, gridSize, EXTEND_LINES_FACTOR);
+          var boundaryIntersection = this.tools.intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, lightDestination, gridSize, EXTEND_LINES_FACTOR);
           if(boundaryIntersection === null) throw new Error("Cannot find intersection with boundaries");
           lightSegments[lightSegments.length - 1].destination = boundaryIntersection;
         }
-        else if(element = findGridElement(currentCell, this.params.pieces))
+        else if(element = this.tools.findGridElement(currentCell, this.params.pieces))
         {
           handleGridElement();
         }
@@ -736,8 +798,12 @@
       "constants": null
     },
     update: function() {
-      var selectedPiece = findGridElement([this.params.selected.col, this.params.selected.row], this.params.pieces);
-      if(!selectedPiece || !this.tools.isRotatable(selectedPiece, that.params.constants.unrotatablePieces)) return; // nothing selected, so can't rotate
+      /*
+      var selectedPiece = this.tools.findGridElement(
+                            [this.params.selected.col, this.params.selected.row],
+                            this.params.pieces
+                          );
+      if(!selectedPiece || !this.tools.isRotatable(selectedPiece, this.params.constants.unrotatablePieces)) return; // nothing selected, so can't rotate
 
       var keysDown = this.params.keyboard.keysDown; // alias
       //if(keysDown[37]) { // left
@@ -745,6 +811,7 @@
       //} else if(keysDown[39]) { // right
       //  selectedPiece.rotation += this.params.constants.rotationAmount;
       //}
+      */
     }
   },
 
@@ -797,8 +864,10 @@
       "draggedPiece": null
     },
     update: function() {
-
-      if(!this.params.mouse.position) return;
+      if(!this.params.mouse.position) {
+        return;
+      } else {
+      }
 
       if(this.params.draggedPiece) {
         this.params.mouse.cursor = "move";
@@ -806,9 +875,32 @@
       else
       {
         var mousePos = [this.params.mouse.position.x, this.params.mouse.position.y];
-        var gridCell = [this.tools.toBoardCoordinate(mousePos[0]), this.tools.toBoardCoordinate(mousePos[1])];
-        if(findGridElement(gridCell, this.params.pieces) || this.tools.getBoxedPiece(getIndexInBox(mousePos, this.params.constants), that.params.boxedPieces))
+        var gridCell = [this.tools.toBoardCoordinate(
+                          mousePos[0], 
+                          this.params.constants.upperLeftBoardMargin, 
+                          this.params.constants.cellSize), 
+                        this.tools.toBoardCoordinate(
+                          mousePos[1],
+                          this.params.constants.upperLeftBoardMargin,
+                          this.params.constants.cellSize
+                          )
+                        ];
+        if(this.tools.findGridElement(gridCell, this.params.pieces) 
+            ||  this.tools.getBoxedPiece(
+                  this.tools.getIndexInBox(
+                    mousePos,
+                    this.params.constants.boxLeft,
+                    this.params.constants.boxTop,
+                    this.params.constants.boxCellSize,
+                    this.params.constants.boxRowsCount,
+                    this.params.constants.boxColumnsCount
+                  ),
+                  this.params.boxedPieces
+                )
+          )
+        {
           this.params.mouse.cursor = "pointer";
+        }
       }
     }
   }

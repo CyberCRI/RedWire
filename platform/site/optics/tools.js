@@ -49,13 +49,13 @@
   //piece is the updated piece
   //pieces is the update table of board pieces
   //boxedPieces is the update table of boxed pieces
-  movePieceTo: function(piece, newSquare, pieces, boxedPieces, gridSize)
+  movePieceTo: function(piece, newSquare, pieces, boxedPieces, gridSize, unmovablePieces)
   {
-    var newPiece = null;
+    var newPiece = {};
     var newPieces = {};
     var newBoxedPieces = {};
 
-    if(this.isMovable(piece)) {
+    if(this.isMovable(piece, unmovablePieces)) {
       if (this.isInGrid(newSquare, gridSize)) { //defensive code
         if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
           console.log("movePieceTo the piece was on the board, let's change its coordinates");
@@ -82,10 +82,10 @@
       } else {
         //the new square position is outside of the board: let's box the piece
         console.log("movePieceTo the new square position is outside of the board: let's box the piece");
-        var put = putPieceIntoBox(piece, pieces, boxedPieces);
-        newPiece = put.newPiece;
-        newPieces = put.newPieces;
-        newBoxedPieces = put.newBoxedPieces;
+        var put = this.putPieceIntoBox(piece, pieces, boxedPieces);
+        newPiece = put.piece;
+        newPieces = put.pieces;
+        newBoxedPieces = put.boxedPieces;
       }
       //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
     } else {
@@ -93,9 +93,15 @@
     }
 
     var toReturn = {};
-    toReturn.piece = newPiece;
-    toReturn.pieces = newPieces;
-    toReturn.boxedPieces = newBoxedPieces;
+    toReturn.piece                  = newPiece;
+    toReturn.pieces                 = newPieces;
+    toReturn.boxedPieces            = newBoxedPieces;
+
+    toReturn.selectedPiece          = null; //draggedPiece ?
+    toReturn.draggedPiece           = null;
+    toReturn.rotating               = false;
+    toReturn.originalRotation       = null;
+    toReturn.originalPieceRotation  = null;
 
     return toReturn;
   },
@@ -122,7 +128,7 @@
   //@piece: the piece to be moved
   //@pieces: pieces on board
   //@boxedPieces: pieces outside of the board, in the so-called box
-  //returns {newBoxedPiece, newPieces, newBoxedPieces}
+  //returns {boxedPiece, pieces, boxedPieces}
   putPieceIntoBox: function(piece, pieces, boxedPieces)
   {
     console.log("putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
@@ -132,20 +138,20 @@
     if(piece.index === null) { //source of movement isn't the box
       console.log("putPieceIntoBox: source of movement isn't the box");
       var newIndex = boxedPieces.length;
-      res.newBoxedPiece = {
+      res.boxedPiece = {
         "type": piece.type,
         "index": newIndex
       };
       //put at the right place
       //boxedPieces.splice(newIndex, 0, boxedPiece);
-      res.newBoxedPieces = boxedPieces.concat(boxedPiece);
+      res.boxedPieces = boxedPieces.concat(boxedPiece);
 
       for(var i in pieces)
       {
         var somePiece = pieces[i];
         if((piece.col == somePiece.col) &&(piece.row == somePiece.row)) {
-          res.newPieces = this.pureRemove(i, pieces);
-          console.log("finished putPieceIntoBox: res={newBoxedPiece="+pieceToString(res.newBoxedPiece)+", newPieces="+piecesToString(res.newPieces)+", newBoxedPieces="+piecesToString(res.newBoxedPieces)+"}");
+          res.pieces = this.pureRemove(i, pieces);
+          console.log("finished putPieceIntoBox: res={newBoxedPiece="+pieceToString(res.boxedPiece)+", newPieces="+piecesToString(res.pieces)+", newBoxedPieces="+piecesToString(res.boxedPieces)+"}");
           return res;
         }
       }
@@ -154,9 +160,11 @@
       //console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - did nothing");
     }
 
-    res.newBoxedPiece = piece;
-    res.newPieces = pieces;
-    res.newBoxedPieces = boxedPieces;
+    console.log("putPieceIntoBox: no change");
+
+    res.boxedPiece = piece;
+    res.pieces = pieces;
+    res.boxedPieces = boxedPieces;
 
     return res;
   },
