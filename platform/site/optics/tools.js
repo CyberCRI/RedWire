@@ -2,8 +2,73 @@
   //returns a copy of 'tab' without the element at position 'index'
   pureRemove: function(index, tab)
   {
-    var length = tab.length;
-    var res = tab.slice(0, index).concat(tab.slice(index+1, length+1));
+    var res = tab.slice(0, index).concat(tab.slice(index+1, tab.length+1));
+    return res;
+  },
+
+  //returns a copy of 'pieces' with the piece 'oldPiece' replaced by 'newPiece' if 'oldPiece' was present in 'pieces'
+  replace: function(oldPiece, newPiece, pieces)
+  {
+    for(var i in pieces)
+    {
+      var piece = pieces[i];
+      if(piece.col === oldPiece.col && piece.row === oldPiece.row) {
+        result = pieces.slice(0, i).concat(newPiece).concat(pieces.slice(i+1, pieces.length));
+        return result;
+      } 
+    }
+    return pieces;
+  },
+
+  copyPiece: function(p)
+  {
+    if(p.col !== undefined) return this.copyBoardPiece(p);
+    else return this.copyBoxedPiece(p);
+  },
+
+  //returns a copy of a board piece
+  copyBoardPiece: function(p)
+  {
+     return {col: p.col, row: p.row, type: p.type, rotation: p.rotation};
+  },
+
+  //returns a copy of a board piece
+  copyBoxedPiece: function(p)
+  {
+     return {type: p.type, index: p.index};
+  },
+
+  copyBoardPieces: function(ps)
+  {
+    var res = new Array();
+    for (var i in ps)
+    {
+      res[i] = this.copyBoardPiece(ps[i]);
+    }
+    return res;
+  },
+
+  //copies an obj
+  //warning: unsafe if obj contains links to other objects
+  copyBoxedPieces: function(ps)
+  {
+    var res = new Array();
+    for (var i in ps)
+    {
+      res[i] = this.copyBoxedPiece(ps[i]);
+    }
+    return res;
+  },
+
+  //copies an obj
+  //warning: unsafe if obj contains links to other objects
+  copy: function(obj)
+  {
+    var res = {};
+    for (var field in obj)
+    {
+      res[field.toString] = obj[field.toString];
+    }
     return res;
   },
 
@@ -51,9 +116,9 @@
   //boxedPieces is the update table of boxed pieces
   movePieceTo: function(piece, newSquare, pieces, boxedPieces, gridSize, unmovablePieces)
   {
-    var newPiece = {};
-    var newPieces = {};
-    var newBoxedPieces = {};
+    var newPiece = this.copyPiece(piece);
+    var newPieces = this.copyBoardPieces(pieces);
+    var newBoxedPieces = this.copyBoxedPieces(boxedPieces);
 
     if(this.isMovable(piece, unmovablePieces)) {
       if (this.isInGrid(newSquare, gridSize)) { //defensive code
@@ -64,6 +129,7 @@
           //movedPiece.row = newSquare[1];
           newPiece.col = newSquare[0];
           newPiece.row = newSquare[1];
+          newPieces    = this.replace(piece, newPiece, pieces);
 
         } else { //the piece was in the box, let's put it on the board
           console.log("movePieceTo the piece was in the box, let's put it on the board");
@@ -114,7 +180,7 @@
     for(var i in boxedPieces)
     {
       var piece = boxedPieces[i];
-      if(piece.type == pieceType) {
+      if(piece.type === pieceType) {
         var res = this.pureRemove(i, boxedPieces);
         //console.log("finished takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
         console.log("takePieceOutOfBox("+pieceType+", "+this.piecesToString(boxedPieces)+")="+this.piecesToString(res));

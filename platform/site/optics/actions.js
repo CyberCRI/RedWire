@@ -440,7 +440,6 @@
     },
 
     update: function() {
-      
       var that = this;
 
       function drawObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation) {
