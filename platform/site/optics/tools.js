@@ -134,7 +134,7 @@
         } else { //the piece was in the box, let's put it on the board
           console.log("movePieceTo the piece was in the box, let's put it on the board");
           //remove the piece from the "boxedPieces"
-          newBoxedPieces = takePieceOutOfBox(piece.type, boxedPieces);
+          newBoxedPieces = this.takePieceOutOfBox(piece.type, boxedPieces);
 
           //add it to the "pieces" with the appropriate coordinates
           newPiece = {

@@ -538,7 +538,7 @@
           var rotation = element.rotation * Math.PI / 180; 
           var centralLineDiff = [.5 * Math.cos(rotation), .5 * Math.sin(rotation)];
           var centralLine = [[element.col + 0.5 + centralLineDiff[0], element.row + 0.5 + centralLineDiff[1]], [element.col + 0.5 - centralLineDiff[0], element.row + 0.5 - centralLineDiff[1]]];
-          if(intersection = this.tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine], EXTEND_LINES_FACTOR))
+          if(intersection = that.tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine], EXTEND_LINES_FACTOR))
           {
             lightSegments[lightSegments.length - 1].destination = intersection;
 
