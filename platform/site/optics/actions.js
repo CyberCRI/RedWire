@@ -883,9 +883,9 @@
                           this.params.constants.upperLeftBoardMargin,
                           this.params.constants.cellSize
                           )
-                        ];
-        if(this.tools.findGridElement(gridCell, this.params.pieces) 
-            ||  this.tools.getBoxedPiece(
+                        ];         
+        if((this.tools.findGridElement(gridCell, this.params.pieces) !== null)
+            ||  (this.tools.getBoxedPiece(
                   this.tools.getIndexInBox(
                     mousePos,
                     this.params.constants.boxLeft,
@@ -895,7 +895,7 @@
                     this.params.constants.boxColumnsCount
                   ),
                   this.params.boxedPieces
-                )
+                ) !== null)
           )
         {
           this.params.mouse.cursor = "pointer";
