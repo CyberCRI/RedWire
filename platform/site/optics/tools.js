@@ -153,9 +153,9 @@
         newPieces = put.pieces;
         newBoxedPieces = put.boxedPieces;
       }
-      //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+      //console.log("finished movePieceTo(piece="+this.pieceToString(piece)+", newSquare="+this.coordinatesToString(newSquare)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+")");
     } else {
-      //console.log("finished movePieceTo(piece="+pieceToString(piece)+", newSquare="+coordinatesToString(newSquare)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - piece is not movable");
+      //console.log("finished movePieceTo(piece="+this.pieceToString(piece)+", newSquare="+this.coordinatesToString(newSquare)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+") - piece is not movable");
     }
 
     var toReturn = {};
@@ -176,18 +176,18 @@
   //besides, boxedPieces is still sorted afterwards
   takePieceOutOfBox: function(pieceType, boxedPieces)
   {
-    //console.log("takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
+    //console.log("takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+this.piecesToString(boxedPieces)+")");
     for(var i in boxedPieces)
     {
       var piece = boxedPieces[i];
       if(piece.type === pieceType) {
         var res = this.pureRemove(i, boxedPieces);
-        //console.log("finished takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
+        //console.log("finished takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+this.piecesToString(boxedPieces)+")");
         console.log("takePieceOutOfBox("+pieceType+", "+this.piecesToString(boxedPieces)+")="+this.piecesToString(res));
         return res;
       }
     }
-    //console.log("failed takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+piecesToString(boxedPieces)+")");
+    //console.log("failed takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+this.piecesToString(boxedPieces)+")");
   },
 
   //takes a piece 'piece' from the board, i.e. 'pieces', and puts it into the box, i.e. 'boxedPieces'
@@ -197,7 +197,7 @@
   //returns {boxedPiece, pieces, boxedPieces}
   putPieceIntoBox: function(piece, pieces, boxedPieces)
   {
-    console.log("putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+")");
+    console.log("putPieceIntoBox(piece="+this.pieceToString(piece)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+")");
 
     var res = {};
 
@@ -217,13 +217,13 @@
         var somePiece = pieces[i];
         if((piece.col == somePiece.col) &&(piece.row == somePiece.row)) {
           res.pieces = this.pureRemove(i, pieces);
-          console.log("finished putPieceIntoBox: res={newBoxedPiece="+pieceToString(res.boxedPiece)+", newPieces="+piecesToString(res.pieces)+", newBoxedPieces="+piecesToString(res.boxedPieces)+"}");
+          console.log("finished putPieceIntoBox: res={newBoxedPiece="+this.pieceToString(res.boxedPiece)+", newPieces="+this.piecesToString(res.pieces)+", newBoxedPieces="+this.piecesToString(res.boxedPieces)+"}");
           return res;
         }
       }
     } else { //the piece was moved from the box
       console.log("putPieceIntoBox: the piece was moved from the box");
-      //console.log("finished putPieceIntoBox(piece="+pieceToString(piece)+", pieces="+piecesToString(pieces)+", boxedPieces="+piecesToString(boxedPieces)+") - did nothing");
+      //console.log("finished putPieceIntoBox(piece="+this.pieceToString(piece)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+") - did nothing");
     }
 
     console.log("putPieceIntoBox: no change");
