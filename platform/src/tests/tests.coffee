@@ -376,7 +376,7 @@ describe "gamEvolve", ->
         myService:
           a = 1
 
-      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
+      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
       modelPatches = GE.stepLoop(null, {}, {}, {}, {}, services, null, null, outputServiceData)
 
       expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {})
@@ -404,7 +404,7 @@ describe "gamEvolve", ->
         params:
           service: "@service:myService"
 
-      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
+      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
       modelPatches = GE.stepLoop(layout, {}, {}, actions, {}, services, null, inputServiceData)
 
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
@@ -431,7 +431,7 @@ describe "gamEvolve", ->
         params:
           service: "@service:myService"
 
-      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
+      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
       modelPatches = GE.stepLoop(layout, {}, {}, actions, {}, services)
 
       expect(services.myService.provideData).toHaveBeenCalledWith({})
@@ -475,7 +475,7 @@ describe "gamEvolve", ->
           }
         ]
 
-      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
+      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
       expect(-> GE.stepLoop(layoutA, oldData, {}, actions, {}, {})).toThrow()
       
       layoutB = 
@@ -495,6 +495,6 @@ describe "gamEvolve", ->
           }
         ]
 
-      # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
+      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
       expect(-> GE.stepLoop(layoutB, {}, {}, actions, {}, services)).toThrow()
       
