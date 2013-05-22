@@ -237,7 +237,7 @@
                 //clicked in box
                 var boxedPiece = this.params.boxedPieces[boxIndex];
                 var pieceType = null;
-                if(boxedPiece) { //there was a piece
+                if(boxedPiece !== undefined) { //there was a piece
                   //uncomment this line to enable move by simple clic
                   //this.params.selectedPiece = boxedPiece;
                   this.params.draggedPiece = null;

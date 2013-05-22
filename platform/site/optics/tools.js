@@ -201,7 +201,7 @@
 
     var res = {};
 
-    if(piece.index === null) { //source of movement isn't the box
+    if(piece.index === undefined) { //source of movement isn't the box
       console.log("putPieceIntoBox: source of movement isn't the box");
       var newIndex = boxedPieces.length;
       res.boxedPiece = {
@@ -210,7 +210,7 @@
       };
       //put at the right place
       //boxedPieces.splice(newIndex, 0, boxedPiece);
-      res.boxedPieces = boxedPieces.concat(boxedPiece);
+      res.boxedPieces = boxedPieces.concat(res.boxedPiece);
 
       for(var i in pieces)
       {
