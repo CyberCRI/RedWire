@@ -324,7 +324,7 @@
                   } else {
                     //console.log("action.js: position piece on ["+clickedColumn+","+clickedRow+"] if one was selected");
                     //uncomment this line to enable move by simple clic
-                    //XXXmovePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
+                    //cf other call of movePieceTo: movePieceTo(this.params.selectedPiece, [clickedColumn, clickedRow], this.params.pieces, this.params.boxedPieces);
                     this.params.selectedPiece = null;
                     this.params.rotating = false;
                     this.params.originalRotation = null;
@@ -344,16 +344,9 @@
                               this.params.constants.unmovablePieces
                             );
 
-                  this.params.piece                 = move.piece;
-                  this.params.pieces                = move.pieces;
-                  this.params.boxedPieces           = move.boxedPieces;
-                  this.params.selectedPiece         = move.selectedPiece;
-                  this.params.draggedPiece          = move.draggedPiece;
-                  this.params.rotating              = move.rotating;
-                  this.params.originalRotation      = move.originalRotation;
-                  this.params.originalPieceRotation = move.originalPieceRotation;
+                  _.extend(this.params, move)
 
-                  console.log("<<<<<<<<<<< dragged, "+this.tools.paramsToString(this.params)); 
+                  //console.log("<<<<<<<<<<< dragged, "+this.tools.paramsToString(this.params)); 
                 } else {
                   //console.log("<<<<<<<<<<< neither selected nor dragged, "+this.tools.paramsToString(this.params)); 
                 }
