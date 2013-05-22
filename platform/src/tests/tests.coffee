@@ -377,7 +377,7 @@ describe "gamEvolve", ->
           a = 1
 
       # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
-      modelPatches = GE.stepLoop(null, {}, {}, {}, services, null, null, outputServiceData)
+      modelPatches = GE.stepLoop(null, {}, {}, {}, {}, services, null, null, outputServiceData)
 
       expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {})
       expect(modelPatches).toBeEmpty()
@@ -405,7 +405,7 @@ describe "gamEvolve", ->
           service: "@service:myService"
 
       # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
-      modelPatches = GE.stepLoop(layout, {}, {}, actions, services, null, inputServiceData)
+      modelPatches = GE.stepLoop(layout, {}, {}, actions, {}, services, null, inputServiceData)
 
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
       expect(modelPatches).toBeEmpty()
@@ -432,7 +432,7 @@ describe "gamEvolve", ->
           service: "@service:myService"
 
       # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
-      modelPatches = GE.stepLoop(layout, {}, {}, actions, services)
+      modelPatches = GE.stepLoop(layout, {}, {}, actions, {}, services)
 
       expect(services.myService.provideData).toHaveBeenCalledWith({})
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
@@ -476,7 +476,7 @@ describe "gamEvolve", ->
         ]
 
       # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
-      expect(-> GE.stepLoop(layoutA, oldData, {}, actions, {})).toThrow()
+      expect(-> GE.stepLoop(layoutA, oldData, {}, actions, {}, {})).toThrow()
       
       layoutB = 
         action: "group"
@@ -496,5 +496,5 @@ describe "gamEvolve", ->
         ]
 
       # parameters: node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null
-      expect(-> GE.stepLoop(layoutB, {}, {}, actions, services)).toThrow()
+      expect(-> GE.stepLoop(layoutB, {}, {}, actions, {}, services)).toThrow()
       
