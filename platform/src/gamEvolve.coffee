@@ -69,7 +69,7 @@ GE.logToConsole = (type, message) -> window.console[logType.toLowerCase()](messa
 
 GE.NodeVisitorConstants =  class NodeVisitorConstants
   # The log function defaults to the console
-  constructor: (@modelData, @serviceData, @assets, @actions, @log = GE.logToConsole) ->
+  constructor: (@modelData, @serviceData, @assets, @actions, @tools, @log = GE.logToConsole) ->
 
 GE.NodeVisitorResult = class NodeVisitorResult
   constructor: (@result = null, @modelPatches = [], @servicePatches = []) ->
@@ -189,6 +189,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     children: childNames
     signals: signals
     assets: constants.assets
+    tools: constants.tools
     log: constants.log
   try
     methodResult = action[methodName].apply(locals)
@@ -332,7 +333,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
 # Returns a list of model patches.
 # TODO: refactor to accept a parameter object rather than a long list of parameters
-GE.stepLoop = (node, modelData, assets, actions, services, log = null, inputServiceData = null, outputServiceData = null) ->
+GE.stepLoop = (node, modelData, assets, actions, tools, services, log = null, inputServiceData = null, outputServiceData = null) ->
   if outputServiceData != null
     modelPatches = []
   else
@@ -341,7 +342,7 @@ GE.stepLoop = (node, modelData, assets, actions, services, log = null, inputServ
       for serviceName, service of services
         inputServiceData[serviceName] = service.provideData(assets)
 
-    result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions, log))
+    result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions, tools, log))
     
     if GE.doPatchesConflict(result.modelPatches) then throw new Error("Model patches conflict: #{result.modelPatches}")
     modelPatches = result.modelPatches

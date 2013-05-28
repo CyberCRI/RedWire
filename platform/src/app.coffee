@@ -39,6 +39,7 @@ currentFrame = 0
 currentModelData = null
 currentAssets = null
 currentActions = null
+currentTools = null
 currentLayout = null
 currentServices = null
 currentLoadedAssets = null
@@ -212,6 +213,12 @@ reloadCode = (callback) ->
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
   try
+    currentTools = eval(editors.toolsEditor.getValue())
+  catch error
+    logWithPrefix(GE.logLevels.ERROR, "Tools error. #{error}")
+    return showMessage(MessageType.Error, "<strong>Tools error.</strong> #{error}")
+
+  try
     currentLayout = JSON.parse(editors.layoutEditor.getValue())
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Layout error. #{error}")
@@ -257,7 +264,7 @@ executeCode = ->
   modelAtFrame = currentModel.atVersion(currentFrame)
 
   # GE.stepLoop = (node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null) 
-  modelPatches = GE.stepLoop(currentLayout, modelAtFrame.clonedData(), currentLoadedAssets, currentActions, currentServices, logWithPrefix)
+  modelPatches = GE.stepLoop(currentLayout, modelAtFrame.clonedData(), currentLoadedAssets, currentActions, currentTools, currentServices, logWithPrefix)
 
   return modelAtFrame.applyPatches(modelPatches)
 
@@ -362,7 +369,7 @@ $(document).ready ->
   setupButtonHandlers()
 
   # Create all the JSON and JS editors
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "servicesEditor"]
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"]
     editors[id] = setupEditor(id, "ace/mode/javascript")
 
   # Create the log, which is plain text
@@ -387,12 +394,13 @@ $(document).ready ->
   if not loadedCode
     for [id, url] in [["modelEditor", "optics/model.json"], 
                       ["assetsEditor", "optics/assets.json"], 
-                      ["actionsEditor", "optics/actions.js"],
+                      ["actionsEditor", "optics/actions.js"], 
+                      ["toolsEditor", "optics/tools.js"],
                       ["layoutEditor", "optics/layout.json"],
                       ["servicesEditor", "optics/services.json"]]
       loadIntoEditor(editors[id], url)
 
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "layoutEditor", "servicesEditor"]
+  for id in ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"]
     editors[id].getSession().on "change", -> notifyCodeChange()
 
   # TODO: find another way to include global data
