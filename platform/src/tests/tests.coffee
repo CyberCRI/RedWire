@@ -427,7 +427,7 @@ describe "gamEvolve", ->
           paramDefs:
             service: "" 
           update: -> 
-            expect(tools.testTool(@params.service.a, 2)._1).toBe(1)
+            expect(@tools.testTool(@params.service.a, 2)._1).toBe(1)
             @params.service.a++
 
       layout = 
