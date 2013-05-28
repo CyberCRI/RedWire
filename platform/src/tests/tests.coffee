@@ -410,7 +410,7 @@ describe "gamEvolve", ->
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
       expect(modelPatches).toBeEmpty()
 
-    it "gathers service input data, visits nodes, and gives output to services", ->
+    it "gathers service input data, visits nodes, uses tools, and gives output to services", ->
       services = 
         myService:
           provideData: -> return { a: 1 }
@@ -418,12 +418,16 @@ describe "gamEvolve", ->
 
       spyOn(services.myService, "provideData").andCallThrough()
 
+      tools = {
+        testTool: (arg1, arg2) -> return {_1: arg1, _2: arg2};
+      }
+
       actions = 
         incrementServiceData: 
           paramDefs:
             service: "" 
           update: -> 
-            expect(@params.service.a).toBe(1)
+            expect(tools.testTool(@params.service.a, 2)._1).toBe(1)
             @params.service.a++
 
       layout = 
@@ -432,7 +436,7 @@ describe "gamEvolve", ->
           service: "@service:myService"
 
       # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
-      modelPatches = GE.stepLoop(layout, {}, {}, actions, {}, services)
+      modelPatches = GE.stepLoop(layout, {}, {}, actions, tools, services)
 
       expect(services.myService.provideData).toHaveBeenCalledWith({})
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
