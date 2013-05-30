@@ -8,23 +8,29 @@ path_to_gh_pages = "../../temp_ghpages"
 path_to_gh_pages_content = "../../temp_ghpages/*"
 
 
+clone = (callback) ->
+  spawnCall 'git', ['clone', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages", callback
 
-spawnCall = (func, args, debug) ->
+spawnCall = (func, args, debug, callback = () -> console.log "no callback") ->
   name = "subtask "+debug+" (spawn "+func+" "+args+")"
   call = spawn func, args
   call.stdout.on 'data', (data) -> console.log data.toString().trim()
   console.log name+" finished"
+  call.on "exit", callback
 
-build = () ->
-  spawnCall 'coffee', ['-c', '-o', 'site', 'src'], "build"
+build = (callback) ->
+  spawnCall 'coffee', ['-c', '-o', 'site', 'src'], "build", callback
 
 copy = (callback) ->
   fsextra.unlink(path_to_gh_pages_content_readme, callback)
 
-genericCallBack = (debug) -> 
+genericCallBack = (debug, callback = () ->) -> 
   (error) ->
     console.log debug+": done!"
-    error && console.log debug+": "+error
+    if error
+      console.log debug+": "+error
+    else
+      callback
 
 emptyFolderExceptGit = (dirPath) -> # path should have trailing slash
   fs.readdir(dirPath, 
@@ -52,9 +58,8 @@ emptyFolderExceptGit = (dirPath) -> # path should have trailing slash
                 console.log "contained .git"
           console.log "map finished"
   )
-
-  #clone = (callback) ->
-    #spawnCall 'git', ['clone', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages"
+  
+    #spawnCall 'git', ['clone', '-b', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages"#, () -> console.log "job finished"
 
   #commitGhPages = (callback) ->
     #git --git-dir=../../temp_ghpages/.git --work-tree=../../temp_ghpages status
@@ -78,7 +83,9 @@ task 'doc', 'create documentation', ->
   spawnCall 'docco', ['src/*.coffee', 'src/tests/*.coffee'], "create doc"
 
 task 'clone', 'clone gh-pages', ->
-  spawnCall 'git', ['clone', '-b', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages"
+  clone(() -> console.log "YaY")
+  #spawnCall 'git', ['clone', '-b', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages", () -> console.log "job finished"
+  #clone(() -> console.log "job finished")
 
 #add options like on Coffeescript page
 task 'safe-push', 'push on master and deploy if tests succeed', ->
