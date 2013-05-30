@@ -1,0 +1,12 @@
+{
+  "background": "optics/images/asset_interface_grid.png",
+  "wall": "optics/images/asset_solid_wall_idle.png",
+  "squarePrism": "optics/images/asset_prism_square_idle.png",
+  "mirror": "optics/images/asset_mirror_poly_idle.png",
+  "laser-on": "optics/images/asset_laser_red_start_work.png",
+  "sylvester": "optics/lib/sylvester/sylvester.js",
+  "can-rotate": "optics/images/asset_can_rotate.png",
+  "is-rotating": "optics/images/asset_is_rotating.png",
+  "title": "optics/images/panneau.png",
+  "rix": "optics/fonts/rix.css"
+}
