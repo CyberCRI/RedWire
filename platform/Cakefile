@@ -12,3 +12,9 @@ task 'doc', 'create documentation', ->
   coffee = spawn 'docco', ['src/*.coffee', 'src/tests/*.coffee']
   coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
 
+task 'test', 'test GE', ->
+  phantomjs = spawn 'phantomjs', ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html']
+  phantomjs.stdout.on 'data', (data) -> console.log data.toString().trim()
+  phantomjs.on "exit", (code) -> 
+    console.log("exited with code #{code}")
+    if code != 0 then throw new Error("Tests failed")
