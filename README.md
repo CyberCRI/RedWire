@@ -30,7 +30,7 @@ Compiling the project requires the following dependencies:
   - [Coffeescript](http://coffeescript.org/)
   - [win-spawn](https://npmjs.org/package/win-spawn)
   - [Docco](http://jashkenas.github.com/docco/)
-
+3. [PhantomJS](http://phantomjs.org/) for testing
 
 Wiki
 ----
