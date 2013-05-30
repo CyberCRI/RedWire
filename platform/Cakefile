@@ -1,14 +1,102 @@
 spawn = require "win-spawn"
+fsextra = require "fs.extra"
+fs = require "fs"
+path = require "path"
+
+path_to_site = "site"
+path_to_gh_pages = "../../temp_ghpages"
+path_to_gh_pages_content = "../../temp_ghpages/*"
+
+
+
+spawnCall = (func, args, debug) ->
+  name = "subtask "+debug+" (spawn "+func+" "+args+")"
+  call = spawn func, args
+  call.stdout.on 'data', (data) -> console.log data.toString().trim()
+  console.log name+" finished"
+
+build = () ->
+  spawnCall 'coffee', ['-c', '-o', 'site', 'src'], "build"
+
+copy = (callback) ->
+  fsextra.unlink(path_to_gh_pages_content_readme, callback)
+
+genericCallBack = (debug) -> 
+  (error) ->
+    console.log debug+": done!"
+    error && console.log debug+": "+error
+
+emptyFolderExceptGit = (dirPath) -> # path should have trailing slash
+  fs.readdir(dirPath, 
+    (err, files) ->
+      if err
+        console.log "readdir error "+err
+      else
+        if files.length == 0 # folder already empty
+          console.log "folder already empty"  
+        else
+          files.map (file) ->
+              if not file.toString().match(/.git/)
+                filePath = dirPath + file
+                fs.stat(filePath, 
+                  (err, stats) ->
+                    if err
+                      console.log "fsstat failed: "+err
+                    else
+                      if stats.isFile()
+                        fs.unlink(filePath, genericCallBack("unlink "+filePath))
+                      if stats.isDirectory()
+                        fsextra.rmrf(filePath+'/', genericCallBack("rmrf "+filePath+'/'))
+                )
+              else
+                console.log "contained .git"
+          console.log "map finished"
+  )
+
+  #clone = (callback) ->
+    #spawnCall 'git', ['clone', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages"
+
+  #commitGhPages = (callback) ->
+    #git --git-dir=../../temp_ghpages/.git --work-tree=../../temp_ghpages status
+
+  #pushGhPages = (callback) ->
+    #git --git-dir=../../temp_ghpages/.git --work-tree=../../temp_ghpages status
+
+  #commitMaster = (callback) ->
+
+  #pushMaster = (callback) ->
+
 
 task 'build', 'build once', ->
-  coffee = spawn 'coffee', ['-c', '-o', 'site', 'src']
-  coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
+  build()
+  console.log "task build finished"
 
 task 'watch', 'continually build with --watch', ->
-  coffee = spawn 'coffee', ['-cw', '-o', 'site', 'src']
-  coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
+   spawnCall 'coffee', ['-cw', '-o', 'site', 'src'], "watch"
 
 task 'doc', 'create documentation', ->
-  coffee = spawn 'docco', ['src/*.coffee', 'src/tests/*.coffee']
-  coffee.stdout.on 'data', (data) -> console.log data.toString().trim()
+  spawnCall 'docco', ['src/*.coffee', 'src/tests/*.coffee'], "create doc"
 
+task 'clone', 'clone gh-pages', ->
+  spawnCall 'git', ['clone', '-b', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages"
+
+#add options like on Coffeescript page
+task 'safe-push', 'push on master and deploy if tests succeed', ->
+  build()
+  # tests  
+  
+  #clone
+  #should wait on result of clone
+
+  emptyFolderExceptGit path_to_gh_pages+'/'
+  fsextra.copyRecursive(path_to_site, path_to_gh_pages, genericCallBack("copy"))
+
+  #execute script in temp_ghpages to ci/pu? How to cross-platform?
+
+  #cd ../temp_ghpages
+  #git commit gh-pages
+  #git push gh-pages
+  #git commit master
+  #git push master
+
+  console.log "task safe-push finished"
