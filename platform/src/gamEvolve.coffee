@@ -502,5 +502,14 @@ GE.deepFreeze = (o) ->
 # Adds value to the given object, associating it with an unique (and meaningless) key
 GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value
 
+
+# Creates and returns an eval function that runs within an iFrame sandbox
+# Requires a DOM selector to append to (defaults to body)
+# Based on https://github.com/josscrowcroft/javascript-sandbox-console/blob/master/src/sandbox-console.js
+# TODO: Improve security using the sandbox attribute and postMessage() as described at http://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/
+GE.makeEval = (parentSelector = "body") ->
+  sandboxFrame = $('<iframe width="0" height="0"/>').css({visibility : 'hidden'}).appendTo(parentSelector)[0]
+  e = sandboxFrame.contentWindow.eval 
+
 # Install the GE namespace in the global scope
 globals.GE = GE

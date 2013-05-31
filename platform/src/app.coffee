@@ -29,6 +29,7 @@ SPINNER_OPTS =
 
 editors = {}
 log = null
+sandboxEval = null
 
 services = {}
 
@@ -207,13 +208,13 @@ reloadCode = (callback) ->
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
   try
-    currentActions = eval(editors.actionsEditor.getValue())
+    currentActions = sandboxEval(editors.actionsEditor.getValue())
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
   try
-    currentTools = eval(editors.toolsEditor.getValue())
+    currentTools = sandboxEval(editors.toolsEditor.getValue())
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Tools error. #{error}")
     return showMessage(MessageType.Error, "<strong>Tools error.</strong> #{error}")
@@ -379,6 +380,8 @@ $(document).ready ->
 
   # A hash needs to be set, or we won't be able to load the code
   if not window.location.hash then window.location.hash = "optics"
+
+  sandboxEval = GE.makeEval()
 
   # Offer to load code from the cache if we can
   loadedCode = false
