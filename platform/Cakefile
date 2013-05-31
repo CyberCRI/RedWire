@@ -53,12 +53,20 @@ clone = (callback) ->
 
 ###
     #spawnCall 'git', ['clone', '-b', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages"#, () -> console.log "job finished"
+###
 
-  #commitGhPages = (callback) ->
-    #git --git-dir=../../temp_ghpages/.git --work-tree=../../temp_ghpages status
+# to add all new files
+addAllGhPages = (callback) ->
+  spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, 'add', '-A'], "git add all gh-pages", callback
 
+# todo: log commit msg
+commitGhPages = (msg, callback) ->
+  spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, 'commit', '-am', msg, '-q'], "git commit gh-pages", callback
+###
   #pushGhPages = (callback) ->
     #git --git-dir=../../temp_ghpages/.git --work-tree=../../temp_ghpages status
+
+
 
   #commitMaster = (callback) ->
 
@@ -75,7 +83,8 @@ deploy = (callback) ->
       fsextra.copyRecursive path_to_site, path_to_gh_pages, genericCallBack ->
         getLog (err, msg) ->
           if err then throw new Error("getLog failed "+err)
-          #commitGhPages msg, genericCallBack ->
+          addAllGhPages ->
+            commitGhPages msg, genericCallBack -> console.log "mission accomplie"
             #pushGhPages genericCallback callback
 
 
