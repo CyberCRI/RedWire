@@ -26,6 +26,15 @@ spawnCall = (func, args, debug, callback) ->
   console.log name+" finished"
   call.on "exit", genericCallBack(callback)
 
+spawnCallStdout = (func, args, debug, callback) ->
+  localData = ""
+  name = "subtask "+debug+" (spawn "+func+" "+args+")"
+  call = spawn func, args
+  call.stdout.on 'data', (data) ->
+    localData += data.toString().trim()
+  console.log name+" finished"
+  call.on "exit", (code) -> callback(code, localData)
+
 build = (callback) ->
   spawnCall 'coffee', ['-c', '-o', 'site', 'src'], "build", callback
 
@@ -56,13 +65,19 @@ clone = (callback) ->
   #pushMaster = (callback) ->
 ###
 
+getLog = (callback) ->
+  spawnCallStdout 'git', ['log', 'master', '-1', '--pretty=%B'], "git get log in gh-pages", callback
+
 deploy = (callback) ->
   build () -> 
     #test () ->
     clone () ->
-      fsextra.copyRecursive(path_to_site, path_to_gh_pages, genericCallBack(callback))
-      #commit () ->
-      #push () -> ...
+      fsextra.copyRecursive path_to_site, path_to_gh_pages, genericCallBack ->
+        getLog (err, msg) ->
+          if err then throw new Error("getLog failed "+err)
+          #commitGhPages msg, genericCallBack ->
+            #pushGhPages genericCallback callback
+
 
 task 'build', 'build once', ->
   build()
