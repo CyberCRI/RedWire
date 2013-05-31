@@ -35,7 +35,8 @@ genericCallBack = (callback) ->
     if callback then callback()
   
 clone = (callback) ->
-  spawnCall 'git', ['clone', '-n', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages", callback
+  fsextra.rmrf path_to_gh_pages, genericCallBack -> 
+    spawnCall 'git', ['clone', '-n', '-b', 'gh-pages', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages", callback
 
 ###
     #spawnCall 'git', ['clone', '-b', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages"#, () -> console.log "job finished"
@@ -72,12 +73,13 @@ task 'doc', 'create documentation', ->
 task 'clone', 'clone gh-pages', ->
   clone()
 
-task 'deploy', 'deploy on gh-pages'
+task 'deploy', 'deploy on gh-pages', ->
   deploy()
 
 task 'safe-push', 'if tests succeed, push', ->
 
 #add options like on Coffeescript page
+###
 task 'safe-push-deploy', 'if tests succeed, deploy and push on master', ->
   deploy () ->
     commitOnMaster () ->
@@ -95,3 +97,5 @@ task 'safe-push-deploy', 'if tests succeed, deploy and push on master', ->
   #git push master
 
   console.log "task safe-push finished"
+###
+
