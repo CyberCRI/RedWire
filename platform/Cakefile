@@ -34,6 +34,9 @@ genericCallBack = (callback) ->
     if error then throw new Error("ERROR: #{error}")
     if callback then callback()
   
+reset = (callback) ->
+  spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git --work-tree='+path_to_gh_pages, 'reset'], "git reset gh-pages", callback
+
 clone = (callback) ->
   fsextra.rmrf path_to_gh_pages, genericCallBack -> 
     spawnCall 'git', ['clone', '-n', '-b', 'gh-pages', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages", callback
@@ -59,6 +62,9 @@ deploy = (callback) ->
       fsextra.copyRecursive(path_to_site, path_to_gh_pages, genericCallBack(callback))
       #commit () ->
       #push () -> ...
+
+task 'reset', 'reset dir', ->
+  reset()
 
 task 'build', 'build once', ->
   build()
