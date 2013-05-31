@@ -35,7 +35,7 @@ genericCallBack = (callback) ->
     if callback then callback()
   
 reset = (callback) ->
-  spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, 'reset'], "git reset gh-pages", callback
+  spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, 'reset', '-q'], "git reset gh-pages", callback
 
 clone = (callback) ->
   fsextra.rmrf path_to_gh_pages, genericCallBack -> 
