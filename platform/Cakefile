@@ -62,12 +62,11 @@ addAllGhPages = (callback) ->
 # todo: log commit msg
 commitGhPages = (msg, callback) ->
   spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, 'commit', '-am', msg, '-q'], "git commit gh-pages", callback
+
+pushGhPages = (callback) ->
+  spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, 'push', '-u', 'origin', 'gh-pages'], "git push gh-pages", callback
+
 ###
-  #pushGhPages = (callback) ->
-    #git --git-dir=../../temp_ghpages/.git --work-tree=../../temp_ghpages status
-
-
-
   #commitMaster = (callback) ->
 
   #pushMaster = (callback) ->
@@ -84,8 +83,8 @@ deploy = (callback) ->
         getLog (err, msg) ->
           if err then throw new Error("getLog failed "+err)
           addAllGhPages ->
-            commitGhPages msg, genericCallBack -> console.log "mission accomplie"
-            #pushGhPages genericCallback callback
+            commitGhPages msg, genericCallBack ->
+              pushGhPages callback
 
 
 task 'build', 'build once', ->
