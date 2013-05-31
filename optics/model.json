@@ -46,6 +46,8 @@
     "boxRight": 935,
     "boxTop": 284,
     "boxBottom": 514,
+    "boxRowsCount": 5,
+    "boxColumnsCount": 2,
     "boxCellSize": [
       49,
       46
