@@ -126,3 +126,9 @@ task 'safe-push-deploy', 'if tests succeed, deploy and push on master', ->
   console.log "task safe-push finished"
 ###
 
+task 'test', 'test GE', ->
+  phantomjs = spawn 'phantomjs', ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html']
+  phantomjs.stdout.on 'data', (data) -> console.log data.toString().trim()
+  phantomjs.on "exit", (code) -> 
+    console.log("exited with code #{code}")
+    if code != 0 then throw new Error("Tests failed")
