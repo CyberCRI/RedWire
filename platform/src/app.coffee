@@ -29,7 +29,6 @@ SPINNER_OPTS =
 
 editors = {}
 log = null
-sandboxEval = null
 
 services = {}
 
@@ -207,14 +206,16 @@ reloadCode = (callback) ->
     logWithPrefix(GE.logLevels.ERROR, "Model error. #{error}")
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
+  # We will use actionEvaluator later to evaluate all loaded JS assets
+  actionEvaluator = GE.makeEvaluator()
   try
-    currentActions = sandboxEval(editors.actionsEditor.getValue())
+    currentActions = actionEvaluator(editors.actionsEditor.getValue())
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
   try
-    currentTools = sandboxEval(editors.toolsEditor.getValue())
+    currentTools = GE.makeEvaluator()(editors.toolsEditor.getValue())
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Tools error. #{error}")
     return showMessage(MessageType.Error, "<strong>Tools error.</strong> #{error}")
@@ -245,6 +246,10 @@ reloadCode = (callback) ->
       logWithPrefix(GE.logLevels.ERROR, "Cannot load assets. #{err}")
       showMessage(MessageType.Error, "Cannot load assets. #{err}")
       return callback(err)
+
+    # Execute all JS assets in the actions sandbox, so that actions have access
+    for url, asset of loadedAssets 
+      if GE.determineAssetType(url) is "JS" then actionEvaluator(asset)
 
     currentLoadedAssets = loadedAssets
 
@@ -380,8 +385,6 @@ $(document).ready ->
 
   # A hash needs to be set, or we won't be able to load the code
   if not window.location.hash then window.location.hash = "optics"
-
-  sandboxEval = GE.makeEval()
 
   # Offer to load code from the cache if we can
   loadedCode = false
