@@ -6,6 +6,7 @@ path = require "path"
 path_to_site = "site"
 path_to_gh_pages = ".temp_ghpages"
 
+debugging = false
 
 
 genericCallBack = (callback) -> 
@@ -14,19 +15,17 @@ genericCallBack = (callback) ->
     if callback then callback()
 
 spawnCall = (func, args, debug, callback) ->
-  name = "subtask "+debug+" (spawn "+func+" "+args+")"
   call = spawn func, args
   call.stdout.on 'data', (data) -> console.log data.toString().trim()
-  console.log name+" finished"
+  if debugging then console.log "subtask "+debug+" (spawn "+func+" "+args+") finished"
   call.on "exit", genericCallBack(callback)
 
 spawnCallStdout = (func, args, debug, callback) ->
   localData = ""
-  name = "subtask "+debug+" (spawn "+func+" "+args+")"
   call = spawn func, args
   call.stdout.on 'data', (data) ->
     localData += data.toString().trim()
-  console.log name+" finished"
+  if debugging then console.log "subtask "+debug+" (spawn "+func+" "+args+") finished"
   call.on "exit", (code) -> callback(code, localData)
 
 build = (callback) ->
@@ -38,7 +37,7 @@ getTestsResults = (callback) ->
 runTests = (callback) ->
   getTestsResults (err, res) ->
     if err
-      console.log "tests failed: err="+err+":\n"+res
+      throw new Error("Tests failed: err="+err+":\n"+res)
     else
       callback()
 
@@ -91,6 +90,6 @@ task 'test', 'test GE', ->
   phantomjs = spawn 'phantomjs', ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html']
   phantomjs.stdout.on 'data', (data) -> console.log data.toString().trim()
   phantomjs.on "exit", (code) -> 
-    console.log("exited with code #{code}")
+    console.log "exited with code #{code}"
     if code != 0 then throw new Error("Tests failed")
 
