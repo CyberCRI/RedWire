@@ -26,7 +26,7 @@ Dependencies
 Compiling the project requires the following dependencies:
 
 1. [Node.js](http://nodejs.org/) and [NPM](https://npmjs.org/)
-2. NPM modules:
+2. NPM modules (can be installed by running `npm install` within the `platform` folder):
   - [Coffeescript](http://coffeescript.org/)
   - [win-spawn](https://npmjs.org/package/win-spawn)
   - [Docco](http://jashkenas.github.com/docco/)
