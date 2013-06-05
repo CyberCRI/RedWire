@@ -7,18 +7,6 @@ path_to_site = "site"
 path_to_gh_pages = ".temp_ghpages"
 
 
-###
-file structure
-
-directory
-  gamEvolve
-    platform
-      .temp_ghpages
-        .git
-    .git
-###
-
-
 spawnCall = (func, args, debug, callback) ->
   name = "subtask "+debug+" (spawn "+func+" "+args+")"
   call = spawn func, args
@@ -51,7 +39,6 @@ clone = (callback) ->
     spawnCall 'git', ['clone', '-n', '-b', 'gh-pages', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages", ->
       reset(callback)
 
-
 # to add all new files
 addAllGhPages = (callback) ->
   spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, 'add', '-A'], "git add all gh-pages", callback
@@ -62,14 +49,6 @@ commitGhPages = (msg, callback) ->
 
 pushGhPages = (callback) ->
   spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, 'push', '-u', 'origin', 'gh-pages'], "git push gh-pages", callback
-
-
-###
-  #commitMaster = (callback) ->
-
-  #pushMaster = (callback) ->
-###
-
 
 getLog = (callback) ->
   spawnCallStdout 'git', ['log', 'master', '-1', '--pretty=%B'], "git get log in gh-pages", callback
@@ -119,21 +98,19 @@ task 'gh-pages-diff', 'get diff of gh-pages', ->
 task 'deploy', 'deploy on gh-pages', ->
   deploy()
 
-task 'safe-push', 'if tests succeed, push', ->
-
-
-
-#add options like on Coffeescript page
-###
-task 'safe-push-deploy', 'if tests succeed, deploy and push on master', ->
-  deploy () ->
-    commitOnMaster () ->
-      pushOnMaster 
-###
-
 task 'test', 'test GE', ->
   phantomjs = spawn 'phantomjs', ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html']
   phantomjs.stdout.on 'data', (data) -> console.log data.toString().trim()
   phantomjs.on "exit", (code) -> 
     console.log("exited with code #{code}")
     if code != 0 then throw new Error("Tests failed")
+
+#TODO
+#add options like on Coffeescript page
+###
+task 'safe-push', 'if tests succeed, push', ->
+task 'safe-push-deploy', 'if tests succeed, deploy and push on master', ->
+  deploy () ->
+    commitOnMaster () ->
+      pushOnMaster 
+###
