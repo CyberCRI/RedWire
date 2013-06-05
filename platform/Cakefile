@@ -51,9 +51,6 @@ clone = (callback) ->
     spawnCall 'git', ['clone', '-n', '-b', 'gh-pages', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages", ->
       reset(callback)
 
-###
-    #spawnCall 'git', ['clone', '-b', 'https://github.com/CyberCRI/gamEvolve.git', path_to_gh_pages], "git clone into gh-pages"#, () -> console.log "job finished"
-###
 
 # to add all new files
 addAllGhPages = (callback) ->
@@ -66,26 +63,41 @@ commitGhPages = (msg, callback) ->
 pushGhPages = (callback) ->
   spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, 'push', '-u', 'origin', 'gh-pages'], "git push gh-pages", callback
 
+
 ###
   #commitMaster = (callback) ->
 
   #pushMaster = (callback) ->
 ###
 
+
 getLog = (callback) ->
   spawnCallStdout 'git', ['log', 'master', '-1', '--pretty=%B'], "git get log in gh-pages", callback
 
 deploy = (callback) ->
   build () -> 
-    #test () ->
-    clone () ->
-      fsextra.copyRecursive path_to_site, path_to_gh_pages, genericCallBack ->
-        getLog (err, msg) ->
-          if err then throw new Error("getLog failed "+err)
-          addAllGhPages ->
-            commitGhPages msg, genericCallBack ->
-              pushGhPages callback
+    runTests () -> 
+      clone () ->
+        fsextra.copyRecursive path_to_site, path_to_gh_pages, genericCallBack ->
+          getLog (err, msg) ->
+            if err then throw new Error("getLog failed "+err)
+            console.log "job finished with err="+err+" and msg="+msg
+            addAllGhPages ->
+              commitGhPages msg, genericCallBack ->
+                pushGhPages callback
 
+gh_pages_info = (cmd, callback) ->
+  spawnCall 'git', ['--git-dir='+path_to_gh_pages+'/.git', '--work-tree='+path_to_gh_pages, cmd], "git "+cmd+" on gh-pages", callback
+
+getTestsResults = (callback) ->
+  spawnCallStdout 'phantomjs', ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html'], "phantomjs/phantom-jasmine test", callback
+
+runTests = (callback) ->
+  getTestsResults (err, res) ->
+    if err
+      console.log "tests failed: err="+err+":\n"+res
+    else
+      callback()
 
 task 'build', 'build once', ->
   build()
@@ -100,10 +112,18 @@ task 'doc', 'create documentation', ->
 task 'clone', 'clone gh-pages', ->
   clone()
 
+task 'gh-pages-status', 'get status of gh-pages', ->
+  gh_pages_info("status")
+
+task 'gh-pages-diff', 'get diff of gh-pages', ->
+  gh_pages_info("diff")
+
 task 'deploy', 'deploy on gh-pages', ->
   deploy()
 
 task 'safe-push', 'if tests succeed, push', ->
+
+
 
 #add options like on Coffeescript page
 ###
@@ -111,19 +131,6 @@ task 'safe-push-deploy', 'if tests succeed, deploy and push on master', ->
   deploy () ->
     commitOnMaster () ->
       pushOnMaster 
-  
-  
-  
-
-  #execute script in temp_ghpages to ci/pu? How to cross-platform?
-
-  #cd ../temp_ghpages
-  #git commit gh-pages
-  #git push gh-pages
-  #git commit master
-  #git push master
-
-  console.log "task safe-push finished"
 ###
 
 task 'test', 'test GE', ->
