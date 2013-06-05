@@ -8,11 +8,15 @@ path_to_gh_pages = ".temp_ghpages"
 
 
 spawnCall = (func, args, debug, callback) ->
-  name = "subtask "+debug+" (spawn "+func+" "+args+")"
-  call = spawn func, args
-  call.stdout.on 'data', (data) -> console.log data.toString().trim()
-  console.log name+" finished"
-  call.on "exit", genericCallBack(callback)
+  name = "Lanching subtask "+debug+" (spawn "+func+" "+args+")"
+  try
+    call = spawn func, args
+    call.stdout.on 'data', (data) -> console.log data.toString().trim()
+    call.stderr.on 'data', (data) -> console.log data.toString().trim()
+    call.on "exit", genericCallBack(callback)
+  catch e
+    console.log("Error running spawn", e)
+    callback(e)
 
 spawnCallStdout = (func, args, debug, callback) ->
   localData = ""
@@ -20,6 +24,7 @@ spawnCallStdout = (func, args, debug, callback) ->
   call = spawn func, args
   call.stdout.on 'data', (data) ->
     localData += data.toString().trim()
+  call.stderr.on 'data', (data) -> console.log data.toString().trim()
   console.log name+" finished"
   call.on "exit", (code) -> callback(code, localData)
 
@@ -28,7 +33,9 @@ build = (callback) ->
 
 genericCallBack = (callback) -> 
   (error) -> 
-    if error then throw new Error("ERROR: #{error}")
+    if error 
+      console.log("Caught error in callback", error)
+      throw new Error("ERROR: #{error}")
     if callback then callback()
   
 reset = (callback) ->
