@@ -1,14 +1,14 @@
 spawn = require "win-spawn"
-fsextra = require "fs.extra"
-fs = require "fs"
+fs = require "fs.extra"
 path = require "path"
+glob = require "glob"
 
 path_to_site = "site"
 path_to_gh_pages = ".temp_ghpages"
 
 
 spawnCall = (func, args, debug, callback) ->
-  name = "Lanching subtask "+debug+" (spawn "+func+" "+args+")"
+  console.log("Lanching subtask "+debug+" (spawn "+func+" "+args.join(" ")+")")
   try
     call = spawn func, args
     call.stdout.on 'data', (data) -> console.log data.toString().trim()
@@ -91,7 +91,9 @@ task 'watch', 'continually build with --watch', ->
    spawnCall 'coffee', ['-cw', '-o', 'site', 'src'], "watch"
 
 task 'doc', 'create documentation', ->
-  spawnCall 'docco', ['src/*.coffee', 'src/tests/*.coffee'], "create doc"
+  srcFiles = glob.sync("src/*.coffee")
+  testFiles = glob.sync("src/tests/*.coffee")
+  spawnCall 'docco', srcFiles.concat(testFiles), "create doc"
 
 task 'clone', 'clone gh-pages', ->
   clone()
