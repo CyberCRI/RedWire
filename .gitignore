@@ -11,3 +11,6 @@ docs/
 
 # Ignore node modules
 platform/node_modules/
+
+# Ignore deployment directory
+platform/.temp_ghpages/
