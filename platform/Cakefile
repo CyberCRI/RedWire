@@ -81,7 +81,6 @@ deploy = (callback) ->
         fsextra.copyRecursive path_to_site, path_to_gh_pages, genericCallBack ->
           getLog (err, msg) ->
             if err then throw new Error("getLog failed "+err)
-            console.log "job finished with err="+err+" and msg="+msg
             addAllGhPages ->
               commitGhPages msg, genericCallBack ->
                 pushGhPages callback
@@ -101,7 +100,6 @@ runTests = (callback) ->
 
 task 'build', 'build once', ->
   build()
-  console.log "task build finished"
 
 task 'watch', 'continually build with --watch', ->
    spawnCall 'coffee', ['-cw', '-o', 'site', 'src'], "watch"
