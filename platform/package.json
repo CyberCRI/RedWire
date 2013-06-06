@@ -10,7 +10,12 @@
   "dependencies" : {
     "coffee-script": "*",
     "win-spawn": "*",
-    "docco": "*"
+    "docco": "*",
+    "path": "*",
+    "glob": "*",
+    "phantomjs": "*",
+    "phantom-jasmine": "*",
+    "fs.extra": "*"
   },
   "license": "MIT"
 }
