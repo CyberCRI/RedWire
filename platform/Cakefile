@@ -1,4 +1,4 @@
-spawn = require "win-spawn"
+spawn = require "./node_modules/win-spawn/"
 
 task 'build', 'build once', ->
   coffee = spawn 'coffee', ['-c', '-o', 'site', 'src']
