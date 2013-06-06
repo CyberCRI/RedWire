@@ -24,11 +24,16 @@ SPINNER_OPTS =
   top: 'auto'
   left: 'auto'
 
+EVAL_ASSETS = 
+  underscore: "lib/underscore/underscore.js"
+  gamEvolveCommon: "gamEvolveCommon.js"
+
 
 ### Globals ###
 
 editors = {}
 log = null
+evalLoadedAssets = []
 
 services = {}
 
@@ -207,15 +212,17 @@ reloadCode = (callback) ->
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
   # We will use actionEvaluator later to evaluate all loaded JS assets
-  actionEvaluator = GE.makeEvaluator()
+  actionsEvaluator = GE.makeEvaluator(evalLoadedAssets...)
   try
-    currentActions = actionEvaluator(editors.actionsEditor.getValue())
+    currentActions = actionsEvaluator(editors.actionsEditor.getValue())
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
+  # We will use toolsEvaluator later to evaluate all loaded JS assets
+  toolsEvaluator = GE.makeEvaluator(evalLoadedAssets...)
   try
-    currentTools = GE.makeEvaluator()(editors.toolsEditor.getValue())
+    currentTools = toolsEvaluator(editors.toolsEditor.getValue())
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Tools error. #{error}")
     return showMessage(MessageType.Error, "<strong>Tools error.</strong> #{error}")
@@ -247,9 +254,11 @@ reloadCode = (callback) ->
       showMessage(MessageType.Error, "Cannot load assets. #{err}")
       return callback(err)
 
-    # Execute all JS assets in the actions sandbox, so that actions have access
-    for url, asset of loadedAssets 
-      if GE.determineAssetType(url) is "JS" then actionEvaluator(asset)
+    # Execute all JS assets in the actions and tools sandbox, so that actions have access
+    for name, url of currentAssets 
+      if GE.determineAssetType(url) is "JS" 
+        for evaluator in [actionsEvaluator, toolsEvaluator] 
+          evaluator(loadedAssets[name])
 
     currentLoadedAssets = loadedAssets
 
@@ -415,6 +424,12 @@ $(document).ready ->
   # Setup event handlers
   $(window).on "onresize", handleResize
 
-  # Load code
-  notifyCodeChange()
+  # Load common assets
+  GE.loadAssets EVAL_ASSETS, (err, loadedAssets) ->
+    if err then return showMessage(MessageType.Error, "Cannot load common assets")
+
+    # Make this globally available
+    evalLoadedAssets = (script for name, script of loadedAssets)
+    # Load code
+    notifyCodeChange()
 

@@ -1,4 +1,10 @@
 ({
+  // Add a shape to be drawn to graphics
+  drawShape: function(graphics, shape) 
+  {
+    graphics.shapes[_.uniqueId()] = shape;    
+  },
+
   //returns a copy of 'tab' without the element at position 'index'
   pureRemove: function(index, tab)
   {
@@ -123,7 +129,7 @@
     if(this.isMovable(piece, unmovablePieces)) {
       if (this.isInGrid(newSquare, gridSize)) { //defensive code
         if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
-          console.log("movePieceTo the piece was on the board, let's change its coordinates");
+          //console.log("movePieceTo the piece was on the board, let's change its coordinates");
           //var movedPiece = findGridElement([piece.col, piece.row], pieces);
           //movedPiece.col = newSquare[0];
           //movedPiece.row = newSquare[1];
@@ -132,7 +138,7 @@
           newPieces    = this.replace(piece, newPiece, pieces);
 
         } else { //the piece was in the box, let's put it on the board
-          console.log("movePieceTo the piece was in the box, let's put it on the board");
+          //console.log("movePieceTo the piece was in the box, let's put it on the board");
           //remove the piece from the "boxedPieces"
           newBoxedPieces = this.takePieceOutOfBox(piece.type, boxedPieces);
 
@@ -147,7 +153,7 @@
         }
       } else {
         //the new square position is outside of the board: let's box the piece
-        console.log("movePieceTo the new square position is outside of the board: let's box the piece");
+        //console.log("movePieceTo the new square position is outside of the board: let's box the piece");
         var put = this.putPieceIntoBox(piece, pieces, boxedPieces);
         newPiece = put.piece;
         newPieces = put.pieces;
@@ -183,7 +189,7 @@
       if(piece.type === pieceType) {
         var res = this.pureRemove(i, boxedPieces);
         //console.log("finished takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+this.piecesToString(boxedPieces)+")");
-        console.log("takePieceOutOfBox("+pieceType+", "+this.piecesToString(boxedPieces)+")="+this.piecesToString(res));
+        //console.log("takePieceOutOfBox("+pieceType+", "+this.piecesToString(boxedPieces)+")="+this.piecesToString(res));
         return res;
       }
     }
@@ -197,12 +203,12 @@
   //returns {boxedPiece, pieces, boxedPieces}
   putPieceIntoBox: function(piece, pieces, boxedPieces)
   {
-    console.log("putPieceIntoBox(piece="+this.pieceToString(piece)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+")");
+    //console.log("putPieceIntoBox(piece="+this.pieceToString(piece)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+")");
 
     var res = {};
 
     if(piece.index === undefined) { //source of movement isn't the box
-      console.log("putPieceIntoBox: source of movement isn't the box");
+      //console.log("putPieceIntoBox: source of movement isn't the box");
       var newIndex = boxedPieces.length;
       res.boxedPiece = {
         "type": piece.type,
@@ -217,16 +223,16 @@
         var somePiece = pieces[i];
         if((piece.col == somePiece.col) &&(piece.row == somePiece.row)) {
           res.pieces = this.pureRemove(i, pieces);
-          console.log("finished putPieceIntoBox: res={newBoxedPiece="+this.pieceToString(res.boxedPiece)+", newPieces="+this.piecesToString(res.pieces)+", newBoxedPieces="+this.piecesToString(res.boxedPieces)+"}");
+          //console.log("finished putPieceIntoBox: res={newBoxedPiece="+this.pieceToString(res.boxedPiece)+", newPieces="+this.piecesToString(res.pieces)+", newBoxedPieces="+this.piecesToString(res.boxedPieces)+"}");
           return res;
         }
       }
     } else { //the piece was moved from the box
-      console.log("putPieceIntoBox: the piece was moved from the box");
+      //console.log("putPieceIntoBox: the piece was moved from the box");
       //console.log("finished putPieceIntoBox(piece="+this.pieceToString(piece)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+") - did nothing");
     }
 
-    console.log("putPieceIntoBox: no change");
+    //console.log("putPieceIntoBox: no change");
 
     res.boxedPiece = piece;
     res.pieces = pieces;

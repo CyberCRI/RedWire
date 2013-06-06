@@ -27,18 +27,7 @@
 globals = @
 
 # All will be in the "GE" namespace
-GE = {}
-
-# Can be used to mimic enums in JS
-# Since this is called by the GE namspace definition below, it must be defined first
-GE.makeConstantSet = (values...) ->
-  obj =
-    # Checks if the value is in the set
-    contains: (value) -> return value of obj
-  for value in values then obj[value] = value
-  return Object.freeze(obj)
-
-GE.logLevels = GE.makeConstantSet("ERROR", "WARN", "INFO", "LOG")
+GE = globals.GE
 
 GE.Model = class Model
   constructor: (data = {}, @previous = null) -> 
@@ -80,8 +69,6 @@ GE.NodeVisitorResult = class NodeVisitorResult
     newModelPatches = GE.concatenate(@modelPatches, other.modelPatches)
     newServicePatches = GE.concatenate(@servicePatches, other.servicePatches)
     return new NodeVisitorResult(@result, newModelPatches, newServicePatches)
-
-GE.signals = GE.makeConstantSet("DONE", "ERROR")
 
 GE.extensions =
     IMAGE: ["png", "gif", "jpeg", "jpg"]
@@ -462,35 +449,36 @@ GE.loadAssets = (assets, callback) ->
   onError = -> callback(new Error(arguments))
 
   for name, url of assets
-    switch GE.determineAssetType(url)
-      when "IMAGE"
-        results[name] = new Image()
-        results[name].onload = onLoad 
-        results[name].onabort = onError
-        results[name].onerror = onError
-        results[name].src = url + "?_=#{new Date().getTime()}"
-      when "JS"
-        $.ajax
-          url: url
-          dataType: "text"
-          cache: false
-          error: onError
-          success: (text) ->
-            results[name] = text
-            onLoad()
-      when "CSS"
-        # Based on http://stackoverflow.com/a/805406/209505
-        # TODO: need way to remove loaded styles later
-        $.ajax
-          url: url
-          dataType: "text"
-          cache: false
-          error: onError
-          success: (css) ->
-            $('<style type="text/css"></style>').html(css).appendTo("head")
-            onLoad()
-      else 
-        return callback(new Error("Do not know how to load #{url}"))
+    do (name, url) -> # The `do` is needed because of asnyc requests below
+      switch GE.determineAssetType(url)
+        when "IMAGE"
+          results[name] = new Image()
+          results[name].onload = onLoad 
+          results[name].onabort = onError
+          results[name].onerror = onError
+          results[name].src = url + "?_=#{new Date().getTime()}"
+        when "JS"
+          $.ajax
+            url: url
+            dataType: "text"
+            cache: false
+            error: onError
+            success: (text) ->
+              results[name] = text
+              onLoad()
+        when "CSS"
+          # Based on http://stackoverflow.com/a/805406/209505
+          # TODO: need way to remove loaded styles later
+          $.ajax
+            url: url
+            dataType: "text"
+            cache: false
+            error: onError
+            success: (css) ->
+              $('<style type="text/css"></style>').html(css).appendTo("head")
+              onLoad()
+        else 
+          return callback(new Error("Do not know how to load #{url}"))
 
 # Shortcut for timeout function, to avoid trailing the time at the end 
 GE.doLater = (f) -> setTimeout(f, 0)
@@ -511,14 +499,16 @@ GE.deepFreeze = (o) ->
 GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value
 
 # Creates and returns an eval function that runs within an iFrame sandbox
-# Requires a DOM selector to append to (defaults to body)
+# Automatically runs all the scripts provided before returning the evaluator
 # Based on https://github.com/josscrowcroft/javascript-sandbox-console/blob/master/src/sandbox-console.js
 # This is not secure, given that the iframe still has access to the parent
 # TODO: Improve security using the sandbox attribute and postMessage() as described at http://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/
-GE.makeEvaluator = (scriptsToLoad...) ->
+GE.makeEvaluator = (scriptsToRun...) ->
   sandboxFrame = $("<iframe width='0' height='0' />").css({visibility : 'hidden'}).appendTo("body")
   evaluator = sandboxFrame[0].contentWindow.eval 
   sandboxFrame.remove()
+
+  for script in scriptsToRun then evaluator(script)
   return evaluator
 
 # Install the GE namespace in the global scope
