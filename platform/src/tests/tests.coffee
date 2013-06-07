@@ -501,4 +501,17 @@ describe "gamEvolve", ->
 
       # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
       expect(-> GE.stepLoop(layoutB, {}, {}, actions, {}, services)).toThrow()
-      
+  
+  describe "sandbox", ->
+    it "evaluates expressions", ->
+      evaluator = GE.makeEvaluator()
+      expect(evaluator("a = 1")).toEqual(1)
+      expect(evaluator("a + 1")).toEqual(2)
+
+    it "does not pollute", ->
+      evaluator = GE.makeEvaluator()
+      expect(evaluator("typeof(GE)")).toEqual("undefined")
+      expect(evaluator("a = 1")).toEqual(1)
+
+      evaluator2 = GE.makeEvaluator()
+      expect(evaluator2("typeof(a)")).toEqual("undefined")
