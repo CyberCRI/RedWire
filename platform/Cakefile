@@ -1,10 +1,11 @@
-spawn = require "./node_modules/win-spawn/"
-fs = require "./node_modules/fs.extra/"
-path = require "./node_modules/path/"
-glob = require "./node_modules/glob/"
+spawn = require "win-spawn"
+fs = require "fs.extra"
+path = require "path"
+glob = require "glob"
 
 path_to_site = "site"
 path_to_gh_pages = ".temp_ghpages"
+path_to_bin = "node_modules/.bin"
 
 debugging = false
 
@@ -38,10 +39,10 @@ spawnCallStdout = (func, args, debug, callback) ->
   call.on "exit", (code) -> callback(code, localData)
 
 build = (callback) ->
-  spawnCall 'coffee', ['-c', '-o', 'site', 'src'], "build", callback
+  spawnCall "#{path_to_bin}/coffee", ['-c', '-o', 'site', 'src'], "build", callback
 
 getTestsResults = (callback) ->
-  spawnCallStdout 'phantomjs', ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html'], "phantomjs/phantom-jasmine test", callback
+  spawnCallStdout "#{path_to_bin}/phantomjs", ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html'], "phantomjs/phantom-jasmine test", callback
 
 runTests = (callback) ->
   getTestsResults (err, res) ->
@@ -87,18 +88,18 @@ task 'build', 'build once', ->
   build()
 
 task 'watch', 'continually build with --watch', ->
-  spawnCall 'coffee', ['-cw', '-o', 'site', 'src'], "watch"
+  spawnCall "#{path_to_bin}/coffee", ['-cw', '-o', 'site', 'src'], "watch"
 
 task 'doc', 'create documentation', ->
   srcFiles = glob.sync("src/*.coffee")
   testFiles = glob.sync("src/tests/*.coffee")
-  spawnCall 'docco', srcFiles.concat(testFiles), "create doc"
+  spawnCall "#{path_to_bin}/docco", srcFiles.concat(testFiles), "create doc"
 
 task 'deploy', 'deploy on gh-pages', ->
   deploy()
 
 task 'test', 'test GE', ->
-  phantomjs = spawn 'phantomjs', ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html']
+  phantomjs = spawn "#{path_to_bin}/phantomjs", ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html']
   phantomjs.stdout.on 'data', (data) -> console.log data.toString().trim()
   phantomjs.on "exit", (code) -> 
     console.log "exited with code #{code}"
