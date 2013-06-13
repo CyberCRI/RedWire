@@ -28,23 +28,15 @@
 
       //updates selected piece and dragged piece when the mouse button is pressed on a piece
       function mouseDownOnPiece(piecePressed, params) {
-        console.log("mouseDownOnPiece(piecePressed="+that.tools.pieceToString(piecePressed)+", "+that.tools.paramsToString(params)+")");
         if(piecePressed) {
-          console.log("action.js: clicked on piece of type \""+piecePressed.type+"\"");
-          console.log("action.js: the previously selected piece is unselected");
           params.selectedPiece = null;
-          console.log("rotating = false");
           params.rotating = false;
           params.originalRotation = null;
           params.originalPieceRotation = null;
 
-          console.log("action.js: \""+piecePressed.type+"\" starts to be dragged, even if a piece was already being dragged");
           if(that.tools.isMovable(piecePressed, that.params.constants.unmovablePieces)) {
             params.draggedPiece = piecePressed;
           }
-          console.log("finished mouseDownOnPiece(piecePressed="+that.tools.pieceToString(piecePressed)+", "+that.tools.paramsToString(params)+")");
-        } else {
-          console.log("finished mouseDownOnPiece(piecePressed="+that.tools.pieceToString(piecePressed)+", "+that.tools.paramsToString(params)+"), nothing done");
         }
       }
 
@@ -57,7 +49,7 @@
 
       //DRAGGING: GRAPHICS (DRAGGED PIECE DRAWING)
       if(this.params.draggedPiece && this.params.mouse.position){
-        GE.addUnique(this.params.graphics.shapes, {
+        this.tools.drawShape(this.params.graphics, {
           type: "image",
           layer: "drag",
           asset: this.params.draggedPiece.type,
@@ -364,7 +356,7 @@
       "graphics": null
     },
     update: function() {
-      GE.addUnique(this.params.graphics.shapes, {
+      this.tools.drawShape(this.params.graphics, {
         type: "rectangle",
         layer: "bg",
         fillStyle: this.params.color,
@@ -383,7 +375,7 @@
       y: 0
     },
     update: function() {
-      GE.addUnique(this.params.graphics.shapes, {
+      this.tools.drawShape(this.params.graphics, {
         type: "image",
         layer: this.params.layer,
         asset: this.params.image,
@@ -403,7 +395,7 @@
       "graphics": null
     },
     update: function() { 
-      GE.addUnique(this.params.graphics.shapes, {
+      this.tools.drawShape(this.params.graphics, {
         type: "text",
         layer: "text",
         text: this.params.text,
@@ -436,7 +428,7 @@
       var that = this;
 
       function drawObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation) {
-        GE.addUnique(that.params.graphics.shapes, that.tools.getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation));
+        that.tools.drawShape(that.params.graphics, that.tools.getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation));
       }
 
       drawObject("pieces", that.params.type, 1, 50, that.params.col, that.params.row, that.params.constants.cellSize, that.params.constants.upperLeftBoardMargin, that.params.rotation);
@@ -461,7 +453,7 @@
     },
     update: function() {
       var boxPosition = [this.params.index % 2, this.params.index >> 1];
-      GE.addUnique(this.params.graphics.shapes, {
+      this.tools.drawShape(this.params.graphics, {
         type: "image",
         layer: "pieces",
         asset: this.params.type,
@@ -481,7 +473,7 @@
       constants: null
     },
     update: function() {
-      GE.addUnique(this.params.graphics.shapes, {
+      this.tools.drawShape(this.params.graphics, {
         type: "rectangle",
         layer: "selection",
         position: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin, 
@@ -602,7 +594,7 @@
           ]
         };
 
-        GE.addUnique(that.params.graphics.shapes, _.extend({
+        that.tools.drawShape(that.params.graphics, _.extend({
           type: "path",
           layer: "light",
           strokeStyle: strokeGrad,
@@ -626,7 +618,7 @@
           ]
         };
 
-        GE.addUnique(that.params.graphics.shapes, _.extend({
+        that.tools.drawShape(that.params.graphics, _.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
@@ -650,7 +642,7 @@
           ]
         };
 
-        GE.addUnique(that.params.graphics.shapes, _.extend({
+        that.tools.drawShape(that.params.graphics, _.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
@@ -752,7 +744,7 @@
 
       // Draw black mask that we will cut away from
       // based on the method of this fiddle: http://jsfiddle.net/wNYkX/3/
-      GE.addUnique(this.params.graphics.shapes, {
+      this.tools.drawShape(this.params.graphics, {
         type: "rectangle",
         layer: "mask",
         fillStyle: "black",
