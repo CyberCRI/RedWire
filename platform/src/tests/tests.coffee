@@ -91,27 +91,15 @@ describe "gamEvolve", ->
 
 
   describe "visitNode()", ->
-    it "calls functions", ->
-      # make test function to spy on
-      globals.testFunction = jasmine.createSpy()
-
-      layout = 
-        call: "testFunction"
-        params: [1, 2]
-
-      constants = new GE.NodeVisitorConstants({}, {}, {}, {})
-      GE.visitNode(layout, constants, {})
-
-      expect(globals.testFunction).toHaveBeenCalledWith(1, 2)
-
     it "calls actions", ->
       isCalled = false
 
       actions = 
         doNothing: 
           paramDefs:
-            x: 1
-            y: "z"
+            in:
+              x: "1"
+              y: "'z'"
           update: ->
             isCalled = true
             expect(arguments.length).toEqual(0)
@@ -122,10 +110,10 @@ describe "gamEvolve", ->
       layout = 
         action: "doNothing"
         params: 
-          x: 2
-          y: "z"
+          in: 
+            x: "1 + 1"
 
-      constants = new GE.NodeVisitorConstants({}, {}, {}, actions)
+      constants = new GE.NodeVisitorConstants({}, {}, {}, actions, {}, GE.makeEvaluator())
       GE.visitNode(layout, constants, {})
       expect(isCalled).toBeTruthy()
 
@@ -155,30 +143,6 @@ describe "gamEvolve", ->
       GE.visitNode(layout, constants, {})
       expect(timesCalled).toEqual(3)
 
-    it "evaluates parameters for functions", ->
-      model = { person: { firstName: "bob" } }
-
-      assets = { image: new Image() }
-
-      # make test function to spy on
-      globals.testFunction = jasmine.createSpy()
-
-      layout = 
-        bind: 
-          select: 
-            lastName: "jon"
-        children: [
-          { 
-            call: "testFunction"
-            params: ["@model:person.firstName", "model", "$lastName", "@asset:image"]
-          }
-        ]
-
-      constants = new GE.NodeVisitorConstants(model, {}, assets, {})
-      GE.visitNode(layout, constants, {})
-
-      expect(globals.testFunction).toHaveBeenCalledWith("bob", "model", "jon", assets.image)
-
     it "evaluates parameters for actions", ->
       oldModel = 
         a: 1
@@ -190,11 +154,15 @@ describe "gamEvolve", ->
       actions = 
         adjustModel: 
           paramDefs:
-            x: null
-            y: null
-            z: null
-            d: 2
-            e: null
+            in:
+              x: null
+              y: null
+              d: 2
+              e: null
+            out:
+              x: null
+              y: null
+              z: null
           update: ->
             @params.x++
             @params.y--
@@ -205,17 +173,21 @@ describe "gamEvolve", ->
       layout = 
         bind: 
           select:
-            c: "@model:b"
-            z: "@model:c"
-            e: "@asset:image"
+            z: "model.c"
+            e: "assets.image"
         children: [
           action: "adjustModel"
-          params: 
-            x: "@model:a"
-            y: "$c"
+          params:
+            in:  
+              x: "model.a"
+              y: "model.b"
+            out:
+              "model.a": "params.x"
+              "model.b": "params.y"
+              "model.c": "params.z"
         ]
 
-      constants = new GE.NodeVisitorConstants(oldModel, {}, assets, actions)
+      constants = new GE.NodeVisitorConstants(oldModel, {}, assets, actions, {}, GE.makeEvaluator())
       results = GE.visitNode(layout, constants, {})
       newModel = GE.applyPatches(results.modelPatches, oldModel)
 
@@ -227,27 +199,36 @@ describe "gamEvolve", ->
       expect(newModel.b).toBe(9)
       expect(newModel.c).toBe(30)
 
-    it "sets the model", ->
+    it "sends to model and services", ->
       oldModel = 
         a: 
           a1: 1
         b: 10
         c: "hi"
 
-      layout = 
-        setModel: 
-          "a.a1": 2
-          "b": "@model:c"
+      oldServiceData = 
+        s: 
+          a: -1
 
-      constants = new GE.NodeVisitorConstants(oldModel, {}, {}, {})
+      layout = 
+        send: 
+          "model.a.a1": 2
+          "model.b": "model.c"
+          "services.s.a": -5
+
+      constants = new GE.NodeVisitorConstants(oldModel, oldServiceData, {}, {}, {}, GE.makeEvaluator())
       results = GE.visitNode(layout, constants, {})
       newModel = GE.applyPatches(results.modelPatches, oldModel)
+      newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
 
-      # The new model should be changed, but the old one shouldn't be
+      # The new model and services should be changed, but the old ones shouldn't be
       expect(oldModel.a.a1).toBe(1)
       expect(oldModel.b).toBe(10)
+      expect(oldServiceData.s.a).toBe(-1)
+
       expect(newModel.a.a1).toBe(2)
       expect(newModel.b).toBe("hi")
+      expect(newServiceData.s.a).toBe(-5)
 
     it "checks and adjusts activation", ->
       models = [
