@@ -242,7 +242,10 @@ describe "gamEvolve", ->
       actions = 
         nextOnDone: 
           paramDefs: 
-            activeChild: 0
+            in:
+              activeChild: 0
+            out:
+              activeChild: 0
           listActiveChildren: -> return [@params.activeChild]
           handleSignals: ->
             if @signals[@params.activeChild] == GE.signals.DONE 
@@ -250,8 +253,11 @@ describe "gamEvolve", ->
             if @params.activeChild >= @children.length - 1
               return GE.signals.DONE
         reportDone:
-          paramDefs: 
-            timesCalled: 0
+          paramDefs:
+            in: 
+              timesCalled: 0
+            out: 
+              timesCalled: 0
           update: -> 
             @params.timesCalled++
             return GE.signals.DONE
@@ -259,21 +265,30 @@ describe "gamEvolve", ->
       layout = 
         action: "nextOnDone"
         params: 
-          activeChild: "@model:activeChild"
+          in:
+            activeChild: "model.activeChild"
+          out: 
+            "model.activeChild": "params.activeChild"
         children: [
           {
             action: "reportDone"
             params: 
-              timesCalled: "@model:child0TimesCalled"
+              in:
+                timesCalled: "model.child0TimesCalled"
+              out:
+                "model.child0TimesCalled": "params.timesCalled"
           },
           {
             action: "reportDone"
             params: 
-              timesCalled: "@model:child1TimesCalled"
+              in:
+                timesCalled: "model.child1TimesCalled"
+              out:
+                "model.child1TimesCalled": "params.timesCalled"
           }
         ]
 
-      constants = new GE.NodeVisitorConstants(models[0], {}, {}, actions)
+      constants = new GE.NodeVisitorConstants(models[0], {}, {}, actions, {}, GE.makeEvaluator())
       results = GE.visitNode(layout, constants, {})
       models[1] = GE.applyPatches(results.modelPatches, models[0])
 
@@ -281,7 +296,7 @@ describe "gamEvolve", ->
       expect(models[1].child1TimesCalled).toBe(0)
       expect(models[1].activeChild).toBe(1)
       
-      constants = new GE.NodeVisitorConstants(models[1], {}, {}, actions)
+      constants = new GE.NodeVisitorConstants(models[1], {}, {}, actions, {}, GE.makeEvaluator())
       results = GE.visitNode(layout, constants, {})
       models[2] = GE.applyPatches(results.modelPatches, models[1])
 
@@ -299,24 +314,28 @@ describe "gamEvolve", ->
       actions = 
         changeName: 
           paramDefs:
-            newName: "" 
-            toChange: ""
+            in:
+              newName: "" 
+            out:
+              toChange: ""
           update: -> @params.toChange = @params.newName
 
       layout = 
         bind: 
           from:
-            person: "@model:people"
+            person: "model.people"
         children: [
           { 
             action: "changeName"
             params: 
-              newName: "$person.first"
-              toChange: "$person.last"
+              in: 
+                newName: "bindings.person.first"
+              out:
+                "bindings.person.last": "params.toChange"
           }
         ]
 
-      constants = new GE.NodeVisitorConstants(oldModel, {}, {}, actions)
+      constants = new GE.NodeVisitorConstants(oldModel, {}, {}, actions, {}, GE.makeEvaluator())
       results = GE.visitNode(layout, constants, {})
       newModel = GE.applyPatches(results.modelPatches, oldModel)
 
@@ -331,7 +350,10 @@ describe "gamEvolve", ->
       actions = 
         incrementServiceData: 
           paramDefs:
-            service: "" 
+            in:
+              service: ""
+            out:
+              service: ""
           update: -> 
             expect(@params.service.a).toBe(1)
             @params.service.a++
@@ -339,9 +361,12 @@ describe "gamEvolve", ->
       layout = 
         action: "incrementServiceData"
         params:
-          service: "@service:serviceA"
+          in:
+            service: "services.serviceA"
+          out:
+            "services.serviceA": "params.service"
 
-      constants = new GE.NodeVisitorConstants({}, oldServiceData, {}, actions)
+      constants = new GE.NodeVisitorConstants({}, oldServiceData, {}, actions, {}, GE.makeEvaluator())
       results = GE.visitNode(layout, constants, {})
       newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
 
@@ -357,13 +382,14 @@ describe "gamEvolve", ->
         myService:
           a = 1
 
-      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
-      modelPatches = GE.stepLoop(null, {}, {}, {}, {}, services, null, null, outputServiceData)
+      modelPatches = GE.stepLoop 
+        services: services
+        outputServiceData: outputServiceData
 
       expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {})
       expect(modelPatches).toBeEmpty()
 
-    it "send service input data to visitNode", ->
+    it "sends service input data to visitNode()", ->
       services = 
         myService:
           establishData: jasmine.createSpy()
@@ -375,7 +401,10 @@ describe "gamEvolve", ->
       actions = 
         incrementServiceData: 
           paramDefs:
-            service: "" 
+            in:
+              service: ""
+            out:
+              service: "" 
           update: -> 
             expect(@params.service.a).toBe(1)
             @params.service.a++
@@ -383,10 +412,17 @@ describe "gamEvolve", ->
       layout = 
         action: "incrementServiceData"
         params:
-          service: "@service:myService"
+          in: 
+            service: "services.myService"
+          out: 
+            "services.myService": "params.service" 
 
-      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
-      modelPatches = GE.stepLoop(layout, {}, {}, actions, {}, services, null, inputServiceData)
+      modelPatches = GE.stepLoop 
+        node: layout
+        actions: actions 
+        services: services
+        inputServiceData: inputServiceData
+        evaluator: GE.makeEvaluator()
 
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
       expect(modelPatches).toBeEmpty()
@@ -406,7 +442,10 @@ describe "gamEvolve", ->
       actions = 
         incrementServiceData: 
           paramDefs:
-            service: "" 
+            in:
+              service: "" 
+            out:
+              service: ""
           update: -> 
             expect(@tools.testTool(@params.service.a, 2)._1).toBe(1)
             @params.service.a++
@@ -414,10 +453,17 @@ describe "gamEvolve", ->
       layout = 
         action: "incrementServiceData"
         params:
-          service: "@service:myService"
+          in:
+            service: "services.myService"
+          out:
+            "services.myService": "params.service"
 
-      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
-      modelPatches = GE.stepLoop(layout, {}, {}, actions, tools, services)
+      modelPatches = GE.stepLoop 
+        node: layout
+        actions: actions 
+        tools: tools
+        services: services
+        evaluator: GE.makeEvaluator()
 
       expect(services.myService.provideData).toHaveBeenCalledWith({})
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
@@ -439,8 +485,10 @@ describe "gamEvolve", ->
           update: ->
         setDataTo: 
           paramDefs:
-            var: null
-            value: null
+            in: 
+              value: null
+            out:
+              var: null
           update: -> @params.var = @params.value
 
       layoutA = 
@@ -449,19 +497,27 @@ describe "gamEvolve", ->
           {
             action: "setDataTo"
             params:
-              var: "@model:a"
-              value: 1
+              in:
+               value: 1
+              out:
+                "model.a": "params.var"
           },
           {
             action: "setDataTo"
             params:
-              var: "@model:a"
-              value: 2
+              in:
+               value: 2
+              out:
+                "model.a": "params.var"
           }
         ]
 
-      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
-      expect(-> GE.stepLoop(layoutA, oldData, {}, actions, {}, {})).toThrow()
+      expect(-> GE.stepLoop 
+        node: layoutA
+        modelData: oldData
+        actions: actions 
+        evaluator: GE.makeEvaluator()
+      ).toThrow()
       
       layoutB = 
         action: "group"
@@ -469,20 +525,28 @@ describe "gamEvolve", ->
           {
             action: "setDataTo"
             params:
-              var: "@service:myService.a"
-              value: 1
+             in:
+               value: 2
+              out:
+                "services.myService.a": "params.var"
           },
           {
             action: "setDataTo"
             params:
-              var: "@service:myService.a"
-              value: 2
+             in:
+               value: 2
+              out:
+                "services.myService.a": "params.var"
           }
         ]
 
-      # parameters: node, modelData, assets, actions, tools, services, log, inputServiceData = null, outputServiceData = null
-      expect(-> GE.stepLoop(layoutB, {}, {}, actions, {}, services)).toThrow()
-  
+      expect(-> GE.stepLoop 
+        node: layoutB 
+        actions: actions 
+        services: services
+        evaluator: GE.makeEvaluator()
+      ).toThrow()
+
   describe "sandbox", ->
     it "evaluates expressions", ->
       evaluator = GE.makeEvaluator()

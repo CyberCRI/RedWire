@@ -157,8 +157,8 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
 
   # TODO: compile expressions ahead of time
 
-  frozenModelData = GE.cloneFrozen(constants.modelData)
-  frozenServiceData = GE.cloneFrozen(constants.serviceData)
+  mutableModelData = GE.cloneData(constants.modelData)
+  mutableServiceData = GE.cloneData(constants.serviceData)
   frozenBindings = GE.cloneFrozen(bindings)
 
   evaluatedParams = {}
@@ -172,7 +172,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
       paramValue = defaultValue
 
     compiledParam = GE.compileInputExpression(paramValue, constants.evaluator)
-    evaluatedParams[paramName] = compiledParam(frozenModelData, frozenServiceData, constants.assets, constants.tools, frozenBindings)
+    evaluatedParams[paramName] = compiledParam(mutableModelData, mutableServiceData, constants.assets, constants.tools, frozenBindings)
     
   locals = 
     params: evaluatedParams
@@ -325,30 +325,40 @@ GE.visitNode = (node, constants, bindings = {}) ->
 
   return new NodeVisitorResult()
 
+# The argument "options" can values for "node", modelData", "assets", "actions", "tools", "services", and "evaluator".
 # By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
 # If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
 # Returns a list of model patches.
 # TODO: refactor to accept a parameter object rather than a long list of parameters
-GE.stepLoop = (node, modelData, assets, actions, tools, services, log = null, inputServiceData = null, outputServiceData = null) ->
-  if outputServiceData != null
+GE.stepLoop = (options) ->
+  _.defaults options, 
+    node: null
+    modelData: {}
+    assets: {}
+    actions: {}
+    log: null
+    inputServiceData: null
+    outputServiceData: null 
+
+  if options.outputServiceData != null
     modelPatches = []
   else
-    if inputServiceData == null
-      inputServiceData = {}
-      for serviceName, service of services
-        inputServiceData[serviceName] = service.provideData(assets)
+    if options.inputServiceData == null
+      options.inputServiceData = {}
+      for serviceName, service of options.services
+        options.inputServiceData[serviceName] = service.provideData(options.assets)
 
-    result = GE.visitNode(node, new GE.NodeVisitorConstants(modelData, inputServiceData, assets, actions, tools, log))
+    result = GE.visitNode(options.node, new GE.NodeVisitorConstants(options.modelData, options.inputServiceData, options.assets, options.actions, options.tools, options.evaluator, options.log))
     
     if GE.doPatchesConflict(result.modelPatches) then throw new Error("Model patches conflict: #{result.modelPatches}")
     modelPatches = result.modelPatches
 
     if GE.doPatchesConflict(result.servicePatches) then throw new Error("Service patches conflict: #{result.servicePatches}")
-    outputServiceData = GE.applyPatches(result.servicePatches, inputServiceData)
+    options.outputServiceData = GE.applyPatches(result.servicePatches, options.inputServiceData)
 
-  for serviceName, service of services
-    service.establishData(outputServiceData[serviceName], assets)
+  for serviceName, service of options.services
+    service.establishData(options.outputServiceData[serviceName], options.assets)
 
   return modelPatches
 
@@ -357,6 +367,7 @@ GE.compileInputExpression = (expressionText, evaluator) ->
   # Parentheses are needed around function because of strange JavaScript rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
+  # TODO: detect errors
   functionText = "(function(model, services, assets, tools, bindings) { return #{expressionText}; })"
   expressionFunc = evaluator(functionText)
   if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
@@ -367,6 +378,7 @@ GE.compileOutputExpression = (expressionText, evaluator) ->
   # Parentheses are needed around function because of strange JavaScript rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
+  # TODO: detect errors
   functionText = "(function(params) { return #{expressionText}; })"
   expressionFunc = evaluator(functionText)
   if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
