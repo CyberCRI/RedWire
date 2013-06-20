@@ -150,10 +150,10 @@ GE.doPatchesConflict = (patches) ->
     affectedKeys[key] = true
 
 # Catches all errors in the function 
-# The signals paramter is only used in the "handleSignals" call
+# The signals parameter is only used in the "handleSignals" call
 GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
   action = constants.actions[node.action]
-  childNames = if node.children? then [0..node.children.length - 1] else []
+  childNames = if node.children? then (node.children.name || i.toString()) for i in [0..node.children.length - 1] else []
 
   # TODO: insure that all params values are POD
   # TODO: allow paramDefs to be missing
@@ -246,14 +246,19 @@ GE.visitActionNode = (node, constants, bindings) ->
     activeChildren = activeChildrenResult.result
   else
     # By default, all children are considered active
-    activeChildren = if node.children? then [0..node.children.length - 1] else []
+    activeChildren = if node.children? then i.toString() for i in [0..node.children.length - 1] else []
+
+  findChild = (name) ->
+    for id,child of node.children
+      if child.name == name || id.toString() == name
+        return child
 
   # Continue with children
   childSignals = []
-  for childIndex in activeChildren
-    child = node.children[childIndex]
+  for childName in activeChildren
+    child = findChild(childName)
     childResult = GE.visitNode(child, constants, bindings)
-    childSignals[childIndex] = childResult.result
+    childSignals[childName] = childResult.result
     result = result.appendWith(childResult)
 
   # Handle signals

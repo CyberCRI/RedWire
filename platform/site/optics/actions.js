@@ -803,7 +803,7 @@
     paramDefs: {
       activeChild: 0,
     },
-    listActiveChildren: function() { return [this.params.activeChild]; },
+    listActiveChildren: function() { return [this.children[this.params.activeChild].name || this.params.activeChild.toString()]; },
     handleSignals: function() { 
       if(this.signals[this.params.activeChild] == GE.signals.DONE)
         this.params.activeChild++;
