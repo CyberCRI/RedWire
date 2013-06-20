@@ -79,6 +79,10 @@ GE.NodeVisitorResult = class NodeVisitorResult
     newServicePatches = GE.concatenate(@servicePatches, other.servicePatches)
     return new NodeVisitorResult(@result, newModelPatches, newServicePatches)
 
+# Class used just to "tag" a string as being a reference rather than a JSON value
+GE.BindingReference = class BindingReference
+  constructor: (@ref) ->
+
 GE.extensions =
     IMAGE: ["png", "gif", "jpeg", "jpg"]
     JS: ["js"]
@@ -166,24 +170,39 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
 
   # TODO: compile expressions ahead of time
 
-  mutableModelData = GE.cloneData(constants.modelData)
-  mutableServiceData = GE.cloneData(constants.serviceData)
-  frozenBindings = GE.cloneFrozen(bindings)
+  evaluationContext = 
+    model: GE.cloneData(constants.modelData)
+    services: GE.cloneData(constants.serviceData)
+    bindings: {}
+
+  # Setup bindings. Some are simple values, others point to data in model and services  
+  for bindingName, bindingValue of bindings
+    if bindingValue instanceof GE.BindingReference
+      [parent, key] = GE.getParentAndKey(evaluationContext, bindingValue.ref.split("."))
+      evaluationContext.bindings[bindingName] = parent[key]
+    else
+      evaluationContext.bindings[bindingName] = bindingValue
+
+  # set default paramOptions
+  for paramName, paramOptions of action.paramDefs
+    _.defaults paramOptions, 
+      direction: "in"
 
   evaluatedParams = {}
+
   for paramName, paramOptions of action.paramDefs
-    # Resolve parameter value. In order, try layout, bindings, and finally default. Otherwise, throw exception
+    # Resolve parameter value. If the layout doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
     if paramOptions.direction in ["in", "inout"] and node.params?.in?[paramName] 
       paramValue = node.params.in[paramName]
-    else if paramName of bindings
-      paramValue = bindings[paramName]
+    else if paramOptions.direction in ["out", "inout"] and node.params?.out?[paramName] 
+      paramValue = node.params.out[paramName]
     else if paramOptions.default? 
       paramValue = paramOptions.default
-    else
-      throw new Error("Missing parameter value for action: #{node.action}")
+    else if paramOptions.direction in ["in", "inout"]
+      throw new Error("Missing input parameter value for action: #{node.action}")
 
     compiledParam = GE.compileInputExpression(paramValue, constants.evaluator)
-    evaluatedParams[paramName] = compiledParam(mutableModelData, mutableServiceData, constants.assets, constants.tools, frozenBindings)
+    evaluatedParams[paramName] = compiledParam(evaluationContext.model, evaluationContext.services, constants.assets, constants.tools, evaluationContext.bindings)
     
   locals = 
     params: evaluatedParams
@@ -200,10 +219,6 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
 
   result = new GE.NodeVisitorResult(methodResult)
 
-  outputContext = 
-    model: GE.cloneData(constants.modelData)
-    services: GE.cloneData(constants.serviceData)
-
   # Only output parameters should be accessible
   outParams = _.pick(evaluatedParams, (paramName for paramName, paramOptions of action.paramDefs when paramOptions.direction in ["out", "inout"]))
 
@@ -211,53 +226,45 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     compiledParam = GE.compileOutputExpression(paramValue, constants.evaluator)
     outputValue = compiledParam(evaluatedParams)
 
-    [parent, key] = GE.getParentAndKey(outputContext, paramName.split("."))
+    [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
     parent[key] = outputValue
 
-  result.modelPatches = GE.makePatches(constants.modelData, outputContext.model)
-  result.servicePatches = GE.makePatches(constants.serviceData, outputContext.services)
+  result.modelPatches = GE.makePatches(constants.modelData, evaluationContext.model)
+  result.servicePatches = GE.makePatches(constants.serviceData, evaluationContext.services)
 
   return result
 
 GE.calculateBindingSet = (node, constants, oldBindings) ->
   bindingSet = []
 
-  # TODO: multiply from values together in order to make every combination
-  if "from" of node.bind
-    for bindingName, bindingExpression of node.bind.from
-      # Evaluate values of the "from" clauses
-      # TODO: in the case of models, get reference to model rather than evaluate the data here
-      bindingExpressionFunction = GE.compileInputExpression(bindingExpression, constants.evaluator)
-      bindingValues = bindingExpressionFunction(constants.model, constants.services, constants.assets, constants.tools, oldBindings)
-      # If bindingValues is empty, drop out 
-      if bindingValues.length == 0 then return []
+  # If expression is a JSON object (which includes arrays) then loop over the values. Otherwise make references to model and services
+  if _.isObject(node.foreach.from)
+    for key, value of node.foreach.from
+      # TODO: test "where" guard expression
 
-      index = 0
-      for bindingIndex in [0..bindingValues.length - 1]
-        # Avoid polluting old object, and avoid creating new properties
-        newBindings = Object.create(oldBindings)
-        newBindings["#{bindingName}Index"] = index
-        index++
-        if _.isString(bindingExpression)
-          # WRONG: Works for models, but maybe not for other things
-          newBindings[bindingName] = "#{bindingExpression}.#{bindingIndex}"
-        else
-          # Evaluate immediately
-          newBindings[bindingName] = bindingValues[bindingIndex]
+      # Avoid polluting old object, and avoid creating new properties
+      newBindings = Object.create(oldBindings)
+      newBindings[node.foreach.bindTo] = value
+      if node.foreach.index? then newBindings["#{node.foreach.index}"] = key
+      bindingSet.push(newBindings)
+  else if _.isString(node.foreach.from)
+    inputContext = 
+      model: GE.cloneData(constants.modelData)
+      services: GE.cloneData(constants.serviceData)
 
-        # Handle select
-        for name, value of node.select
-          bindingExpressionFunction = GE.compileInputExpression(value, constants.evaluator)
-          newBindings[name] = bindingExpressionFunction(constants.model, constants.services, constants.assets, constants.tools, newBindings)
+    [parent, key] = GE.getParentAndKey(inputContext, node.foreach.from.split("."))
+    boundValue = parent[key]
 
-        bindingSet.push(newBindings)
+    for key of boundValue
+      # TODO: test "where" guard expression
+
+      # Avoid polluting old object, and avoid creating new properties
+      newBindings = Object.create(oldBindings)
+      newBindings[node.foreach.bindTo] = new GE.BindingReference("#{node.foreach.from}.#{key}")
+      if node.foreach.index? then newBindings["#{node.foreach.index}"] = key
+      bindingSet.push(newBindings)
   else
-    # Avoid polluting old object, and avoid creating new properties
-    newBindings = Object.create(oldBindings)
-    # Handle select
-    for name, value of node.bind.select
-      newBindings[name] = value
-    bindingSet.push(newBindings)
+    throw new Error("Foreach 'from' must be string or a JSON object")
 
   return bindingSet
 
@@ -294,7 +301,7 @@ GE.visitActionNode = (node, constants, bindings) ->
 
   return result
 
-GE.visitBindNode = (node, constants, oldBindings) ->
+GE.visitForeachNode = (node, constants, oldBindings) ->
   bindingSet = GE.calculateBindingSet(node, constants, oldBindings)
   result = new NodeVisitorResult()
   for newBindings in bindingSet
@@ -323,7 +330,7 @@ GE.visitSendNode = (node, constants, bindings) ->
 
 GE.nodeVisitors =
   "action": GE.visitActionNode
-  "bind": GE.visitBindNode
+  "foreach": GE.visitForeachNode
   "send": GE.visitSendNode
 
 # Constants are modelData, assets, actions, and serviceData
@@ -335,7 +342,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
     if nodeType of node
       return visitor(node, constants, bindings)
 
-  constants.log(GE.logLevels.ERROR, "Layout item is not understood")
+  constants.log(GE.logLevels.ERROR, "Layout item '#{JSON.stringify(node)}' is not understood")
 
   return new NodeVisitorResult()
 

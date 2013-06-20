@@ -167,10 +167,8 @@ describe "gamEvolve", ->
             z:
               direction: "out"
             d: 
-              direction: "in"
               default: "2"
-            e:
-              direction: "in"
+            e: {}
           update: ->
             @params.x++
             @params.y--
@@ -179,21 +177,16 @@ describe "gamEvolve", ->
             expect(@params.e).toBe(assets.image)
 
       layout = 
-        bind: 
-          select:
-            z: "model.c"
+        action: "adjustModel"
+        params:
+          in:  
+            x: "model.a"
+            y: "model.b"
             e: "assets.image"
-        children: [
-          action: "adjustModel"
-          params:
-            in:  
-              x: "model.a"
-              y: "model.b"
-            out:
-              "model.a": "params.x"
-              "model.b": "params.y"
-              "model.c": "params.z"
-        ]
+          out:
+            "model.a": "params.x"
+            "model.b": "params.y"
+            "model.c": "params.z"
 
       constants = new GE.NodeVisitorConstants 
         modelData: oldModel, 
@@ -336,18 +329,24 @@ describe "gamEvolve", ->
               direction: "in" 
             toChange: 
               direction: "out"
-          update: -> @params.toChange = @params.newName
+            index: 
+              direction: "in"
+          update: -> 
+            expect(@params.index).toEqual(if @params.newName is "bill" then "0" else "1")
+            @params.toChange = @params.newName
 
       layout = 
-        bind: 
-          from:
-            person: "model.people"
+        foreach:
+          from: "model.people"
+          bindTo: "person"
+          index: "personIndex"
         children: [
           { 
             action: "changeName"
             params: 
               in: 
                 newName: "bindings.person.first"
+                index: "bindings.personIndex"
               out:
                 "bindings.person.last": "params.toChange"
           }
