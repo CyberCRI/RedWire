@@ -171,14 +171,16 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
   frozenBindings = GE.cloneFrozen(bindings)
 
   evaluatedParams = {}
-  for paramName, defaultValue of action.paramDefs.in
-    # Resolve parameter value. In order, try layout, bindings, and finally default
-    if node.params?.in?[paramName] 
+  for paramName, paramOptions of action.paramDefs
+    # Resolve parameter value. In order, try layout, bindings, and finally default. Otherwise, throw exception
+    if paramOptions.direction in ["in", "inout"] and node.params?.in?[paramName] 
       paramValue = node.params.in[paramName]
     else if paramName of bindings
       paramValue = bindings[paramName]
-    else 
-      paramValue = defaultValue
+    else if paramOptions.default? 
+      paramValue = paramOptions.default
+    else
+      throw new Error("Missing parameter value for action: #{node.action}")
 
     compiledParam = GE.compileInputExpression(paramValue, constants.evaluator)
     evaluatedParams[paramName] = compiledParam(mutableModelData, mutableServiceData, constants.assets, constants.tools, frozenBindings)
@@ -201,6 +203,9 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
   outputContext = 
     model: GE.cloneData(constants.modelData)
     services: GE.cloneData(constants.serviceData)
+
+  # Only output parameters should be accessible
+  outParams = _.pick(evaluatedParams, (paramName for paramName, paramOptions of action.paramDefs when paramOptions.direction in ["out", "inout"]))
 
   for paramName, paramValue of node.params.out
     compiledParam = GE.compileOutputExpression(paramValue, constants.evaluator)

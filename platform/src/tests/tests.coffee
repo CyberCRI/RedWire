@@ -97,9 +97,12 @@ describe "gamEvolve", ->
       actions = 
         doNothing: 
           paramDefs:
-            in:
-              x: "1"
-              y: "'z'"
+            x: 
+              direction: "in" 
+              default: "1"
+            y: 
+              direction: "in"
+              default: "'z'"
           update: ->
             isCalled = true
             expect(arguments.length).toEqual(0)
@@ -157,15 +160,17 @@ describe "gamEvolve", ->
       actions = 
         adjustModel: 
           paramDefs:
-            in:
-              x: null
-              y: null
-              d: 2
-              e: null
-            out:
-              x: null
-              y: null
-              z: null
+            x: 
+              direction: "inout"
+            y: 
+              direction: "inout"
+            z:
+              direction: "out"
+            d: 
+              direction: "in"
+              default: "2"
+            e:
+              direction: "in"
           update: ->
             @params.x++
             @params.y--
@@ -252,10 +257,9 @@ describe "gamEvolve", ->
       actions = 
         nextOnDone: 
           paramDefs: 
-            in:
-              activeChild: 0
-            out:
-              activeChild: 0
+            activeChild: 
+              direction: "inout"
+              default: 0
           listActiveChildren: -> return [@params.activeChild]
           handleSignals: ->
             if @signals[@params.activeChild] == GE.signals.DONE 
@@ -264,10 +268,8 @@ describe "gamEvolve", ->
               return GE.signals.DONE
         reportDone:
           paramDefs:
-            in: 
-              timesCalled: 0
-            out: 
-              timesCalled: 0
+            timesCalled: 
+              direction: "inout"
           update: -> 
             @params.timesCalled++
             return GE.signals.DONE
@@ -330,10 +332,10 @@ describe "gamEvolve", ->
       actions = 
         changeName: 
           paramDefs:
-            in:
-              newName: "" 
-            out:
-              toChange: ""
+            newName: 
+              direction: "in" 
+            toChange: 
+              direction: "out"
           update: -> @params.toChange = @params.newName
 
       layout = 
@@ -369,10 +371,8 @@ describe "gamEvolve", ->
       actions = 
         incrementServiceData: 
           paramDefs:
-            in:
-              service: ""
-            out:
-              service: ""
+            service:
+              direction: "inout"
           update: -> 
             expect(@params.service.a).toBe(1)
             @params.service.a++
@@ -423,10 +423,8 @@ describe "gamEvolve", ->
       actions = 
         incrementServiceData: 
           paramDefs:
-            in:
-              service: ""
-            out:
-              service: "" 
+            service:
+              direction: "inout"
           update: -> 
             expect(@params.service.a).toBe(1)
             @params.service.a++
@@ -464,10 +462,8 @@ describe "gamEvolve", ->
       actions = 
         incrementServiceData: 
           paramDefs:
-            in:
-              service: "" 
-            out:
-              service: ""
+            service: 
+              direction: "inout"
           update: -> 
             expect(@tools.testTool(@params.service.a, 2)._1).toBe(1)
             @params.service.a++
