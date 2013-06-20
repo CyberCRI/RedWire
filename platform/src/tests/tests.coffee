@@ -315,6 +315,46 @@ describe "gamEvolve", ->
       expect(models[2].child1TimesCalled).toBe(1)
       expect(models[2].activeChild).toBe(2)
 
+    it "binds across constant arrays", ->
+      people = [
+        { first: "bill", last: "bobson" }
+        { first: "joe", last: "johnson" }
+      ]
+
+      actions = 
+        getName: 
+          paramDefs:
+            name: 
+              direction: "in" 
+            index: 
+              direction: "in"
+          update: -> 
+            expect(@params.index).toEqual(if @params.name is "bill" then "0" else "1")
+
+      spyOn(actions.getName, "update").andCallThrough()
+
+      layout = 
+        foreach:
+          from: people
+          bindTo: "person"
+          index: "personIndex"
+        children: [
+          { 
+            action: "getName"
+            params: 
+              in: 
+                name: "bindings.person.first"
+                index: "bindings.personIndex"
+          }
+        ]
+
+      constants = new GE.NodeVisitorConstants
+        actions: actions
+        evaluator: GE.makeEvaluator()
+      GE.visitNode(layout, constants, {})
+
+      expect(actions.getName.update).toHaveBeenCalled()
+
     it "binds across model arrays", ->
       oldModel = 
         people: [
