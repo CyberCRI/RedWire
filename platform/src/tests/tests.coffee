@@ -113,7 +113,9 @@ describe "gamEvolve", ->
           in: 
             x: "1 + 1"
 
-      constants = new GE.NodeVisitorConstants({}, {}, {}, actions, {}, GE.makeEvaluator())
+      constants = new GE.NodeVisitorConstants
+        actions: actions
+        evaluator: GE.makeEvaluator()
       GE.visitNode(layout, constants, {})
       expect(isCalled).toBeTruthy()
 
@@ -139,7 +141,8 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.NodeVisitorConstants({}, {}, {}, actions)
+      constants = new GE.NodeVisitorConstants
+        actions: actions
       GE.visitNode(layout, constants, {})
       expect(timesCalled).toEqual(3)
 
@@ -187,7 +190,11 @@ describe "gamEvolve", ->
               "model.c": "params.z"
         ]
 
-      constants = new GE.NodeVisitorConstants(oldModel, {}, assets, actions, {}, GE.makeEvaluator())
+      constants = new GE.NodeVisitorConstants 
+        modelData: oldModel, 
+        assets: assets
+        actions: actions
+        evaluator: GE.makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       newModel = GE.applyPatches(results.modelPatches, oldModel)
 
@@ -216,7 +223,10 @@ describe "gamEvolve", ->
           "model.b": "model.c"
           "services.s.a": -5
 
-      constants = new GE.NodeVisitorConstants(oldModel, oldServiceData, {}, {}, {}, GE.makeEvaluator())
+      constants = new GE.NodeVisitorConstants
+        modelData: oldModel
+        serviceData: oldServiceData
+        evaluator: GE.makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       newModel = GE.applyPatches(results.modelPatches, oldModel)
       newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
@@ -288,7 +298,10 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.NodeVisitorConstants(models[0], {}, {}, actions, {}, GE.makeEvaluator())
+      constants = new GE.NodeVisitorConstants
+        modelData: models[0]
+        actions: actions
+        evaluator: GE.makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       models[1] = GE.applyPatches(results.modelPatches, models[0])
 
@@ -296,7 +309,10 @@ describe "gamEvolve", ->
       expect(models[1].child1TimesCalled).toBe(0)
       expect(models[1].activeChild).toBe(1)
       
-      constants = new GE.NodeVisitorConstants(models[1], {}, {}, actions, {}, GE.makeEvaluator())
+      constants = new GE.NodeVisitorConstants
+        modelData: models[1]
+        actions: actions
+        evaluator: GE.makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       models[2] = GE.applyPatches(results.modelPatches, models[1])
 
@@ -335,7 +351,10 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.NodeVisitorConstants(oldModel, {}, {}, actions, {}, GE.makeEvaluator())
+      constants = new GE.NodeVisitorConstants
+        modelData: oldModel
+        actions: actions
+        evaluator: GE.makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       newModel = GE.applyPatches(results.modelPatches, oldModel)
 
@@ -366,7 +385,10 @@ describe "gamEvolve", ->
           out:
             "services.serviceA": "params.service"
 
-      constants = new GE.NodeVisitorConstants({}, oldServiceData, {}, actions, {}, GE.makeEvaluator())
+      constants = new GE.NodeVisitorConstants
+        serviceData: oldServiceData
+        actions: actions
+        evaluator: GE.makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
 

@@ -57,8 +57,17 @@ GE.Model = class Model
 GE.logToConsole = (type, message) -> window.console[type.toLowerCase()](message)
 
 GE.NodeVisitorConstants =  class NodeVisitorConstants
-  # The log function defaults to the console
-  constructor: (@modelData, @serviceData, @assets, @actions, @tools, @evaluator, @log = GE.logToConsole) ->
+  # Accepts options for "modelData", "serviceData", "assets", "actions", "tools", "evaluator", and "log"
+  # The "log" function defaults to the console
+  constructor: (options) -> 
+    _.defaults this, options,
+      modelData: {}
+      serviceData: {}
+      assets: {}
+      actions: {}
+      tools: {}
+      evaluator: null
+      log: GE.logToConsole
 
 GE.NodeVisitorResult = class NodeVisitorResult
   constructor: (@result = null, @modelPatches = [], @servicePatches = []) ->
@@ -349,7 +358,14 @@ GE.stepLoop = (options) ->
       for serviceName, service of options.services
         options.inputServiceData[serviceName] = service.provideData(options.assets)
 
-    result = GE.visitNode(options.node, new GE.NodeVisitorConstants(options.modelData, options.inputServiceData, options.assets, options.actions, options.tools, options.evaluator, options.log))
+    result = GE.visitNode options.node, new GE.NodeVisitorConstants
+      modelData: options.modelData
+      serviceData: options.inputServiceData
+      assets: options.assets
+      actions: options.actions
+      tools: options.tools
+      evaluator: options.evaluator
+      log: options.log
     
     if GE.doPatchesConflict(result.modelPatches) then throw new Error("Model patches conflict: #{result.modelPatches}")
     modelPatches = result.modelPatches
