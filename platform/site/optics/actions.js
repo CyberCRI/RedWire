@@ -1,19 +1,19 @@
 ({
     clickListener: {
     paramDefs: {
-      graphics: null,
-      keyboard: null,
-      selected: null,
-      selectedPiece: null,
-      draggedPiece: null,
-      rotating: false,
-      originalRotation: null,
-      originalPieceRotation: null,
-      pieces: [],
-      boxedPieces: [],
-      mouse: null,
-      leftMouseDown: false,
-      constants: null
+      keyboard: { direction: "in" },
+      mouse: { direction: "in" },
+      constants: { direction: "in" },
+      selected: { direction: "inout" },
+      selectedPiece: { direction: "inout" },
+      draggedPiece: { direction: "inout" },
+      rotating: { direction: "inout", default: false },
+      originalRotation: { direction: "inout" },
+      originalPieceRotation: { direction: "inout" },
+      pieces: { direction: "inout" },
+      boxedPieces: { direction: "inout" },
+      leftMouseDown: { direction: "inout", default: false },
+      graphics: { direction: "out" }
     },    
 
     update: function() {
@@ -44,7 +44,6 @@
       var newLeftMouseReleased = !this.params.mouse.down && this.params.leftMouseDown;
 
       //copied from drawLight
-      var that = this;
       var selected = this.params.selected;
 
       //DRAGGING: GRAPHICS (DRAGGED PIECE DRAWING)
@@ -350,10 +349,11 @@
     }
   },
 
+  /* TODO: replace with "send" graphics calls */
   clearBackground: {
     paramDefs: {
-      "color": "black",
-      "graphics": null
+      "color": { default: "black" },
+      "graphics": { direction: "inout" }
     },
     update: function() {
       this.tools.drawShape(this.params.graphics, {
@@ -366,16 +366,18 @@
     }
   },
 
+  /* TODO: replace with "send" graphics calls */
   drawImage: {
     paramDefs: {
-      graphics: null,
+      shapes: { direction: "out" },
       image: null,
-      layer: "",
-      x: 0,
-      y: 0
+      layer: null,
+      x: { default: 0 },
+      y: { default: 0 }
     },
     update: function() {
-      this.tools.drawShape(this.params.graphics, {
+      debugger;
+      this.params.shapes = this.tools.drawShape({
         type: "image",
         layer: this.params.layer,
         asset: this.params.image,
@@ -384,18 +386,19 @@
     }
   },
 
+  /* TODO: replace with "send" graphics calls */
   drawText: {
     paramDefs: {
-      text: "",
-      x: 0,
-      y: 12,
-      style: "black",
-      font: "12px Arial",
-      align: "left",
-      "graphics": null
+      text: { default: "" },
+      x: { default: 0 },
+      y: { default: 12 },
+      style: { default: "black" },
+      font: { default: "12px Arial" },
+      align: { default: "left" },
+      shapes: { direction: "out" }
     },
     update: function() { 
-      this.tools.drawShape(this.params.graphics, {
+      this.params.shapes = this.tools.drawShape({
         type: "text",
         layer: "text",
         text: this.params.text,
@@ -412,15 +415,16 @@
     doc: "Just to place children under it"
   },
 
+  /* TODO: replace with "send" graphics calls and too? */
   drawPiece: {
     paramDefs: {
-      graphics: null,
+      graphics: { direction: "out" },
       type: null,
-      row: 0,
-      col: 0,
-      rotation: 0,
+      row: { default: 0 },
+      col: { default: 0 },
+      rotation: { default: 0 },
       constants: null,
-      rotating: false,
+      rotating: { default: false },
       selectedPiece: null
     },
 
@@ -446,9 +450,9 @@
   // draws a boxed piece in the box according to its index in the "boxedPiece" table
   drawBoxedPiece: {
     paramDefs: {
-      graphics: null,
+      graphics: { direction: "out" },
       type: null,
-      index: 0,
+      index: { default: 0 },
       constants: null
     },
     update: function() {
@@ -467,9 +471,9 @@
 
   drawSelected: {
     paramDefs: {
-      graphics: null,
-      row: 0,
-      col: 0,
+      graphics: { direction: "out" },
+      row: { default: 0 },
+      col: { default: 0 },
       constants: null
     },
     update: function() {
@@ -485,21 +489,23 @@
     }
   },
 
+  /* This could be replaced by a send call */
   incrementNumber: {
     paramDefs: {
-      number: 0
+      number: null
     },
     update: function() {
       this.params.number++;
     }
   },
 
+  /* This needs to be refactored into tools */
   drawLight: {
     paramDefs: {
-      graphics: null,
-      pieces: [],
+      graphics: { direction: "out" },
+      pieces: null,
       constants: null,
-      goalReached: false
+      goalReached: null
     },
     update: function() {
       var EXTEND_LINES_FACTOR = Sylvester.precision;
@@ -777,12 +783,11 @@
   rotateSelectedPiece: {
     paramDefs: {
       "selected": null,
-      "pieces": [],
       "keyboard": null,
-      "constants": null
+      "constants": null,
+      "pieces": { direction: "inout" }
     },
     update: function() {
-      /*
       var selectedPiece = this.tools.findGridElement(
                             [this.params.selected.col, this.params.selected.row],
                             this.params.pieces
@@ -790,18 +795,17 @@
       if(!selectedPiece || !this.tools.isRotatable(selectedPiece, this.params.constants.unrotatablePieces)) return; // nothing selected, so can't rotate
 
       var keysDown = this.params.keyboard.keysDown; // alias
-      //if(keysDown[37]) { // left
-      //  selectedPiece.rotation -= this.params.constants.rotationAmount;
-      //} else if(keysDown[39]) { // right
-      //  selectedPiece.rotation += this.params.constants.rotationAmount;
-      //}
-      */
+      if(keysDown[37]) { // left
+       selectedPiece.rotation -= this.params.constants.rotationAmount;
+      } else if(keysDown[39]) { // right
+       selectedPiece.rotation += this.params.constants.rotationAmount;
+      }
     }
   },
 
   doInSequence: {
     paramDefs: {
-      activeChild: 0,
+      activeChild: { direction: "inout", default: 0 },
     },
     listActiveChildren: function() { return [this.params.activeChild]; },
     handleSignals: function() { 
@@ -818,8 +822,8 @@
 
   doForSomeTime: {
     paramDefs: {
-      timer: 0,
-      time: 0
+      time: null,
+      timer: { direction: "inout" }
     },
     update: function() { 
       if(this.params.timer++ >= this.params.time) {
@@ -831,21 +835,20 @@
 
   doWhile: {
     paramDefs: {
-      a: 0,
-      b: 0
+      value: null
     },
     update: function() { 
-      if(this.params.a !== this.params.b) return GE.signals.DONE;
+      if(!value) return GE.signals.DONE;
     }
   },
 
   drawCursors: {
     paramDefs: {
-      "pieces": [],
-      "boxedPieces": [],
-      "mouse": null,
-      "constants": {},
-      "draggedPiece": null
+      "pieces": null,
+      "boxedPieces": null,
+      "constants": null,
+      "draggedPiece": null,
+      "mouse": { direction: "inout" }
     },
     update: function() {
       if(!this.params.mouse.position) {

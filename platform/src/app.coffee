@@ -281,17 +281,20 @@ reloadCode = (callback) ->
 executeCode = ->
   modelAtFrame = currentModel.atVersion(currentFrame)
 
-  modelPatches = GE.stepLoop
-    node: currentLayout
-    modelData: modelAtFrame.clonedData()
-    assets: currentLoadedAssets
-    actions: currentActions
-    tools: currentTools
-    sergices: currentServices
-    evaluator: currentExpressionEvaluator
-    log: logWithPrefix
-
-  return modelAtFrame.applyPatches(modelPatches)
+  try 
+    modelPatches = GE.stepLoop
+      node: currentLayout
+      modelData: modelAtFrame.clonedData()
+      assets: currentLoadedAssets
+      actions: currentActions
+      tools: currentTools
+      services: currentServices
+      evaluator: currentExpressionEvaluator
+      log: logWithPrefix
+    return modelAtFrame.applyPatches(modelPatches)
+  catch error
+    logWithPrefix(GE.logLevels.ERROR, "Error executing code: #{error}")
+    showMessage(MessageType.Error, "Error executing code")
 
 notifyCodeChange = ->
   if automaticallyUpdatingModel then return false

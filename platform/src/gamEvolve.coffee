@@ -183,9 +183,11 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     else
       evaluationContext.bindings[bindingName] = bindingValue
 
-  # set default paramOptions
-  for paramName, paramOptions of action.paramDefs
-    _.defaults paramOptions, 
+  # Set default paramOptions
+  # Cannot use normal "for key, value of" loop because cannot handle replace null values
+  for paramName of action.paramDefs
+    if not action.paramDefs[paramName]? then action.paramDefs[paramName] = {}
+    _.defaults action.paramDefs[paramName], 
       direction: "in"
 
   evaluatedParams = {}
@@ -201,9 +203,12 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     else if paramOptions.direction in ["in", "inout"]
       throw new Error("Missing input parameter value for action: #{node.action}")
 
-    compiledParam = GE.compileInputExpression(paramValue, constants.evaluator)
-    evaluatedParams[paramName] = compiledParam(evaluationContext.model, evaluationContext.services, constants.assets, constants.tools, evaluationContext.bindings)
-    
+    try
+      compiledParam = GE.compileInputExpression(paramValue, constants.evaluator)
+      evaluatedParams[paramName] = compiledParam(evaluationContext.model, evaluationContext.services, constants.assets, constants.tools, evaluationContext.bindings)
+    catch error
+      throw new Error("Error evaluating the input parameter expression '#{paramValue}' for node '#{node.action}': #{error}")
+
   locals = 
     params: evaluatedParams
     children: childNames
@@ -223,8 +228,11 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
   outParams = _.pick(evaluatedParams, (paramName for paramName, paramOptions of action.paramDefs when paramOptions.direction in ["out", "inout"]))
 
   for paramName, paramValue of node.params.out
-    compiledParam = GE.compileOutputExpression(paramValue, constants.evaluator)
-    outputValue = compiledParam(evaluatedParams)
+    try
+      compiledParam = GE.compileOutputExpression(paramValue, constants.evaluator)
+      outputValue = compiledParam(evaluatedParams)
+    catch error
+      throw new Error("Error evaluating the output parameter expression '#{paramValue}' for node '#{node.action}': #{error}")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
     parent[key] = outputValue
@@ -326,7 +334,8 @@ GE.visitSendNode = (node, constants, bindings) ->
   modelPatches = GE.makePatches(constants.modelData, outputContext.model)
   servicePatches = GE.makePatches(constants.serviceData, outputContext.services)
   
-  return new GE.NodeVisitorResult(undefined, modelPatches, servicePatches)
+  # Return "DONE" signal, so it can be put in sequences
+  return new GE.NodeVisitorResult(GE.signals.DONE, modelPatches, servicePatches)
 
 GE.nodeVisitors =
   "action": GE.visitActionNode
@@ -379,10 +388,10 @@ GE.stepLoop = (options) ->
       evaluator: options.evaluator
       log: options.log
     
-    if GE.doPatchesConflict(result.modelPatches) then throw new Error("Model patches conflict: #{result.modelPatches}")
+    if GE.doPatchesConflict(result.modelPatches) then throw new Error("Model patches conflict: #{JSON.stringify(result.modelPatches)}")
     modelPatches = result.modelPatches
 
-    if GE.doPatchesConflict(result.servicePatches) then throw new Error("Service patches conflict: #{result.servicePatches}")
+    if GE.doPatchesConflict(result.servicePatches) then throw new Error("Service patches conflict: #{JSON.stringify(result.servicePatches)}")
     options.outputServiceData = GE.applyPatches(result.servicePatches, options.inputServiceData)
 
   for serviceName, service of options.services
@@ -392,7 +401,7 @@ GE.stepLoop = (options) ->
 
 # Compile expression into sanboxed function that will produces an input value
 GE.compileInputExpression = (expressionText, evaluator) ->
-  # Parentheses are needed around function because of strange JavaScript rules
+  # Parentheses are needed around function because of strange JavaScript syntax rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
   # TODO: detect errors
@@ -403,7 +412,7 @@ GE.compileInputExpression = (expressionText, evaluator) ->
 
 # Compile expression into sanboxed function that produces an output value
 GE.compileOutputExpression = (expressionText, evaluator) ->
-  # Parentheses are needed around function because of strange JavaScript rules
+  # Parentheses are needed around function because of strange JavaScript syntax rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
   # TODO: detect errors
