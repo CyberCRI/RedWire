@@ -54,7 +54,7 @@ GE.Model = class Model
     newData = GE.applyPatches(patches, @data)
     return new Model(newData, @)
 
-GE.logToConsole = (type, message) -> window.console[logType.toLowerCase()](message)
+GE.logToConsole = (type, message) -> window.console[type.toLowerCase()](message)
 
 GE.NodeVisitorConstants =  class NodeVisitorConstants
   # The log function defaults to the console
@@ -246,7 +246,8 @@ GE.visitActionNode = (node, constants, bindings) ->
     activeChildren = activeChildrenResult.result
   else
     # By default, all children are considered active
-    activeChildren = if node.children? then i.toString() for i in [0..node.children.length - 1] else []
+    activeChildren = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
+    
 
   findChild = (name) ->
     for id,child of node.children

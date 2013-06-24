@@ -262,7 +262,7 @@ describe "gamEvolve", ->
         nextOnDone: 
           paramDefs: 
             activeChild: 0
-          listActiveChildren: -> return [@params.activeChild]
+          listActiveChildren: -> return [@children[@params.activeChild]]
           handleSignals: ->
             if @signals[@params.activeChild] == GE.signals.DONE 
               @params.activeChild++
