@@ -1,5 +1,6 @@
 {
   "action": "group",
+  "name": "groupAction",
   "children": [
     { 
       "action": "drawImage",
@@ -11,12 +12,14 @@
     },
     {
       "action": "doInSequence",
+      "name": "doInSequenceAction",
       "params": {
         "activeChild": "@model:topLevelActiveChild"
       },
       "children": [
         {
           "action": "doForSomeTime",
+          "name": "doForSomeTimeAction",
           "params": {
             "timer": "@model:timer",
             "time": "@model:constants.startingTime"
@@ -24,6 +27,7 @@
           "children": [
             { 
               "action": "drawImage",
+              "name": "drawImage",
               "params": {
                 "graphics": "@service:graphics",
                 "image": "title",
@@ -34,6 +38,7 @@
             },
             {
               "action": "drawText",
+              "name": "drawText",
               "params": {
                 "graphics": "@service:graphics",
                 "text": "Ready...",
