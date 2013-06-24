@@ -153,8 +153,8 @@ GE.doPatchesConflict = (patches) ->
 # The signals parameter is only used in the "handleSignals" call
 GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
   action = constants.actions[node.action]
-  childNames = if node.children? then (node.children.name || i.toString()) for i in [0..node.children.length - 1] else []
-
+  childNames = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
+  
   # TODO: insure that all params values are POD
   # TODO: allow paramDefs to be missing
   compiledParams = {}
