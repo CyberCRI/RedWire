@@ -16,7 +16,12 @@
     {
       "action": "doInSequence",
       "params": {
-        "activeChild": "model.topLevelActiveChild"
+        "in": {
+          "activeChild": "model.topLevelActiveChild"
+        },
+        "out": {
+          "model.topLevelActiveChild": "params.activeChild"
+        }
       },
       "children": [
         {

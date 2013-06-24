@@ -838,7 +838,7 @@
       value: null
     },
     update: function() { 
-      if(!value) return GE.signals.DONE;
+      if(!this.params.value) return GE.signals.DONE;
     }
   },
 
