@@ -68,10 +68,10 @@
             },
             {
               "send": {
-                "pieces": "model.constants.level.pieces",
-                "boxedPieces": "model.constants.level.boxedPieces",
-                "goalReached": false,
-                "selected": "model.constants.level.selected"
+                "model.pieces": "model.constants.level.pieces",
+                "model.boxedPieces": "model.constants.level.boxedPieces",
+                "model.goalReached": false,
+                "model.selected": "model.constants.level.selected"
               }
             }
           ]
@@ -93,7 +93,8 @@
                   "goalReached": "model.goalReached"
                 },
                 "out": {
-                  "services.graphics.shapes": "params.shapes"
+                  "services.graphics.shapes": "params.shapes",
+                  "model.goalReached": "params.goalReached"
                 }
               }
             },
@@ -112,7 +113,7 @@
                       "col" : "bindings.piece.col",
                       "rotation": "bindings.piece.rotation",
                       "constants": "model.constants",
-                      "rotating": "@model.rotating",
+                      "rotating": "model.rotating",
                       "selectedPiece": "model.selectedPiece"
                     },
                     "out": {
@@ -257,14 +258,16 @@
                   "action": "drawPiece",
                   "params": {
                     "in": {
-                      "type" : "$piece.type",
-                      "row" : "$piece.row",
-                      "col" : "$piece.col",
-                      "rotation": "$piece.rotation",
-                      "constants": "model.constants"
+                      "type" : "bindings.piece.type",
+                      "row" : "bindings.piece.row",
+                      "col" : "bindings.piece.col",
+                      "rotation": "bindings.piece.rotation",
+                      "constants": "model.constants",
+                      "rotating": "model.rotating",
+                      "selectedPiece": "model.selectedPiece"
                     },
-                    "out": {  
-                      "services.graphics": "params.graphics"
+                    "out": {
+                      "services.graphics.shapes": "params.shapes"
                     }
                   }
                 }

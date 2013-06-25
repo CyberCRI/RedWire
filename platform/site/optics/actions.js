@@ -654,7 +654,7 @@
           fillStyle: fillGrad,
           position: destV.elements,
           radius: outerRadius
-        }, options, that.params.shapes));
+        }, options), that.params.shapes);
       }
 
       // Do everything in the "grid space" and change to graphic coordinates at the end
