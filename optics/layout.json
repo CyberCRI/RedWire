@@ -1,55 +1,82 @@
 {
   "action": "group",
+  "name": "groupAction",
   "children": [
     { 
       "action": "drawImage",
       "params": {
-        "graphics": "@service:graphics",
-        "image": "background",
-        "layer": "bg"
+        "out": {
+          "services.graphics.shapes": "params.shapes"
+        },
+        "in": {
+          "image": "'background'",
+          "layer": "'bg'"
+        }
       }
     },
     {
       "action": "doInSequence",
+      "name": "doInSequenceAction",
       "params": {
-        "activeChild": "@model:topLevelActiveChild"
+        "in": {
+          "activeChild": "model.topLevelActiveChild"
+        },
+        "out": {
+          "model.topLevelActiveChild": "params.activeChild"
+        }
       },
       "children": [
         {
           "action": "doForSomeTime",
+          "name": "doForSomeTimeAction",
           "params": {
-            "timer": "@model:timer",
-            "time": "@model:constants.startingTime"
+            "in": {
+              "time": "model.constants.startingTime",
+              "timer": "model.timer"
+            },
+            "out": {
+              "model.timer": "params.timer"
+            }
           },
           "children": [
             { 
               "action": "drawImage",
+              "name": "drawImage",
               "params": {
-                "graphics": "@service:graphics",
-                "image": "title",
-                "layer": "pieces",
-                "x": 100,
-                "y": 150
+                "in": {
+                  "image": "'title'",
+                  "layer": "'pieces'",
+                  "x": 100,
+                  "y": 150
+                },
+                "out": {
+                  "services.graphics.shapes": "params.shapes"
+                }
               }
             },
             {
               "action": "drawText",
+              "name": "drawText",
               "params": {
-                "graphics": "@service:graphics",
-                "text": "Ready...",
-                "x": 885,
-                "y": 150,
-                "style": "white",
-                "font": "16px Rix",
-                "align": "center"
+                "in": {
+                  "text": "'Ready...'",
+                  "x": 885,
+                  "y": 150,
+                  "style": "'white'",
+                  "font": "'16px Rix'",
+                  "align": "'center'"
+                },
+                "out": {
+                  "services.graphics.shapes": "params.shapes"
+                }
               }
             },
             {
-              "setModel": {
-                "pieces": "@model:constants.level.pieces",
-                "boxedPieces": "@model:constants.level.boxedPieces",
-                "goalReached": false,
-                "selected": "@model:constants.level.selected"
+              "send": {
+                "model.pieces": "model.constants.level.pieces",
+                "model.boxedPieces": "model.constants.level.boxedPieces",
+                "model.goalReached": false,
+                "model.selected": "model.constants.level.selected"
               }
             }
           ]
@@ -57,55 +84,68 @@
         {
           "action": "doWhile",
           "params": {
-            "a": "@model:goalReached",
-            "b": false
+            "in": {
+              "value": "!model.goalReached"
+            }
           },
           "children": [ 
             {
               "action": "drawLight",
               "params": {
-                "graphics": "@service:graphics",
-                "pieces": "@model:pieces",
-                "constants": "@model:constants",
-                "goalReached": "@model:goalReached"
+                "in": {
+                  "pieces": "model.pieces",
+                  "constants": "model.constants",
+                  "goalReached": "model.goalReached"
+                },
+                "out": {
+                  "services.graphics.shapes": "params.shapes",
+                  "model.goalReached": "params.goalReached"
+                }
               }
             },
             {
-              "bind": {
-                "from": {
-                  "piece": "@model:pieces"
-                }
+              "foreach": {
+                "from": "model.pieces",
+                "bindTo": "piece"
               },
               "children": [
                 {
                   "action": "drawPiece",
                   "params": {
-                    "graphics": "@service:graphics",
-                    "type" : "$piece.type",
-                    "row" : "$piece.row",
-                    "col" : "$piece.col",
-                    "rotation": "$piece.rotation",
-                    "constants": "@model:constants",
-                    "rotating": "@model:rotating",
-                    "selectedPiece": "@model:selectedPiece"
+                    "in": {
+                      "type" : "bindings.piece.type",
+                      "row" : "bindings.piece.row",
+                      "col" : "bindings.piece.col",
+                      "rotation": "bindings.piece.rotation",
+                      "constants": "model.constants",
+                      "rotating": "model.rotating",
+                      "selectedPiece": "model.selectedPiece"
+                    },
+                    "out": {
+                      "services.graphics.shapes": "params.shapes"
+                    }
                   }
                 }
               ]
             },
             {
-              "bind": {
-                "from": {
-                  "piece": "@model:boxedPieces"
-                }
+              "foreach": {
+                "from": "model.boxedPieces",
+                "bindTo": "piece",
+                "index": "pieceIndex"
               },
               "children": [
                 {
                   "action": "drawBoxedPiece",
                   "params": {
-                    "graphics": "@service:graphics",
-                    "type" : "$piece.type",
-                    "index" : "$pieceIndex",
-                    "constants": "@model:constants"
+                    "in": {
+                      "type": "bindings.piece.type",
+                      "index": "bindings.pieceIndex",
+                      "constants": "model.constants" 
+                    },
+                    "out": {
+                      "services.graphics.shapes": "params.shapes"
+                    }
                   }
                 }
               ]
@@ -113,47 +153,74 @@
             {
               "action": "drawSelected",
               "params": {
-                "graphics": "@service:graphics",
-                "row": "@model:selected.row",
-                "col": "@model:selected.col",
-                "constants": "@model:constants"
+                "in": {
+                  "row": "model.selected.row",
+                  "col": "model.selected.col",
+                  "constants": "model.constants"
+                },
+                "out": {
+                  "services.graphics.shapes": "params.shapes"
+                }
               }
             },
             {
               "action": "clickListener",
               "params": {
-                "graphics": "@service:graphics",
-                "keyboard": "@service:keyboard",
-                "selected": "@model:selected",
-                "selectedPiece": "@model:selectedPiece",
-                "draggedPiece": "@model:draggedPiece",
-                "rotating": "@model:rotating",
-                "originalRotation": "@model:originalRotation",
-                "originalPieceRotation": "@model:originalPieceRotation",
-                "pieces": "@model:pieces",
-                "boxedPieces": "@model:boxedPieces",
-                "mouse": "@service:mouse",
-                "leftMouseDown": "@model:leftMouseDown",
-                "constants": "@model:constants"
+                "in": {
+                  "keyboard": "services.keyboard",
+                  "mouse": "services.mouse",
+                  "constants": "model.constants",
+                  "selected": "model.selected",
+                  "selectedPiece": "model.selectedPiece",
+                  "draggedPiece": "model.draggedPiece",
+                  "rotating": "model.rotating",
+                  "originalRotation": "model.originalRotation",
+                  "originalPieceRotation": "model.originalPieceRotation",
+                  "pieces": "model.pieces",
+                  "boxedPieces": "model.boxedPieces",
+                  "leftMouseDown": "model.leftMouseDown"
+                },
+                "out": {
+                  "services.graphics.shapes": "params.shapes",
+                  "model.selected": "params.selected",
+                  "model.selectedPiece": "params.selectedPiece",
+                  "model.draggedPiece": "params.draggedPiece",
+                  "model.rotating": "params.rotating",
+                  "model.originalRotation": "params.originalRotation" ,
+                  "model.originalPieceRotation": "params.originalPieceRotation",
+                  "model.pieces": "params.pieces",
+                  "model.boxedPieces": "params.boxedPieces",
+                  "model.leftMouseDown": "params.leftMouseDown"
+                }
               }
             },
             {
               "action": "rotateSelectedPiece",
               "params": {
-                "selected": "@model:selected",
-                "pieces": "@model:pieces",
-                "keyboard": "@service:keyboard",
-                "constants": "@model:constants"
+                "in": {
+                  "selected": "model.selected",
+                  "keyboard": "services.keyboard",
+                  "constants": "model.constants",
+                  "pieces": "model.pieces"
+                },
+                "out": {
+                  "model.pieces": "params.pieces"
+                }
               }
             },
             {
               "action": "drawCursors",
               "params": {
-                "mouse": "@service:mouse",
-                "pieces": "@model:pieces",
-                "boxedPieces": "@model:boxedPieces",  
-                "constants": "@model:constants",
-                "draggedPiece": "@model:draggedPiece"
+                "in": {
+                  "pieces": "model.pieces",
+                  "boxedPieces": "model.boxedPieces",  
+                  "constants": "model.constants",
+                  "draggedPiece": "model.draggedPiece",
+                  "mouse": "services.mouse"
+                },
+                "out": {
+                  "services.mouse": "params.mouse"
+                }
               }
             }
           ]
@@ -161,38 +228,52 @@
         {
           "action": "doForSomeTime",
           "params": {
-            "timer": "@model:timer",
-            "time": "@model:constants.endingTime"
+            "in": {
+              "time": "model.constants.endingTime",
+              "timer": "model.timer"
+            },
+            "out": {
+              "model.timer": "params.timer"
+            }
           },
           "children": [
             {
               "action": "drawText",
               "params": {
-                "graphics": "@service:graphics",
-                "text": "You win",
-                "x": 885,
-                "y": 150,
-                "style": "white",
-                "font": "18px Rix",
-                "align": "center"
+                "in": {
+                  "text": "'You win'",
+                  "x": 885,
+                  "y": 150,
+                  "style": "'white'",
+                  "font": "'18px Rix'",
+                  "align": "'center'"
+                },
+                "out": {
+                  "services.graphics.shapes": "params.shapes"
+                }
               } 
             },
             {
-              "bind": {
-                "from": {
-                  "piece": "@model:pieces"
-                }
+              "foreach": {
+                "from": "model.pieces",
+                "bindTo": "piece"
               },
               "children": [
                 {
                   "action": "drawPiece",
                   "params": {
-                    "graphics": "@service:graphics",
-                    "type" : "$piece.type",
-                    "row" : "$piece.row",
-                    "col" : "$piece.col",
-                    "rotation": "$piece.rotation",
-                    "constants": "@model:constants"
+                    "in": {
+                      "type" : "bindings.piece.type",
+                      "row" : "bindings.piece.row",
+                      "col" : "bindings.piece.col",
+                      "rotation": "bindings.piece.rotation",
+                      "constants": "model.constants",
+                      "rotating": "model.rotating",
+                      "selectedPiece": "model.selectedPiece"
+                    },
+                    "out": {
+                      "services.graphics.shapes": "params.shapes"
+                    }
                   }
                 }
               ]
@@ -203,4 +284,3 @@
     }
   ]
 }
-  
