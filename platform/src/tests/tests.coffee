@@ -253,9 +253,12 @@ describe "gamEvolve", ->
             activeChild: 
               direction: "inout"
               default: 0
-          listActiveChildren: -> return [@params.activeChild]
+          listActiveChildren: -> 
+            expect(@children).toDeeplyEqual(["0", "2nd"])
+            return [@children[@params.activeChild]]
           handleSignals: ->
-            if @signals[@params.activeChild] == GE.signals.DONE 
+            expect(@children).toDeeplyEqual(["0", "2nd"])
+            if @signals[@children[@params.activeChild]] == GE.signals.DONE 
               @params.activeChild++
             if @params.activeChild >= @children.length - 1
               return GE.signals.DONE
@@ -284,6 +287,7 @@ describe "gamEvolve", ->
                 "model.child0TimesCalled": "params.timesCalled"
           },
           {
+            name: "2nd"
             action: "reportDone"
             params: 
               in:
