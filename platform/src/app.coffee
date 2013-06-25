@@ -48,6 +48,7 @@ currentTools = null
 currentLayout = null
 currentServices = null
 currentLoadedAssets = null
+currentExpressionEvaluator = null
 
 isPlaying = false
 automaticallyUpdatingModel = false
@@ -260,6 +261,8 @@ reloadCode = (callback) ->
         for evaluator in [actionsEvaluator, toolsEvaluator] 
           evaluator(loadedAssets[name])
 
+    currentExpressionEvaluator = GE.makeEvaluator()
+
     currentLoadedAssets = loadedAssets
 
     # TODO: move these handlers to MVC events
@@ -278,10 +281,21 @@ reloadCode = (callback) ->
 executeCode = ->
   modelAtFrame = currentModel.atVersion(currentFrame)
 
-  # GE.stepLoop = (node, modelData, assets, actions, services, log, inputServiceData = null, outputServiceData = null) 
-  modelPatches = GE.stepLoop(currentLayout, modelAtFrame.clonedData(), currentLoadedAssets, currentActions, currentTools, currentServices, logWithPrefix)
-
-  return modelAtFrame.applyPatches(modelPatches)
+  try 
+    modelPatches = GE.stepLoop
+      node: currentLayout
+      modelData: modelAtFrame.clonedData()
+      assets: currentLoadedAssets
+      actions: currentActions
+      tools: currentTools
+      services: currentServices
+      evaluator: currentExpressionEvaluator
+      log: logWithPrefix
+    return modelAtFrame.applyPatches(modelPatches)
+  catch error
+    logWithPrefix(GE.logLevels.ERROR, "Error executing code: #{error}")
+    showMessage(MessageType.Error, "Error executing code")
+    return currentModel
 
 notifyCodeChange = ->
   if automaticallyUpdatingModel then return false
@@ -393,7 +407,7 @@ $(document).ready ->
   resetLogContent()
 
   # A hash needs to be set, or we won't be able to load the code
-  if not window.location.hash then window.location.hash = "optics"
+  if not window.location.hash  then window.location.hash = "optics"
 
   # Offer to load code from the cache if we can
   loadedCode = false
