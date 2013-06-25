@@ -13,7 +13,7 @@
       pieces: { direction: "inout" },
       boxedPieces: { direction: "inout" },
       leftMouseDown: { direction: "inout", default: false },
-      graphics: { direction: "out" }
+      shapes: { direction: "out", default: "{}" }
     },    
 
     update: function() {
@@ -48,7 +48,7 @@
 
       //DRAGGING: GRAPHICS (DRAGGED PIECE DRAWING)
       if(this.params.draggedPiece && this.params.mouse.position){
-        this.tools.drawShape(this.params.graphics, {
+        this.params.shapes = this.tools.drawShape({
           type: "image",
           layer: "drag",
           asset: this.params.draggedPiece.type,
@@ -56,7 +56,7 @@
           position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
           translation: [this.params.mouse.position.x, this.params.mouse.position.y],
           rotation: this.params.draggedPiece.rotation // In degrees 
-        });
+        }, this.params.shapes);
       }
 
       //ROTATION: LOGIC (ANGLE COMPUTATION & SETTING)
@@ -369,7 +369,7 @@
   /* TODO: replace with "send" graphics calls */
   drawImage: {
     paramDefs: {
-      shapes: { direction: "out" },
+      shapes: { direction: "out", default: "{}" },
       image: null,
       layer: null,
       x: { default: 0 },
@@ -395,7 +395,7 @@
       style: { default: "black" },
       font: { default: "12px Arial" },
       align: { default: "left" },
-      shapes: { direction: "out" }
+      shapes: { direction: "out", default: "{}" }
     },
     update: function() { 
       this.params.shapes = this.tools.drawShape({
@@ -418,7 +418,7 @@
   /* TODO: replace with "send" graphics calls and too? */
   drawPiece: {
     paramDefs: {
-      graphics: { direction: "out" },
+      shapes: { direction: "out", default: "{}" },
       type: null,
       row: { default: 0 },
       col: { default: 0 },
@@ -432,7 +432,7 @@
       var that = this;
 
       function drawObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation) {
-        that.tools.drawShape(that.params.graphics, that.tools.getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation));
+        that.params.shapes = that.tools.drawShape(that.tools.getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation), that.params.shapes);
       }
 
       drawObject("pieces", that.params.type, 1, 50, that.params.col, that.params.row, that.params.constants.cellSize, that.params.constants.upperLeftBoardMargin, that.params.rotation);
@@ -450,14 +450,14 @@
   // draws a boxed piece in the box according to its index in the "boxedPiece" table
   drawBoxedPiece: {
     paramDefs: {
-      graphics: { direction: "out" },
+      shapes: { direction: "out", default: "{}" },
       type: null,
       index: { default: 0 },
       constants: null
     },
     update: function() {
       var boxPosition = [this.params.index % 2, this.params.index >> 1];
-      this.tools.drawShape(this.params.graphics, {
+      this.params.shapes = this.tools.drawShape({
         type: "image",
         layer: "pieces",
         asset: this.params.type,
@@ -465,19 +465,19 @@
         position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
         translation: [this.params.constants.boxLeft + (boxPosition[0]+.5) * this.params.constants.boxCellSize[0], this.params.constants.boxTop + (boxPosition[1]+.5) * this.params.constants.boxCellSize[1]],
         rotation: 0 // In degrees 
-      });
+      }, this.params.shapes);
     }
   },
 
   drawSelected: {
     paramDefs: {
-      graphics: { direction: "out" },
+      shapes: { direction: "out", default: "{}" },
       row: { default: 0 },
       col: { default: 0 },
       constants: null
     },
     update: function() {
-      this.tools.drawShape(this.params.graphics, {
+      this.params.shapes = this.tools.drawShape({
         type: "rectangle",
         layer: "selection",
         position: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin, 
@@ -485,7 +485,7 @@
         size: [50, 50],
         strokeStyle: "yellow",
         lineWidth: 4
-      });
+      }, this.params.shapes);
     }
   },
 
@@ -502,7 +502,7 @@
   /* This needs to be refactored into tools */
   drawLight: {
     paramDefs: {
-      graphics: { direction: "out" },
+      shapes: { direction: "out", default: "{}" },
       pieces: null,
       constants: null,
       goalReached: null
@@ -600,13 +600,13 @@
           ]
         };
 
-        that.tools.drawShape(that.params.graphics, _.extend({
+        that.params.shapes = that.tools.drawShape(_.extend({
           type: "path",
           layer: "light",
           strokeStyle: strokeGrad,
           lineWidth: 2 * outerRadius,
           points: [originV.elements, destV.elements]
-        }, options));
+        }, options), that.params.shapes);
 
         fillGrad = {
           type: "radialGradient",
@@ -624,13 +624,13 @@
           ]
         };
 
-        that.tools.drawShape(that.params.graphics, _.extend({
+        that.params.shapes = that.tools.drawShape(_.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
           position: originV.elements,
           radius: outerRadius
-        }, options));
+        }, options), that.params.shapes);
 
         fillGrad = {
           type: "radialGradient",
@@ -648,13 +648,13 @@
           ]
         };
 
-        that.tools.drawShape(that.params.graphics, _.extend({
+        that.params.shapes = that.tools.drawShape(_.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
           position: destV.elements,
           radius: outerRadius
-        }, options));
+        }, options, that.params.shapes));
       }
 
       // Do everything in the "grid space" and change to graphic coordinates at the end
@@ -750,14 +750,14 @@
 
       // Draw black mask that we will cut away from
       // based on the method of this fiddle: http://jsfiddle.net/wNYkX/3/
-      this.tools.drawShape(this.params.graphics, {
+      that.params.shapes = that.tools.drawShape({
         type: "rectangle",
         layer: "mask",
         fillStyle: "black",
         position: this.params.constants.playableBoardOffset,
         size: this.params.constants.playableBoardSize,
         order: 0
-      });
+      }, that.params.shapes);
 
       // now cut away, using 'destination-out' composition
       var maskOptions = { 

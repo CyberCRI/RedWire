@@ -105,6 +105,18 @@ GE.getParentAndKey = (parent, pathParts) ->
   if pathParts.length == 1 then return [parent, pathParts[0]]
   return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
 
+# Sets a value within an embedded object or array, creating intermediate objects if necessary
+# Takes a root object/array and the "path" as an array of keys
+# Returns the root
+GE.deepSet = (root, pathParts, value) ->
+  if pathParts.length == 0 then throw new Exception("Path is empty")
+  else if pathParts.length == 1 then root[pathParts[0]] = value
+  else 
+    # The intermediate key is missing, so create a new array for it
+    if not root[pathParts[0]]? then root[pathParts[0]] = {}
+    GE.deepSet(root[pathParts[0]], _.rest(pathParts))
+  return root
+
 # Compare new object and old object to create list of patches.
 # The top-level oldValue must be an object
 # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
@@ -154,13 +166,26 @@ GE.applyPatches = (patches, oldValue, prefix = "") ->
 
   return value
 
-# Returns true if more than 1 patch in the list tries to touch the same model parameters
+# Returns true if more than 1 patch in the list tries to affect the same key
 GE.doPatchesConflict = (patches) ->
-  affectedKeys = {}
+  affectedKeys = {} # If a key is set to "FINAL" then it should not be touched by another patch
   for patch in patches
-    key = patch.remove or patch.add or patch.replace
-    if key of affectedKeys then return true
-    affectedKeys[key] = true
+    path = patch.remove or patch.add or patch.replace
+    pathParts = _.rest(path.split("/"))
+
+    parent = affectedKeys
+    for pathPart in _.initial(pathParts)
+      if pathPart of parent 
+        if parent[pathPart] == "FINAL" then return true # The path was not to be touched
+      else
+        parent[pathPart] = {}
+      parent = parent[pathPart]
+
+    # "parent" is now the last parent
+    if _.last(pathParts) of parent then return true
+    parent[_.last(pathParts)] = "FINAL" 
+
+  return false
 
 # Catches all errors in the function 
 # The signals parameter is only used in the "handleSignals" call

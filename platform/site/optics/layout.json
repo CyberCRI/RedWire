@@ -93,7 +93,7 @@
                   "goalReached": "model.goalReached"
                 },
                 "out": {
-                  "services.graphics": "params.graphics"
+                  "services.graphics.shapes": "params.shapes"
                 }
               }
             },
@@ -116,7 +116,7 @@
                       "selectedPiece": "model.selectedPiece"
                     },
                     "out": {
-                      "services.graphics": "params.graphics"
+                      "services.graphics.shapes": "params.shapes"
                     }
                   }
                 }
@@ -138,7 +138,7 @@
                       "constants": "model.constants" 
                     },
                     "out": {
-                      "services.graphics": "params.graphics"
+                      "services.graphics.shapes": "params.shapes"
                     }
                   }
                 }
@@ -153,7 +153,7 @@
                   "constants": "model.constants"
                 },
                 "out": {
-                  "services.graphics": "params.graphics"
+                  "services.graphics.shapes": "params.shapes"
                 }
               }
             },
@@ -175,7 +175,7 @@
                   "leftMouseDown": "model.leftMouseDown"
                 },
                 "out": {
-                  "services.graphics": "params.graphics",
+                  "services.graphics.shapes": "params.shapes",
                   "model.selected": "params.selected",
                   "model.selectedPiece": "params.selectedPiece",
                   "model.draggedPiece": "params.draggedPiece",
@@ -243,7 +243,7 @@
                   "align": "'center'"
                 },
                 "out": {
-                  "services.graphics": "params.graphics"
+                  "services.graphics.shapes": "params.shapes"
                 }
               } 
             },

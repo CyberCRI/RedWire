@@ -295,6 +295,7 @@ executeCode = ->
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Error executing code: #{error}")
     showMessage(MessageType.Error, "Error executing code")
+    return currentModel
 
 notifyCodeChange = ->
   if automaticallyUpdatingModel then return false
