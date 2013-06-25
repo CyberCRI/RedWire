@@ -1,8 +1,10 @@
 ({
   // Add a shape to be drawn to graphics
-  drawShape: function(graphics, shape) 
+  drawShape: function(shape, oldShapes) 
   {
-    graphics.shapes[_.uniqueId()] = shape;    
+    var shapes = oldShapes || {};
+    shapes[_.uniqueId()] = shape;
+    return shapes; 
   },
 
   //returns a copy of 'tab' without the element at position 'index'

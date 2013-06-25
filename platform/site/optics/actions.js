@@ -1,19 +1,19 @@
 ({
     clickListener: {
     paramDefs: {
-      graphics: null,
-      keyboard: null,
-      selected: null,
-      selectedPiece: null,
-      draggedPiece: null,
-      rotating: false,
-      originalRotation: null,
-      originalPieceRotation: null,
-      pieces: [],
-      boxedPieces: [],
-      mouse: null,
-      leftMouseDown: false,
-      constants: null
+      keyboard: { direction: "in" },
+      mouse: { direction: "in" },
+      constants: { direction: "in" },
+      selected: { direction: "inout" },
+      selectedPiece: { direction: "inout" },
+      draggedPiece: { direction: "inout" },
+      rotating: { direction: "inout", default: false },
+      originalRotation: { direction: "inout" },
+      originalPieceRotation: { direction: "inout" },
+      pieces: { direction: "inout" },
+      boxedPieces: { direction: "inout" },
+      leftMouseDown: { direction: "inout", default: false },
+      shapes: { direction: "out", default: "{}" }
     },    
 
     update: function() {
@@ -44,12 +44,11 @@
       var newLeftMouseReleased = !this.params.mouse.down && this.params.leftMouseDown;
 
       //copied from drawLight
-      var that = this;
       var selected = this.params.selected;
 
       //DRAGGING: GRAPHICS (DRAGGED PIECE DRAWING)
       if(this.params.draggedPiece && this.params.mouse.position){
-        this.tools.drawShape(this.params.graphics, {
+        this.params.shapes = this.tools.drawShape({
           type: "image",
           layer: "drag",
           asset: this.params.draggedPiece.type,
@@ -57,7 +56,7 @@
           position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
           translation: [this.params.mouse.position.x, this.params.mouse.position.y],
           rotation: this.params.draggedPiece.rotation // In degrees 
-        });
+        }, this.params.shapes);
       }
 
       //ROTATION: LOGIC (ANGLE COMPUTATION & SETTING)
@@ -350,10 +349,11 @@
     }
   },
 
+  /* TODO: replace with "send" graphics calls */
   clearBackground: {
     paramDefs: {
-      "color": "black",
-      "graphics": null
+      "color": { default: "black" },
+      "graphics": { direction: "inout" }
     },
     update: function() {
       this.tools.drawShape(this.params.graphics, {
@@ -366,16 +366,18 @@
     }
   },
 
+  /* TODO: replace with "send" graphics calls */
   drawImage: {
     paramDefs: {
-      graphics: null,
+      shapes: { direction: "out", default: "{}" },
       image: null,
-      layer: "",
-      x: 0,
-      y: 0
+      layer: null,
+      x: { default: 0 },
+      y: { default: 0 }
     },
     update: function() {
-      this.tools.drawShape(this.params.graphics, {
+      debugger;
+      this.params.shapes = this.tools.drawShape({
         type: "image",
         layer: this.params.layer,
         asset: this.params.image,
@@ -384,18 +386,19 @@
     }
   },
 
+  /* TODO: replace with "send" graphics calls */
   drawText: {
     paramDefs: {
-      text: "",
-      x: 0,
-      y: 12,
-      style: "black",
-      font: "12px Arial",
-      align: "left",
-      "graphics": null
+      text: { default: "" },
+      x: { default: 0 },
+      y: { default: 12 },
+      style: { default: "black" },
+      font: { default: "12px Arial" },
+      align: { default: "left" },
+      shapes: { direction: "out", default: "{}" }
     },
     update: function() { 
-      this.tools.drawShape(this.params.graphics, {
+      this.params.shapes = this.tools.drawShape({
         type: "text",
         layer: "text",
         text: this.params.text,
@@ -412,15 +415,16 @@
     doc: "Just to place children under it"
   },
 
+  /* TODO: replace with "send" graphics calls and too? */
   drawPiece: {
     paramDefs: {
-      graphics: null,
+      shapes: { direction: "out", default: "{}" },
       type: null,
-      row: 0,
-      col: 0,
-      rotation: 0,
+      row: { default: 0 },
+      col: { default: 0 },
+      rotation: { default: 0 },
       constants: null,
-      rotating: false,
+      rotating: { default: false },
       selectedPiece: null
     },
 
@@ -428,7 +432,7 @@
       var that = this;
 
       function drawObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation) {
-        that.tools.drawShape(that.params.graphics, that.tools.getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation));
+        that.params.shapes = that.tools.drawShape(that.tools.getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation), that.params.shapes);
       }
 
       drawObject("pieces", that.params.type, 1, 50, that.params.col, that.params.row, that.params.constants.cellSize, that.params.constants.upperLeftBoardMargin, that.params.rotation);
@@ -446,14 +450,14 @@
   // draws a boxed piece in the box according to its index in the "boxedPiece" table
   drawBoxedPiece: {
     paramDefs: {
-      graphics: null,
+      shapes: { direction: "out", default: "{}" },
       type: null,
-      index: 0,
+      index: { default: 0 },
       constants: null
     },
     update: function() {
       var boxPosition = [this.params.index % 2, this.params.index >> 1];
-      this.tools.drawShape(this.params.graphics, {
+      this.params.shapes = this.tools.drawShape({
         type: "image",
         layer: "pieces",
         asset: this.params.type,
@@ -461,19 +465,19 @@
         position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
         translation: [this.params.constants.boxLeft + (boxPosition[0]+.5) * this.params.constants.boxCellSize[0], this.params.constants.boxTop + (boxPosition[1]+.5) * this.params.constants.boxCellSize[1]],
         rotation: 0 // In degrees 
-      });
+      }, this.params.shapes);
     }
   },
 
   drawSelected: {
     paramDefs: {
-      graphics: null,
-      row: 0,
-      col: 0,
+      shapes: { direction: "out", default: "{}" },
+      row: { default: 0 },
+      col: { default: 0 },
       constants: null
     },
     update: function() {
-      this.tools.drawShape(this.params.graphics, {
+      this.params.shapes = this.tools.drawShape({
         type: "rectangle",
         layer: "selection",
         position: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin, 
@@ -481,25 +485,27 @@
         size: [50, 50],
         strokeStyle: "yellow",
         lineWidth: 4
-      });
+      }, this.params.shapes);
     }
   },
 
+  /* This could be replaced by a send call */
   incrementNumber: {
     paramDefs: {
-      number: 0
+      number: null
     },
     update: function() {
       this.params.number++;
     }
   },
 
+  /* This needs to be refactored into tools */
   drawLight: {
     paramDefs: {
-      graphics: null,
-      pieces: [],
+      shapes: { direction: "out", default: "{}" },
+      pieces: null,
       constants: null,
-      goalReached: false
+      goalReached: null
     },
     update: function() {
       var EXTEND_LINES_FACTOR = Sylvester.precision;
@@ -594,13 +600,13 @@
           ]
         };
 
-        that.tools.drawShape(that.params.graphics, _.extend({
+        that.params.shapes = that.tools.drawShape(_.extend({
           type: "path",
           layer: "light",
           strokeStyle: strokeGrad,
           lineWidth: 2 * outerRadius,
           points: [originV.elements, destV.elements]
-        }, options));
+        }, options), that.params.shapes);
 
         fillGrad = {
           type: "radialGradient",
@@ -618,13 +624,13 @@
           ]
         };
 
-        that.tools.drawShape(that.params.graphics, _.extend({
+        that.params.shapes = that.tools.drawShape(_.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
           position: originV.elements,
           radius: outerRadius
-        }, options));
+        }, options), that.params.shapes);
 
         fillGrad = {
           type: "radialGradient",
@@ -642,13 +648,13 @@
           ]
         };
 
-        that.tools.drawShape(that.params.graphics, _.extend({
+        that.params.shapes = that.tools.drawShape(_.extend({
           type: "circle",
           layer: "light",
           fillStyle: fillGrad,
           position: destV.elements,
           radius: outerRadius
-        }, options));
+        }, options), that.params.shapes);
       }
 
       // Do everything in the "grid space" and change to graphic coordinates at the end
@@ -744,14 +750,14 @@
 
       // Draw black mask that we will cut away from
       // based on the method of this fiddle: http://jsfiddle.net/wNYkX/3/
-      this.tools.drawShape(this.params.graphics, {
+      that.params.shapes = that.tools.drawShape({
         type: "rectangle",
         layer: "mask",
         fillStyle: "black",
         position: this.params.constants.playableBoardOffset,
         size: this.params.constants.playableBoardSize,
         order: 0
-      });
+      }, that.params.shapes);
 
       // now cut away, using 'destination-out' composition
       var maskOptions = { 
@@ -777,12 +783,11 @@
   rotateSelectedPiece: {
     paramDefs: {
       "selected": null,
-      "pieces": [],
       "keyboard": null,
-      "constants": null
+      "constants": null,
+      "pieces": { direction: "inout" }
     },
     update: function() {
-      /*
       var selectedPiece = this.tools.findGridElement(
                             [this.params.selected.col, this.params.selected.row],
                             this.params.pieces
@@ -790,22 +795,21 @@
       if(!selectedPiece || !this.tools.isRotatable(selectedPiece, this.params.constants.unrotatablePieces)) return; // nothing selected, so can't rotate
 
       var keysDown = this.params.keyboard.keysDown; // alias
-      //if(keysDown[37]) { // left
-      //  selectedPiece.rotation -= this.params.constants.rotationAmount;
-      //} else if(keysDown[39]) { // right
-      //  selectedPiece.rotation += this.params.constants.rotationAmount;
-      //}
-      */
+      if(keysDown[37]) { // left
+       selectedPiece.rotation -= this.params.constants.rotationAmount;
+      } else if(keysDown[39]) { // right
+       selectedPiece.rotation += this.params.constants.rotationAmount;
+      }
     }
   },
 
   doInSequence: {
     paramDefs: {
-      activeChild: 0,
+      activeChild: { direction: "inout", default: 0 },
     },
     listActiveChildren: function() { return [this.children[this.params.activeChild]]; },
     handleSignals: function() { 
-      if(this.signals[this.params.activeChild] == GE.signals.DONE)
+      if(this.signals[this.children[this.params.activeChild]] == GE.signals.DONE)
         this.params.activeChild++;
 
       if(this.params.activeChild > this.children.length - 1)
@@ -818,8 +822,8 @@
 
   doForSomeTime: {
     paramDefs: {
-      timer: 0,
-      time: 0
+      time: null,
+      timer: { direction: "inout" }
     },
     update: function() { 
       if(this.params.timer++ >= this.params.time) {
@@ -831,21 +835,20 @@
 
   doWhile: {
     paramDefs: {
-      a: 0,
-      b: 0
+      value: null
     },
     update: function() { 
-      if(this.params.a !== this.params.b) return GE.signals.DONE;
+      if(!this.params.value) return GE.signals.DONE;
     }
   },
 
   drawCursors: {
     paramDefs: {
-      "pieces": [],
-      "boxedPieces": [],
-      "mouse": null,
-      "constants": {},
-      "draggedPiece": null
+      "pieces": null,
+      "boxedPieces": null,
+      "constants": null,
+      "draggedPiece": null,
+      "mouse": { direction: "inout" }
     },
     update: function() {
       if(!this.params.mouse.position) {
