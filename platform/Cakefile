@@ -75,14 +75,13 @@ pushGhPages = (callback) ->
 
 deploy = (callback) ->
   build ->
-    runTests ->
-      clone ->
-        fs.copyRecursive path_to_site, path_to_gh_pages, genericCallBack ->
-          getLog (err, msg) ->
-            if err then throw new Error("getLog failed "+err)
-            addAllGhPages ->
-              commitGhPages msg, genericCallBack ->
-                pushGhPages callback
+    clone ->
+      fs.copyRecursive path_to_site, path_to_gh_pages, genericCallBack ->
+        getLog (err, msg) ->
+          if err then throw new Error("getLog failed "+err)
+          addAllGhPages ->
+            commitGhPages msg, genericCallBack ->
+              pushGhPages callback
 
 task 'build', 'build once', ->
   build()
