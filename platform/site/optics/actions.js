@@ -807,9 +807,9 @@
     paramDefs: {
       activeChild: { direction: "inout", default: 0 },
     },
-    listActiveChildren: function() { return [this.children[this.params.activeChild]]; },
+    listActiveChildren: function() { return [this.params.activeChild]; },
     handleSignals: function() { 
-      if(this.signals[this.children[this.params.activeChild]] == GE.signals.DONE)
+      if(this.signals[this.params.activeChild] == GE.signals.DONE)
         this.params.activeChild++;
 
       if(this.params.activeChild > this.children.length - 1)
