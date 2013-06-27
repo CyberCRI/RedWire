@@ -53,9 +53,10 @@ registerService 'Mouse', (options = {}) ->
         # Based on http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
         rect = event.target.getBoundingClientRect()
         target = $(event.target)
-        mouse.position = 
-          x: Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width)
-          y: Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)
+        mouse.position = [
+          Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width)
+          Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)
+        ]
       else throw new Error('Unexpected event type')
 
   return {

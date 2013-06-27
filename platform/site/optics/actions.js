@@ -54,7 +54,7 @@
           asset: this.params.draggedPiece.type,
           alpha: 0.5,
           position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
-          translation: [this.params.mouse.position.x, this.params.mouse.position.y],
+          translation: [this.params.mouse.position[0], this.params.mouse.position[1]],
           rotation: this.params.draggedPiece.rotation // In degrees 
         }, this.params.shapes);
       }
@@ -69,8 +69,8 @@
         var objectPosition = {};
         objectPosition.x = (this.params.selectedPiece.col + 0.5)*(this.params.constants.cellSize-1) + this.params.constants.upperLeftBoardMargin;
         objectPosition.y = (this.params.selectedPiece.row + 0.5)*(this.params.constants.cellSize-1) + this.params.constants.upperLeftBoardMargin;
-        var hxPosition = this.params.mouse.position.x - objectPosition.x;
-        var hyPosition = this.params.mouse.position.y - objectPosition.y;
+        var hxPosition = this.params.mouse.position[0] - objectPosition.x;
+        var hyPosition = this.params.mouse.position[1] - objectPosition.y;
         var omDistance = Math.sqrt(hxPosition*hxPosition + hyPosition*hyPosition);
         //var ohxDistance = hxPosition;
         var ohyDistance = -hyPosition;
@@ -109,12 +109,12 @@
         {
           //board coordinates
           var clickedColumn = this.tools.toBoardCoordinate(
-            that.params.mouse.position.x, 
+            that.params.mouse.position[0], 
             this.params.constants.upperLeftBoardMargin, 
             this.params.constants.cellSize
             );
           var clickedRow = this.tools.toBoardCoordinate(
-            that.params.mouse.position.y, 
+            that.params.mouse.position[1], 
             this.params.constants.upperLeftBoardMargin, 
             this.params.constants.cellSize
             );
@@ -132,7 +132,7 @@
             if(!this.tools.isInGrid(boardCoordinates, this.params.constants.gridSize)){
               //console.log("clicked outside of board");
               var boxIndex = this.tools.getIndexInBox(
-                    [that.params.mouse.position.x, that.params.mouse.position.y],
+                    [that.params.mouse.position[0], that.params.mouse.position[1]],
                     this.params.constants.boxLeft,
                     this.params.constants.boxTop,
                     this.params.constants.boxCellSize,
@@ -215,7 +215,7 @@
               //put out of board: put piece in box
               //console.log("released outside of board");
               var boxIndex = this.tools.getIndexInBox(
-                    [that.params.mouse.position.x, that.params.mouse.position.y],
+                    [that.params.mouse.position[0], that.params.mouse.position[1]],
                     this.params.constants.boxLeft,
                     this.params.constants.boxTop,
                     this.params.constants.boxCellSize,
@@ -861,7 +861,7 @@
       }
       else
       {
-        var mousePos = [this.params.mouse.position.x, this.params.mouse.position.y];
+        var mousePos = [this.params.mouse.position[0], this.params.mouse.position[1]];
         var gridCell = [this.tools.toBoardCoordinate(
                           mousePos[0], 
                           this.params.constants.upperLeftBoardMargin, 
