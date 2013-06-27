@@ -255,10 +255,10 @@ describe "gamEvolve", ->
               default: 0
           listActiveChildren: -> 
             expect(@children).toDeeplyEqual(["0", "2nd"])
-            return [@children[@params.activeChild]]
+            return [@params.activeChild]
           handleSignals: ->
             expect(@children).toDeeplyEqual(["0", "2nd"])
-            if @signals[@children[@params.activeChild]] == GE.signals.DONE 
+            if @signals[@params.activeChild] == GE.signals.DONE 
               @params.activeChild++
             if @params.activeChild >= @children.length - 1
               return GE.signals.DONE

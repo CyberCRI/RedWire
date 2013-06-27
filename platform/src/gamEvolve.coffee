@@ -309,34 +309,28 @@ GE.visitActionNode = (node, constants, bindings) ->
   else
     result = new GE.NodeVisitorResult()
 
-  # check which children should be activated
-  if "listActiveChildren" of constants.actions[node.action]
-    activeChildrenResult = GE.sandboxActionCall(node, constants, bindings, "listActiveChildren")
-    activeChildren = activeChildrenResult.result
-  else
-    # By default, all children are considered active
-    activeChildren = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
+  if node.children?
+    # check which children should be activated
+    if "listActiveChildren" of constants.actions[node.action]
+      activeChildrenResult = GE.sandboxActionCall(node, constants, bindings, "listActiveChildren")
+      activeChildren = activeChildrenResult.result
+    else
+      # By default, all children are considered active
+      activeChildren = [0..node.children.length - 1]
     
+    # Continue with children
+    childSignals = new Array(node.children.length)
+    for childIndex in activeChildren
+      childResult = GE.visitNode(node.children[childIndex], constants, bindings)
+      childSignals[childIndex] = childResult.result
+      result = result.appendWith(childResult)
 
-  findChild = (name) ->
-    for id,child of node.children
-      if child.name == name || id.toString() == name
-        return child
-
-  # Continue with children
-  childSignals = []
-  for childName in activeChildren
-    child = findChild(childName)
-    childResult = GE.visitNode(child, constants, bindings)
-    childSignals[childName] = childResult.result
-    result = result.appendWith(childResult)
-
-  # Handle signals
-  # TODO: if handler not defined, propogate error signals upwards? How to merge them?
-  if "handleSignals" of constants.actions[node.action]
-    errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals)
-    result.result = errorResult
-    result = result.appendWith(errorResult)
+    # Handle signals
+    # TODO: if handler not defined, propogate error signals upwards? How to merge them?
+    if "handleSignals" of constants.actions[node.action]
+      errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals)
+      result.result = errorResult
+      result = result.appendWith(errorResult)
 
   return result
 
