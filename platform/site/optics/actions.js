@@ -361,14 +361,6 @@
       }
 
       drawObject("pieces", that.params.type, 1, 50, that.params.col, that.params.row, that.params.constants.cellSize, that.params.constants.upperLeftBoardMargin, that.params.rotation);
-
-      if(this.params.selectedPiece && this.params.selectedPiece.col != null && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
-        var assetImage = "can-rotate";
-        if(this.params.rotating){
-          assetImage = "is-rotating";
-        }
-        drawObject("rotating", assetImage, 0.5, 208, that.params.col, that.params.row, that.params.constants.cellSize, that.params.constants.upperLeftBoardMargin, that.params.rotation);
-      }
     }
   },
 
@@ -394,6 +386,7 @@
     }
   },
 
+  /* Refactor to use send graphics call */
   drawSelected: {
     paramDefs: {
       shapes: { direction: "out", default: "{}" },

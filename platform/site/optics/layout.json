@@ -180,6 +180,21 @@
               "action": "if",
               "params": {
                 "in": {
+                  "value": "model.selectedPiece"
+                }
+              },
+              "children": [
+                {
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'rotating', type: 'image', asset: model.rotating ? 'is-rotating' : 'can-rotate', scale: 0.5, position: [-208/2, -208/2], translation: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) })" 
+                  }
+                }
+              ]
+            },
+            {
+              "action": "if",
+              "params": {
+                "in": {
                   "value": "model.draggedPiece"
                 }
               },

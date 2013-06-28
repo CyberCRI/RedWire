@@ -450,5 +450,12 @@
       return null;
     else
       return gridPos;
+  },
+
+  gridCellCenter: function(grid, cell, shape) {
+    return [
+      (cell[0] + 0.5) * grid.cellSize[0] + grid.upperLeft[0], 
+      (cell[1] + 0.5) * grid.cellSize[1] + grid.upperLeft[1]
+    ];
   }
 })
