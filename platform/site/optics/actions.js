@@ -336,31 +336,6 @@
     }
   },
 
-  /* TODO: replace with "send" graphics calls */
-  drawText: {
-    paramDefs: {
-      text: { default: "" },
-      x: { default: 0 },
-      y: { default: 12 },
-      style: { default: "black" },
-      font: { default: "12px Arial" },
-      align: { default: "left" },
-      shapes: { direction: "out", default: "{}" }
-    },
-    update: function() { 
-      this.params.shapes = this.tools.drawShape({
-        type: "text",
-        layer: "text",
-        text: this.params.text,
-        strokeStyle: this.params.style,
-        fillStyle: this.params.style,
-        font: this.params.font,
-        align: this.params.align,
-        position: [this.params.x, this.params.y]
-      });
-    }
-  },
-
   doInParallel: { 
     doc: "Just to place children under it"
   },

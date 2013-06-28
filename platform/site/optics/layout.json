@@ -35,19 +35,8 @@
               }
             },
             {
-              "action": "drawText",
-              "params": {
-                "in": {
-                  "text": "'Ready...'",
-                  "x": 885,
-                  "y": 150,
-                  "style": "'white'",
-                  "font": "'16px Rix'",
-                  "align": "'center'"
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes"
-                }
+              "send": {
+                "services.graphics.shapes": "tools.drawShape({ type: 'text', text: 'Ready...', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '16px Rix', align: 'center' })" 
               }
             },
             {
@@ -233,20 +222,9 @@
           },
           "children": [
             {
-              "action": "drawText",
-              "params": {
-                "in": {
-                  "text": "'You win'",
-                  "x": 885,
-                  "y": 150,
-                  "style": "'white'",
-                  "font": "'18px Rix'",
-                  "align": "'center'"
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes"
-                }
-              } 
+              "send": {
+                "services.graphics.shapes": "tools.drawShape({ type: 'text', text: 'You win', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '18px Rix', align: 'center' })" 
+              }
             },
             {
               "foreach": {
