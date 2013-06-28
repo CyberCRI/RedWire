@@ -337,43 +337,6 @@
   },
 
   /* TODO: replace with "send" graphics calls */
-  clearBackground: {
-    paramDefs: {
-      "color": { default: "black" },
-      "graphics": { direction: "inout" }
-    },
-    update: function() {
-      this.tools.drawShape(this.params.graphics, {
-        type: "rectangle",
-        layer: "bg",
-        fillStyle: this.params.color,
-        position: [0, 0],
-        size: this.params.graphics.size
-      });
-    }
-  },
-
-  /* TODO: replace with "send" graphics calls */
-  drawImage: {
-    paramDefs: {
-      shapes: { direction: "out", default: "{}" },
-      image: null,
-      layer: null,
-      x: { default: 0 },
-      y: { default: 0 }
-    },
-    update: function() {
-      debugger;
-      this.params.shapes = this.tools.drawShape({
-        type: "image",
-        layer: this.params.layer,
-        asset: this.params.image,
-        position: [this.params.x, this.params.y]
-      });
-    }
-  },
-
-  /* TODO: replace with "send" graphics calls */
   drawText: {
     paramDefs: {
       text: { default: "" },
@@ -473,16 +436,6 @@
         strokeStyle: "yellow",
         lineWidth: 4
       }, this.params.shapes);
-    }
-  },
-
-  /* This could be replaced by a send call */
-  incrementNumber: {
-    paramDefs: {
-      number: null
-    },
-    update: function() {
-      this.params.number++;
     }
   },
 

@@ -2,15 +2,8 @@
   "action": "doInParallel",
   "children": [
     { 
-      "action": "drawImage",
-      "params": {
-        "out": {
-          "services.graphics.shapes": "params.shapes"
-        },
-        "in": {
-          "image": "'background'",
-          "layer": "'bg'"
-        }
+      "send": {
+        "services.graphics.shapes": "tools.drawShape({ type: 'image', asset: 'background', layer: 'bg', position: [0, 0] })" 
       }
     },
     {
@@ -37,17 +30,8 @@
           },
           "children": [
             { 
-              "action": "drawImage",
-              "params": {
-                "in": {
-                  "image": "'title'",
-                  "layer": "'pieces'",
-                  "x": 100,
-                  "y": 150
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes"
-                }
+              "send": {
+                "services.graphics.shapes": "tools.drawShape({ type: 'image', asset: 'title', layer: 'pieces', position: [100, 150] })" 
               }
             },
             {
