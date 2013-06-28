@@ -52,6 +52,16 @@
       49,
       46
     ],
+    "boardGrid": {
+      "upperLeft": [33, 33],
+      "cellSize": [53, 53],
+      "gridSize": [14, 9]
+    },
+    "boxGrid": {
+      "upperLeft": [837, 284],
+      "cellSize": [49, 46],
+      "gridSize": [2, 5]
+    },
     "level": {
       "selected": {
         "col": 0,

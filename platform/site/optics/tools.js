@@ -7,6 +7,30 @@
     return shapes; 
   },
 
+  // Checks if a point intersects a shape.
+  // Currently does not take rotation into account, and only supports circles and rectangles.
+  // Requires Sylvester.js
+  pointIntersectsShape: function(point, shape)
+  {
+    switch(shape.type)
+    {
+      case "circle":
+        var center = Vector.create(shape.center);
+        if(shape.translation) center = center.add(shape.translation);
+        return center.distanceFrom(Vector.create(point)) < shape.radius * (shape.scale || 1);
+
+      case "rectangle":
+        // Move the point to the frame of the shape
+        var pointInShapeFrame = Vector.create(point);
+        if(shape.translation) pointInShapeFrame = pointInShapeFrame.subtract(shape.translation);
+        return pointInShapeFrame.elements[0] >= shape.position[0] && pointInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] &&
+          pointInShapeFrame.elements[1] >= shape.position[1] && pointInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];
+
+      default:
+        throw new Error("Shape type '" + shape.type + "' is not supported");
+    }
+  },
+
   //returns a copy of 'tab' without the element at position 'index'
   pureRemove: function(index, tab)
   {
@@ -97,6 +121,8 @@
   //returns the piece at position 'square' on the board, or null if there is none
   findGridElement: function(square, pieces)
   {
+    if(square === null) return null;
+
     for(var i in pieces)
     {
       var piece = pieces[i];
@@ -403,5 +429,26 @@
 
   getBoxedPiece: function(index, boxedPieces) {
     return index === null ? null : boxedPieces[index];
+  },
+
+  gridCellToIndex: function(array, cell) {
+    if(array === null || cell === null) return null;
+
+    var index = 2 * cell[1] + cell[0];
+    return index < array.length ? index : null;
+  },
+
+  gridCellAtPoint: function(grid, point) {
+    if(point === null) return null;
+
+    var gridPos = [
+      Math.floor((point[0] - grid.upperLeft[0]) / grid.cellSize[0]),
+      Math.floor((point[1] - grid.upperLeft[1]) / grid.cellSize[1])
+    ];
+
+    if(gridPos[0] < 0 || gridPos[0] > grid.gridSize[0] || gridPos[1] < 0 || gridPos[1] > grid.gridSize[1]) 
+      return null;
+    else
+      return gridPos;
   }
 })

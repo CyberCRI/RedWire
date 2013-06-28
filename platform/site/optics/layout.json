@@ -204,19 +204,34 @@
               }
             },
             {
-              "action": "drawCursors",
+              "action": "if",
               "params": {
                 "in": {
-                  "pieces": "model.pieces",
-                  "boxedPieces": "model.boxedPieces",  
-                  "constants": "model.constants",
-                  "draggedPiece": "model.draggedPiece",
-                  "mouse": "services.mouse"
-                },
-                "out": {
-                  "services.mouse": "params.mouse"
+                  "value": "model.draggedPiece"
                 }
-              }
+              },
+              "children": [
+                {
+                  "send": {
+                    "services.mouse.cursor": "'move'"
+                  }
+                },
+                {
+                  "action": "if",
+                  "params": {
+                    "in": {
+                      "value": "tools.findGridElement(tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces) || tools.gridCellToIndex(model.boxedPieces, tools.gridCellAtPoint(model.constants.boxGrid, services.mouse.position))"
+                    }
+                  },
+                  "children": [
+                    {
+                      "send": {
+                        "services.mouse.cursor": "'pointer'"
+                      }  
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },

@@ -842,53 +842,23 @@
     }
   },
 
-  drawCursors: {
+  when: {
     paramDefs: {
-      "pieces": null,
-      "boxedPieces": null,
-      "constants": null,
-      "draggedPiece": null,
-      "mouse": { direction: "inout" }
+      value: null
     },
-    update: function() {
-      if(!this.params.mouse.position) {
-        return;
-      } else {
-      }
+    listActiveChildren: function() { 
+      var childIndex = GE.indexOf(this.children, this.params.value);
+      return childIndex != -1 ? [childIndex] : []; 
+    }
+  },
 
-      if(this.params.draggedPiece) {
-        this.params.mouse.cursor = "move";
-      }
-      else
-      {
-        var mousePos = [this.params.mouse.position[0], this.params.mouse.position[1]];
-        var gridCell = [this.tools.toBoardCoordinate(
-                          mousePos[0], 
-                          this.params.constants.upperLeftBoardMargin, 
-                          this.params.constants.cellSize), 
-                        this.tools.toBoardCoordinate(
-                          mousePos[1],
-                          this.params.constants.upperLeftBoardMargin,
-                          this.params.constants.cellSize
-                          )
-                        ];         
-        if((this.tools.findGridElement(gridCell, this.params.pieces) !== null)
-            ||  (this.tools.getBoxedPiece(
-                  this.tools.getIndexInBox(
-                    mousePos,
-                    this.params.constants.boxLeft,
-                    this.params.constants.boxTop,
-                    this.params.constants.boxCellSize,
-                    this.params.constants.boxRowsCount,
-                    this.params.constants.boxColumnsCount
-                  ),
-                  this.params.boxedPieces
-                ) !== null)
-          )
-        {
-          this.params.mouse.cursor = "pointer";
-        }
-      }
+  // Selects the first branch if the expression is truthy, else the second (if it exists)
+  "if": {
+    paramDefs: {
+      value: null
+    },
+    listActiveChildren: function() { 
+      return this.params.value ? [0] : this.children.length > 1 ? [1] : []; 
     }
   }
 });
