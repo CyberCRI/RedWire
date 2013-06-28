@@ -46,19 +46,6 @@
       //copied from drawLight
       var selected = this.params.selected;
 
-      //DRAGGING: GRAPHICS (DRAGGED PIECE DRAWING)
-      if(this.params.draggedPiece && this.params.mouse.position){
-        this.params.shapes = this.tools.drawShape({
-          type: "image",
-          layer: "drag",
-          asset: this.params.draggedPiece.type,
-          alpha: 0.5,
-          position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
-          translation: [this.params.mouse.position[0], this.params.mouse.position[1]],
-          rotation: this.params.draggedPiece.rotation // In degrees 
-        }, this.params.shapes);
-      }
-
       //ROTATION: LOGIC (ANGLE COMPUTATION & SETTING)
       if(this.params.rotating && this.params.selectedPiece && this.params.mouse.position){
         if(this.params.originalPieceRotation === null) {
@@ -411,7 +398,7 @@
     }
   },
 
-  group: { 
+  doInParallel: { 
     doc: "Just to place children under it"
   },
 
