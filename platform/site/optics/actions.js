@@ -340,30 +340,6 @@
     doc: "Just to place children under it"
   },
 
-  /* TODO: replace with "send" graphics calls and too? */
-  drawPiece: {
-    paramDefs: {
-      shapes: { direction: "out", default: "{}" },
-      type: null,
-      row: { default: 0 },
-      col: { default: 0 },
-      rotation: { default: 0 },
-      constants: null,
-      rotating: { default: false },
-      selectedPiece: null
-    },
-
-    update: function() {
-      var that = this;
-
-      function drawObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation) {
-        that.params.shapes = that.tools.drawShape(that.tools.getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation), that.params.shapes);
-      }
-
-      drawObject("pieces", that.params.type, 1, 50, that.params.col, that.params.row, that.params.constants.cellSize, that.params.constants.upperLeftBoardMargin, that.params.rotation);
-    }
-  },
-
   // draws a boxed piece in the box according to its index in the "boxedPiece" table
   drawBoxedPiece: {
     paramDefs: {

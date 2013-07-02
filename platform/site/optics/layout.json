@@ -78,20 +78,8 @@
               },
               "children": [
                 {
-                  "action": "drawPiece",
-                  "params": {
-                    "in": {
-                      "type" : "bindings.piece.type",
-                      "row" : "bindings.piece.row",
-                      "col" : "bindings.piece.col",
-                      "rotation": "bindings.piece.rotation",
-                      "constants": "model.constants",
-                      "rotating": "model.rotating",
-                      "selectedPiece": "model.selectedPiece"
-                    },
-                    "out": {
-                      "services.graphics.shapes": "params.shapes"
-                    }
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })" 
                   }
                 }
               ]
@@ -248,20 +236,8 @@
               },
               "children": [
                 {
-                  "action": "drawPiece",
-                  "params": {
-                    "in": {
-                      "type" : "bindings.piece.type",
-                      "row" : "bindings.piece.row",
-                      "col" : "bindings.piece.col",
-                      "rotation": "bindings.piece.rotation",
-                      "constants": "model.constants",
-                      "rotating": "model.rotating",
-                      "selectedPiece": "model.selectedPiece"
-                    },
-                    "out": {
-                      "services.graphics.shapes": "params.shapes"
-                    }
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })" 
                   }
                 }
               ]

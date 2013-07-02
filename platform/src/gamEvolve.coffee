@@ -200,13 +200,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     services: GE.cloneData(constants.serviceData)
     bindings: {}
 
-  # Setup bindings. Some are simple values, others point to data in model and services  
-  for bindingName, bindingValue of bindings
-    if bindingValue instanceof GE.BindingReference
-      [parent, key] = GE.getParentAndKey(evaluationContext, bindingValue.ref.split("."))
-      evaluationContext.bindings[bindingName] = parent[key]
-    else
-      evaluationContext.bindings[bindingName] = bindingValue
+  GE.setupBindings(bindings, evaluationContext)
 
   # Set default paramOptions
   # Cannot use normal "for key, value of" loop because cannot handle replace null values
@@ -301,6 +295,15 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
 
   return bindingSet
 
+# Setup bindings. Context should be an object containing objects for model, services, and the bindings themselves
+GE.setupBindings = (bindings, context) ->
+  for bindingName, bindingValue of bindings
+    if bindingValue instanceof GE.BindingReference
+      [parent, key] = GE.getParentAndKey(context, bindingValue.ref.split("."))
+      context.bindings[bindingName] = parent[key]
+    else
+      context.bindings[bindingName] = bindingValue
+
 GE.visitActionNode = (node, constants, bindings) ->
   if node.action not of constants.actions then throw new Error("Cannot find action '#{node.action}'")
 
@@ -348,10 +351,13 @@ GE.visitSendNode = (node, constants, bindings) ->
   outputContext = 
     model: GE.cloneData(constants.modelData)
     services: GE.cloneData(constants.serviceData)
+    bindings: {}
+
+  GE.setupBindings(bindings, outputContext)
 
   for dest, src of node.send
     srcExpressionFunction = GE.compileInputExpression(src, constants.evaluator)
-    srcValue = srcExpressionFunction(constants.modelData, constants.serviceData, constants.assets, constants.tools, bindings)
+    srcValue = srcExpressionFunction(outputContext.model, outputContext.services, constants.assets, constants.tools, outputContext.bindings)
 
     [parent, key] = GE.getParentAndKey(outputContext, dest.split("."))
     parent[key] = srcValue
