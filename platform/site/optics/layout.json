@@ -92,16 +92,8 @@
               },
               "children": [
                 {
-                  "action": "drawBoxedPiece",
-                  "params": {
-                    "in": {
-                      "type": "bindings.piece.type",
-                      "index": "bindings.pieceIndex",
-                      "constants": "model.constants" 
-                    },
-                    "out": {
-                      "services.graphics.shapes": "params.shapes"
-                    }
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], scale: 0.67, translation: tools.gridCellCenter(model.constants.boxGrid, tools.gridIndexToCell(bindings.pieceIndex)) })" 
                   }
                 }
               ]

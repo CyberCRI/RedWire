@@ -340,28 +340,6 @@
     doc: "Just to place children under it"
   },
 
-  // draws a boxed piece in the box according to its index in the "boxedPiece" table
-  drawBoxedPiece: {
-    paramDefs: {
-      shapes: { direction: "out", default: "{}" },
-      type: null,
-      index: { default: 0 },
-      constants: null
-    },
-    update: function() {
-      var boxPosition = [this.params.index % 2, this.params.index >> 1];
-      this.params.shapes = this.tools.drawShape({
-        type: "image",
-        layer: "pieces",
-        asset: this.params.type,
-        scale: 0.67,
-        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
-        translation: [this.params.constants.boxLeft + (boxPosition[0]+.5) * this.params.constants.boxCellSize[0], this.params.constants.boxTop + (boxPosition[1]+.5) * this.params.constants.boxCellSize[1]],
-        rotation: 0 // In degrees 
-      }, this.params.shapes);
-    }
-  },
-
   /* Refactor to use send graphics call */
   drawSelected: {
     paramDefs: {

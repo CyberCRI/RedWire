@@ -67,7 +67,7 @@
   //returns a copy of a board piece
   copyBoxedPiece: function(p)
   {
-     return {type: p.type, index: p.index};
+     return {type: p.type };
   },
 
   copyBoardPieces: function(ps)
@@ -235,12 +235,10 @@
 
     var res = {};
 
-    if(piece.index === undefined) { //source of movement isn't the box
+    if(piece.row !== undefined) { //source of movement isn't the box
       //console.log("putPieceIntoBox: source of movement isn't the box");
-      var newIndex = boxedPieces.length;
       res.boxedPiece = {
-        "type": piece.type,
-        "index": newIndex
+        "type": piece.type
       };
       //put at the right place
       //boxedPieces.splice(newIndex, 0, boxedPiece);
@@ -431,11 +429,20 @@
     return index === null ? null : boxedPieces[index];
   },
 
+  // Not really generic, assumes that there are 2 cells per row and that they should be laid out row-first
+  // TODO: why check the array length?
   gridCellToIndex: function(array, cell) {
     if(array === null || cell === null) return null;
 
     var index = 2 * cell[1] + cell[0];
     return index < array.length ? index : null;
+  },
+
+  // Not really generic, assumes that there are 2 cells per row and that they should be laid out row-first
+  gridIndexToCell: function(index) {
+    if(index === null) return null;
+
+    return [index % 2, Math.floor(index / 2)];
   },
 
   gridCellAtPoint: function(grid, point) {

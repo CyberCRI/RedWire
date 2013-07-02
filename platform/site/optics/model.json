@@ -207,20 +207,16 @@
       ],
       "boxedPieces": [
         {
-          "type": "mirror",
-          "index": 0
+          "type": "mirror"
         },
         {
-          "type": "mirror",
-          "index": 1
+          "type": "mirror"
         },
         {
-          "type": "mirror",
-          "index": 2
+          "type": "mirror"
         },
         {
-          "type": "mirror",
-          "index": 3
+          "type": "mirror"
         }
       ]
     }
