@@ -340,27 +340,6 @@
     doc: "Just to place children under it"
   },
 
-  /* Refactor to use send graphics call */
-  drawSelected: {
-    paramDefs: {
-      shapes: { direction: "out", default: "{}" },
-      row: { default: 0 },
-      col: { default: 0 },
-      constants: null
-    },
-    update: function() {
-      this.params.shapes = this.tools.drawShape({
-        type: "rectangle",
-        layer: "selection",
-        position: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin, 
-        this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin],
-        size: [50, 50],
-        strokeStyle: "yellow",
-        lineWidth: 4
-      }, this.params.shapes);
-    }
-  },
-
   /* This needs to be refactored into tools */
   drawLight: {
     paramDefs: {

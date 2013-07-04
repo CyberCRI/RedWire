@@ -99,16 +99,8 @@
               ]
             },
             {
-              "action": "drawSelected",
-              "params": {
-                "in": {
-                  "row": "model.selected.row",
-                  "col": "model.selected.col",
-                  "constants": "model.constants"
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes"
-                }
+              "send": {
+                "services.graphics.shapes": "tools.drawShape(_.extend(tools.gridCellRectangle(model.constants.boardGrid, [model.selected.col, model.selected.row]), { layer: 'selection', strokeStyle: 'yellow', lineWidth: 4 }))" 
               }
             },
             {
