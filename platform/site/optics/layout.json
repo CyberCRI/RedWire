@@ -143,19 +143,27 @@
               }
             },
             {
-              "action": "rotateSelectedPiece",
-              "params": {
-                "in": {
-                  "selected": "model.selected",
-                  "keyboard": "services.keyboard",
-                  "constants": "model.constants",
-                  "pieces": "model.pieces"
-                },
-                "out": {
-                  "model.pieces": "params.pieces"
+              "foreach": {
+                "from": "model.pieces",
+                "bindTo": "selectedPiece",
+                "where": "model.selectedPiece && bindings.selectedPiece.col === model.selectedPiece.col && bindings.selectedPiece.row === model.selectedPiece.row && !_.contains(model.constants.unrotatablePieces, bindings.selectedPiece.type)"
+              },
+              "children": [
+                {
+                  "action": "changeParameterThroughKeyboard",
+                  "params": {
+                    "in": {
+                      "parameter": "bindings.selectedPiece.rotation",
+                      "keysDown": "services.keyboard.keysDown",
+                      "keyMap": "model.constants.rotationKeyMap"
+                    },
+                    "out": {
+                      "bindings.selectedPiece.rotation": "params.parameter"
+                    }
+                  }
                 }
-              }
-            },
+              ]
+            }, 
             {
               "action": "if",
               "params": {

@@ -642,26 +642,33 @@
     }
   },
 
-  rotateSelectedPiece: {
+ changeParameterThroughKeyboard: {
     paramDefs: {
-      "selected": null,
-      "keyboard": null,
-      "constants": null,
-      "pieces": { direction: "inout" }
+      "parameter": { direction: "inout" },
+      "keysDown": null,
+      "keyMap": null // Keymap must be in a form like { "37": "-10", "39": 3, "41": "hello" }
     },
     update: function() {
-      var selectedPiece = this.tools.findGridElement(
-                            [this.params.selected.col, this.params.selected.row],
-                            this.params.pieces
-                          );
-      if(!selectedPiece || !this.tools.isRotatable(selectedPiece, this.params.constants.unrotatablePieces)) return; // nothing selected, so can't rotate
-
-      var keysDown = this.params.keyboard.keysDown; // alias
-      if(keysDown[37]) { // left
-       selectedPiece.rotation -= this.params.constants.rotationAmount;
-      } else if(keysDown[39]) { // right
-       selectedPiece.rotation += this.params.constants.rotationAmount;
-      }
+      for(var keyCode in this.params.keyMap)
+      {
+        // is the key down?
+        if(this.params.keysDown[keyCode])
+        {
+          // Parse value of keyMap
+          var value = this.params.keyMap[keyCode];
+          if(_.isString(value) && value.length > 0 && (value[0] == "+" || value[0] == "-")) 
+          {
+            // Treat it as a numerical difference
+            this.params.parameter += Number(value);
+          }
+          else
+          {
+            this.params.parameter = value;
+          }
+          // only treat a single keycode
+          break;
+        }
+      } 
     }
   },
 

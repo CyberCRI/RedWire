@@ -62,6 +62,10 @@
       "cellSize": [49, 46],
       "gridSize": [2, 5]
     },
+    "rotationKeyMap": {
+      "37": "-1",
+      "39": "+1"
+    },
     "level": {
       "selected": {
         "col": 0,

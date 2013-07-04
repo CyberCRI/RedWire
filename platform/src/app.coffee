@@ -261,7 +261,7 @@ reloadCode = (callback) ->
         for evaluator in [actionsEvaluator, toolsEvaluator] 
           evaluator(loadedAssets[name])
 
-    currentExpressionEvaluator = GE.makeEvaluator()
+    currentExpressionEvaluator = GE.makeEvaluator(evalLoadedAssets...)
 
     currentLoadedAssets = loadedAssets
 
