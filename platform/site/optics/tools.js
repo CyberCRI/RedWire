@@ -459,19 +459,16 @@
       return gridPos;
   },
 
-  gridCellUpperLeft: function(grid, cell) {
+  gridCellToPoint: function(grid, cell, proportions) {
     return [
-      cell[0] * grid.cellSize[0] + grid.upperLeft[0], 
-      cell[1] * grid.cellSize[1] + grid.upperLeft[1]
+      (cell[0] + proportions[0]) * grid.cellSize[0] + grid.upperLeft[0], 
+      (cell[1] + proportions[1]) * grid.cellSize[1] + grid.upperLeft[1]
     ];
   },
 
-  gridCellCenter: function(grid, cell) {
-    return [
-      (cell[0] + 0.5) * grid.cellSize[0] + grid.upperLeft[0], 
-      (cell[1] + 0.5) * grid.cellSize[1] + grid.upperLeft[1]
-    ];
-  },
+  gridCellUpperLeft: function(grid, cell) { return this.gridCellToPoint(grid, cell, [0, 0]); },
+
+  gridCellCenter: function(grid, cell) { return this.gridCellToPoint(grid, cell, [0.5, 0.5]); },
 
   gridCellRectangle: function(grid, cell) {
     return {
@@ -479,5 +476,286 @@
       position: this.gridCellUpperLeft(grid, cell),
       size: grid.cellSize
     };
+  },
+
+  gridSizeInPixels: function(grid) {
+    return [grid.cellSize[0] * grid.size[0], grid.cellSize[1] * grid.size[1]];
+  }
+
+  makeLightPath: function(pieces, gridSize, mirrorAttenuation, minimumAttenuation) {
+    var that = this;
+
+    function handleGridElement()
+    {
+      if(element.type == "wall")
+      {
+        // find intersection with wall
+        var wallIntersection = that.intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [element.col, element.row], EXTEND_LINES_FACTOR);
+        if(wallIntersection === null) throw new Error("Cannot find intersection with wall");
+        lightSegments[lightSegments.length - 1].destination = wallIntersection;
+
+        lightIntensity = 0;
+      }
+      else if(element.type == "mirror")
+      {
+        // find intersection with central line
+        var rotation = element.rotation * Math.PI / 180; 
+        var centralLineDiff = [.5 * Math.cos(rotation), .5 * Math.sin(rotation)];
+        var centralLine = [[element.col + 0.5 + centralLineDiff[0], element.row + 0.5 + centralLineDiff[1]], [element.col + 0.5 - centralLineDiff[0], element.row + 0.5 - centralLineDiff[1]]];
+        if(intersection = that.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine], EXTEND_LINES_FACTOR))
+        {
+          lightSegments[lightSegments.length - 1].destination = intersection;
+
+          lightIntensity *= mirrorAttenuationFactor;
+          if(lightIntensity < .minimumAttenuation)
+          {
+            lightIntensity = 0;
+          }
+          else
+          {
+            lightSegments.push({ origin: intersection, intensity: lightIntensity });
+
+            // reflect around normal
+            // normal caluclation from http://www.gamedev.net/topic/510581-2d-reflection/)
+            // reflection calculation from http://paulbourke.net/geometry/reflected/ 
+            // Rr = Ri - 2 N (Ri . N)
+            var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
+            var oldLightDirection = Vector.create(lightDirection);
+            lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;
+
+            lightDirectionUpdated();
+          }
+        }
+      }
+      else if(element.type == "squarePrism") // make into seperate function?
+      {
+        that.params.goalReached = true;
+      }
+    }
+
+    function lightDirectionUpdated()
+    {
+      lightSigns = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
+
+      var distanceOutOfGrid = Math.sqrt(gridSize[0]*gridSize[0] + gridSize[1]*gridSize[1]);
+      var lastOrigin = lightSegments[lightSegments.length - 1].origin;
+      lightDestination = Sylvester.Vector.create(lastOrigin).add(Sylvester.Vector.create(lightDirection).multiply(distanceOutOfGrid)).elements.slice();
+    }
+
+    // Do everything in the "grid space" and change to graphic coordinates at the end
+
+    // find source of light
+    var lightSource;
+    for(var i in pieces)
+    {
+      var piece = pieces[i];
+      if(piece.type == "laser-on") 
+      {
+        lightSource = piece;
+        break;
+      }
+    }
+    if(!lightSource) {
+      return [];
+    }
+
+    // calculate origin coordinates of light 
+    // the piece starts vertically, so we rotate it 90 degrees clockwise by default
+    var rotation = (lightSource.rotation - 90) * Math.PI / 180; 
+    var lightDirection = [Math.cos(rotation), Math.sin(rotation)];
+    // TODO: add color portions of light (3 different intensities)
+    var lightIntensity = 1.0; // start at full itensity
+
+    // follow light path through the grid, checking for intersections with pieces
+    // Based on Bresenham's "simplified" line algorithm (http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)      
+    var currentCell = [lightSource.col, lightSource.row]
+    var lightSegments = [ { origin: [currentCell[0] + 0.5, currentCell[1] + 0.5], intensity: lightIntensity }];
+
+    var lightSigns;
+    var lightDestination; // represents a point outside of the grid that the light could reach if unimpeded 
+    lightDirectionUpdated();
+
+    var element;
+    var nextCells = [];
+    do
+    { 
+      var verticalIntersection = null;
+      if(Math.abs(lightDirection[0]) > Sylvester.precision)
+      {
+        var x = currentCell[0] + (lightDirection[0] > 0 ? 1 : 0);
+        var line = [[x, currentCell[1]], [x, currentCell[1] + 1]];
+        verticalIntersection = this.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);
+      } 
+      var horizontalIntersection = null;
+      if(Math.abs(lightDirection[1]) > Sylvester.precision)
+      {
+        var y = currentCell[1] + (lightDirection[1] > 0 ? 1 : 0);
+        var line = [[currentCell[0], y], [currentCell[0] + 1, y]]
+        horizontalIntersection = this.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);
+      } 
+
+      if(verticalIntersection && horizontalIntersection)
+      {
+        // move diagonally
+        currentCell = [currentCell[0] + lightSigns[0], currentCell[1] + lightSigns[1]];
+      }
+      else if(verticalIntersection)
+      {
+        // move horizontally
+        currentCell = [currentCell[0] + lightSigns[0], currentCell[1]];          
+      }
+      else if(horizontalIntersection)
+      {
+        // move vertically
+        currentCell = [currentCell[0], currentCell[1] + lightSigns[1]];          
+      }
+      else 
+      {
+        // this is WEIRD!
+        throw new Error("Light vector is NULL");
+      }
+
+      if(!this.isInGrid(currentCell, gridSize))
+      {
+        lightIntensity = 0;
+
+        // find intersection with boundaries
+        var boundaryIntersection = this.intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, lightDestination, gridSize, EXTEND_LINES_FACTOR);
+        if(boundaryIntersection === null) throw new Error("Cannot find intersection with boundaries");
+        lightSegments[lightSegments.length - 1].destination = boundaryIntersection;
+      }
+      else if(element = this.findGridElement(currentCell, pieces))
+      {
+        handleGridElement();
+      }
+    } while(lightIntensity > 0);
+
+    return lightSegments;
+  },
+
+  drawLightPath: function(grid, lightPath) {
+    // all lines are in grid space, not in screen space
+    // options override default values for all drawn shapes (layer, composition, etc.)
+    function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options)
+    {
+      var marginV = Vector.create(grid.upperLeft);
+
+      // find normal to line (http://stackoverflow.com/questions/1243614/how-do-i-calculate-the-normal-vector-of-a-line-segment)`
+      // does not work if cells are not square
+      var originV = Vector.create(origin).multiply(grid.cellSize[0]).add(marginV);
+      var destV = Vector.create(dest).multiply(grid.cellSize[0]).add(marginV);
+      var d = destV.subtract(originV);
+      var normal = Vector.create([-d.elements[1], d.elements[0]]).toUnitVector();
+
+      var strokeGradUpper = originV.add(normal.multiply(outerRadius));
+      var strokeGradLower = originV.add(normal.multiply(-outerRadius));
+
+      var transRgba = _.clone(colorRgba);
+      transRgba[3] = 0;
+
+      strokeGrad = {
+        type: "linearGradient",
+        startPosition: strokeGradUpper.elements,
+        endPosition: strokeGradLower.elements,
+        colorStops: [
+          { position: 0, color: "rgba(" + transRgba.join(",") + ")" },
+          { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
+          { position: 1 - innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
+          { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
+        ]
+      };
+
+      shapes = that.drawShape(_.extend({
+        type: "path",
+        layer: "light",
+        strokeStyle: strokeGrad,
+        lineWidth: 2 * outerRadius,
+        points: [originV.elements, destV.elements]
+      }, options), shapes);
+
+      fillGrad = {
+        type: "radialGradient",
+        start: {
+          position: originV.elements,
+          radius: 0
+        },
+        end: {
+          position: originV.elements,
+          radius: outerRadius
+        },
+        colorStops: [
+          { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
+          { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
+        ]
+      };
+
+      shapes = that.drawShape(_.extend({
+        type: "circle",
+        layer: "light",
+        fillStyle: fillGrad,
+        position: originV.elements,
+        radius: outerRadius
+      }, options), shapes);
+
+      fillGrad = {
+        type: "radialGradient",
+        start: {
+          position: destV.elements,
+          radius: 0
+        },
+        end: {
+          position: destV.elements,
+          radius: outerRadius
+        },
+        colorStops: [
+          { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
+          { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
+        ]
+      };
+
+      shapes = that.drawShape(_.extend({
+        type: "circle",
+        layer: "light",
+        fillStyle: fillGrad,
+        position: destV.elements,
+        radius: outerRadius
+      }, options), shapes);
+    }
+
+     // DRAW SEGMENTS
+
+    var shapes = {};
+
+    // Draw black mask that we will cut away from
+    // based on the method of this fiddle: http://jsfiddle.net/wNYkX/3/
+    shapes = this.drawShape({
+      type: "rectangle",
+      layer: "mask",
+      fillStyle: "black",
+      position: grid.upperLeft,
+      size: this.gridSizeInPixels(grid),
+      order: 0
+    }, shapes);
+
+    // now cut away, using 'destination-out' composition
+    var maskOptions = { 
+      layer: "mask", 
+      composition: "destination-out", 
+      order: 1 
+    };
+    for(var i = 0; i < lightSegments.length; i++)
+    {
+      //TODO extract 30 and 40 values
+      drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 30, 40, [255, 255, 255, lightSegments[i].intensity], maskOptions);
+    }
+
+    // draw light ray normally
+    for(var i = 0; i < lightSegments.length; i++)
+    {
+      //TODO extract 4 and 6 values
+      drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 4, 6, [255, 0, 0, lightSegments[i].intensity]);
+    }
+
+    return shapes;
   }
 })
