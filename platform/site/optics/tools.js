@@ -337,20 +337,6 @@
     return (piece1 && piece2 && (piece1.col == piece2.col) && (piece1.row == piece2.row))
   },
 
-  //returns a drawable object that represents a device of type 'assetName' on the board, at position [col, row]
-  getDrawableObject: function(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation) {
-    return {
-      type: "image",
-      layer: layer,
-      asset: assetName,
-      scale: scale,
-      position: [-assetSize/2, -assetSize/2],
-      translation: [(col+0.5) * cellSize + upperLeftBoardMargin, 
-                    (row+0.5) * cellSize + upperLeftBoardMargin],
-      rotation: rotation // In degrees 
-    };
-  },
-
   //tests whether a given position is inside the board or not
   //@positionOnBoard: array of coordinates as column and row position
   isInGrid: function(point, gridSize)
@@ -479,11 +465,13 @@
   },
 
   gridSizeInPixels: function(grid) {
-    return [grid.cellSize[0] * grid.size[0], grid.cellSize[1] * grid.size[1]];
-  }
+    return [grid.cellSize[0] * grid.gridSize[0], grid.cellSize[1] * grid.gridSize[1]];
+  },
 
-  makeLightPath: function(pieces, gridSize, mirrorAttenuation, minimumAttenuation) {
+  // Returns { segments: [ { origin: , destination: }, ... ], cells: [ cell, ... ]}
+  makeLightPath: function(pieces, gridSize, mirrorAttenuationFactor, minimumAttenuation) {
     var that = this;
+    var EXTEND_LINES_FACTOR = Sylvester.precision;
 
     function handleGridElement()
     {
@@ -507,7 +495,7 @@
           lightSegments[lightSegments.length - 1].destination = intersection;
 
           lightIntensity *= mirrorAttenuationFactor;
-          if(lightIntensity < .minimumAttenuation)
+          if(lightIntensity < minimumAttenuation)
           {
             lightIntensity = 0;
           }
@@ -526,10 +514,6 @@
             lightDirectionUpdated();
           }
         }
-      }
-      else if(element.type == "squarePrism") // make into seperate function?
-      {
-        that.params.goalReached = true;
       }
     }
 
@@ -577,6 +561,7 @@
 
     var element;
     var nextCells = [];
+    var touchedCells = [ currentCell ];
     do
     { 
       var verticalIntersection = null;
@@ -615,6 +600,8 @@
         throw new Error("Light vector is NULL");
       }
 
+      touchedCells.push(currentCell);
+
       if(!this.isInGrid(currentCell, gridSize))
       {
         lightIntensity = 0;
@@ -630,10 +617,12 @@
       }
     } while(lightIntensity > 0);
 
-    return lightSegments;
+    return { segments: lightSegments, cells: touchedCells };
   },
 
-  drawLightPath: function(grid, lightPath) {
+  drawLightPath: function(grid, lightSegments) {
+    var that = this;
+
     // all lines are in grid space, not in screen space
     // options override default values for all drawn shapes (layer, composition, etc.)
     function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options)
@@ -757,5 +746,14 @@
     }
 
     return shapes;
+  },
+
+  reachedGoal: function(touchedCells, pieces) {
+    for(var i in touchedCells)
+    {
+      var element = this.findGridElement(touchedCells[i], pieces);
+      if(element && element.type === "squarePrism") return true;
+    }
+    return false;
   }
 })

@@ -53,22 +53,13 @@
           "action": "doWhile",
           "params": {
             "in": {
-              "value": "!model.goalReached"
+              "value": "!tools.reachedGoal(tools.makeLightPath(model.pieces, model.constants.boardGrid.gridSize, model.constants.mirrorAttenuationFactor, model.constants.minimumAttenuation).cells, model.pieces)"
             }
           },
           "children": [ 
             {
-              "action": "drawLight",
-              "params": {
-                "in": {
-                  "pieces": "model.pieces",
-                  "constants": "model.constants",
-                  "goalReached": "model.goalReached"
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes",
-                  "model.goalReached": "params.goalReached"
-                }
+              "send": {
+                "services.graphics.shapes": "tools.drawLightPath(model.constants.boardGrid, tools.makeLightPath(model.pieces, model.constants.boardGrid.gridSize, model.constants.mirrorAttenuationFactor, model.constants.minimumAttenuation).segments)"
               }
             },
             {
