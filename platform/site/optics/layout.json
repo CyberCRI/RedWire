@@ -95,35 +95,44 @@
               }
             },
             {
-              "action": "clickListener",
+              "action": "if",
               "params": {
                 "in": {
-                  "keyboard": "services.keyboard",
-                  "mouse": "services.mouse",
-                  "constants": "model.constants",
-                  "selected": "model.selected",
-                  "selectedPiece": "model.selectedPiece",
-                  "draggedPiece": "model.draggedPiece",
-                  "rotating": "model.rotating",
-                  "originalRotation": "model.originalRotation",
-                  "originalPieceRotation": "model.originalPieceRotation",
-                  "pieces": "model.pieces",
-                  "boxedPieces": "model.boxedPieces",
-                  "leftMouseDown": "model.leftMouseDown"
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes",
-                  "model.selected": "params.selected",
-                  "model.selectedPiece": "params.selectedPiece",
-                  "model.draggedPiece": "params.draggedPiece",
-                  "model.rotating": "params.rotating",
-                  "model.originalRotation": "params.originalRotation" ,
-                  "model.originalPieceRotation": "params.originalPieceRotation",
-                  "model.pieces": "params.pieces",
-                  "model.boxedPieces": "params.boxedPieces",
-                  "model.leftMouseDown": "params.leftMouseDown"
+                  "value": "model.draggedPiece"
                 }
-              }
+              },
+              "children": [
+                {
+                  "action": "if",
+                  "params": {
+                    "in": {
+                      "value": "!services.mouse.down"
+                    }
+                  },
+                  "children": [ 
+                    {
+                      "send": {
+                        "model.draggedPiece": "{}",
+                        "model.pieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).pieces",
+                        "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).boxedPieces"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "action": "if",
+                  "params": {
+                    "in": {
+                      "value": "model.rotating"
+                    }
+                  },
+                  "children": [ 
+                    {
+                      
+                    }
+                  ]
+                }
+              ]
             },
             {
               "foreach": {

@@ -755,5 +755,35 @@
       if(element && element.type === "squarePrism") return true;
     }
     return false;
+  },
+
+  calculateRotationAngle: function (center, mousePosition) {
+    var h = [mousePosition[0] - center[0], mousePosition[1] - center[1]];
+    var omDistance = Math.sqrt(h[0]*h[0] + h[1]*h[1]);
+    var ratio = -h[1]/omDistance;
+    var angle = 0;
+    if(omDistance !== 0) {
+      var absValueAngle = Math.acos(ratio)*180/Math.PI;
+      if(hxPosition <= 0) {
+        angle = -absValueAngle;
+      } else {
+        angle = absValueAngle;
+      }
+    }
+    return angle;
+  },
+
+  calculateRotationOffset: function(rotation, center, mousePosition) {
+    return rotation + this.calculateRotationAngle(center, mousePosition);
+  },
+
+  calculateRotation: function(rotationOffset, center, mousePosition) {
+    return this.calculateRotationAngle(center, mousePosition) - rotationOffset;
+  },
+
+  // Returns an array containing the index of the first child that is equal to the correct value, or an empty array
+  childByName: function(children, value) {
+    var childIndex = GE.indexOf(children, value);
+    return childIndex != -1 ? [childIndex] : []; 
   }
 })

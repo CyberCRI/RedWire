@@ -414,8 +414,7 @@
       value: null
     },
     listActiveChildren: function() { 
-      var childIndex = GE.indexOf(this.children, this.params.value);
-      return childIndex != -1 ? [childIndex] : []; 
+      return this.tools.childByName(this.children, this.params.value);
     }
   },
 
@@ -427,5 +426,71 @@
     listActiveChildren: function() { 
       return this.params.value ? [0] : this.children.length > 1 ? [1] : []; 
     }
+  },
+
+  sandwich: {
+    paramDefs: {
+      condition: null,
+      started: { direction: "inout" }
+    },
+    listActiveChildren: function() { 
+      if(!this.params.track)
+      {
+        if(!this.params.condition) {
+          return [0];
+        } else {
+          this.params.track = true;
+          return [1];
+        }
+      } else {
+        if(this.params.condition) {
+          return [1];
+        } else {
+          this.params.track = false;
+          return [2];
+        }
+      }
+    }
+  },
+
+  reactToMouse: {
+    paramDefs: {
+      "shape": null,
+      "mousePosition": null,
+      "mouseDown": null,
+      "mouseDownPosition": { direction: "inout" },
+      "minimumDragDistance": { default: "5" }
+    },
+    listActiveChildren: function() { 
+      if(!this.params.mouseDownPosition) {
+        if(!this.tools.pointIntersectsShape(this.params.mousePosition, this.params.position)) 
+        {
+          return this.tools.childByName(this.children, "none");
+        } else if(this.params.mouseDown) {
+          // start drag? 
+          if(Vector.create(this.params.mouseDownPosition).distanceFrom(Vector.create(mousePosition)) >= minimumDragDistance) {
+            this.params.mouseDownPosition = this.params.mousePosition;
+            return this.tools.childByName(this.children, "startDrag");
+          } else {
+            return this.tools.childByName(this.children, "hover");
+          }
+        }
+        else
+        {
+          return this.tools.childByName(this.children, "hover");
+        }
+      } else {
+        if(this.params.mouseDown)
+        {
+          return this.tools.childByName(this.children, "drag"); 
+        }
+        else
+        {
+          this.params.mouseDownPosition = null;
+          return this.tools.childByName(this.children, "endDrag"); 
+        }
+      }
+    }
   }
+
 });
