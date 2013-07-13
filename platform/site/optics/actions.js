@@ -458,38 +458,58 @@
       "shape": null,
       "mousePosition": null,
       "mouseDown": null,
-      "mouseDownPosition": { direction: "inout" },
+      "_state_": { direction: "inout" },
+      "_dragStartPosition_": { direction: "inout" },
       "minimumDragDistance": { default: "5" }
     },
     listActiveChildren: function() { 
-      if(!this.params.mouseDownPosition) {
-        if(!this.tools.pointIntersectsShape(this.params.mousePosition, this.params.position)) 
-        {
-          return this.tools.childByName(this.children, "none");
-        } else if(this.params.mouseDown) {
-          // start drag? 
-          if(Vector.create(this.params.mouseDownPosition).distanceFrom(Vector.create(mousePosition)) >= minimumDragDistance) {
-            this.params.mouseDownPosition = this.params.mousePosition;
-            return this.tools.childByName(this.children, "startDrag");
-          } else {
-            return this.tools.childByName(this.children, "hover");
+      // Implement a state machine
+      if(!this.params["_state_"]) this.params["_state_"] = "none";
+
+      switch(this.params["_state_"]) {
+        case "none":
+          if(this.params.mousePosition && this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shape)) {
+            this.params["_state_"] = "hover";
+            this.log(GE.logLevels.INFO, "Entering hover mode. State = " + this.params["_state_"]);
+          } 
+          break;
+        case "hover":
+          if(!this.params.mousePosition || !this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shape)) {
+            this.params["_state_"] = "none";
+            this.log(GE.logLevels.INFO, "Leaving hover mode")
+          } else if(this.params.mouseDown) {
+            this.params["_dragStartPosition_"] = this.params.mousePosition;
+            this.params["_state_"] = "pressed";
+            this.log(GE.logLevels.INFO, "Entering presed mode")
           }
-        }
-        else
-        {
-          return this.tools.childByName(this.children, "hover");
-        }
-      } else {
-        if(this.params.mouseDown)
-        {
-          return this.tools.childByName(this.children, "drag"); 
-        }
-        else
-        {
-          this.params.mouseDownPosition = null;
-          return this.tools.childByName(this.children, "endDrag"); 
-        }
+          break;
+        case "pressed":
+          if(!this.params.mouseDown) {
+            this.params["_state_"] = "hover";
+            this.params["_dragStartPosition_"] = null;
+            this.log(GE.logLevels.INFO, "Leaving pressed mode")
+            return this.tools.childByName(this.children, "click");
+          } else if(Vector.create(this.params["_dragStartPosition_"]).distanceFrom(Vector.create(this.params.mousePosition)) >= this.params.minimumDragDistance) {
+            this.params["_state_"] = "drag";
+            this.params["_dragStartPosition_"] = null;
+            this.log(GE.logLevels.INFO, "Entering drag mode")
+            return this.tools.childByName(this.children, "startDrag");
+          }
+          break;
+        case "drag":
+          if(!this.params.mouseDown) {
+            this.params["_state_"] = "hover";
+            this.params["_dragStartPosition_"] = null;
+             this.log(GE.logLevels.INFO, "Leaving drag mode")
+           return this.tools.childByName(this.children, "endDrag");
+          }
+          break;
+        default:
+          throw new Error("Unknown state '" + this.params["_state_"] + "'");
       }
+
+      // if the child has not been returned already, use the current state
+      return this.tools.childByName(this.children, this.params["_state_"]);      
     }
   }
 

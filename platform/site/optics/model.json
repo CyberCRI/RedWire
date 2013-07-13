@@ -1,5 +1,4 @@
 {
-  "selected": { },
   "leftMouseDown": false,
   "selectedPiece": null,
   "originalRotation": null,
@@ -11,6 +10,10 @@
   "timer": 0,
   "topLevelActiveChild": 0,
   "goalReached": false,
+  "_selectedPieceDrag_": {
+    "state": null,
+    "dragStartPosition": null
+  },
   "constants": {
     "startingTime": 60,
     "endingTime": 60,
@@ -67,7 +70,7 @@
       "39": "+1"
     },
     "level": {
-      "selected": {
+      "selectedPiece": {
         "col": 0,
         "row": 0
       },

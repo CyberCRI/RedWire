@@ -256,7 +256,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     methodResult = action[methodName].apply(locals)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}")
+    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}. Input params were #{JSON.stringify(locals.params)}. Children are #{JSON.stringify(locals.children)}.")
 
   result = new GE.NodeVisitorResult(methodResult)
 
@@ -265,9 +265,9 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
 
   for paramName, paramValue of node.params.out
     try
-      outputValue = evaluationContext.evaluateExpression(paramValue, evaluatedParams)
+      outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}': #{error}")
+      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}': #{error}. Output params were #{JSON.stringify(outputParams)}.")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
     parent[key] = outputValue
@@ -340,6 +340,7 @@ GE.visitActionNode = (node, constants, bindings) ->
     if "listActiveChildren" of constants.actions[node.action]
       activeChildrenResult = GE.sandboxActionCall(node, constants, bindings, "listActiveChildren")
       activeChildren = activeChildrenResult.result
+      result = result.appendWith(activeChildrenResult)
     else
       # By default, all children are considered active
       activeChildren = [0..node.children.length - 1]
@@ -355,8 +356,8 @@ GE.visitActionNode = (node, constants, bindings) ->
     # TODO: if handler not defined, propogate error signals upwards? How to merge them?
     if "handleSignals" of constants.actions[node.action]
       errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals)
-      result.result = errorResult
       result = result.appendWith(errorResult)
+      result.result = errorResult # appendWith() does not affect result
 
   return result
 

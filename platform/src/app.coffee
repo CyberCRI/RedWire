@@ -291,6 +291,7 @@ executeCode = ->
       services: currentServices
       evaluator: currentExpressionEvaluator
       log: logWithPrefix
+    if modelPatches.length > 0 then logWithPrefix(GE.logLevels.LOG, "Model patches are: #{JSON.stringify(modelPatches)}.")
     return modelAtFrame.applyPatches(modelPatches)
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Error executing code: #{error}")

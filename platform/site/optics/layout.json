@@ -44,7 +44,7 @@
                 "model.pieces": "model.constants.level.pieces",
                 "model.boxedPieces": "model.constants.level.boxedPieces",
                 "model.goalReached": false,
-                "model.selected": "model.constants.level.selected"
+                "model.selectedPiece": "model.constants.level.selectedPiece"
               }
             }
           ]
@@ -91,7 +91,7 @@
             },
             {
               "send": {
-                "services.graphics.shapes": "tools.drawShape(_.extend(tools.gridCellRectangle(model.constants.boardGrid, [model.selected.col, model.selected.row]), { layer: 'selection', strokeStyle: 'yellow', lineWidth: 4 }))" 
+                "services.graphics.shapes": "tools.drawShape(_.extend(tools.gridCellRectangle(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), { layer: 'selection', strokeStyle: 'yellow', lineWidth: 4 }))" 
               }
             },
             {
@@ -118,19 +118,6 @@
                       }
                     }
                   ]
-                },
-                {
-                  "action": "if",
-                  "params": {
-                    "in": {
-                      "value": "model.rotating"
-                    }
-                  },
-                  "children": [ 
-                    {
-                      
-                    }
-                  ]
                 }
               ]
             },
@@ -153,6 +140,36 @@
                       "bindings.selectedPiece.rotation": "params.parameter"
                     }
                   }
+                },
+                {
+                  "action": "reactToMouse",
+                  "params": {
+                    "in": {
+                      "shape": "{ type: 'circle', radius: 1.2 * model.constants.boardGrid.cellSize[0], center: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) }",
+                      "mousePosition": "services.mouse.position",
+                      "mouseDown": "services.mouse.down",
+                      "_state_": "model['_selectedPieceDrag_'].state",
+                      "_dragStartPosition_": "model['_selectedPieceDrag_'].dragStartPosition"
+                    },
+                    "out": {
+                      "model._selectedPieceDrag_.state": "params['_state_']",
+                      "model._selectedPieceDrag_.dragStartPosition": "params['_dragStartPosition_']"
+                    }
+                  },
+                  "children": [
+                    {
+                      "name": "startDrag",
+                      "send": {
+                        "model.rotationOffset": "tools.calculateRotationOffset(bindings.selectedPiece.rotation, tools.gridCellCenter(model.constants.boardGrid, model.selectedPiece), services.mouse.position)" 
+                      }
+                    },
+                    {
+                      "name": "drag",
+                      "send": {
+                        "model.rotationOffset": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, model.selectedPiece), services.mouse.position)" 
+                      }
+                    }
+                  ]
                 }
               ]
             }, 

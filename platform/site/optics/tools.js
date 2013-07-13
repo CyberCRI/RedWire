@@ -783,7 +783,7 @@
 
   // Returns an array containing the index of the first child that is equal to the correct value, or an empty array
   childByName: function(children, value) {
-    var childIndex = GE.indexOf(children, value);
+    var childIndex = GE.indexOfEquals(children, value);
     return childIndex != -1 ? [childIndex] : []; 
   }
 })
