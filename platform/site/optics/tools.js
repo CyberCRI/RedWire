@@ -764,7 +764,7 @@
     var angle = 0;
     if(omDistance !== 0) {
       var absValueAngle = Math.acos(ratio)*180/Math.PI;
-      if(hxPosition <= 0) {
+      if(h[0] <= 0) {
         angle = -absValueAngle;
       } else {
         angle = absValueAngle;
@@ -774,7 +774,7 @@
   },
 
   calculateRotationOffset: function(rotation, center, mousePosition) {
-    return rotation + this.calculateRotationAngle(center, mousePosition);
+    return rotation - this.calculateRotationAngle(center, mousePosition);
   },
 
   calculateRotation: function(rotationOffset, center, mousePosition) {

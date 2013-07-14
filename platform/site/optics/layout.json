@@ -160,13 +160,13 @@
                     {
                       "name": "startDrag",
                       "send": {
-                        "model.rotationOffset": "tools.calculateRotationOffset(bindings.selectedPiece.rotation, tools.gridCellCenter(model.constants.boardGrid, model.selectedPiece), services.mouse.position)" 
+                        "model.rotationOffset": "tools.calculateRotationOffset(bindings.selectedPiece.rotation, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)" 
                       }
                     },
                     {
                       "name": "drag",
                       "send": {
-                        "model.rotationOffset": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, model.selectedPiece), services.mouse.position)" 
+                        "bindings.selectedPiece.rotation": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)" 
                       }
                     }
                   ]
