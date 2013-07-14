@@ -243,7 +243,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     try
       evaluatedParams[paramName] = evaluationContext.evaluateExpression(paramValue)
     catch error
-      throw new Error("Error evaluating the input parameter expression '#{paramValue}' for node '#{node.action}': #{error}")
+      throw new Error("Error evaluating the input parameter expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}")
 
   locals = 
     params: evaluatedParams
@@ -267,7 +267,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     try
       outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}': #{error}. Output params were #{JSON.stringify(outputParams)}.")
+      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}\nOutput params were #{JSON.stringify(outputParams)}.")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
     parent[key] = outputValue
@@ -295,7 +295,7 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
           # If the where clause evaluates to false, don't add it
           if evaluationContext.evaluateExpression(node.foreach.where) then bindingSet.push(newBindings)
         catch error
-          throw new Error("Error evaluating the where expression '#{node.foreach.where}' for foreach node '#{node}': #{error}")
+          throw new Error("Error evaluating the where expression '#{node.foreach.where}' for foreach node '#{node}':\n#{error.stack}")
       else
         bindingSet.push(newBindings)
   else if _.isString(node.foreach.from)
@@ -319,7 +319,7 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
           # If the where clause evaluates to false, don't add it
           if evaluationContext.evaluateExpression(node.foreach.where) then bindingSet.push(newBindings)
         catch error
-          throw new Error("Error evaluating the where expression '#{node.foreach.where}' for foreach node '#{node}': #{error}")
+          throw new Error("Error evaluating the where expression '#{node.foreach.where}' for foreach node '#{node}':\n#{error.stack}")
       else
         bindingSet.push(newBindings)
   else
@@ -378,7 +378,7 @@ GE.visitSendNode = (node, constants, bindings) ->
     try
       outputValue = evaluationContext.evaluateExpression(src)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{src}' for send node: #{error}")
+      throw new Error("Error evaluating the output parameter value expression '#{src}' for send node:\n#{error.stack}")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
     parent[key] = outputValue
