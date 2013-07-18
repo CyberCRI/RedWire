@@ -168,6 +168,45 @@
                       "send": {
                         "bindings.selectedPiece.rotation": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)" 
                       }
+                    },
+                    {
+                      "name": "none",
+                      "foreach": {
+                        "from": "model.pieces",
+                        "bindTo": "movablePiece"
+                      },
+                      "children": [
+                        {
+                          "action": "reactToMouse",
+                          "params": {
+                            "in": {
+                              "shape": "tools.gridCellRectangle(model.constants.boardGrid, [bindings.movablePiece.col, bindings.movablePiece.row])",
+                              "mousePosition": "services.mouse.position",
+                              "mouseDown": "services.mouse.down",
+                              "_state_": "bindings.movablePiece.state",
+                              "_dragStartPosition_": "bindings.movablePiece.dragStartPosition"
+                            },
+                            "out": {
+                              "bindings.movablePiece.state": "params['_state_']",
+                              "bindings.movablePiece.dragStartPosition": "params['_dragStartPosition_']"
+                            }
+                          },
+                          "children": [
+                            {
+                              "name": "startDrag",
+                              "send": {
+                                "model.draggedPiece": "bindings.movablePiece" 
+                              }
+                            },
+                            {
+                              "name": "endDrag",
+                              "send": {
+                                "model.draggedPiece": null 
+                              }
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }

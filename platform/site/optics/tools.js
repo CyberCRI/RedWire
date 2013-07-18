@@ -774,7 +774,7 @@
   },
 
   calculateRotationOffset: function(rotation, center, mousePosition) {
-    return rotation - this.calculateRotationAngle(center, mousePosition);
+    return rotation + this.calculateRotationAngle(center, mousePosition);
   },
 
   calculateRotation: function(rotationOffset, center, mousePosition) {

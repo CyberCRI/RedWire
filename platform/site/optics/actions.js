@@ -469,8 +469,8 @@
       switch(this.params["_state_"]) {
         case "none":
           if(this.params.mousePosition && this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shape)) {
+            this.log(GE.logLevels.INFO, "Entering hover mode. Old state = " + this.params["_state_"]);
             this.params["_state_"] = "hover";
-            this.log(GE.logLevels.INFO, "Entering hover mode. State = " + this.params["_state_"]);
           } 
           break;
         case "hover":
