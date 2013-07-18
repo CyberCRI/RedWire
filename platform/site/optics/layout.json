@@ -95,33 +95,6 @@
               }
             },
             {
-              "action": "if",
-              "params": {
-                "in": {
-                  "value": "model.draggedPiece"
-                }
-              },
-              "children": [
-                {
-                  "action": "if",
-                  "params": {
-                    "in": {
-                      "value": "!services.mouse.down"
-                    }
-                  },
-                  "children": [ 
-                    {
-                      "send": {
-                        "model.draggedPiece": "{}",
-                        "model.pieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).pieces",
-                        "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).boxedPieces"
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
               "foreach": {
                 "from": "model.pieces",
                 "bindTo": "selectedPiece",
@@ -201,7 +174,9 @@
                             {
                               "name": "endDrag",
                               "send": {
-                                "model.draggedPiece": null 
+                                "model.draggedPiece": "{}",
+                                "model.pieces": "tools.movePieceTo(model.draggedPiece, [1, 1], model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).pieces",
+                                "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).boxedPieces"
                               }
                             }
                           ]

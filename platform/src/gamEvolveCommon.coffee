@@ -25,3 +25,6 @@ GE.indexOfEquals = (collection, value) ->
   for k, v of collection
     if _.isEqual(v, value) then return k
   return -1
+
+# There is probably a faster way to do this 
+GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))

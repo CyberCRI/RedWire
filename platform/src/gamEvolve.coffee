@@ -112,9 +112,6 @@ GE.extensions =
     JS: ["js"]
     CSS: ["css"]
 
-# There is probably a faster way to do this 
-GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))
-
 # Reject arrays as objects
 GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
 

@@ -86,13 +86,36 @@ showMessage = (messageType, message) ->
 
 clearMessage = -> $("#topAlert, #topInfo").hide()
 
-logWithPrefix = (logType, message, newLine = true) ->
+logWithPrefix = (logType, values...) ->
   if GE.logLevels[logType]
     log.clearSelection()
     log.navigateFileEnd()
-    log.insert(logType+": "+getFormattedTime()+" "+message+if newLine then "\n" else "")
+    valueStrings = for value in values 
+      if _.isString(value) then value else JSON.stringify(value)
+    log.insert(logType+": "+getFormattedTime()+" "+valueStrings.join("  ")+"\n")
   else
     logWithPrefix(GE.logLevels.ERROR, "Bad logType parameter '"+logType+"' in log for message '"+message+"'")
+
+togglePlayMode = ->
+  if isPlaying
+    isPlaying = false
+    for editorId, editor of editors
+      editor.setReadOnly(false)
+      $('#'+editorId).fadeTo('slow', 1)
+    $("#playButton").button "option",
+      label: "Play" 
+      icons: 
+        primary: "ui-icon-play"
+  else
+    isPlaying = true
+    for editorId, editor of editors
+      editor.setReadOnly(true)
+      $('#'+editorId).fadeTo('slow', 0.2)
+    handleAnimation()
+    $("#playButton").button "option",
+      label: "Pause" 
+      icons: 
+        primary: "ui-icon-pause"
 
 setupLayout = ->
   # top
@@ -125,28 +148,7 @@ setupLayout = ->
     onresize: handleResize
 
 setupButtonHandlers = ->
-  # TODO: lock code down in play mode so it can't be changed
-
-  $("#playButton").on "click", ->
-    if isPlaying
-      isPlaying = false
-      for editorId, editor of editors
-        editor.setReadOnly(false)
-        $('#'+editorId).fadeTo('slow', 1)
-      $(this).button "option",
-        label: "Play" 
-        icons: 
-          primary: "ui-icon-play"
-    else
-      isPlaying = true
-      for editorId, editor of editors
-        editor.setReadOnly(true)
-        $('#'+editorId).fadeTo('slow', 0.2)
-      handleAnimation()
-      $(this).button "option",
-        label: "Pause" 
-        icons: 
-          primary: "ui-icon-pause"
+  $("#playButton").on "click", togglePlayMode
 
   $("#resetButton").on "click", ->
     currentFrame = 0
@@ -224,6 +226,7 @@ reloadCode = (callback) ->
   toolsEvaluator = GE.makeEvaluator(evalLoadedAssets...)
   try
     currentTools = toolsEvaluator(editors.toolsEditor.getValue())
+    currentTools.log = logWithPrefix # Expose the log() function to tools
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Tools error. #{error}")
     return showMessage(MessageType.Error, "<strong>Tools error.</strong> #{error}")
@@ -296,6 +299,7 @@ executeCode = ->
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Error executing code: #{error}")
     showMessage(MessageType.Error, "Error executing code")
+    if isPlaying then togglePlayMode() # Stop on error
     return currentModel
 
 notifyCodeChange = ->

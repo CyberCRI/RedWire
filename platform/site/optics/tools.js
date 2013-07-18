@@ -52,58 +52,6 @@
     return pieces;
   },
 
-  copyPiece: function(p)
-  {
-    if(p.col !== undefined) return this.copyBoardPiece(p);
-    else return this.copyBoxedPiece(p);
-  },
-
-  //returns a copy of a board piece
-  copyBoardPiece: function(p)
-  {
-     return {col: p.col, row: p.row, type: p.type, rotation: p.rotation};
-  },
-
-  //returns a copy of a board piece
-  copyBoxedPiece: function(p)
-  {
-     return {type: p.type };
-  },
-
-  copyBoardPieces: function(ps)
-  {
-    var res = new Array();
-    for (var i in ps)
-    {
-      res[i] = this.copyBoardPiece(ps[i]);
-    }
-    return res;
-  },
-
-  //copies an obj
-  //warning: unsafe if obj contains links to other objects
-  copyBoxedPieces: function(ps)
-  {
-    var res = new Array();
-    for (var i in ps)
-    {
-      res[i] = this.copyBoxedPiece(ps[i]);
-    }
-    return res;
-  },
-
-  //copies an obj
-  //warning: unsafe if obj contains links to other objects
-  copy: function(obj)
-  {
-    var res = {};
-    for (var field in obj)
-    {
-      res[field.toString] = obj[field.toString];
-    }
-    return res;
-  },
-
   //converts a pixel coordinate to a board coordinate
   //assumes that the board is made out of squares
   toBoardCoordinate: function(pixelCoordinate, upperLeftBoardMargin, cellSize)
@@ -150,9 +98,9 @@
   //boxedPieces is the update table of boxed pieces
   movePieceTo: function(piece, newSquare, pieces, boxedPieces, gridSize, unmovablePieces)
   {
-    var newPiece = this.copyPiece(piece);
-    var newPieces = this.copyBoardPieces(pieces);
-    var newBoxedPieces = this.copyBoxedPieces(boxedPieces);
+    var newPiece = GE.cloneData(piece);
+    var newPieces = GE.cloneData(pieces);
+    var newBoxedPieces = GE.cloneData(boxedPieces);
 
     if(this.isMovable(piece, unmovablePieces)) {
       if (this.isInGrid(newSquare, gridSize)) { //defensive code
@@ -432,6 +380,7 @@
   },
 
   gridCellAtPoint: function(grid, point) {
+    this.log(GE.logLevels.INFO, "point", point, "grid", grid);
     if(point === null) return null;
 
     var gridPos = [
