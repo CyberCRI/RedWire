@@ -118,15 +118,25 @@
                   "action": "reactToMouse",
                   "params": {
                     "in": {
-                      "shape": "{ type: 'circle', radius: 1.2 * model.constants.boardGrid.cellSize[0], center: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) }",
+                      "shapes": "[{ type: 'circle', radius: 1.2 * model.constants.boardGrid.cellSize[0], center: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) }]",
+                      "shapeKey": "model.selectedPieceDrag.shapeKey",
                       "mousePosition": "services.mouse.position",
                       "mouseDown": "services.mouse.down",
-                      "_state_": "model['_selectedPieceDrag_'].state",
-                      "_dragStartPosition_": "model['_selectedPieceDrag_'].dragStartPosition"
+                      "state": "model.selectedPieceDrag.state",
+                      "dragStartPosition": "model.selectedPieceDrag.dragStartPosition"
                     },
                     "out": {
-                      "model._selectedPieceDrag_.state": "params['_state_']",
-                      "model._selectedPieceDrag_.dragStartPosition": "params['_dragStartPosition_']"
+                      "model.selectedPieceDrag.state": "params.state",
+                      "model.selectedPieceDrag.dragStartPosition": "params.dragStartPosition",
+                      "model.selectedPieceDrag.shapeKey": "params.shapeKey"
+                    }
+                  }
+                },
+                {
+                  "action": "when",
+                  "params": {
+                    "in": {
+                      "value": "model.selectedPieceDrag.state"
                     }
                   },
                   "children": [
@@ -141,52 +151,53 @@
                       "send": {
                         "bindings.selectedPiece.rotation": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)" 
                       }
-                    },
-                    {
-                      "name": "none",
-                      "foreach": {
-                        "from": "model.pieces",
-                        "bindTo": "movablePiece"
-                      },
-                      "children": [
-                        {
-                          "action": "reactToMouse",
-                          "params": {
-                            "in": {
-                              "shape": "tools.gridCellRectangle(model.constants.boardGrid, [bindings.movablePiece.col, bindings.movablePiece.row])",
-                              "mousePosition": "services.mouse.position",
-                              "mouseDown": "services.mouse.down",
-                              "_state_": "bindings.movablePiece.state",
-                              "_dragStartPosition_": "bindings.movablePiece.dragStartPosition"
-                            },
-                            "out": {
-                              "bindings.movablePiece.state": "params['_state_']",
-                              "bindings.movablePiece.dragStartPosition": "params['_dragStartPosition_']"
-                            }
-                          },
-                          "children": [
-                            {
-                              "name": "startDrag",
-                              "send": {
-                                "model.draggedPiece": "bindings.movablePiece" 
-                              }
-                            },
-                            {
-                              "name": "endDrag",
-                              "send": {
-                                "model.draggedPiece": "{}",
-                                "model.pieces": "tools.movePieceTo(model.draggedPiece, [1, 1], model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).pieces",
-                                "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).boxedPieces"
-                              }
-                            }
-                          ]
-                        }
-                      ]
                     }
                   ]
                 }
               ]
-            }, 
+            },
+            {
+              "action": "reactToMouse",
+              "params": {
+                "in": {
+                  "shapes": "_.map(model.pieces, function(piece) { return tools.gridCellRectangle(model.constants.boardGrid, [piece.col, piece.row]) })",
+                  "shapeKey": "model.pieceDrag.shapeKey",
+                  "mousePosition": "services.mouse.position",
+                  "mouseDown": "services.mouse.down",
+                  "state": "model.pieceDrag.state",
+                  "dragStartPosition": "model.pieceDrag.dragStartPosition"
+                },
+                "out": {
+                  "model.pieceDrag.state": "params.state",
+                  "model.pieceDrag.dragStartPosition": "params.dragStartPosition",
+                  "model.pieceDrag.shapeKey": "params.shapeKey"
+                }
+              }
+            },
+            {
+              "action": "when",
+              "params": {
+                "in": {
+                  "value": "model.pieceDrag.state"
+                }
+              },
+              "children": [
+                {
+                  "name": "startDrag",
+                  "send": {
+                    "model.draggedPiece": "model.pieces[model.pieceDrag.shapeKey]" 
+                  }
+                },
+                {
+                  "name": "endDrag",
+                  "send": {
+                    "model.draggedPiece": "null",
+                    "model.pieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).pieces",
+                    "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).boxedPieces"
+                  }
+                }
+              ]
+            },
             {
               "action": "if",
               "params": {

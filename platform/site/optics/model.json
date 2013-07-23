@@ -10,9 +10,15 @@
   "timer": 0,
   "topLevelActiveChild": 0,
   "goalReached": false,
-  "_selectedPieceDrag_": {
+  "selectedPieceDrag": {
     "state": null,
-    "dragStartPosition": null
+    "dragStartPosition": null,
+    "shapeKey": null
+  },
+  "pieceDrag": {
+    "state": null,
+    "dragStartPosition": null,
+    "shapeKey": null
   },
   "constants": {
     "startingTime": 60,

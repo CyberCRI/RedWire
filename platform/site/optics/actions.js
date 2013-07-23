@@ -455,61 +455,74 @@
 
   reactToMouse: {
     paramDefs: {
-      "shape": null,
+      "shapes": null,
+      "shapeKey": { direction: "inout" },
       "mousePosition": null,
       "mouseDown": null,
-      "_state_": { direction: "inout" },
-      "_dragStartPosition_": { direction: "inout" },
+      "state": { direction: "inout" },
+      "dragStartPosition": { direction: "inout" },
       "minimumDragDistance": { default: "5" }
     },
-    listActiveChildren: function() { 
-      // Implement a state machine
-      if(!this.params["_state_"]) this.params["_state_"] = "none";
+    update: function() { 
+      // Implement a state machine, starting at the "none" state
+      if(!this.params.state) this.params.state = "none";
 
-      switch(this.params["_state_"]) {
+      //this.log(GE.logLevels.INFO, "shapes", this.params.shapes);
+
+      switch(this.params.state) {
         case "none":
-          if(this.params.mousePosition && this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shape)) {
-            this.log(GE.logLevels.INFO, "Entering hover mode. Old state = " + this.params["_state_"]);
-            this.params["_state_"] = "hover";
+          if(this.params.mousePosition) {
+            for(var i in this.params.shapes) {
+              if(this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shapes[i])) {
+                this.log(GE.logLevels.INFO, "Entering hover mode. Old state = " + this.params.state);
+                this.params.state = "hover";
+                this.params.shapeKey = i;
+                break;
+              }
+            }
           } 
           break;
         case "hover":
-          if(!this.params.mousePosition || !this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shape)) {
-            this.params["_state_"] = "none";
+          if(!this.params.mousePosition || !this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shapes[this.params.shapeKey])) {
+            this.params.state = "none";
+            this.params.shapeKey = null;
             this.log(GE.logLevels.INFO, "Leaving hover mode")
           } else if(this.params.mouseDown) {
-            this.params["_dragStartPosition_"] = this.params.mousePosition;
-            this.params["_state_"] = "pressed";
+            this.params.dragStartPosition = this.params.mousePosition;
+            this.params.state = "pressed";
             this.log(GE.logLevels.INFO, "Entering presed mode")
           }
           break;
         case "pressed":
           if(!this.params.mouseDown) {
-            this.params["_state_"] = "hover";
-            this.params["_dragStartPosition_"] = null;
+            this.params.state = "click";
+            this.params.dragStartPosition = null;
             this.log(GE.logLevels.INFO, "Leaving pressed mode")
-            return this.tools.childByName(this.children, "click");
-          } else if(Vector.create(this.params["_dragStartPosition_"]).distanceFrom(Vector.create(this.params.mousePosition)) >= this.params.minimumDragDistance) {
-            this.params["_state_"] = "drag";
-            this.params["_dragStartPosition_"] = null;
+          } else if(Vector.create(this.params.dragStartPosition).distanceFrom(Vector.create(this.params.mousePosition)) >= this.params.minimumDragDistance) {
+            this.params.state = "startDrag";
+            this.params.dragStartPosition = null;
             this.log(GE.logLevels.INFO, "Entering drag mode")
-            return this.tools.childByName(this.children, "startDrag");
           }
+          break;
+        case "click":
+          this.params.state = "hover";
+          break;
+        case "startDrag":
+          this.params.state = "drag";
           break;
         case "drag":
           if(!this.params.mouseDown) {
-            this.params["_state_"] = "hover";
-            this.params["_dragStartPosition_"] = null;
-             this.log(GE.logLevels.INFO, "Leaving drag mode")
-           return this.tools.childByName(this.children, "endDrag");
+            this.params.state = "endDrag";
+            this.params.dragStartPosition = null;
+            this.log(GE.logLevels.INFO, "Leaving drag mode")
           }
           break;
+        case "endDrag":
+          this.params.state = "hover";
+          break;
         default:
-          throw new Error("Unknown state '" + this.params["_state_"] + "'");
+          throw new Error("Unknown state '" + this.params.state + "'");
       }
-
-      // if the child has not been returned already, use the current state
-      return this.tools.childByName(this.children, this.params["_state_"]);      
     }
   }
 

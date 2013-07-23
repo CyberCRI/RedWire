@@ -98,6 +98,8 @@
   //boxedPieces is the update table of boxed pieces
   movePieceTo: function(piece, newSquare, pieces, boxedPieces, gridSize, unmovablePieces)
   {
+    this.log(GE.logLevels.INFO, "calling movePieceTo");
+
     var newPiece = GE.cloneData(piece);
     var newPieces = GE.cloneData(pieces);
     var newBoxedPieces = GE.cloneData(boxedPieces);
@@ -105,16 +107,17 @@
     if(this.isMovable(piece, unmovablePieces)) {
       if (this.isInGrid(newSquare, gridSize)) { //defensive code
         if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
-          //console.log("movePieceTo the piece was on the board, let's change its coordinates");
+          this.log(GE.logLevels.INFO, "movePieceTo the piece was on the board, let's change its coordinates");
           //var movedPiece = findGridElement([piece.col, piece.row], pieces);
           //movedPiece.col = newSquare[0];
           //movedPiece.row = newSquare[1];
           newPiece.col = newSquare[0];
           newPiece.row = newSquare[1];
           newPieces    = this.replace(piece, newPiece, pieces);
+          this.log(GE.logLevels.INFO, "piece", piece, "newPiece", newPiece, "newPieces", newPieces);
 
-        } else { //the piece was in the box, let's put it on the board
-          //console.log("movePieceTo the piece was in the box, let's put it on the board");
+        } else { //the piece was in the box, let's put it on the board  
+          this.log(GE.logLevels.INFO, "movePieceTo the piece was in the box, let's put it on the board");
           //remove the piece from the "boxedPieces"
           newBoxedPieces = this.takePieceOutOfBox(piece.type, boxedPieces);
 
@@ -129,15 +132,15 @@
         }
       } else {
         //the new square position is outside of the board: let's box the piece
-        //console.log("movePieceTo the new square position is outside of the board: let's box the piece");
+        this.log(GE.logLevels.INFO, "movePieceTo the new square position is outside of the board: let's box the piece");
         var put = this.putPieceIntoBox(piece, pieces, boxedPieces);
         newPiece = put.piece;
         newPieces = put.pieces;
         newBoxedPieces = put.boxedPieces;
       }
-      //console.log("finished movePieceTo(piece="+this.pieceToString(piece)+", newSquare="+this.coordinatesToString(newSquare)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+")");
+      this.log(GE.logLevels.INFO, "finished movePieceTo(piece="+this.pieceToString(piece)+", newSquare="+this.coordinatesToString(newSquare)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+")");
     } else {
-      //console.log("finished movePieceTo(piece="+this.pieceToString(piece)+", newSquare="+this.coordinatesToString(newSquare)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+") - piece is not movable");
+      this.log(GE.logLevels.INFO, "finished movePieceTo(piece="+this.pieceToString(piece)+", newSquare="+this.coordinatesToString(newSquare)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+") - piece is not movable");
     }
 
     var toReturn = {};
@@ -380,7 +383,7 @@
   },
 
   gridCellAtPoint: function(grid, point) {
-    this.log(GE.logLevels.INFO, "point", point, "grid", grid);
+    //this.log(GE.logLevels.INFO, "point", point, "grid", grid);
     if(point === null) return null;
 
     var gridPos = [
@@ -723,11 +726,11 @@
   },
 
   calculateRotationOffset: function(rotation, center, mousePosition) {
-    return rotation + this.calculateRotationAngle(center, mousePosition);
+    return rotation - this.calculateRotationAngle(center, mousePosition);
   },
 
   calculateRotation: function(rotationOffset, center, mousePosition) {
-    return this.calculateRotationAngle(center, mousePosition) - rotationOffset;
+    return this.calculateRotationAngle(center, mousePosition) + rotationOffset;
   },
 
   // Returns an array containing the index of the first child that is equal to the correct value, or an empty array

@@ -157,7 +157,7 @@ GE.makePatches = (oldValue, newValue, prefix = "", patches = []) ->
     patches.push { replace: prefix, value: GE.cloneData(newValue) }
   else 
     # both elements are objects or arrays
-    keys = _.union _.keys(oldValue), _.keys(newValue)
+    keys = _.union(_.keys(oldValue), _.keys(newValue))
     GE.makePatches(oldValue[key], newValue[key], "#{prefix}/#{key}", patches) for key in keys
 
   return patches
@@ -253,7 +253,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     methodResult = action[methodName].apply(locals)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}. Input params were #{JSON.stringify(locals.params)}. Children are #{JSON.stringify(locals.children)}.")
+    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}. Input params were #{JSON.stringify(locals.params)}. Children are #{JSON.stringify(locals.children)}.\n#{e.stack}")
 
   result = new GE.NodeVisitorResult(methodResult)
 
@@ -337,7 +337,7 @@ GE.visitActionNode = (node, constants, bindings) ->
     if "listActiveChildren" of constants.actions[node.action]
       activeChildrenResult = GE.sandboxActionCall(node, constants, bindings, "listActiveChildren")
       activeChildren = activeChildrenResult.result
-      result = result.appendWith(activeChildrenResult)
+      if not _.isArray(activeChildren) then throw new Error("Calling listActiveChildren() on node '#{node.action}' did not return an array")
     else
       # By default, all children are considered active
       activeChildren = [0..node.children.length - 1]
@@ -369,9 +369,12 @@ GE.visitForeachNode = (node, constants, oldBindings) ->
   return result
 
 GE.visitSendNode = (node, constants, bindings) ->
-  evaluationContext = new GE.EvaluationContext(constants, bindings)
+  modelPatches = []
+  servicePatches = []
 
-  for dest, src of node.send
+  for dest, src of node.send  
+    evaluationContext = new GE.EvaluationContext(constants, bindings)
+
     try
       outputValue = evaluationContext.evaluateExpression(src)
     catch error
@@ -380,8 +383,8 @@ GE.visitSendNode = (node, constants, bindings) ->
     [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
     parent[key] = outputValue
 
-  modelPatches = GE.makePatches(constants.modelData, evaluationContext.model)
-  servicePatches = GE.makePatches(constants.serviceData, evaluationContext.services)
+    modelPatches = GE.concatenate(modelPatches, GE.makePatches(constants.modelData, evaluationContext.model))
+    servicePatches = GE.concatenate(servicePatches, GE.makePatches(constants.serviceData, evaluationContext.services))
   
   # Return "DONE" signal, so it can be put in sequences
   return new GE.NodeVisitorResult(GE.signals.DONE, modelPatches, servicePatches)
