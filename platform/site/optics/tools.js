@@ -105,7 +105,7 @@
     var newBoxedPieces = GE.cloneData(boxedPieces);
 
     if(this.isMovable(piece, unmovablePieces)) {
-      if (this.isInGrid(newSquare, gridSize)) { //defensive code
+      if (newSquare != null) { //defensive code
         if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
           this.log(GE.logLevels.INFO, "movePieceTo the piece was on the board, let's change its coordinates");
           //var movedPiece = findGridElement([piece.col, piece.row], pieces);
@@ -138,9 +138,9 @@
         newPieces = put.pieces;
         newBoxedPieces = put.boxedPieces;
       }
-      this.log(GE.logLevels.INFO, "finished movePieceTo(piece="+this.pieceToString(piece)+", newSquare="+this.coordinatesToString(newSquare)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+")");
+      this.log(GE.logLevels.INFO, "finished movePieceTo(piece=", piece, ", newSquare=", newSquare, ", pieces=", pieces, ", boxedPieces=", boxedPieces, ")");
     } else {
-      this.log(GE.logLevels.INFO, "finished movePieceTo(piece="+this.pieceToString(piece)+", newSquare="+this.coordinatesToString(newSquare)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+") - piece is not movable");
+      this.log(GE.logLevels.INFO, "finished movePieceTo(piece=", piece, ", newSquare=", newSquare, ", pieces=", pieces, ", boxedPieces=", boxedPieces, ")");
     }
 
     var toReturn = {};
@@ -408,11 +408,13 @@
 
   gridCellCenter: function(grid, cell) { return this.gridCellToPoint(grid, cell, [0.5, 0.5]); },
 
-  gridCellRectangle: function(grid, cell) {
+  // the id is optional
+  gridCellRectangle: function(grid, cell, id) {
     return {
       type: "rectangle",
       position: this.gridCellUpperLeft(grid, cell),
-      size: grid.cellSize
+      size: grid.cellSize,
+      id: id
     };
   },
 
@@ -737,5 +739,13 @@
   childByName: function(children, value) {
     var childIndex = GE.indexOfEquals(children, value);
     return childIndex != -1 ? [childIndex] : []; 
+  },
+
+  makeMoveableShapes: function(boardGrid, boardPieces, boxGrid, boxedPieces, unmovablePieces) {
+    var that = this;
+    var movablePieces = _.filter(boardPieces, function(piece) { return !_.contains(unmovablePieces, piece.type); });
+    var boardShapes = _.map(boardPieces, function(piece) { return that.gridCellRectangle(boardGrid, [piece.col, piece.row], piece) });
+    var boxShapes = _.map(_.range(boxedPieces.length), function(index) { return that.gridCellRectangle(boxGrid, that.gridIndexToCell(index), boxedPieces[index]); });
+    return GE.concatenate(boardShapes, boxShapes); 
   }
 })

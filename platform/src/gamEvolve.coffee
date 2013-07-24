@@ -115,9 +115,6 @@ GE.extensions =
 # Reject arrays as objects
 GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
 
-# Create new array with the value of these arrays
-GE.concatenate = (rest...) -> _.flatten(rest, true)
-
 # For accessing a value within an embedded object or array
 # Takes a parent object/array and the "path" as an array
 # Returns [parent, key] where parent is the array/object and key w

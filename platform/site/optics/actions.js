@@ -456,7 +456,7 @@
   reactToMouse: {
     paramDefs: {
       "shapes": null,
-      "shapeKey": { direction: "inout" },
+      "shape": { direction: "inout" },
       "mousePosition": null,
       "mouseDown": null,
       "state": { direction: "inout" },
@@ -476,16 +476,16 @@
               if(this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shapes[i])) {
                 this.log(GE.logLevels.INFO, "Entering hover mode. Old state = " + this.params.state);
                 this.params.state = "hover";
-                this.params.shapeKey = i;
+                this.params.shape = this.params.shapes[i];
                 break;
               }
             }
           } 
           break;
         case "hover":
-          if(!this.params.mousePosition || !this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shapes[this.params.shapeKey])) {
+          if(!this.params.mousePosition || !this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shape)) {
             this.params.state = "none";
-            this.params.shapeKey = null;
+            this.params.shape = null;
             this.log(GE.logLevels.INFO, "Leaving hover mode")
           } else if(this.params.mouseDown) {
             this.params.dragStartPosition = this.params.mousePosition;

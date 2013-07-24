@@ -13,12 +13,12 @@
   "selectedPieceDrag": {
     "state": null,
     "dragStartPosition": null,
-    "shapeKey": null
+    "shape": null
   },
   "pieceDrag": {
     "state": null,
     "dragStartPosition": null,
-    "shapeKey": null
+    "shape": null
   },
   "constants": {
     "startingTime": 60,

@@ -119,7 +119,7 @@
                   "params": {
                     "in": {
                       "shapes": "[{ type: 'circle', radius: 1.2 * model.constants.boardGrid.cellSize[0], center: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) }]",
-                      "shapeKey": "model.selectedPieceDrag.shapeKey",
+                      "shape": "model.selectedPieceDrag.shape",
                       "mousePosition": "services.mouse.position",
                       "mouseDown": "services.mouse.down",
                       "state": "model.selectedPieceDrag.state",
@@ -128,7 +128,7 @@
                     "out": {
                       "model.selectedPieceDrag.state": "params.state",
                       "model.selectedPieceDrag.dragStartPosition": "params.dragStartPosition",
-                      "model.selectedPieceDrag.shapeKey": "params.shapeKey"
+                      "model.selectedPieceDrag.shape": "params.shape"
                     }
                   }
                 },
@@ -160,8 +160,8 @@
               "action": "reactToMouse",
               "params": {
                 "in": {
-                  "shapes": "_.map(model.pieces, function(piece) { return tools.gridCellRectangle(model.constants.boardGrid, [piece.col, piece.row]) })",
-                  "shapeKey": "model.pieceDrag.shapeKey",
+                  "shapes": "tools.makeMoveableShapes(model.constants.boardGrid, model.pieces, model.constants.boxGrid, model.boxedPieces, model.constants.unmovablePieces)",
+                  "shape": "model.pieceDrag.shape",
                   "mousePosition": "services.mouse.position",
                   "mouseDown": "services.mouse.down",
                   "state": "model.pieceDrag.state",
@@ -170,7 +170,7 @@
                 "out": {
                   "model.pieceDrag.state": "params.state",
                   "model.pieceDrag.dragStartPosition": "params.dragStartPosition",
-                  "model.pieceDrag.shapeKey": "params.shapeKey"
+                  "model.pieceDrag.shape": "params.shape"
                 }
               }
             },
@@ -185,7 +185,7 @@
                 {
                   "name": "startDrag",
                   "send": {
-                    "model.draggedPiece": "model.pieces[model.pieceDrag.shapeKey]" 
+                    "model.draggedPiece": "model.pieceDrag.shape.id" 
                   }
                 },
                 {
@@ -231,7 +231,7 @@
                   "action": "if",
                   "params": {
                     "in": {
-                      "value": "tools.findGridElement(tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces) || tools.gridCellToIndex(model.boxedPieces, tools.gridCellAtPoint(model.constants.boxGrid, services.mouse.position))"
+                      "value": "tools.findGridElement(tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces) || tools.gridCellToIndex(model.boxedPieces, tools.gridCellAtPoint(model.constants.boxGrid, services.mouse.position)) != null"
                     }
                   },
                   "children": [
