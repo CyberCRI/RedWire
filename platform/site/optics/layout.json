@@ -118,7 +118,7 @@
                   "action": "reactToMouse",
                   "params": {
                     "in": {
-                      "shapes": "[{ type: 'circle', radius: 1.2 * model.constants.boardGrid.cellSize[0], center: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) }]",
+                      "shapes": "[{ type: 'circle', radius: 0.8 * model.constants.boardGrid.cellSize[0], center: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), strokeStyle: 'white', lineWidth: 15 }]",
                       "shape": "model.selectedPieceDrag.shape",
                       "mousePosition": "services.mouse.position",
                       "mouseDown": "services.mouse.down",
@@ -195,6 +195,18 @@
                     "model.pieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).pieces",
                     "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).boxedPieces"
                   }
+                },
+                {
+                  "name": "click",
+                  "send": {
+                    "model.selectedPiece": "{ col: model.pieceDrag.shape.id.col, row: model.pieceDrag.shape.id.row }"
+                  }
+                },
+                {
+                  "name": "hover",
+                  "send": {
+                    "services.mouse.cursor": "'pointer'"
+                  }  
                 }
               ]
             },
@@ -226,21 +238,6 @@
                     "services.mouse.cursor": "'move'",
                     "services.graphics.shapes": "tools.drawShape({ type: 'image', layer: 'drag', asset: model.draggedPiece.type, alpha: 0.5, position: [-model.constants.pieceAssetCentering, -model.constants.pieceAssetCentering], translation: services.mouse.position, rotation: model.draggedPiece.rotation })"
                   }
-                },
-                {
-                  "action": "if",
-                  "params": {
-                    "in": {
-                      "value": "tools.findGridElement(tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces) || tools.gridCellToIndex(model.boxedPieces, tools.gridCellAtPoint(model.constants.boxGrid, services.mouse.position)) != null"
-                    }
-                  },
-                  "children": [
-                    {
-                      "send": {
-                        "services.mouse.cursor": "'pointer'"
-                      }  
-                    }
-                  ]
                 }
               ]
             }

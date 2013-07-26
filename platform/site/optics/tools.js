@@ -12,12 +12,19 @@
   // Requires Sylvester.js
   pointIntersectsShape: function(point, shape)
   {
+    if(!shape.fillStyle && !shape.strokeStyle) return false;
+
     switch(shape.type)
     {
       case "circle":
         var center = Vector.create(shape.center);
         if(shape.translation) center = center.add(shape.translation);
-        return center.distanceFrom(Vector.create(point)) < shape.radius * (shape.scale || 1);
+        var lineWidth = shape.lineWidth || 1;
+        var scale = shape.scale || 1;
+        var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;
+        var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;
+        var distance = center.distanceFrom(Vector.create(point));
+        return distance >= minDistance * scale && distance <= maxDistance * scale;
 
       case "rectangle":
         // Move the point to the frame of the shape
@@ -98,7 +105,7 @@
   //boxedPieces is the update table of boxed pieces
   movePieceTo: function(piece, newSquare, pieces, boxedPieces, gridSize, unmovablePieces)
   {
-    this.log(GE.logLevels.INFO, "calling movePieceTo");
+    this.log(GE.logLevels.INFO, "starting movePieceTo(piece=", piece, ", newSquare=", newSquare, ", pieces=", pieces, ", boxedPieces=", boxedPieces, ")");
 
     var newPiece = GE.cloneData(piece);
     var newPieces = GE.cloneData(pieces);
@@ -743,9 +750,17 @@
 
   makeMoveableShapes: function(boardGrid, boardPieces, boxGrid, boxedPieces, unmovablePieces) {
     var that = this;
+
+    function makeFilledRectangle(grid, cell, id) {
+      return _.extend(that.gridCellRectangle(grid, cell, id), {
+        strokeStyle: "white",
+        fillStyle: "white"
+      });
+    }
+
     var movablePieces = _.filter(boardPieces, function(piece) { return !_.contains(unmovablePieces, piece.type); });
-    var boardShapes = _.map(boardPieces, function(piece) { return that.gridCellRectangle(boardGrid, [piece.col, piece.row], piece) });
-    var boxShapes = _.map(_.range(boxedPieces.length), function(index) { return that.gridCellRectangle(boxGrid, that.gridIndexToCell(index), boxedPieces[index]); });
+    var boardShapes = _.map(movablePieces, function(piece) { return makeFilledRectangle(boardGrid, [piece.col, piece.row], piece) });
+    var boxShapes = _.map(_.range(boxedPieces.length), function(index) { return makeFilledRectangle(boxGrid, that.gridIndexToCell(index), boxedPieces[index]); });
     return GE.concatenate(boardShapes, boxShapes); 
   }
 })

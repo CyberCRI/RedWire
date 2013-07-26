@@ -166,6 +166,7 @@ registerService 'Canvas', (options = {}) ->
           ctx.fill()
         if shape.strokeStyle
           ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
+          if shape.lineWidth then ctx.lineWidth = shape.lineWidth
           ctx.stroke()
       else throw new Error('Unknown or missing shape type')
     ctx.restore()
