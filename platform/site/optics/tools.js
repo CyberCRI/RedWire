@@ -415,13 +415,13 @@
 
   gridCellCenter: function(grid, cell) { return this.gridCellToPoint(grid, cell, [0.5, 0.5]); },
 
-  // the id is optional
-  gridCellRectangle: function(grid, cell, id) {
+  // the meta is optional
+  gridCellRectangle: function(grid, cell, meta) {
     return {
       type: "rectangle",
       position: this.gridCellUpperLeft(grid, cell),
       size: grid.cellSize,
-      id: id
+      meta: meta
     };
   },
 
@@ -756,8 +756,8 @@
     return !_.contains(unrotatablePieceTypes, piece.type);
   },
 
-  makeFilledRectangle: function(grid, cell, id) {
-    return _.extend(this.gridCellRectangle(grid, cell, id), {
+  makeFilledRectangle: function(grid, cell, meta) {
+    return _.extend(this.gridCellRectangle(grid, cell, meta), {
       strokeStyle: "white",
       fillStyle: "white"
     });
@@ -782,7 +782,7 @@
       center: this.gridCellCenter(boardGrid, selectedCell), 
       strokeStyle: 'white', 
       lineWidth: 15,
-      id: "rotate"
+      meta: "rotate"
     };    
   }, 
 

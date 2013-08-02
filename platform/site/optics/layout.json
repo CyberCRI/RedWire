@@ -123,7 +123,7 @@
                   "action": "if",
                   "params": {
                     "in": {
-                      "value": "model.mouseDetection.shape && model.mouseDetection.shape.id == 'rotate'"
+                      "value": "model.mouseDetection.shape && model.mouseDetection.shape.meta == 'rotate'"
                     }
                   },
                   "children": [
@@ -144,15 +144,21 @@
                         {
                           "name": "startDrag",
                           "send": {
-                            "model.rotationOffset": "tools.calculateRotationOffset(bindings.selectedPiece.rotation, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)" 
+                            "model.rotationOffset": "tools.calculateRotationOffset(bindings.selectedPiece.rotation, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)",
+                            "model.rotating": "true"
                           }
                         },
                         {
                           "name": "drag",
                           "send": {
                             "bindings.selectedPiece.rotation": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)",
-                            "services.mouse.cursor": "'move'",
-                            "model.rotating": "true"
+                            "services.mouse.cursor": "'move'"
+                          }
+                        },
+                        {
+                          "name": "endDrag",
+                          "send": {
+                            "model.rotating": "false"
                           }
                         }
                       ]
@@ -183,7 +189,7 @@
               "action": "if",
               "params": {
                 "in": {
-                  "value": "model.mouseDetection.shape && model.mouseDetection.shape.id != 'rotate'"
+                  "value": "model.mouseDetection.shape && model.mouseDetection.shape.meta != 'rotate'"
                 }
               },
               "children": [
@@ -200,13 +206,13 @@
                       "action": "if",
                       "params": {
                         "in": {
-                          "value": "tools.pieceIsMovable(model.mouseDetection.shape.id, model.constants.unmovablePieceTypes)"
+                          "value": "tools.pieceIsMovable(model.mouseDetection.shape.meta, model.constants.unmovablePieceTypes)"
                           }
                         },
                       "children": [
                         {
                           "send": {
-                            "model.draggedPiece": "model.mouseDetection.shape.id" 
+                            "model.draggedPiece": "model.mouseDetection.shape.meta" 
                           }
                         }
                       ]
@@ -216,7 +222,7 @@
                       "action": "if",
                       "params": {
                         "in": {
-                          "value": "tools.pieceIsMovable(model.mouseDetection.shape.id, model.constants.unmovablePieceTypes)"
+                          "value": "tools.pieceIsMovable(model.mouseDetection.shape.meta, model.constants.unmovablePieceTypes)"
                           }
                         },
                       "children": [
@@ -232,7 +238,7 @@
                     {
                       "name": "click",
                       "send": {
-                        "model.selectedPiece": "{ col: model.mouseDetection.shape.id.col, row: model.mouseDetection.shape.id.row }"
+                        "model.selectedPiece": "{ col: model.mouseDetection.shape.meta.col, row: model.mouseDetection.shape.meta.row }"
                       }
                     },
                     {
