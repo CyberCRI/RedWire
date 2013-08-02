@@ -98,7 +98,7 @@
               "foreach": {
                 "from": "model.pieces",
                 "bindTo": "selectedPiece",
-                "where": "model.selectedPiece && bindings.selectedPiece.col === model.selectedPiece.col && bindings.selectedPiece.row === model.selectedPiece.row && !_.contains(model.constants.unrotatablePieces, bindings.selectedPiece.type)"
+                "where": "model.selectedPiece && bindings.selectedPiece.col === model.selectedPiece.col && bindings.selectedPiece.row === model.selectedPiece.row && tools.pieceIsRotatable(bindings.selectedPiece, model.constants.unrotatablePieceTypes)"
               },
               "children": [
                 {
@@ -115,113 +115,133 @@
                   }
                 },
                 {
-                  "action": "reactToMouse",
-                  "params": {
-                    "in": {
-                      "shapes": "[{ type: 'circle', radius: 0.8 * model.constants.boardGrid.cellSize[0], center: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), strokeStyle: 'white', lineWidth: 15 }]",
-                      "shape": "model.selectedPieceDrag.shape",
-                      "mousePosition": "services.mouse.position",
-                      "mouseDown": "services.mouse.down",
-                      "state": "model.selectedPieceDrag.state",
-                      "dragStartPosition": "model.selectedPieceDrag.dragStartPosition"
-                    },
-                    "out": {
-                      "model.selectedPieceDrag.state": "params.state",
-                      "model.selectedPieceDrag.dragStartPosition": "params.dragStartPosition",
-                      "model.selectedPieceDrag.shape": "params.shape"
-                    }
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'rotating', type: 'image', asset: model.rotating ? 'is-rotating' : 'can-rotate', scale: 0.5, position: [-208/2, -208/2], translation: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) })" 
                   }
                 },
-                {
-                  "action": "when",
+                { 
+                  "action": "if",
                   "params": {
                     "in": {
-                      "value": "model.selectedPieceDrag.state"
+                      "value": "model.mouseDetection.shape && model.mouseDetection.shape.id == 'rotate'"
                     }
                   },
                   "children": [
                     {
-                      "name": "startDrag",
-                      "send": {
-                        "model.rotationOffset": "tools.calculateRotationOffset(bindings.selectedPiece.rotation, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)" 
-                      }
-                    },
-                    {
-                      "name": "drag",
-                      "send": {
-                        "bindings.selectedPiece.rotation": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)" 
-                      }
+                      "action": "when",
+                      "params": {
+                        "in": {
+                          "value": "model.mouseDetection.state"
+                        }
+                      },
+                      "children": [
+                        {
+                          "name": "hover",
+                          "send": {
+                            "services.mouse.cursor": "'pointer'"
+                          }  
+                        },
+                        {
+                          "name": "startDrag",
+                          "send": {
+                            "model.rotationOffset": "tools.calculateRotationOffset(bindings.selectedPiece.rotation, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)" 
+                          }
+                        },
+                        {
+                          "name": "drag",
+                          "send": {
+                            "bindings.selectedPiece.rotation": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)",
+                            "services.mouse.cursor": "'move'",
+                            "model.rotating": "true"
+                          }
+                        }
+                      ]
                     }
                   ]
                 }
               ]
             },
             {
-              "action": "reactToMouse",
+              "action": "detectMouse",
               "params": {
                 "in": {
-                  "shapes": "tools.makeMoveableShapes(model.constants.boardGrid, model.pieces, model.constants.boxGrid, model.boxedPieces, model.constants.unmovablePieces)",
-                  "shape": "model.pieceDrag.shape",
+                  "shapes": "tools.makeDetectableShapes(model.constants.boardGrid, model.pieces, model.constants.boxGrid, model.boxedPieces, [model.selectedPiece.col, model.selectedPiece.row])",
+                  "shape": "model.mouseDetection.shape",
                   "mousePosition": "services.mouse.position",
                   "mouseDown": "services.mouse.down",
-                  "state": "model.pieceDrag.state",
-                  "dragStartPosition": "model.pieceDrag.dragStartPosition"
+                  "state": "model.mouseDetection.state",
+                  "dragStartPosition": "model.mouseDetection.dragStartPosition"
                 },
                 "out": {
-                  "model.pieceDrag.state": "params.state",
-                  "model.pieceDrag.dragStartPosition": "params.dragStartPosition",
-                  "model.pieceDrag.shape": "params.shape"
+                  "model.mouseDetection.state": "params.state",
+                  "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
+                  "model.mouseDetection.shape": "params.shape"
                 }
               }
             },
-            {
-              "action": "when",
-              "params": {
-                "in": {
-                  "value": "model.pieceDrag.state"
-                }
-              },
-              "children": [
-                {
-                  "name": "startDrag",
-                  "send": {
-                    "model.draggedPiece": "model.pieceDrag.shape.id" 
-                  }
-                },
-                {
-                  "name": "endDrag",
-                  "send": {
-                    "model.draggedPiece": "null",
-                    "model.pieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).pieces",
-                    "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieces).boxedPieces"
-                  }
-                },
-                {
-                  "name": "click",
-                  "send": {
-                    "model.selectedPiece": "{ col: model.pieceDrag.shape.id.col, row: model.pieceDrag.shape.id.row }"
-                  }
-                },
-                {
-                  "name": "hover",
-                  "send": {
-                    "services.mouse.cursor": "'pointer'"
-                  }  
-                }
-              ]
-            },
-            {
+            { 
               "action": "if",
               "params": {
                 "in": {
-                  "value": "model.selectedPiece"
+                  "value": "model.mouseDetection.shape && model.mouseDetection.shape.id != 'rotate'"
                 }
               },
               "children": [
                 {
-                  "send": {
-                    "services.graphics.shapes": "tools.drawShape({ layer: 'rotating', type: 'image', asset: model.rotating ? 'is-rotating' : 'can-rotate', scale: 0.5, position: [-208/2, -208/2], translation: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) })" 
-                  }
+                  "action": "when",
+                  "params": {
+                    "in": {
+                      "value": "model.mouseDetection.state"
+                    }
+                  },
+                  "children": [
+                    {
+                      "name": "startDrag",
+                      "action": "if",
+                      "params": {
+                        "in": {
+                          "value": "tools.pieceIsMovable(model.mouseDetection.shape.id, model.constants.unmovablePieceTypes)"
+                          }
+                        },
+                      "children": [
+                        {
+                          "send": {
+                            "model.draggedPiece": "model.mouseDetection.shape.id" 
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "name": "endDrag",
+                      "action": "if",
+                      "params": {
+                        "in": {
+                          "value": "tools.pieceIsMovable(model.mouseDetection.shape.id, model.constants.unmovablePieceTypes)"
+                          }
+                        },
+                      "children": [
+                        { 
+                          "send": {
+                            "model.draggedPiece": "null",
+                            "model.pieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieceTypes).pieces",
+                            "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieceTypes).boxedPieces"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "name": "click",
+                      "send": {
+                        "model.selectedPiece": "{ col: model.mouseDetection.shape.id.col, row: model.mouseDetection.shape.id.row }"
+                      }
+                    },
+                    {
+                      "name": "hover",
+                      "send": {
+                        "services.mouse.cursor": "'pointer'"
+                      }  
+                    }
+                  ]
                 }
               ]
             },
@@ -257,7 +277,8 @@
           "children": [
             {
               "send": {
-                "services.graphics.shapes": "tools.drawShape({ type: 'text', text: 'You win', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '18px Rix', align: 'center' })" 
+                "services.graphics.shapes": "tools.drawShape({ type: 'text', text: 'You win', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '18px Rix', align: 'center' })",
+                "model.mouseDetection": "{}"
               }
             },
             {

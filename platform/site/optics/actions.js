@@ -453,7 +453,7 @@
     }
   },
 
-  reactToMouse: {
+  detectMouse: {
     paramDefs: {
       "shapes": null,
       "shape": { direction: "inout" },

@@ -10,12 +10,7 @@
   "timer": 0,
   "topLevelActiveChild": 0,
   "goalReached": false,
-  "selectedPieceDrag": {
-    "state": null,
-    "dragStartPosition": null,
-    "shape": null
-  },
-  "pieceDrag": {
+  "mouseDetection": {
     "state": null,
     "dragStartPosition": null,
     "shape": null
@@ -23,12 +18,12 @@
   "constants": {
     "startingTime": 60,
     "endingTime": 60,
-    "unmovablePieces": [
+    "unmovablePieceTypes": [
       "wall",
       "laser-on",
       "squarePrism"
     ],
-    "unrotatablePieces": [
+    "unrotatablePieceTypes": [
       "squarePrism",
       "wall"
     ],

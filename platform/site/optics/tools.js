@@ -748,19 +748,55 @@
     return childIndex != -1 ? [childIndex] : []; 
   },
 
-  makeMoveableShapes: function(boardGrid, boardPieces, boxGrid, boxedPieces, unmovablePieces) {
+  pieceIsMovable: function(piece, unmovablePieceTypes) {
+    return !_.contains(unmovablePieceTypes, piece.type);
+  },
+
+  pieceIsRotatable: function(piece, unrotatablePieceTypes) {
+    return !_.contains(unrotatablePieceTypes, piece.type);
+  },
+
+  makeFilledRectangle: function(grid, cell, id) {
+    return _.extend(this.gridCellRectangle(grid, cell, id), {
+      strokeStyle: "white",
+      fillStyle: "white"
+    });
+  },
+
+  makeBoardShapes: function(boardGrid, boardPieces) {
     var that = this;
-
-    function makeFilledRectangle(grid, cell, id) {
-      return _.extend(that.gridCellRectangle(grid, cell, id), {
-        strokeStyle: "white",
-        fillStyle: "white"
-      });
-    }
-
-    var movablePieces = _.filter(boardPieces, function(piece) { return !_.contains(unmovablePieces, piece.type); });
-    var boardShapes = _.map(movablePieces, function(piece) { return makeFilledRectangle(boardGrid, [piece.col, piece.row], piece) });
+    return boardShapes = _.map(boardPieces, function(piece) { return that.makeFilledRectangle(boardGrid, [piece.col, piece.row], piece) });
     var boxShapes = _.map(_.range(boxedPieces.length), function(index) { return makeFilledRectangle(boxGrid, that.gridIndexToCell(index), boxedPieces[index]); });
     return GE.concatenate(boardShapes, boxShapes); 
+  },
+
+  makeBoxShapes: function(boxGrid, boxedPieces) {
+    var that = this;
+    return boxShapes = _.map(_.range(boxedPieces.length), function(index) { return that.makeFilledRectangle(boxGrid, that.gridIndexToCell(index), boxedPieces[index]); });
+  },
+
+  makeRotateShape: function(boardGrid, selectedCell) {
+    return { 
+      type: 'circle', 
+      radius: 0.8 * boardGrid.cellSize[0], 
+      center: this.gridCellCenter(boardGrid, selectedCell), 
+      strokeStyle: 'white', 
+      lineWidth: 15,
+      id: "rotate"
+    };    
+  }, 
+
+  findPieceAtCell: function(boardPieces, cell) {
+    return _.findWhere(boardPieces, { col: cell[0], row: cell[1] });
+  },
+
+  makeDetectableShapes: function(boardGrid, boardPieces, boxGrid, boxedPieces, selectedCell, unrotatablePieceTypes) {
+    var shapes = GE.concatenate(this.makeBoardShapes(boardGrid, boardPieces), this.makeBoxShapes(boxGrid, boxedPieces));
+    if(selectedCell)
+    {
+      var selectedPiece = this.findPieceAtCell(boardPieces, selectedCell);
+      if(selectedPiece && this.pieceIsRotatable(selectedPiece, unrotatablePieceTypes)) shapes.push(this.makeRotateShape(boardGrid, selectedCell));
+    }
+    return shapes;
   }
 })
