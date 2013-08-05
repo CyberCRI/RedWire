@@ -39,10 +39,16 @@
   },
 
   //returns a copy of 'tab' without the element at position 'index'
-  pureRemove: function(index, tab)
+  removeElement: function(tab, index)
   {
-    var res = tab.slice(0, index).concat(tab.slice(index+1, tab.length+1));
-    return res;
+    // By all logic, this should work. But after days of testing it, I give up...
+    //   return tab.slice(0, index).concat(tab.slice(index + 1));
+    // Here's the slow but foolproof way
+    var newArray = [];
+    for(var i = 0; i < tab.length; i++) {
+      if(i != index) newArray.push(tab[i]);
+    }
+    return newArray;
   },
 
   //returns a copy of 'pieces' with the piece 'oldPiece' replaced by 'newPiece' if 'oldPiece' was present in 'pieces'
@@ -173,10 +179,9 @@
     {
       var piece = boxedPieces[i];
       if(piece.type === pieceType) {
-        var res = this.pureRemove(i, boxedPieces);
+        return this.removeElement(boxedPieces, i);
         //console.log("finished takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+this.piecesToString(boxedPieces)+")");
         //console.log("takePieceOutOfBox("+pieceType+", "+this.piecesToString(boxedPieces)+")="+this.piecesToString(res));
-        return res;
       }
     }
     //console.log("failed takePieceOutOfBox(pieceType="+pieceType+", boxedPieces="+this.piecesToString(boxedPieces)+")");
@@ -201,26 +206,18 @@
       //put at the right place
       //boxedPieces.splice(newIndex, 0, boxedPiece);
       res.boxedPieces = boxedPieces.concat(res.boxedPiece);
-
-      for(var i in pieces)
-      {
-        var somePiece = pieces[i];
-        if((piece.col == somePiece.col) &&(piece.row == somePiece.row)) {
-          res.pieces = this.pureRemove(i, pieces);
-          //console.log("finished putPieceIntoBox: res={newBoxedPiece="+this.pieceToString(res.boxedPiece)+", newPieces="+this.piecesToString(res.pieces)+", newBoxedPieces="+this.piecesToString(res.boxedPieces)+"}");
-          return res;
-        }
-      }
+      this.log(GE.logLevels.LOG, "removeIndex", GE.indexOfEquals(pieces, piece), "pieces", pieces);
+      res.pieces = this.removeElement(pieces, GE.indexOfEquals(pieces, piece));
+      //pieces.splice(GE.indexOfEquals(pieces, piece), 1);
+      //res.pieces = pieces;
+      this.log(GE.logLevels.LOG, "length changed from", pieces.length, "to", res.pieces.length);
     } else { //the piece was moved from the box
       //console.log("putPieceIntoBox: the piece was moved from the box");
       //console.log("finished putPieceIntoBox(piece="+this.pieceToString(piece)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+") - did nothing");
+      res.boxedPiece = piece;
+      res.pieces = pieces;
+      res.boxedPieces = boxedPieces;
     }
-
-    //console.log("putPieceIntoBox: no change");
-
-    res.boxedPiece = piece;
-    res.pieces = pieces;
-    res.boxedPieces = boxedPieces;
 
     return res;
   },
@@ -271,14 +268,6 @@
     }
     printed += "}";
     return printed;
-  },
-
-  //@params: must have attributes "selectedPiece" and "draggedPiece"
-  paramsToString: function(params) {
-    if (params)
-      return "params={selectedPiece="+this.pieceToString(params.selectedPiece)+", draggedPiece="+this.pieceToString(params.draggedPiece)+")";
-    else
-      return params;
   },
 
   distance: function(point1, point2) {
