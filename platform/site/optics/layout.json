@@ -284,7 +284,8 @@
             {
               "send": {
                 "services.graphics.shapes": "tools.drawShape({ type: 'text', text: 'You win', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '18px Rix', align: 'center' })",
-                "model.mouseDetection": "{}"
+                "model.mouseDetection": "{}",
+                "model.rotating": "false"
               }
             },
             {

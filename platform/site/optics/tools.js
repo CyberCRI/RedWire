@@ -111,49 +111,50 @@
   //boxedPieces is the update table of boxed pieces
   movePieceTo: function(piece, newSquare, pieces, boxedPieces, gridSize, unmovablePieces)
   {
-    this.log(GE.logLevels.INFO, "starting movePieceTo(piece=", piece, ", newSquare=", newSquare, ", pieces=", pieces, ", boxedPieces=", boxedPieces, ")");
+    //this.log(GE.logLevels.INFO, "starting movePieceTo(piece=", piece, ", newSquare=", newSquare, ", pieces=", pieces, ", boxedPieces=", boxedPieces, ")");
 
     var newPiece = GE.cloneData(piece);
     var newPieces = GE.cloneData(pieces);
     var newBoxedPieces = GE.cloneData(boxedPieces);
 
     if(this.isMovable(piece, unmovablePieces)) {
-      if (newSquare != null) { //defensive code
-        if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
-          this.log(GE.logLevels.INFO, "movePieceTo the piece was on the board, let's change its coordinates");
-          //var movedPiece = findGridElement([piece.col, piece.row], pieces);
-          //movedPiece.col = newSquare[0];
-          //movedPiece.row = newSquare[1];
-          newPiece.col = newSquare[0];
-          newPiece.row = newSquare[1];
-          newPieces    = this.replace(piece, newPiece, pieces);
-          this.log(GE.logLevels.INFO, "piece", piece, "newPiece", newPiece, "newPieces", newPieces);
+      if(newSquare != null) { //defensive code
+        if(this.findGridElement(newSquare, pieces) == null) {
+          if ((piece.col !== undefined) && (piece.row !== undefined)) { //the piece was on the board, let's change its coordinates
+            //this.log(GE.logLevels.INFO, "movePieceTo the piece was on the board, let's change its coordinates");
+            //var movedPiece = findGridElement([piece.col, piece.row], pieces);
+            //movedPiece.col = newSquare[0];
+            //movedPiece.row = newSquare[1];
+            newPiece.col = newSquare[0];
+            newPiece.row = newSquare[1];
+            newPieces    = this.replace(piece, newPiece, pieces);
+            //this.log(GE.logLevels.INFO, "piece", piece, "newPiece", newPiece, "newPieces", newPieces);
+          } else { //the piece was in the box, let's put it on the board  
+            //this.log(GE.logLevels.INFO, "movePieceTo the piece was in the box, let's put it on the board");
+            //remove the piece from the "boxedPieces"
+            newBoxedPieces = this.takePieceOutOfBox(piece.type, boxedPieces);
 
-        } else { //the piece was in the box, let's put it on the board  
-          this.log(GE.logLevels.INFO, "movePieceTo the piece was in the box, let's put it on the board");
-          //remove the piece from the "boxedPieces"
-          newBoxedPieces = this.takePieceOutOfBox(piece.type, boxedPieces);
-
-          //add it to the "pieces" with the appropriate coordinates
-          newPiece = {
-            "col": newSquare[0],
-            "row": newSquare[1],
-            "type": piece.type,
-            "rotation": 0
-          };
-          newPieces = pieces.concat([newPiece]);
+            //add it to the "pieces" with the appropriate coordinates
+            newPiece = {
+              "col": newSquare[0],
+              "row": newSquare[1],
+              "type": piece.type,
+              "rotation": 0
+            };
+            newPieces = pieces.concat([newPiece]);
+          }
         }
       } else {
         //the new square position is outside of the board: let's box the piece
-        this.log(GE.logLevels.INFO, "movePieceTo the new square position is outside of the board: let's box the piece");
+        //this.log(GE.logLevels.INFO, "movePieceTo the new square position is outside of the board: let's box the piece");
         var put = this.putPieceIntoBox(piece, pieces, boxedPieces);
         newPiece = put.piece;
         newPieces = put.pieces;
         newBoxedPieces = put.boxedPieces;
       }
-      this.log(GE.logLevels.INFO, "finished movePieceTo(piece=", piece, ", newSquare=", newSquare, ", pieces=", pieces, ", boxedPieces=", boxedPieces, ")");
+      //this.log(GE.logLevels.INFO, "finished movePieceTo(piece=", piece, ", newSquare=", newSquare, ", pieces=", pieces, ", boxedPieces=", boxedPieces, ")");
     } else {
-      this.log(GE.logLevels.INFO, "finished movePieceTo(piece=", piece, ", newSquare=", newSquare, ", pieces=", pieces, ", boxedPieces=", boxedPieces, ")");
+      //this.log(GE.logLevels.INFO, "finished movePieceTo(piece=", piece, ", newSquare=", newSquare, ", pieces=", pieces, ", boxedPieces=", boxedPieces, ")");
     }
 
     var toReturn = {};
@@ -204,13 +205,8 @@
         "type": piece.type
       };
       //put at the right place
-      //boxedPieces.splice(newIndex, 0, boxedPiece);
       res.boxedPieces = boxedPieces.concat(res.boxedPiece);
-      this.log(GE.logLevels.LOG, "removeIndex", GE.indexOfEquals(pieces, piece), "pieces", pieces);
       res.pieces = this.removeElement(pieces, GE.indexOfEquals(pieces, piece));
-      //pieces.splice(GE.indexOfEquals(pieces, piece), 1);
-      //res.pieces = pieces;
-      this.log(GE.logLevels.LOG, "length changed from", pieces.length, "to", res.pieces.length);
     } else { //the piece was moved from the box
       //console.log("putPieceIntoBox: the piece was moved from the box");
       //console.log("finished putPieceIntoBox(piece="+this.pieceToString(piece)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+") - did nothing");
