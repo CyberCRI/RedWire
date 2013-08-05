@@ -1,5 +1,4 @@
 {
-  "selected": { },
   "leftMouseDown": false,
   "selectedPiece": null,
   "originalRotation": null,
@@ -11,15 +10,20 @@
   "timer": 0,
   "topLevelActiveChild": 0,
   "goalReached": false,
+  "mouseDetection": {
+    "state": null,
+    "dragStartPosition": null,
+    "shape": null
+  },
   "constants": {
     "startingTime": 60,
     "endingTime": 60,
-    "unmovablePieces": [
+    "unmovablePieceTypes": [
       "wall",
       "laser-on",
       "squarePrism"
     ],
-    "unrotatablePieces": [
+    "unrotatablePieceTypes": [
       "squarePrism",
       "wall"
     ],
@@ -52,8 +56,22 @@
       49,
       46
     ],
+    "boardGrid": {
+      "upperLeft": [33, 33],
+      "cellSize": [53, 53],
+      "gridSize": [14, 9]
+    },
+    "boxGrid": {
+      "upperLeft": [837, 284],
+      "cellSize": [49, 46],
+      "gridSize": [2, 5]
+    },
+    "rotationKeyMap": {
+      "37": "-1",
+      "39": "+1"
+    },
     "level": {
-      "selected": {
+      "selectedPiece": {
         "col": 0,
         "row": 0
       },
@@ -197,20 +215,16 @@
       ],
       "boxedPieces": [
         {
-          "type": "mirror",
-          "index": 0
+          "type": "mirror"
         },
         {
-          "type": "mirror",
-          "index": 1
+          "type": "mirror"
         },
         {
-          "type": "mirror",
-          "index": 2
+          "type": "mirror"
         },
         {
-          "type": "mirror",
-          "index": 3
+          "type": "mirror"
         }
       ]
     }
