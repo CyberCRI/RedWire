@@ -29,12 +29,12 @@ globals = @
 # All will be in the "GE" namespace
 GE = globals.GE
 
-GE.Model = class Model
+GE.Model = class 
   constructor: (data = {}, @previous = null) -> 
     @data = GE.cloneFrozen(data)
     @version = if @previous? then @previous.version + 1 else 0
 
-  setData: (data) -> return new Model(data, @)
+  setData: (data) -> return new GE.Model(data, @)
 
   clonedData: -> return GE.cloneData(@data)
 
@@ -52,11 +52,11 @@ GE.Model = class Model
     if GE.doPatchesConflict(patches) then throw new Error("Patches conflict")
 
     newData = GE.applyPatches(patches, @data)
-    return new Model(newData, @)
+    return new GE.Model(newData, @)
 
 GE.logToConsole = (type, message) -> window.console[type.toLowerCase()](message)
 
-GE.NodeVisitorConstants =  class NodeVisitorConstants
+GE.NodeVisitorConstants = class 
   # Accepts options for "modelData", "serviceData", "assets", "actions", "tools", "evaluator", and "log"
   # The "log" function defaults to the console
   constructor: (options) -> 
@@ -69,7 +69,7 @@ GE.NodeVisitorConstants =  class NodeVisitorConstants
       evaluator: null
       log: GE.logToConsole
 
-GE.NodeVisitorResult = class NodeVisitorResult
+GE.NodeVisitorResult = class 
   constructor: (@result = null, @modelPatches = [], @servicePatches = []) ->
 
   # Return new results with combination of this and other
@@ -77,25 +77,43 @@ GE.NodeVisitorResult = class NodeVisitorResult
     # Don't touch @result
     newModelPatches = GE.concatenate(@modelPatches, other.modelPatches)
     newServicePatches = GE.concatenate(@servicePatches, other.servicePatches)
-    return new NodeVisitorResult(@result, newModelPatches, newServicePatches)
+    return new GE.NodeVisitorResult(@result, newModelPatches, newServicePatches)
 
 # Class used just to "tag" a string as being a reference rather than a JSON value
-GE.BindingReference = class BindingReference
+GE.BindingReference = class 
   constructor: (@ref) ->
+
+# Used to compile expressions into executable functions, and to call these functions in the correct context.
+GE.EvaluationContext = class 
+  constructor: (@constants, bindings) ->
+    @model = GE.cloneData(@constants.modelData)
+    @services = GE.cloneData(@constants.serviceData)
+    @bindings = {}
+    @setupBindings(bindings)
+
+  setupBindings: (bindings) ->
+    for bindingName, bindingValue of bindings
+      if bindingValue instanceof GE.BindingReference
+        [parent, key] = GE.getParentAndKey(@, bindingValue.ref.split("."))
+        @bindings[bindingName] = parent[key]
+      else
+        @bindings[bindingName] = bindingValue
+
+  compileExpression: (expression) -> GE.compileExpression(expression, @constants.evaluator)
+
+  # Params are optional
+  evaluateFunction: (f, params) -> f(@model, @services, @constants.assets, @constants.tools, @bindings, params)
+
+  # Params are optional
+  evaluateExpression: (expression, params) -> @evaluateFunction(@compileExpression(expression), params)
 
 GE.extensions =
     IMAGE: ["png", "gif", "jpeg", "jpg"]
     JS: ["js"]
     CSS: ["css"]
 
-# There is probably a faster way to do this 
-GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))
-
 # Reject arrays as objects
 GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
-
-# Create new array with the value of these arrays
-GE.concatenate = (rest...) -> _.flatten(rest, true)
 
 # For accessing a value within an embedded object or array
 # Takes a parent object/array and the "path" as an array
@@ -136,7 +154,7 @@ GE.makePatches = (oldValue, newValue, prefix = "", patches = []) ->
     patches.push { replace: prefix, value: GE.cloneData(newValue) }
   else 
     # both elements are objects or arrays
-    keys = _.union _.keys(oldValue), _.keys(newValue)
+    keys = _.union(_.keys(oldValue), _.keys(newValue))
     GE.makePatches(oldValue[key], newValue[key], "#{prefix}/#{key}", patches) for key in keys
 
   return patches
@@ -194,19 +212,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
   childNames = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
 
   # TODO: compile expressions ahead of time
-
-  evaluationContext = 
-    model: GE.cloneData(constants.modelData)
-    services: GE.cloneData(constants.serviceData)
-    bindings: {}
-
-  # Setup bindings. Some are simple values, others point to data in model and services  
-  for bindingName, bindingValue of bindings
-    if bindingValue instanceof GE.BindingReference
-      [parent, key] = GE.getParentAndKey(evaluationContext, bindingValue.ref.split("."))
-      evaluationContext.bindings[bindingName] = parent[key]
-    else
-      evaluationContext.bindings[bindingName] = bindingValue
+  evaluationContext = new GE.EvaluationContext(constants, bindings)
 
   # Set default paramOptions
   # Cannot use normal "for key, value of" loop because cannot handle replace null values
@@ -229,10 +235,9 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
       throw new Error("Missing input parameter value for action: #{node.action}")
 
     try
-      compiledParam = GE.compileInputExpression(paramValue, constants.evaluator)
-      evaluatedParams[paramName] = compiledParam(evaluationContext.model, evaluationContext.services, constants.assets, constants.tools, evaluationContext.bindings)
+      evaluatedParams[paramName] = evaluationContext.evaluateExpression(paramValue)
     catch error
-      throw new Error("Error evaluating the input parameter expression '#{paramValue}' for node '#{node.action}': #{error}")
+      throw new Error("Error evaluating the input parameter expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}")
 
   locals = 
     params: evaluatedParams
@@ -245,7 +250,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     methodResult = action[methodName].apply(locals)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}")
+    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}. Input params were #{JSON.stringify(locals.params)}. Children are #{JSON.stringify(locals.children)}.\n#{e.stack}")
 
   result = new GE.NodeVisitorResult(methodResult)
 
@@ -254,10 +259,9 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
 
   for paramName, paramValue of node.params.out
     try
-      compiledParam = GE.compileOutputExpression(paramValue, constants.evaluator)
-      outputValue = compiledParam(evaluatedParams)
+      outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
     catch error
-      throw new Error("Error evaluating the output parameter expression '#{paramValue}' for node '#{node.action}': #{error}")
+      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}\nOutput params were #{JSON.stringify(outputParams)}.")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
     parent[key] = outputValue
@@ -273,13 +277,21 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
   # If expression is a JSON object (which includes arrays) then loop over the values. Otherwise make references to model and services
   if _.isObject(node.foreach.from)
     for key, value of node.foreach.from
-      # TODO: test "where" guard expression
-
       # Avoid polluting old object, and avoid creating new properties
       newBindings = Object.create(oldBindings)
       newBindings[node.foreach.bindTo] = value
       if node.foreach.index? then newBindings["#{node.foreach.index}"] = key
-      bindingSet.push(newBindings)
+
+      if node.foreach.where?
+        # TODO: compile expressions ahead of time
+        evaluationContext = new GE.EvaluationContext(constants, newBindings)
+        try
+          # If the where clause evaluates to false, don't add it
+          if evaluationContext.evaluateExpression(node.foreach.where) then bindingSet.push(newBindings)
+        catch error
+          throw new Error("Error evaluating the where expression '#{node.foreach.where}' for foreach node '#{node}':\n#{error.stack}")
+      else
+        bindingSet.push(newBindings)
   else if _.isString(node.foreach.from)
     inputContext = 
       model: GE.cloneData(constants.modelData)
@@ -289,13 +301,21 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
     boundValue = parent[key]
 
     for key of boundValue
-      # TODO: test "where" guard expression
-
       # Avoid polluting old object, and avoid creating new properties
       newBindings = Object.create(oldBindings)
       newBindings[node.foreach.bindTo] = new GE.BindingReference("#{node.foreach.from}.#{key}")
       if node.foreach.index? then newBindings["#{node.foreach.index}"] = key
-      bindingSet.push(newBindings)
+
+      if node.foreach.where?
+        # TODO: compile expressions ahead of time
+        evaluationContext = new GE.EvaluationContext(constants, newBindings)
+        try
+          # If the where clause evaluates to false, don't add it
+          if evaluationContext.evaluateExpression(node.foreach.where) then bindingSet.push(newBindings)
+        catch error
+          throw new Error("Error evaluating the where expression '#{node.foreach.where}' for foreach node '#{node}':\n#{error.stack}")
+      else
+        bindingSet.push(newBindings)
   else
     throw new Error("Foreach 'from' must be string or a JSON object")
 
@@ -314,6 +334,7 @@ GE.visitActionNode = (node, constants, bindings) ->
     if "listActiveChildren" of constants.actions[node.action]
       activeChildrenResult = GE.sandboxActionCall(node, constants, bindings, "listActiveChildren")
       activeChildren = activeChildrenResult.result
+      if not _.isArray(activeChildren) then throw new Error("Calling listActiveChildren() on node '#{node.action}' did not return an array")
     else
       # By default, all children are considered active
       activeChildren = [0..node.children.length - 1]
@@ -329,14 +350,14 @@ GE.visitActionNode = (node, constants, bindings) ->
     # TODO: if handler not defined, propogate error signals upwards? How to merge them?
     if "handleSignals" of constants.actions[node.action]
       errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals)
-      result.result = errorResult
       result = result.appendWith(errorResult)
+      result.result = errorResult # appendWith() does not affect result
 
   return result
 
 GE.visitForeachNode = (node, constants, oldBindings) ->
   bindingSet = GE.calculateBindingSet(node, constants, oldBindings)
-  result = new NodeVisitorResult()
+  result = new GE.NodeVisitorResult()
   for newBindings in bindingSet
     # Continue with children
     for child in (node.children or [])
@@ -345,19 +366,22 @@ GE.visitForeachNode = (node, constants, oldBindings) ->
   return result
 
 GE.visitSendNode = (node, constants, bindings) ->
-  outputContext = 
-    model: GE.cloneData(constants.modelData)
-    services: GE.cloneData(constants.serviceData)
+  modelPatches = []
+  servicePatches = []
 
-  for dest, src of node.send
-    srcExpressionFunction = GE.compileInputExpression(src, constants.evaluator)
-    srcValue = srcExpressionFunction(constants.modelData, constants.serviceData, constants.assets, constants.tools, bindings)
+  for dest, src of node.send  
+    evaluationContext = new GE.EvaluationContext(constants, bindings)
 
-    [parent, key] = GE.getParentAndKey(outputContext, dest.split("."))
-    parent[key] = srcValue
+    try
+      outputValue = evaluationContext.evaluateExpression(src)
+    catch error
+      throw new Error("Error evaluating the output parameter value expression '#{src}' for send node:\n#{error.stack}")
 
-  modelPatches = GE.makePatches(constants.modelData, outputContext.model)
-  servicePatches = GE.makePatches(constants.serviceData, outputContext.services)
+    [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
+    parent[key] = outputValue
+
+    modelPatches = GE.concatenate(modelPatches, GE.makePatches(constants.modelData, evaluationContext.model))
+    servicePatches = GE.concatenate(servicePatches, GE.makePatches(constants.serviceData, evaluationContext.services))
   
   # Return "DONE" signal, so it can be put in sequences
   return new GE.NodeVisitorResult(GE.signals.DONE, modelPatches, servicePatches)
@@ -378,7 +402,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
 
   constants.log(GE.logLevels.ERROR, "Layout item '#{JSON.stringify(node)}' is not understood")
 
-  return new NodeVisitorResult()
+  return new GE.NodeVisitorResult()
 
 # The argument "options" can values for "node", modelData", "assets", "actions", "tools", "services", and "evaluator".
 # By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
@@ -425,23 +449,12 @@ GE.stepLoop = (options) ->
   return modelPatches
 
 # Compile expression into sanboxed function that will produces an input value
-GE.compileInputExpression = (expressionText, evaluator) ->
+GE.compileExpression = (expressionText, evaluator) ->
   # Parentheses are needed around function because of strange JavaScript syntax rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
   # TODO: detect errors
-  functionText = "(function(model, services, assets, tools, bindings) { return #{expressionText}; })"
-  expressionFunc = evaluator(functionText)
-  if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
-  return expressionFunc
-
-# Compile expression into sanboxed function that produces an output value
-GE.compileOutputExpression = (expressionText, evaluator) ->
-  # Parentheses are needed around function because of strange JavaScript syntax rules
-  # TODO: use "new Function" instead of eval? 
-  # TODO: add "use strict"?
-  # TODO: detect errors
-  functionText = "(function(params) { return #{expressionText}; })"
+  functionText = "(function(model, services, assets, tools, bindings, params) { return #{expressionText}; })"
   expressionFunc = evaluator(functionText)
   if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
   return expressionFunc
