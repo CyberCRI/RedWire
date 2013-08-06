@@ -751,8 +751,6 @@
   makeBoardShapes: function(boardGrid, boardPieces) {
     var that = this;
     return boardShapes = _.map(boardPieces, function(piece) { return that.makeFilledRectangle(boardGrid, [piece.col, piece.row], piece) });
-    var boxShapes = _.map(_.range(boxedPieces.length), function(index) { return makeFilledRectangle(boxGrid, that.gridIndexToCell(index), boxedPieces[index]); });
-    return GE.concatenate(boardShapes, boxShapes); 
   },
 
   makeBoxShapes: function(boxGrid, boxedPieces) {

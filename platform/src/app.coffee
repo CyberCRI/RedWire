@@ -211,8 +211,13 @@ loadIntoEditor = (editor, url) ->
       editor.selection.clearSelection() 
 
 reloadCode = (callback) ->
+  programId = window.location.search.slice(1)
+
   try
     currentAssets = JSON.parse(editors.assetsEditor.getValue())
+    # Prefix the asset URLS with the location of the game files
+    for name, url of currentAssets
+      currentAssets[name] = programId + url
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Assets error. #{error}")
     return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
