@@ -304,11 +304,11 @@
             },
             listActiveChildren: function() {
               expect(this.children).toDeeplyEqual(["0", "2nd"]);
-              return [this.children[this.params.activeChild]];
+              return [this.params.activeChild];
             },
             handleSignals: function() {
               expect(this.children).toDeeplyEqual(["0", "2nd"]);
-              if (this.signals[this.children[this.params.activeChild]] === GE.signals.DONE) {
+              if (this.signals[this.params.activeChild] === GE.signals.DONE) {
                 this.params.activeChild++;
               }
               if (this.params.activeChild >= this.children.length - 1) {

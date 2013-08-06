@@ -28,4 +28,25 @@
 
   GE.signals = GE.makeConstantSet("DONE", "ERROR");
 
+  GE.indexOfEquals = function(collection, value) {
+    var k, v;
+    for (k in collection) {
+      v = collection[k];
+      if (_.isEqual(v, value)) {
+        return k;
+      }
+    }
+    return -1;
+  };
+
+  GE.cloneData = function(o) {
+    return JSON.parse(JSON.stringify(o));
+  };
+
+  GE.concatenate = function() {
+    var rest;
+    rest = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    return _.flatten(rest, true);
+  };
+
 }).call(this);

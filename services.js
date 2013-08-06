@@ -66,10 +66,7 @@
         case 'mousemove':
           rect = event.target.getBoundingClientRect();
           target = $(event.target);
-          return mouse.position = {
-            x: Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width),
-            y: Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)
-          };
+          return mouse.position = [Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width), Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)];
         default:
           throw new Error('Unexpected event type');
       }
@@ -236,6 +233,9 @@
           }
           if (shape.strokeStyle) {
             ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx);
+            if (shape.lineWidth) {
+              ctx.lineWidth = shape.lineWidth;
+            }
             ctx.stroke();
           }
           break;

@@ -1,22 +1,13 @@
 {
-  "action": "group",
-  "name": "groupAction",
+  "action": "doInParallel",
   "children": [
     { 
-      "action": "drawImage",
-      "params": {
-        "out": {
-          "services.graphics.shapes": "params.shapes"
-        },
-        "in": {
-          "image": "'background'",
-          "layer": "'bg'"
-        }
+      "send": {
+        "services.graphics.shapes": "tools.drawShape({ type: 'image', asset: 'background', layer: 'bg', position: [0, 0] })" 
       }
     },
     {
       "action": "doInSequence",
-      "name": "doInSequenceAction",
       "params": {
         "in": {
           "activeChild": "model.topLevelActiveChild"
@@ -28,7 +19,6 @@
       "children": [
         {
           "action": "doForSomeTime",
-          "name": "doForSomeTimeAction",
           "params": {
             "in": {
               "time": "model.constants.startingTime",
@@ -40,35 +30,13 @@
           },
           "children": [
             { 
-              "action": "drawImage",
-              "name": "drawImage",
-              "params": {
-                "in": {
-                  "image": "'title'",
-                  "layer": "'pieces'",
-                  "x": 100,
-                  "y": 150
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes"
-                }
+              "send": {
+                "services.graphics.shapes": "tools.drawShape({ type: 'image', asset: 'title', layer: 'pieces', position: [100, 150] })" 
               }
             },
             {
-              "action": "drawText",
-              "name": "drawText",
-              "params": {
-                "in": {
-                  "text": "'Ready...'",
-                  "x": 885,
-                  "y": 150,
-                  "style": "'white'",
-                  "font": "'16px Rix'",
-                  "align": "'center'"
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes"
-                }
+              "send": {
+                "services.graphics.shapes": "tools.drawShape({ type: 'text', text: 'Ready...', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '16px Rix', align: 'center' })" 
               }
             },
             {
@@ -76,7 +44,7 @@
                 "model.pieces": "model.constants.level.pieces",
                 "model.boxedPieces": "model.constants.level.boxedPieces",
                 "model.goalReached": false,
-                "model.selected": "model.constants.level.selected"
+                "model.selectedPiece": "model.constants.level.selectedPiece"
               }
             }
           ]
@@ -85,22 +53,13 @@
           "action": "doWhile",
           "params": {
             "in": {
-              "value": "!model.goalReached"
+              "value": "!tools.reachedGoal(tools.makeLightPath(model.pieces, model.constants.boardGrid.gridSize, model.constants.mirrorAttenuationFactor, model.constants.minimumAttenuation).cells, model.pieces)"
             }
           },
           "children": [ 
             {
-              "action": "drawLight",
-              "params": {
-                "in": {
-                  "pieces": "model.pieces",
-                  "constants": "model.constants",
-                  "goalReached": "model.goalReached"
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes",
-                  "model.goalReached": "params.goalReached"
-                }
+              "send": {
+                "services.graphics.shapes": "tools.drawLightPath(model.constants.boardGrid, tools.makeLightPath(model.pieces, model.constants.boardGrid.gridSize, model.constants.mirrorAttenuationFactor, model.constants.minimumAttenuation).segments)"
               }
             },
             {
@@ -110,20 +69,8 @@
               },
               "children": [
                 {
-                  "action": "drawPiece",
-                  "params": {
-                    "in": {
-                      "type" : "bindings.piece.type",
-                      "row" : "bindings.piece.row",
-                      "col" : "bindings.piece.col",
-                      "rotation": "bindings.piece.rotation",
-                      "constants": "model.constants",
-                      "rotating": "model.rotating",
-                      "selectedPiece": "model.selectedPiece"
-                    },
-                    "out": {
-                      "services.graphics.shapes": "params.shapes"
-                    }
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })" 
                   }
                 }
               ]
@@ -136,92 +83,189 @@
               },
               "children": [
                 {
-                  "action": "drawBoxedPiece",
-                  "params": {
-                    "in": {
-                      "type": "bindings.piece.type",
-                      "index": "bindings.pieceIndex",
-                      "constants": "model.constants" 
-                    },
-                    "out": {
-                      "services.graphics.shapes": "params.shapes"
-                    }
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], scale: 0.67, translation: tools.gridCellCenter(model.constants.boxGrid, tools.gridIndexToCell(bindings.pieceIndex)) })" 
                   }
                 }
               ]
             },
             {
-              "action": "drawSelected",
-              "params": {
-                "in": {
-                  "row": "model.selected.row",
-                  "col": "model.selected.col",
-                  "constants": "model.constants"
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes"
-                }
+              "send": {
+                "services.graphics.shapes": "tools.drawShape(_.extend(tools.gridCellRectangle(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), { layer: 'selection', strokeStyle: 'yellow', lineWidth: 4 }))" 
               }
             },
             {
-              "action": "clickListener",
+              "foreach": {
+                "from": "model.pieces",
+                "bindTo": "selectedPiece",
+                "where": "model.selectedPiece && bindings.selectedPiece.col === model.selectedPiece.col && bindings.selectedPiece.row === model.selectedPiece.row && tools.pieceIsRotatable(bindings.selectedPiece, model.constants.unrotatablePieceTypes)"
+              },
+              "children": [
+                {
+                  "action": "changeParameterThroughKeyboard",
+                  "params": {
+                    "in": {
+                      "parameter": "bindings.selectedPiece.rotation",
+                      "keysDown": "services.keyboard.keysDown",
+                      "keyMap": "model.constants.rotationKeyMap"
+                    },
+                    "out": {
+                      "bindings.selectedPiece.rotation": "params.parameter"
+                    }
+                  }
+                },
+                {
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'rotating', type: 'image', asset: model.rotating ? 'is-rotating' : 'can-rotate', scale: 0.5, position: [-208/2, -208/2], translation: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) })" 
+                  }
+                },
+                { 
+                  "action": "if",
+                  "params": {
+                    "in": {
+                      "value": "model.mouseDetection.shape && model.mouseDetection.shape.meta == 'rotate'"
+                    }
+                  },
+                  "children": [
+                    {
+                      "action": "when",
+                      "params": {
+                        "in": {
+                          "value": "model.mouseDetection.state"
+                        }
+                      },
+                      "children": [
+                        {
+                          "name": "hover",
+                          "send": {
+                            "services.mouse.cursor": "'pointer'"
+                          }  
+                        },
+                        {
+                          "name": "startDrag",
+                          "send": {
+                            "model.rotationOffset": "tools.calculateRotationOffset(bindings.selectedPiece.rotation, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)",
+                            "model.rotating": "true"
+                          }
+                        },
+                        {
+                          "name": "drag",
+                          "send": {
+                            "bindings.selectedPiece.rotation": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)",
+                            "services.mouse.cursor": "'move'"
+                          }
+                        },
+                        {
+                          "name": "endDrag",
+                          "send": {
+                            "model.rotating": "false"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "action": "detectMouse",
               "params": {
                 "in": {
-                  "keyboard": "services.keyboard",
-                  "mouse": "services.mouse",
-                  "constants": "model.constants",
-                  "selected": "model.selected",
-                  "selectedPiece": "model.selectedPiece",
-                  "draggedPiece": "model.draggedPiece",
-                  "rotating": "model.rotating",
-                  "originalRotation": "model.originalRotation",
-                  "originalPieceRotation": "model.originalPieceRotation",
-                  "pieces": "model.pieces",
-                  "boxedPieces": "model.boxedPieces",
-                  "leftMouseDown": "model.leftMouseDown"
+                  "shapes": "tools.makeDetectableShapes(model.constants.boardGrid, model.pieces, model.constants.boxGrid, model.boxedPieces, [model.selectedPiece.col, model.selectedPiece.row])",
+                  "shape": "model.mouseDetection.shape",
+                  "mousePosition": "services.mouse.position",
+                  "mouseDown": "services.mouse.down",
+                  "state": "model.mouseDetection.state",
+                  "dragStartPosition": "model.mouseDetection.dragStartPosition"
                 },
                 "out": {
-                  "services.graphics.shapes": "params.shapes",
-                  "model.selected": "params.selected",
-                  "model.selectedPiece": "params.selectedPiece",
-                  "model.draggedPiece": "params.draggedPiece",
-                  "model.rotating": "params.rotating",
-                  "model.originalRotation": "params.originalRotation" ,
-                  "model.originalPieceRotation": "params.originalPieceRotation",
-                  "model.pieces": "params.pieces",
-                  "model.boxedPieces": "params.boxedPieces",
-                  "model.leftMouseDown": "params.leftMouseDown"
+                  "model.mouseDetection.state": "params.state",
+                  "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
+                  "model.mouseDetection.shape": "params.shape"
                 }
               }
             },
-            {
-              "action": "rotateSelectedPiece",
+            { 
+              "action": "if",
               "params": {
                 "in": {
-                  "selected": "model.selected",
-                  "keyboard": "services.keyboard",
-                  "constants": "model.constants",
-                  "pieces": "model.pieces"
-                },
-                "out": {
-                  "model.pieces": "params.pieces"
+                  "value": "model.mouseDetection.shape && model.mouseDetection.shape.meta != 'rotate'"
                 }
-              }
+              },
+              "children": [
+                {
+                  "action": "when",
+                  "params": {
+                    "in": {
+                      "value": "model.mouseDetection.state"
+                    }
+                  },
+                  "children": [
+                    {
+                      "name": "startDrag",
+                      "action": "if",
+                      "params": {
+                        "in": {
+                          "value": "tools.pieceIsMovable(model.mouseDetection.shape.meta, model.constants.unmovablePieceTypes)"
+                          }
+                        },
+                      "children": [
+                        {
+                          "send": {
+                            "model.draggedPiece": "model.mouseDetection.shape.meta" 
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "name": "endDrag",
+                      "action": "if",
+                      "params": {
+                        "in": {
+                          "value": "tools.pieceIsMovable(model.mouseDetection.shape.meta, model.constants.unmovablePieceTypes)"
+                          }
+                        },
+                      "children": [
+                        { 
+                          "send": {
+                            "model.draggedPiece": "null",
+                            "model.pieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieceTypes).pieces",
+                            "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieceTypes).boxedPieces"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "name": "click",
+                      "send": {
+                        "model.selectedPiece": "{ col: model.mouseDetection.shape.meta.col, row: model.mouseDetection.shape.meta.row }"
+                      }
+                    },
+                    {
+                      "name": "hover",
+                      "send": {
+                        "services.mouse.cursor": "'pointer'"
+                      }  
+                    }
+                  ]
+                }
+              ]
             },
             {
-              "action": "drawCursors",
+              "action": "if",
               "params": {
                 "in": {
-                  "pieces": "model.pieces",
-                  "boxedPieces": "model.boxedPieces",  
-                  "constants": "model.constants",
-                  "draggedPiece": "model.draggedPiece",
-                  "mouse": "services.mouse"
-                },
-                "out": {
-                  "services.mouse": "params.mouse"
+                  "value": "model.draggedPiece"
                 }
-              }
+              },
+              "children": [
+                {
+                  "send": {
+                    "services.mouse.cursor": "'move'",
+                    "services.graphics.shapes": "tools.drawShape({ type: 'image', layer: 'drag', asset: model.draggedPiece.type, alpha: 0.5, position: [-model.constants.pieceAssetCentering, -model.constants.pieceAssetCentering], translation: services.mouse.position, rotation: model.draggedPiece.rotation })"
+                  }
+                }
+              ]
             }
           ]
         },
@@ -238,20 +282,11 @@
           },
           "children": [
             {
-              "action": "drawText",
-              "params": {
-                "in": {
-                  "text": "'You win'",
-                  "x": 885,
-                  "y": 150,
-                  "style": "'white'",
-                  "font": "'18px Rix'",
-                  "align": "'center'"
-                },
-                "out": {
-                  "services.graphics.shapes": "params.shapes"
-                }
-              } 
+              "send": {
+                "services.graphics.shapes": "tools.drawShape({ type: 'text', text: 'You win', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '18px Rix', align: 'center' })",
+                "model.mouseDetection": "{}",
+                "model.rotating": "false"
+              }
             },
             {
               "foreach": {
@@ -260,20 +295,8 @@
               },
               "children": [
                 {
-                  "action": "drawPiece",
-                  "params": {
-                    "in": {
-                      "type" : "bindings.piece.type",
-                      "row" : "bindings.piece.row",
-                      "col" : "bindings.piece.col",
-                      "rotation": "bindings.piece.rotation",
-                      "constants": "model.constants",
-                      "rotating": "model.rotating",
-                      "selectedPiece": "model.selectedPiece"
-                    },
-                    "out": {
-                      "services.graphics.shapes": "params.shapes"
-                    }
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })" 
                   }
                 }
               ]

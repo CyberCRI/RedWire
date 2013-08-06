@@ -46,19 +46,6 @@
       //copied from drawLight
       var selected = this.params.selected;
 
-      //DRAGGING: GRAPHICS (DRAGGED PIECE DRAWING)
-      if(this.params.draggedPiece && this.params.mouse.position){
-        this.params.shapes = this.tools.drawShape({
-          type: "image",
-          layer: "drag",
-          asset: this.params.draggedPiece.type,
-          alpha: 0.5,
-          position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
-          translation: [this.params.mouse.position.x, this.params.mouse.position.y],
-          rotation: this.params.draggedPiece.rotation // In degrees 
-        }, this.params.shapes);
-      }
-
       //ROTATION: LOGIC (ANGLE COMPUTATION & SETTING)
       if(this.params.rotating && this.params.selectedPiece && this.params.mouse.position){
         if(this.params.originalPieceRotation === null) {
@@ -69,8 +56,8 @@
         var objectPosition = {};
         objectPosition.x = (this.params.selectedPiece.col + 0.5)*(this.params.constants.cellSize-1) + this.params.constants.upperLeftBoardMargin;
         objectPosition.y = (this.params.selectedPiece.row + 0.5)*(this.params.constants.cellSize-1) + this.params.constants.upperLeftBoardMargin;
-        var hxPosition = this.params.mouse.position.x - objectPosition.x;
-        var hyPosition = this.params.mouse.position.y - objectPosition.y;
+        var hxPosition = this.params.mouse.position[0] - objectPosition.x;
+        var hyPosition = this.params.mouse.position[1] - objectPosition.y;
         var omDistance = Math.sqrt(hxPosition*hxPosition + hyPosition*hyPosition);
         //var ohxDistance = hxPosition;
         var ohyDistance = -hyPosition;
@@ -109,12 +96,12 @@
         {
           //board coordinates
           var clickedColumn = this.tools.toBoardCoordinate(
-            that.params.mouse.position.x, 
+            that.params.mouse.position[0], 
             this.params.constants.upperLeftBoardMargin, 
             this.params.constants.cellSize
             );
           var clickedRow = this.tools.toBoardCoordinate(
-            that.params.mouse.position.y, 
+            that.params.mouse.position[1], 
             this.params.constants.upperLeftBoardMargin, 
             this.params.constants.cellSize
             );
@@ -132,7 +119,7 @@
             if(!this.tools.isInGrid(boardCoordinates, this.params.constants.gridSize)){
               //console.log("clicked outside of board");
               var boxIndex = this.tools.getIndexInBox(
-                    [that.params.mouse.position.x, that.params.mouse.position.y],
+                    [that.params.mouse.position[0], that.params.mouse.position[1]],
                     this.params.constants.boxLeft,
                     this.params.constants.boxTop,
                     this.params.constants.boxCellSize,
@@ -215,7 +202,7 @@
               //put out of board: put piece in box
               //console.log("released outside of board");
               var boxIndex = this.tools.getIndexInBox(
-                    [that.params.mouse.position.x, that.params.mouse.position.y],
+                    [that.params.mouse.position[0], that.params.mouse.position[1]],
                     this.params.constants.boxLeft,
                     this.params.constants.boxTop,
                     this.params.constants.boxCellSize,
@@ -349,457 +336,37 @@
     }
   },
 
-  /* TODO: replace with "send" graphics calls */
-  clearBackground: {
-    paramDefs: {
-      "color": { default: "black" },
-      "graphics": { direction: "inout" }
-    },
-    update: function() {
-      this.tools.drawShape(this.params.graphics, {
-        type: "rectangle",
-        layer: "bg",
-        fillStyle: this.params.color,
-        position: [0, 0],
-        size: this.params.graphics.size
-      });
-    }
-  },
-
-  /* TODO: replace with "send" graphics calls */
-  drawImage: {
-    paramDefs: {
-      shapes: { direction: "out", default: "{}" },
-      image: null,
-      layer: null,
-      x: { default: 0 },
-      y: { default: 0 }
-    },
-    update: function() {
-      debugger;
-      this.params.shapes = this.tools.drawShape({
-        type: "image",
-        layer: this.params.layer,
-        asset: this.params.image,
-        position: [this.params.x, this.params.y]
-      });
-    }
-  },
-
-  /* TODO: replace with "send" graphics calls */
-  drawText: {
-    paramDefs: {
-      text: { default: "" },
-      x: { default: 0 },
-      y: { default: 12 },
-      style: { default: "black" },
-      font: { default: "12px Arial" },
-      align: { default: "left" },
-      shapes: { direction: "out", default: "{}" }
-    },
-    update: function() { 
-      this.params.shapes = this.tools.drawShape({
-        type: "text",
-        layer: "text",
-        text: this.params.text,
-        strokeStyle: this.params.style,
-        fillStyle: this.params.style,
-        font: this.params.font,
-        align: this.params.align,
-        position: [this.params.x, this.params.y]
-      });
-    }
-  },
-
-  group: { 
+  doInParallel: { 
     doc: "Just to place children under it"
   },
 
-  /* TODO: replace with "send" graphics calls and too? */
-  drawPiece: {
+  changeParameterThroughKeyboard: {
     paramDefs: {
-      shapes: { direction: "out", default: "{}" },
-      type: null,
-      row: { default: 0 },
-      col: { default: 0 },
-      rotation: { default: 0 },
-      constants: null,
-      rotating: { default: false },
-      selectedPiece: null
-    },
-
-    update: function() {
-      var that = this;
-
-      function drawObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation) {
-        that.params.shapes = that.tools.drawShape(that.tools.getDrawableObject(layer, assetName, scale, assetSize, col, row, cellSize, upperLeftBoardMargin, rotation), that.params.shapes);
-      }
-
-      drawObject("pieces", that.params.type, 1, 50, that.params.col, that.params.row, that.params.constants.cellSize, that.params.constants.upperLeftBoardMargin, that.params.rotation);
-
-      if(this.params.selectedPiece && this.params.selectedPiece.col != null && (this.params.selectedPiece.col == this.params.col) && (this.params.selectedPiece.row == this.params.row)){
-        var assetImage = "can-rotate";
-        if(this.params.rotating){
-          assetImage = "is-rotating";
-        }
-        drawObject("rotating", assetImage, 0.5, 208, that.params.col, that.params.row, that.params.constants.cellSize, that.params.constants.upperLeftBoardMargin, that.params.rotation);
-      }
-    }
-  },
-
-  // draws a boxed piece in the box according to its index in the "boxedPiece" table
-  drawBoxedPiece: {
-    paramDefs: {
-      shapes: { direction: "out", default: "{}" },
-      type: null,
-      index: { default: 0 },
-      constants: null
+      "parameter": { direction: "inout" },
+      "keysDown": null,
+      "keyMap": null // Keymap must be in a form like { "37": "-10", "39": 3, "41": "hello" }
     },
     update: function() {
-      var boxPosition = [this.params.index % 2, this.params.index >> 1];
-      this.params.shapes = this.tools.drawShape({
-        type: "image",
-        layer: "pieces",
-        asset: this.params.type,
-        scale: 0.67,
-        position: [-this.params.constants.pieceAssetCentering, -this.params.constants.pieceAssetCentering],
-        translation: [this.params.constants.boxLeft + (boxPosition[0]+.5) * this.params.constants.boxCellSize[0], this.params.constants.boxTop + (boxPosition[1]+.5) * this.params.constants.boxCellSize[1]],
-        rotation: 0 // In degrees 
-      }, this.params.shapes);
-    }
-  },
-
-  drawSelected: {
-    paramDefs: {
-      shapes: { direction: "out", default: "{}" },
-      row: { default: 0 },
-      col: { default: 0 },
-      constants: null
-    },
-    update: function() {
-      this.params.shapes = this.tools.drawShape({
-        type: "rectangle",
-        layer: "selection",
-        position: [this.params.col * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin, 
-        this.params.row * this.params.constants.cellSize + this.params.constants.upperLeftBoardMargin],
-        size: [50, 50],
-        strokeStyle: "yellow",
-        lineWidth: 4
-      }, this.params.shapes);
-    }
-  },
-
-  /* This could be replaced by a send call */
-  incrementNumber: {
-    paramDefs: {
-      number: null
-    },
-    update: function() {
-      this.params.number++;
-    }
-  },
-
-  /* This needs to be refactored into tools */
-  drawLight: {
-    paramDefs: {
-      shapes: { direction: "out", default: "{}" },
-      pieces: null,
-      constants: null,
-      goalReached: null
-    },
-    update: function() {
-      var EXTEND_LINES_FACTOR = Sylvester.precision;
-      var that = this;
-      var gridSize = that.params.constants.gridSize;
-
-      function handleGridElement()
+      for(var keyCode in this.params.keyMap)
       {
-        if(element.type == "wall")
+        // is the key down?
+        if(this.params.keysDown[keyCode])
         {
-          // find intersection with wall
-          var wallIntersection = that.tools.intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [element.col, element.row], EXTEND_LINES_FACTOR);
-          if(wallIntersection === null) throw new Error("Cannot find intersection with wall");
-          lightSegments[lightSegments.length - 1].destination = wallIntersection;
-
-          lightIntensity = 0;
-        }
-        else if(element.type == "mirror")
-        {
-          // find intersection with central line
-          var rotation = element.rotation * Math.PI / 180; 
-          var centralLineDiff = [.5 * Math.cos(rotation), .5 * Math.sin(rotation)];
-          var centralLine = [[element.col + 0.5 + centralLineDiff[0], element.row + 0.5 + centralLineDiff[1]], [element.col + 0.5 - centralLineDiff[0], element.row + 0.5 - centralLineDiff[1]]];
-          if(intersection = that.tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine], EXTEND_LINES_FACTOR))
+          // Parse value of keyMap
+          var value = this.params.keyMap[keyCode];
+          if(_.isString(value) && value.length > 0 && (value[0] == "+" || value[0] == "-")) 
           {
-            lightSegments[lightSegments.length - 1].destination = intersection;
-
-            lightIntensity *= that.params.constants.mirrorAttenuationFactor;
-            if(lightIntensity < that.params.constants.minimumAttenuation)
-            {
-              lightIntensity = 0;
-            }
-            else
-            {
-              lightSegments.push({ origin: intersection, intensity: lightIntensity });
-
-              // reflect around normal
-              // normal caluclation from http://www.gamedev.net/topic/510581-2d-reflection/)
-              // reflection calculation from http://paulbourke.net/geometry/reflected/ 
-              // Rr = Ri - 2 N (Ri . N)
-              var normal = Vector.create([-Math.sin(rotation), Math.cos(rotation)]);
-              var oldLightDirection = Vector.create(lightDirection);
-              lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;
- 
-              lightDirectionUpdated();
-            }
+            // Treat it as a numerical difference
+            this.params.parameter += Number(value);
           }
-        }
-        else if(element.type == "squarePrism")
-        {
-          that.params.goalReached = true;
-        }
-      }
-
-      function lightDirectionUpdated()
-      {
-        lightSigns = [lightDirection[0] > 0 ? 1 : -1, lightDirection[1] > 0 ? 1 : -1];
-
-        var distanceOutOfGrid = Math.sqrt(gridSize[0]*gridSize[0] + gridSize[1]*gridSize[1]);
-        var lastOrigin = lightSegments[lightSegments.length - 1].origin;
-        lightDestination = Sylvester.Vector.create(lastOrigin).add(Sylvester.Vector.create(lightDirection).multiply(distanceOutOfGrid)).elements.slice();
-
-      }
-
-      // all lines are in grid space, not in screen space
-      // options override default values for all drawn shapes (layer, composition, etc.)
-      function drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options)
-      {
-        var marginV = Vector.create([that.params.constants.toSquareCenterOffset, that.params.constants.toSquareCenterOffset]);
-
-        // find normal to line (http://stackoverflow.com/questions/1243614/how-do-i-calculate-the-normal-vector-of-a-line-segment)
-        var originV = Vector.create(origin).multiply(that.params.constants.cellSize).add(marginV);
-        var destV = Vector.create(dest).multiply(that.params.constants.cellSize).add(marginV);
-        var d = destV.subtract(originV);
-        var normal = Vector.create([-d.elements[1], d.elements[0]]).toUnitVector();
-
-        var strokeGradUpper = originV.add(normal.multiply(outerRadius));
-        var strokeGradLower = originV.add(normal.multiply(-outerRadius));
-
-        var transRgba = _.clone(colorRgba);
-        transRgba[3] = 0;
-
-        strokeGrad = {
-          type: "linearGradient",
-          startPosition: strokeGradUpper.elements,
-          endPosition: strokeGradLower.elements,
-          colorStops: [
-            { position: 0, color: "rgba(" + transRgba.join(",") + ")" },
-            { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
-            { position: 1 - innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
-            { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
-          ]
-        };
-
-        that.params.shapes = that.tools.drawShape(_.extend({
-          type: "path",
-          layer: "light",
-          strokeStyle: strokeGrad,
-          lineWidth: 2 * outerRadius,
-          points: [originV.elements, destV.elements]
-        }, options), that.params.shapes);
-
-        fillGrad = {
-          type: "radialGradient",
-          start: {
-            position: originV.elements,
-            radius: 0
-          },
-          end: {
-            position: originV.elements,
-            radius: outerRadius
-          },
-          colorStops: [
-            { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
-            { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
-          ]
-        };
-
-        that.params.shapes = that.tools.drawShape(_.extend({
-          type: "circle",
-          layer: "light",
-          fillStyle: fillGrad,
-          position: originV.elements,
-          radius: outerRadius
-        }, options), that.params.shapes);
-
-        fillGrad = {
-          type: "radialGradient",
-          start: {
-            position: destV.elements,
-            radius: 0
-          },
-          end: {
-            position: destV.elements,
-            radius: outerRadius
-          },
-          colorStops: [
-            { position: innerRadius / outerRadius, color: "rgba(" + colorRgba.join(",") + ")" },
-            { position: 1, color: "rgba(" + transRgba.join(",") + ")" }
-          ]
-        };
-
-        that.params.shapes = that.tools.drawShape(_.extend({
-          type: "circle",
-          layer: "light",
-          fillStyle: fillGrad,
-          position: destV.elements,
-          radius: outerRadius
-        }, options), that.params.shapes);
-      }
-
-      // Do everything in the "grid space" and change to graphic coordinates at the end
-
-      // find source of light
-      // TODO: this could be replacd by a WHERE bind expression
-      var lightSource;
-      for(var i in this.params.pieces)
-      {
-        var piece = this.params.pieces[i];
-        if(piece.type == "laser-on") 
-        {
-          lightSource = piece;
+          else
+          {
+            this.params.parameter = value;
+          }
+          // only treat a single keycode
           break;
         }
-      }
-      if(!lightSource) {
-        return;
-      }
-
-      // calculate origin coordinates of light 
-      // the piece starts vertically, so we rotate it 90 degrees clockwise by default
-      var rotation = (lightSource.rotation - 90) * Math.PI / 180; 
-      var lightDirection = [Math.cos(rotation), Math.sin(rotation)];
-      // TODO: add color portions of light (3 different intensities)
-      var lightIntensity = 1.0; // start at full itensity
-
-      // follow light path through the grid, checking for intersections with pieces
-      // Based on Bresenham's "simplified" line algorithm (http://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm)      
-      var currentCell = [lightSource.col, lightSource.row]
-      var lightSegments = [ { origin: [currentCell[0] + 0.5, currentCell[1] + 0.5], intensity: lightIntensity }];
-
-      var lightSigns;
-      var lightDestination; // represents a point outside of the grid that the light could reach if unimpeded 
-      lightDirectionUpdated();
-
-      var element;
-      var nextCells = [];
-      do
-      { 
-        var verticalIntersection = null;
-        if(Math.abs(lightDirection[0]) > Sylvester.precision)
-        {
-          var x = currentCell[0] + (lightDirection[0] > 0 ? 1 : 0);
-          var line = [[x, currentCell[1]], [x, currentCell[1] + 1]];
-          verticalIntersection = this.tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);
-        } 
-        var horizontalIntersection = null;
-        if(Math.abs(lightDirection[1]) > Sylvester.precision)
-        {
-          var y = currentCell[1] + (lightDirection[1] > 0 ? 1 : 0);
-          var line = [[currentCell[0], y], [currentCell[0] + 1, y]]
-          horizontalIntersection = this.tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);
-        } 
-
-        if(verticalIntersection && horizontalIntersection)
-        {
-          // move diagonally
-          currentCell = [currentCell[0] + lightSigns[0], currentCell[1] + lightSigns[1]];
-        }
-        else if(verticalIntersection)
-        {
-          // move horizontally
-          currentCell = [currentCell[0] + lightSigns[0], currentCell[1]];          
-        }
-        else if(horizontalIntersection)
-        {
-          // move vertically
-          currentCell = [currentCell[0], currentCell[1] + lightSigns[1]];          
-        }
-        else 
-        {
-          // this is WEIRD!
-          throw new Error("Light vector is NULL");
-        }
-
-        if(!this.tools.isInGrid(currentCell, this.params.constants.gridSize))
-        {
-          lightIntensity = 0;
-
-          // find intersection with boundaries
-          var boundaryIntersection = this.tools.intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, lightDestination, gridSize, EXTEND_LINES_FACTOR);
-          if(boundaryIntersection === null) throw new Error("Cannot find intersection with boundaries");
-          lightSegments[lightSegments.length - 1].destination = boundaryIntersection;
-        }
-        else if(element = this.tools.findGridElement(currentCell, this.params.pieces))
-        {
-          handleGridElement();
-        }
-      } while(lightIntensity > 0);
-
-      // DRAW SEGMENTS
-
-      // Draw black mask that we will cut away from
-      // based on the method of this fiddle: http://jsfiddle.net/wNYkX/3/
-      that.params.shapes = that.tools.drawShape({
-        type: "rectangle",
-        layer: "mask",
-        fillStyle: "black",
-        position: this.params.constants.playableBoardOffset,
-        size: this.params.constants.playableBoardSize,
-        order: 0
-      }, that.params.shapes);
-
-      // now cut away, using 'destination-out' composition
-      var maskOptions = { 
-        layer: "mask", 
-        composition: "destination-out", 
-        order: 1 
-      };
-      for(var i = 0; i < lightSegments.length; i++)
-      {
-        //TODO extract 30 and 40 values
-        drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 30, 40, [255, 255, 255, lightSegments[i].intensity], maskOptions);
-      }
-
-      // draw light ray normally
-      for(var i = 0; i < lightSegments.length; i++)
-      {
-        //TODO extract 4 and 6 values
-        drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 4, 6, [255, 0, 0, lightSegments[i].intensity]);
-      }
-    }
-  },
-
-  rotateSelectedPiece: {
-    paramDefs: {
-      "selected": null,
-      "keyboard": null,
-      "constants": null,
-      "pieces": { direction: "inout" }
-    },
-    update: function() {
-      var selectedPiece = this.tools.findGridElement(
-                            [this.params.selected.col, this.params.selected.row],
-                            this.params.pieces
-                          );
-      if(!selectedPiece || !this.tools.isRotatable(selectedPiece, this.params.constants.unrotatablePieces)) return; // nothing selected, so can't rotate
-
-      var keysDown = this.params.keyboard.keysDown; // alias
-      if(keysDown[37]) { // left
-       selectedPiece.rotation -= this.params.constants.rotationAmount;
-      } else if(keysDown[39]) { // right
-       selectedPiece.rotation += this.params.constants.rotationAmount;
-      }
+      } 
     }
   },
 
@@ -807,9 +374,9 @@
     paramDefs: {
       activeChild: { direction: "inout", default: 0 },
     },
-    listActiveChildren: function() { return [this.children[this.params.activeChild]]; },
+    listActiveChildren: function() { return [this.params.activeChild]; },
     handleSignals: function() { 
-      if(this.signals[this.children[this.params.activeChild]] == GE.signals.DONE)
+      if(this.signals[this.params.activeChild] == GE.signals.DONE)
         this.params.activeChild++;
 
       if(this.params.activeChild > this.children.length - 1)
@@ -842,53 +409,121 @@
     }
   },
 
-  drawCursors: {
+  when: {
     paramDefs: {
-      "pieces": null,
-      "boxedPieces": null,
-      "constants": null,
-      "draggedPiece": null,
-      "mouse": { direction: "inout" }
+      value: null
     },
-    update: function() {
-      if(!this.params.mouse.position) {
-        return;
-      } else {
-      }
+    listActiveChildren: function() { 
+      return this.tools.childByName(this.children, this.params.value);
+    }
+  },
 
-      if(this.params.draggedPiece) {
-        this.params.mouse.cursor = "move";
-      }
-      else
+  // Selects the first branch if the expression is truthy, else the second (if it exists)
+  "if": {
+    paramDefs: {
+      value: null
+    },
+    listActiveChildren: function() { 
+      return this.params.value ? [0] : this.children.length > 1 ? [1] : []; 
+    }
+  },
+
+  sandwich: {
+    paramDefs: {
+      condition: null,
+      started: { direction: "inout" }
+    },
+    listActiveChildren: function() { 
+      if(!this.params.track)
       {
-        var mousePos = [this.params.mouse.position.x, this.params.mouse.position.y];
-        var gridCell = [this.tools.toBoardCoordinate(
-                          mousePos[0], 
-                          this.params.constants.upperLeftBoardMargin, 
-                          this.params.constants.cellSize), 
-                        this.tools.toBoardCoordinate(
-                          mousePos[1],
-                          this.params.constants.upperLeftBoardMargin,
-                          this.params.constants.cellSize
-                          )
-                        ];         
-        if((this.tools.findGridElement(gridCell, this.params.pieces) !== null)
-            ||  (this.tools.getBoxedPiece(
-                  this.tools.getIndexInBox(
-                    mousePos,
-                    this.params.constants.boxLeft,
-                    this.params.constants.boxTop,
-                    this.params.constants.boxCellSize,
-                    this.params.constants.boxRowsCount,
-                    this.params.constants.boxColumnsCount
-                  ),
-                  this.params.boxedPieces
-                ) !== null)
-          )
-        {
-          this.params.mouse.cursor = "pointer";
+        if(!this.params.condition) {
+          return [0];
+        } else {
+          this.params.track = true;
+          return [1];
+        }
+      } else {
+        if(this.params.condition) {
+          return [1];
+        } else {
+          this.params.track = false;
+          return [2];
         }
       }
     }
+  },
+
+  detectMouse: {
+    paramDefs: {
+      "shapes": null,
+      "shape": { direction: "inout" },
+      "mousePosition": null,
+      "mouseDown": null,
+      "state": { direction: "inout" },
+      "dragStartPosition": { direction: "inout" },
+      "minimumDragDistance": { default: "5" }
+    },
+    update: function() { 
+      // Implement a state machine, starting at the "none" state
+      if(!this.params.state) this.params.state = "none";
+
+      //this.log(GE.logLevels.INFO, "shapes", this.params.shapes);
+
+      switch(this.params.state) {
+        case "none":
+          if(this.params.mousePosition) {
+            for(var i in this.params.shapes) {
+              if(this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shapes[i])) {
+                this.log(GE.logLevels.INFO, "Entering hover mode. Old state = " + this.params.state);
+                this.params.state = "hover";
+                this.params.shape = this.params.shapes[i];
+                break;
+              }
+            }
+          } 
+          break;
+        case "hover":
+          if(!this.params.mousePosition || !this.tools.pointIntersectsShape(this.params.mousePosition, this.params.shape)) {
+            this.params.state = "none";
+            this.params.shape = null;
+            this.log(GE.logLevels.INFO, "Leaving hover mode")
+          } else if(this.params.mouseDown) {
+            this.params.dragStartPosition = this.params.mousePosition;
+            this.params.state = "pressed";
+            this.log(GE.logLevels.INFO, "Entering presed mode")
+          }
+          break;
+        case "pressed":
+          if(!this.params.mouseDown) {
+            this.params.state = "click";
+            this.params.dragStartPosition = null;
+            this.log(GE.logLevels.INFO, "Leaving pressed mode")
+          } else if(Vector.create(this.params.dragStartPosition).distanceFrom(Vector.create(this.params.mousePosition)) >= this.params.minimumDragDistance) {
+            this.params.state = "startDrag";
+            this.params.dragStartPosition = null;
+            this.log(GE.logLevels.INFO, "Entering drag mode")
+          }
+          break;
+        case "click":
+          this.params.state = "hover";
+          break;
+        case "startDrag":
+          this.params.state = "drag";
+          break;
+        case "drag":
+          if(!this.params.mouseDown) {
+            this.params.state = "endDrag";
+            this.params.dragStartPosition = null;
+            this.log(GE.logLevels.INFO, "Leaving drag mode")
+          }
+          break;
+        case "endDrag":
+          this.params.state = "hover";
+          break;
+        default:
+          throw new Error("Unknown state '" + this.params.state + "'");
+      }
+    }
   }
+
 });

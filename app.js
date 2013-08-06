@@ -3,7 +3,8 @@
 
 
 (function() {
-  var CODE_CHANGE_TIMEOUT, EVAL_ASSETS, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentExpressionEvaluator, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, currentServices, currentTools, editors, evalLoadedAssets, executeCode, getFormattedTime, globals, handleAnimation, handleResize, isPlaying, loadCodeFromCache, loadIntoEditor, log, logWithPrefix, notifyCodeChange, registerService, reloadCode, requestAnimationFrame, resetLogContent, saveCodeToCache, services, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner, zeroPad;
+  var CODE_CHANGE_TIMEOUT, EDITOR_URL_PAIRS, EVAL_ASSETS, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentExpressionEvaluator, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, currentServices, currentTools, editors, evalLoadedAssets, executeCode, getFormattedTime, globals, handleAnimation, handleResize, isPlaying, loadCodeFromCache, loadIntoEditor, log, logWithPrefix, notifyCodeChange, registerService, reloadCode, requestAnimationFrame, resetLogContent, saveCodeToCache, services, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner, togglePlayMode, zeroPad,
+    __slice = [].slice;
 
   globals = this;
 
@@ -35,6 +36,8 @@
     underscore: "lib/underscore/underscore.js",
     gamEvolveCommon: "gamEvolveCommon.js"
   };
+
+  EDITOR_URL_PAIRS = [["modelEditor", "model.json"], ["assetsEditor", "assets.json"], ["actionsEditor", "actions.js"], ["toolsEditor", "tools.js"], ["layoutEditor", "layout.json"], ["servicesEditor", "services.json"]];
 
   /* Globals*/
 
@@ -118,16 +121,60 @@
     return $("#topAlert, #topInfo").hide();
   };
 
-  logWithPrefix = function(logType, message, newLine) {
-    if (newLine == null) {
-      newLine = true;
-    }
+  logWithPrefix = function() {
+    var logType, value, valueStrings, values;
+    logType = arguments[0], values = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
     if (GE.logLevels[logType]) {
       log.clearSelection();
       log.navigateFileEnd();
-      return log.insert(logType + ": " + getFormattedTime() + " " + message + (newLine ? "\n" : ""));
+      valueStrings = (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = values.length; _i < _len; _i++) {
+          value = values[_i];
+          if (_.isString(value)) {
+            _results.push(value);
+          } else {
+            _results.push(JSON.stringify(value));
+          }
+        }
+        return _results;
+      })();
+      return log.insert(logType + ": " + getFormattedTime() + " " + valueStrings.join("  ") + "\n");
     } else {
       return logWithPrefix(GE.logLevels.ERROR, "Bad logType parameter '" + logType + "' in log for message '" + message + "'");
+    }
+  };
+
+  togglePlayMode = function() {
+    var editor, editorId;
+    if (isPlaying) {
+      isPlaying = false;
+      for (editorId in editors) {
+        editor = editors[editorId];
+        editor.setReadOnly(false);
+        $('#' + editorId).fadeTo('slow', 1);
+      }
+      return $("#playButton").button("option", {
+        label: "Play",
+        icons: {
+          primary: "ui-icon-play"
+        }
+      });
+    } else {
+      isPlaying = true;
+      for (editorId in editors) {
+        editor = editors[editorId];
+        editor.setReadOnly(true);
+        $('#' + editorId).fadeTo('slow', 0.2);
+      }
+      handleAnimation();
+      return $("#playButton").button("option", {
+        label: "Pause",
+        icons: {
+          primary: "ui-icon-pause"
+        }
+      });
     }
   };
 
@@ -177,37 +224,7 @@
   };
 
   setupButtonHandlers = function() {
-    $("#playButton").on("click", function() {
-      var editor, editorId;
-      if (isPlaying) {
-        isPlaying = false;
-        for (editorId in editors) {
-          editor = editors[editorId];
-          editor.setReadOnly(false);
-          $('#' + editorId).fadeTo('slow', 1);
-        }
-        return $(this).button("option", {
-          label: "Play",
-          icons: {
-            primary: "ui-icon-play"
-          }
-        });
-      } else {
-        isPlaying = true;
-        for (editorId in editors) {
-          editor = editors[editorId];
-          editor.setReadOnly(true);
-          $('#' + editorId).fadeTo('slow', 0.2);
-        }
-        handleAnimation();
-        return $(this).button("option", {
-          label: "Pause",
-          icons: {
-            primary: "ui-icon-pause"
-          }
-        });
-      }
-    });
+    $("#playButton").on("click", togglePlayMode);
     $("#resetButton").on("click", function() {
       currentFrame = 0;
       currentModel = currentModel.atVersion(0);
@@ -261,10 +278,15 @@
   };
 
   reloadCode = function(callback) {
-    var actionsEvaluator, error, service, serviceDef, serviceDefs, serviceName, toolsEvaluator,
+    var actionsEvaluator, error, name, programId, service, serviceDef, serviceDefs, serviceName, toolsEvaluator, url,
       _this = this;
+    programId = window.location.search.slice(1);
     try {
       currentAssets = JSON.parse(editors.assetsEditor.getValue());
+      for (name in currentAssets) {
+        url = currentAssets[name];
+        currentAssets[name] = programId + url;
+      }
     } catch (_error) {
       error = _error;
       logWithPrefix(GE.logLevels.ERROR, "Assets error. " + error);
@@ -288,6 +310,7 @@
     toolsEvaluator = GE.makeEvaluator.apply(GE, evalLoadedAssets);
     try {
       currentTools = toolsEvaluator(editors.toolsEditor.getValue());
+      currentTools.log = logWithPrefix;
     } catch (_error) {
       error = _error;
       logWithPrefix(GE.logLevels.ERROR, "Tools error. " + error);
@@ -317,7 +340,7 @@
       return showMessage(MessageType.Error, "<strong>Services error.</strong> " + error);
     }
     return GE.loadAssets(currentAssets, function(err, loadedAssets) {
-      var evaluator, name, url, _i, _len, _ref;
+      var evaluator, _i, _len, _ref;
       if (err != null) {
         logWithPrefix(GE.logLevels.ERROR, "Cannot load assets. " + err);
         showMessage(MessageType.Error, "Cannot load assets. " + err);
@@ -333,7 +356,7 @@
           }
         }
       }
-      currentExpressionEvaluator = GE.makeEvaluator();
+      currentExpressionEvaluator = GE.makeEvaluator.apply(GE, evalLoadedAssets);
       currentLoadedAssets = loadedAssets;
       currentModel.atVersion(currentFrame).data = currentModelData;
       $("#timeSlider").slider("option", {
@@ -360,11 +383,17 @@
         evaluator: currentExpressionEvaluator,
         log: logWithPrefix
       });
+      if (modelPatches.length > 0) {
+        logWithPrefix(GE.logLevels.LOG, "Model patches are: " + (JSON.stringify(modelPatches)) + ".");
+      }
       return modelAtFrame.applyPatches(modelPatches);
     } catch (_error) {
       error = _error;
       logWithPrefix(GE.logLevels.ERROR, "Error executing code: " + error);
       showMessage(MessageType.Error, "Error executing code");
+      if (isPlaying) {
+        togglePlayMode();
+      }
       return currentModel;
     }
   };
@@ -409,12 +438,8 @@
     return requestAnimationFrame(handleAnimation);
   };
 
-  saveCodeToCache = function() {
-    var cachedCodeJson, codeToCache, editor, id, programId;
-    programId = window.location.hash.slice(1);
-    if (!programId) {
-      throw new Error("No program ID to save");
-    }
+  saveCodeToCache = function(programId) {
+    var cachedCodeJson, codeToCache, editor, id;
     codeToCache = {};
     for (id in editors) {
       editor = editors[id];
@@ -424,12 +449,7 @@
     return localStorage.setItem(programId, cachedCodeJson);
   };
 
-  loadCodeFromCache = function() {
-    var programId;
-    programId = window.location.hash.slice(1);
-    if (!programId) {
-      throw new Error("No program ID to load");
-    }
+  loadCodeFromCache = function(programId) {
     return localStorage.getItem(programId);
   };
 
@@ -445,12 +465,7 @@
     return _results;
   };
 
-  clearCodeInCache = function() {
-    var programId;
-    programId = window.location.hash.slice(1);
-    if (!programId) {
-      throw new Error("No program ID to remove");
-    }
+  clearCodeInCache = function(programId) {
     return localStorage.removeItem(programId);
   };
 
@@ -485,9 +500,14 @@
 
 
   $(document).ready(function() {
-    var cachedCodeJson, id, loadedCode, url, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
+    var ajaxRequests, cachedCodeJson, id, loadedCode, programId, url, _i, _len, _ref;
+    if (!window.location.search) {
+      return window.location.search = "?optics/";
+    }
+    programId = window.location.search.slice(1);
     setupLayout();
     setupButtonHandlers();
+    $(window).on("onresize", handleResize);
     _ref = ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       id = _ref[_i];
@@ -496,51 +516,54 @@
     log = setupEditor("log");
     log.setReadOnly(true);
     resetLogContent();
-    if (!window.location.hash) {
-      window.location.hash = "optics";
-    }
     loadedCode = false;
-    cachedCodeJson = loadCodeFromCache();
+    cachedCodeJson = loadCodeFromCache(programId);
     if (cachedCodeJson) {
       if (window.confirm("You had made changes to this code. Should we load your last version?")) {
         setCodeFromCache(cachedCodeJson);
         loadedCode = true;
       } else {
-        clearCodeInCache();
+        clearCodeInCache(programId);
       }
     }
     if (!loadedCode) {
-      _ref1 = [["modelEditor", "optics/model.json"], ["assetsEditor", "optics/assets.json"], ["actionsEditor", "optics/actions.js"], ["toolsEditor", "optics/tools.js"], ["layoutEditor", "optics/layout.json"], ["servicesEditor", "optics/services.json"]];
-      for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-        _ref2 = _ref1[_j], id = _ref2[0], url = _ref2[1];
-        loadIntoEditor(editors[id], url);
-      }
-    }
-    _ref3 = ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"];
-    for (_k = 0, _len2 = _ref3.length; _k < _len2; _k++) {
-      id = _ref3[_k];
-      editors[id].getSession().on("change", function() {
-        return notifyCodeChange();
-      });
-    }
-    globals.editors = editors;
-    $(window).on("onresize", handleResize);
-    return GE.loadAssets(EVAL_ASSETS, function(err, loadedAssets) {
-      var name, script;
-      if (err) {
-        return showMessage(MessageType.Error, "Cannot load common assets");
-      }
-      evalLoadedAssets = (function() {
-        var _results;
+      ajaxRequests = (function() {
+        var _j, _len1, _ref1, _results;
         _results = [];
-        for (name in loadedAssets) {
-          script = loadedAssets[name];
-          _results.push(script);
+        for (_j = 0, _len1 = EDITOR_URL_PAIRS.length; _j < _len1; _j++) {
+          _ref1 = EDITOR_URL_PAIRS[_j], id = _ref1[0], url = _ref1[1];
+          _results.push(loadIntoEditor(editors[id], "" + programId + url));
         }
         return _results;
       })();
-      return notifyCodeChange();
-    });
+      return $.when.apply($, ajaxRequests).fail(function() {
+        return showMessage(MessageType.Error, "Cannot load game files");
+      }).then(function() {
+        return GE.loadAssets(EVAL_ASSETS, function(err, loadedAssets) {
+          var name, script, _j, _len1, _ref1;
+          if (err) {
+            return showMessage(MessageType.Error, "Cannot load common assets");
+          }
+          evalLoadedAssets = (function() {
+            var _results;
+            _results = [];
+            for (name in loadedAssets) {
+              script = loadedAssets[name];
+              _results.push(script);
+            }
+            return _results;
+          })();
+          _ref1 = ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"];
+          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+            id = _ref1[_j];
+            editors[id].getSession().on("change", function() {
+              return notifyCodeChange();
+            });
+          }
+          return notifyCodeChange();
+        });
+      });
+    }
   });
 
 }).call(this);

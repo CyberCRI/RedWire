@@ -24,17 +24,17 @@
 
 
 (function() {
-  var BindingReference, GE, Model, NodeVisitorConstants, NodeVisitorResult, globals,
-    __slice = [].slice,
+  var GE, globals,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
-    __hasProp = {}.hasOwnProperty;
+    __hasProp = {}.hasOwnProperty,
+    __slice = [].slice;
 
   globals = this;
 
   GE = globals.GE;
 
-  GE.Model = Model = (function() {
-    function Model(data, previous) {
+  GE.Model = (function() {
+    function _Class(data, previous) {
       if (data == null) {
         data = {};
       }
@@ -43,15 +43,15 @@
       this.version = this.previous != null ? this.previous.version + 1 : 0;
     }
 
-    Model.prototype.setData = function(data) {
-      return new Model(data, this);
+    _Class.prototype.setData = function(data) {
+      return new GE.Model(data, this);
     };
 
-    Model.prototype.clonedData = function() {
+    _Class.prototype.clonedData = function() {
       return GE.cloneData(this.data);
     };
 
-    Model.prototype.atVersion = function(version) {
+    _Class.prototype.atVersion = function(version) {
       var m;
       if (version > version) {
         throw new Error("Version not found");
@@ -63,11 +63,11 @@
       return m;
     };
 
-    Model.prototype.makePatches = function(newData) {
+    _Class.prototype.makePatches = function(newData) {
       return GE.makePatches(this.data, newData);
     };
 
-    Model.prototype.applyPatches = function(patches) {
+    _Class.prototype.applyPatches = function(patches) {
       var newData;
       if (patches.length === 0) {
         return this;
@@ -76,10 +76,10 @@
         throw new Error("Patches conflict");
       }
       newData = GE.applyPatches(patches, this.data);
-      return new Model(newData, this);
+      return new GE.Model(newData, this);
     };
 
-    return Model;
+    return _Class;
 
   })();
 
@@ -87,8 +87,8 @@
     return window.console[type.toLowerCase()](message);
   };
 
-  GE.NodeVisitorConstants = NodeVisitorConstants = (function() {
-    function NodeVisitorConstants(options) {
+  GE.NodeVisitorConstants = (function() {
+    function _Class(options) {
       _.defaults(this, options, {
         modelData: {},
         serviceData: {},
@@ -100,34 +100,74 @@
       });
     }
 
-    return NodeVisitorConstants;
+    return _Class;
 
   })();
 
-  GE.NodeVisitorResult = NodeVisitorResult = (function() {
-    function NodeVisitorResult(result, modelPatches, servicePatches) {
+  GE.NodeVisitorResult = (function() {
+    function _Class(result, modelPatches, servicePatches) {
       this.result = result != null ? result : null;
       this.modelPatches = modelPatches != null ? modelPatches : [];
       this.servicePatches = servicePatches != null ? servicePatches : [];
     }
 
-    NodeVisitorResult.prototype.appendWith = function(other) {
+    _Class.prototype.appendWith = function(other) {
       var newModelPatches, newServicePatches;
       newModelPatches = GE.concatenate(this.modelPatches, other.modelPatches);
       newServicePatches = GE.concatenate(this.servicePatches, other.servicePatches);
-      return new NodeVisitorResult(this.result, newModelPatches, newServicePatches);
+      return new GE.NodeVisitorResult(this.result, newModelPatches, newServicePatches);
     };
 
-    return NodeVisitorResult;
+    return _Class;
 
   })();
 
-  GE.BindingReference = BindingReference = (function() {
-    function BindingReference(ref) {
+  GE.BindingReference = (function() {
+    function _Class(ref) {
       this.ref = ref;
     }
 
-    return BindingReference;
+    return _Class;
+
+  })();
+
+  GE.EvaluationContext = (function() {
+    function _Class(constants, bindings) {
+      this.constants = constants;
+      this.model = GE.cloneData(this.constants.modelData);
+      this.services = GE.cloneData(this.constants.serviceData);
+      this.bindings = {};
+      this.setupBindings(bindings);
+    }
+
+    _Class.prototype.setupBindings = function(bindings) {
+      var bindingName, bindingValue, key, parent, _ref, _results;
+      _results = [];
+      for (bindingName in bindings) {
+        bindingValue = bindings[bindingName];
+        if (bindingValue instanceof GE.BindingReference) {
+          _ref = GE.getParentAndKey(this, bindingValue.ref.split(".")), parent = _ref[0], key = _ref[1];
+          _results.push(this.bindings[bindingName] = parent[key]);
+        } else {
+          _results.push(this.bindings[bindingName] = bindingValue);
+        }
+      }
+      return _results;
+    };
+
+    _Class.prototype.compileExpression = function(expression) {
+      return GE.compileExpression(expression, this.constants.evaluator);
+    };
+
+    _Class.prototype.evaluateFunction = function(f, params) {
+      return f(this.model, this.services, this.constants.assets, this.constants.tools, this.bindings, params);
+    };
+
+    _Class.prototype.evaluateExpression = function(expression, params) {
+      return this.evaluateFunction(this.compileExpression(expression), params);
+    };
+
+    return _Class;
 
   })();
 
@@ -137,18 +177,8 @@
     CSS: ["css"]
   };
 
-  GE.cloneData = function(o) {
-    return JSON.parse(JSON.stringify(o));
-  };
-
   GE.isOnlyObject = function(o) {
     return _.isObject(o) && !_.isArray(o);
-  };
-
-  GE.concatenate = function() {
-    var rest;
-    rest = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    return _.flatten(rest, true);
   };
 
   GE.getParentAndKey = function(parent, pathParts) {
@@ -276,7 +306,7 @@
   };
 
   GE.sandboxActionCall = function(node, constants, bindings, methodName, signals) {
-    var action, bindingName, bindingValue, child, childNames, compiledParam, e, error, evaluatedParams, evaluationContext, index, key, locals, methodResult, outParams, outputValue, paramName, paramOptions, paramValue, parent, result, _ref, _ref1, _ref10, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
+    var action, child, childNames, e, error, evaluatedParams, evaluationContext, index, key, locals, methodResult, outParams, outputValue, paramName, paramOptions, paramValue, parent, result, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
     if (signals == null) {
       signals = {};
     }
@@ -295,20 +325,7 @@
         return [];
       }
     })();
-    evaluationContext = {
-      model: GE.cloneData(constants.modelData),
-      services: GE.cloneData(constants.serviceData),
-      bindings: {}
-    };
-    for (bindingName in bindings) {
-      bindingValue = bindings[bindingName];
-      if (bindingValue instanceof GE.BindingReference) {
-        _ref = GE.getParentAndKey(evaluationContext, bindingValue.ref.split(".")), parent = _ref[0], key = _ref[1];
-        evaluationContext.bindings[bindingName] = parent[key];
-      } else {
-        evaluationContext.bindings[bindingName] = bindingValue;
-      }
-    }
+    evaluationContext = new GE.EvaluationContext(constants, bindings);
     for (paramName in action.paramDefs) {
       if (action.paramDefs[paramName] == null) {
         action.paramDefs[paramName] = {};
@@ -318,24 +335,23 @@
       });
     }
     evaluatedParams = {};
-    _ref1 = action.paramDefs;
-    for (paramName in _ref1) {
-      paramOptions = _ref1[paramName];
-      if (((_ref2 = paramOptions.direction) === "in" || _ref2 === "inout") && ((_ref3 = node.params) != null ? (_ref4 = _ref3["in"]) != null ? _ref4[paramName] : void 0 : void 0)) {
+    _ref = action.paramDefs;
+    for (paramName in _ref) {
+      paramOptions = _ref[paramName];
+      if (((_ref1 = paramOptions.direction) === "in" || _ref1 === "inout") && ((_ref2 = node.params) != null ? (_ref3 = _ref2["in"]) != null ? _ref3[paramName] : void 0 : void 0)) {
         paramValue = node.params["in"][paramName];
-      } else if (((_ref5 = paramOptions.direction) === "out" || _ref5 === "inout") && ((_ref6 = node.params) != null ? (_ref7 = _ref6.out) != null ? _ref7[paramName] : void 0 : void 0)) {
+      } else if (((_ref4 = paramOptions.direction) === "out" || _ref4 === "inout") && ((_ref5 = node.params) != null ? (_ref6 = _ref5.out) != null ? _ref6[paramName] : void 0 : void 0)) {
         paramValue = node.params.out[paramName];
       } else if (paramOptions["default"] != null) {
         paramValue = paramOptions["default"];
-      } else if ((_ref8 = paramOptions.direction) === "in" || _ref8 === "inout") {
+      } else if ((_ref7 = paramOptions.direction) === "in" || _ref7 === "inout") {
         throw new Error("Missing input parameter value for action: " + node.action);
       }
       try {
-        compiledParam = GE.compileInputExpression(paramValue, constants.evaluator);
-        evaluatedParams[paramName] = compiledParam(evaluationContext.model, evaluationContext.services, constants.assets, constants.tools, evaluationContext.bindings);
+        evaluatedParams[paramName] = evaluationContext.evaluateExpression(paramValue);
       } catch (_error) {
         error = _error;
-        throw new Error("Error evaluating the input parameter expression '" + paramValue + "' for node '" + node.action + "': " + error);
+        throw new Error("Error evaluating the input parameter expression '" + paramValue + "' for node '" + node.action + "':\n" + error.stack);
       }
     }
     locals = {
@@ -350,32 +366,31 @@
       methodResult = action[methodName].apply(locals);
     } catch (_error) {
       e = _error;
-      constants.log(GE.logLevels.ERROR, "Calling action " + node.action + "." + methodName + " raised an exception " + e);
+      constants.log(GE.logLevels.ERROR, "Calling action " + node.action + "." + methodName + " raised an exception " + e + ". Input params were " + (JSON.stringify(locals.params)) + ". Children are " + (JSON.stringify(locals.children)) + ".\n" + e.stack);
     }
     result = new GE.NodeVisitorResult(methodResult);
     outParams = _.pick(evaluatedParams, (function() {
-      var _ref10, _ref9, _results;
-      _ref9 = action.paramDefs;
+      var _ref8, _ref9, _results;
+      _ref8 = action.paramDefs;
       _results = [];
-      for (paramName in _ref9) {
-        paramOptions = _ref9[paramName];
-        if ((_ref10 = paramOptions.direction) === "out" || _ref10 === "inout") {
+      for (paramName in _ref8) {
+        paramOptions = _ref8[paramName];
+        if ((_ref9 = paramOptions.direction) === "out" || _ref9 === "inout") {
           _results.push(paramName);
         }
       }
       return _results;
     })());
-    _ref9 = node.params.out;
-    for (paramName in _ref9) {
-      paramValue = _ref9[paramName];
+    _ref8 = node.params.out;
+    for (paramName in _ref8) {
+      paramValue = _ref8[paramName];
       try {
-        compiledParam = GE.compileOutputExpression(paramValue, constants.evaluator);
-        outputValue = compiledParam(evaluatedParams);
+        outputValue = evaluationContext.evaluateExpression(paramValue, outParams);
       } catch (_error) {
         error = _error;
-        throw new Error("Error evaluating the output parameter expression '" + paramValue + "' for node '" + node.action + "': " + error);
+        throw new Error("Error evaluating the output parameter value expression '" + paramValue + "' for node '" + node.action + "':\n" + error.stack + "\nOutput params were " + (JSON.stringify(outputParams)) + ".");
       }
-      _ref10 = GE.getParentAndKey(evaluationContext, paramName.split(".")), parent = _ref10[0], key = _ref10[1];
+      _ref9 = GE.getParentAndKey(evaluationContext, paramName.split(".")), parent = _ref9[0], key = _ref9[1];
       parent[key] = outputValue;
     }
     result.modelPatches = GE.makePatches(constants.modelData, evaluationContext.model);
@@ -384,7 +399,7 @@
   };
 
   GE.calculateBindingSet = function(node, constants, oldBindings) {
-    var bindingSet, boundValue, inputContext, key, newBindings, parent, value, _ref, _ref1;
+    var bindingSet, boundValue, error, evaluationContext, inputContext, key, newBindings, parent, value, _ref, _ref1;
     bindingSet = [];
     if (_.isObject(node.foreach.from)) {
       _ref = node.foreach.from;
@@ -395,7 +410,19 @@
         if (node.foreach.index != null) {
           newBindings["" + node.foreach.index] = key;
         }
-        bindingSet.push(newBindings);
+        if (node.foreach.where != null) {
+          evaluationContext = new GE.EvaluationContext(constants, newBindings);
+          try {
+            if (evaluationContext.evaluateExpression(node.foreach.where)) {
+              bindingSet.push(newBindings);
+            }
+          } catch (_error) {
+            error = _error;
+            throw new Error("Error evaluating the where expression '" + node.foreach.where + "' for foreach node '" + node + "':\n" + error.stack);
+          }
+        } else {
+          bindingSet.push(newBindings);
+        }
       }
     } else if (_.isString(node.foreach.from)) {
       inputContext = {
@@ -410,7 +437,19 @@
         if (node.foreach.index != null) {
           newBindings["" + node.foreach.index] = key;
         }
-        bindingSet.push(newBindings);
+        if (node.foreach.where != null) {
+          evaluationContext = new GE.EvaluationContext(constants, newBindings);
+          try {
+            if (evaluationContext.evaluateExpression(node.foreach.where)) {
+              bindingSet.push(newBindings);
+            }
+          } catch (_error) {
+            error = _error;
+            throw new Error("Error evaluating the where expression '" + node.foreach.where + "' for foreach node '" + node + "':\n" + error.stack);
+          }
+        } else {
+          bindingSet.push(newBindings);
+        }
       }
     } else {
       throw new Error("Foreach 'from' must be string or a JSON object");
@@ -419,7 +458,7 @@
   };
 
   GE.visitActionNode = function(node, constants, bindings) {
-    var activeChildren, activeChildrenResult, child, childName, childResult, childSignals, errorResult, findChild, index, result, _i, _len;
+    var activeChildren, activeChildrenResult, childIndex, childResult, childSignals, errorResult, result, _i, _j, _len, _ref, _results;
     if (!(node.action in constants.actions)) {
       throw new Error("Cannot find action '" + node.action + "'");
     }
@@ -428,47 +467,32 @@
     } else {
       result = new GE.NodeVisitorResult();
     }
-    if ("listActiveChildren" in constants.actions[node.action]) {
-      activeChildrenResult = GE.sandboxActionCall(node, constants, bindings, "listActiveChildren");
-      activeChildren = activeChildrenResult.result;
-    } else {
-      activeChildren = (function() {
-        var _ref, _ref1, _results;
-        if (node.children != null) {
-          _ref = node.children;
+    if (node.children != null) {
+      if ("listActiveChildren" in constants.actions[node.action]) {
+        activeChildrenResult = GE.sandboxActionCall(node, constants, bindings, "listActiveChildren");
+        activeChildren = activeChildrenResult.result;
+        if (!_.isArray(activeChildren)) {
+          throw new Error("Calling listActiveChildren() on node '" + node.action + "' did not return an array");
+        }
+      } else {
+        activeChildren = (function() {
           _results = [];
-          for (index in _ref) {
-            child = _ref[index];
-            _results.push((_ref1 = child.name) != null ? _ref1 : index.toString());
-          }
+          for (var _i = 0, _ref = node.children.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; 0 <= _ref ? _i++ : _i--){ _results.push(_i); }
           return _results;
-        } else {
-          return [];
-        }
-      })();
-    }
-    findChild = function(name) {
-      var id, _ref;
-      _ref = node.children;
-      for (id in _ref) {
-        child = _ref[id];
-        if (child.name === name || id.toString() === name) {
-          return child;
-        }
+        }).apply(this);
       }
-    };
-    childSignals = [];
-    for (_i = 0, _len = activeChildren.length; _i < _len; _i++) {
-      childName = activeChildren[_i];
-      child = findChild(childName);
-      childResult = GE.visitNode(child, constants, bindings);
-      childSignals[childName] = childResult.result;
-      result = result.appendWith(childResult);
-    }
-    if ("handleSignals" in constants.actions[node.action]) {
-      errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals);
-      result.result = errorResult;
-      result = result.appendWith(errorResult);
+      childSignals = new Array(node.children.length);
+      for (_j = 0, _len = activeChildren.length; _j < _len; _j++) {
+        childIndex = activeChildren[_j];
+        childResult = GE.visitNode(node.children[childIndex], constants, bindings);
+        childSignals[childIndex] = childResult.result;
+        result = result.appendWith(childResult);
+      }
+      if ("handleSignals" in constants.actions[node.action]) {
+        errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals);
+        result = result.appendWith(errorResult);
+        result.result = errorResult;
+      }
     }
     return result;
   };
@@ -476,7 +500,7 @@
   GE.visitForeachNode = function(node, constants, oldBindings) {
     var bindingSet, child, childResult, newBindings, result, _i, _j, _len, _len1, _ref;
     bindingSet = GE.calculateBindingSet(node, constants, oldBindings);
-    result = new NodeVisitorResult();
+    result = new GE.NodeVisitorResult();
     for (_i = 0, _len = bindingSet.length; _i < _len; _i++) {
       newBindings = bindingSet[_i];
       _ref = node.children || [];
@@ -490,21 +514,24 @@
   };
 
   GE.visitSendNode = function(node, constants, bindings) {
-    var dest, key, modelPatches, outputContext, parent, servicePatches, src, srcExpressionFunction, srcValue, _ref, _ref1;
-    outputContext = {
-      model: GE.cloneData(constants.modelData),
-      services: GE.cloneData(constants.serviceData)
-    };
+    var dest, error, evaluationContext, key, modelPatches, outputValue, parent, servicePatches, src, _ref, _ref1;
+    modelPatches = [];
+    servicePatches = [];
     _ref = node.send;
     for (dest in _ref) {
       src = _ref[dest];
-      srcExpressionFunction = GE.compileInputExpression(src, constants.evaluator);
-      srcValue = srcExpressionFunction(constants.modelData, constants.serviceData, constants.assets, constants.tools, bindings);
-      _ref1 = GE.getParentAndKey(outputContext, dest.split(".")), parent = _ref1[0], key = _ref1[1];
-      parent[key] = srcValue;
+      evaluationContext = new GE.EvaluationContext(constants, bindings);
+      try {
+        outputValue = evaluationContext.evaluateExpression(src);
+      } catch (_error) {
+        error = _error;
+        throw new Error("Error evaluating the output parameter value expression '" + src + "' for send node:\n" + error.stack);
+      }
+      _ref1 = GE.getParentAndKey(evaluationContext, dest.split(".")), parent = _ref1[0], key = _ref1[1];
+      parent[key] = outputValue;
+      modelPatches = GE.concatenate(modelPatches, GE.makePatches(constants.modelData, evaluationContext.model));
+      servicePatches = GE.concatenate(servicePatches, GE.makePatches(constants.serviceData, evaluationContext.services));
     }
-    modelPatches = GE.makePatches(constants.modelData, outputContext.model);
-    servicePatches = GE.makePatches(constants.serviceData, outputContext.services);
     return new GE.NodeVisitorResult(GE.signals.DONE, modelPatches, servicePatches);
   };
 
@@ -527,7 +554,7 @@
       }
     }
     constants.log(GE.logLevels.ERROR, "Layout item '" + (JSON.stringify(node)) + "' is not understood");
-    return new NodeVisitorResult();
+    return new GE.NodeVisitorResult();
   };
 
   GE.stepLoop = function(options) {
@@ -578,19 +605,9 @@
     return modelPatches;
   };
 
-  GE.compileInputExpression = function(expressionText, evaluator) {
+  GE.compileExpression = function(expressionText, evaluator) {
     var expressionFunc, functionText;
-    functionText = "(function(model, services, assets, tools, bindings) { return " + expressionText + "; })";
-    expressionFunc = evaluator(functionText);
-    if (typeof expressionFunc !== "function") {
-      throw new Error("Expression does not evaluate as a function");
-    }
-    return expressionFunc;
-  };
-
-  GE.compileOutputExpression = function(expressionText, evaluator) {
-    var expressionFunc, functionText;
-    functionText = "(function(params) { return " + expressionText + "; })";
+    functionText = "(function(model, services, assets, tools, bindings, params) { return " + expressionText + "; })";
     expressionFunc = evaluator(functionText);
     if (typeof expressionFunc !== "function") {
       throw new Error("Expression does not evaluate as a function");
@@ -620,8 +637,8 @@
         return callback(null, results);
       }
     };
-    onError = function() {
-      return callback(new Error(arguments));
+    onError = function(text) {
+      return callback(new Error(text));
     };
     _results = [];
     for (name in assets) {
@@ -632,14 +649,18 @@
             results[name] = new Image();
             results[name].onload = onLoad;
             results[name].onabort = onError;
-            results[name].onerror = onError;
+            results[name].onerror = function() {
+              return onError("Cannot load image '" + name + "'");
+            };
             return results[name].src = url + ("?_=" + (new Date().getTime()));
           case "JS":
             return $.ajax({
               url: url,
               dataType: "text",
               cache: false,
-              error: onError,
+              error: function() {
+                return onError("Cannot load JavaScript '" + name + "'");
+              },
               success: function(text) {
                 results[name] = text;
                 return onLoad();
@@ -650,14 +671,16 @@
               url: url,
               dataType: "text",
               cache: false,
-              error: onError,
+              error: function() {
+                return onError("Cannot load CSS '" + name + "'");
+              },
               success: function(css) {
                 $('<style type="text/css"></style>').html(css).appendTo("head");
                 return onLoad();
               }
             });
           default:
-            return callback(new Error("Do not know how to load " + url));
+            return callback(new Error("Do not know how to load " + url + " for asset " + name));
         }
       })(name, url));
     }
