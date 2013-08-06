@@ -402,6 +402,13 @@ getFormattedTime = ->
 ### Main ###
 
 $(document).ready ->
+  # A hash needs to be set, or we won't be able to load the code
+  if not window.location.search 
+    # Reload the page
+    return window.location.search = "?optics/"
+
+  programId = window.location.search.slice(1)
+
   setupLayout()
   setupButtonHandlers()
 
@@ -415,10 +422,6 @@ $(document).ready ->
   log = setupEditor("log")
   log.setReadOnly(true)
   resetLogContent()
-
-  # A hash needs to be set, or we won't be able to load the code
-  if not window.location.search then window.location.search = "?optics/"
-  programId = window.location.search.slice(1)
 
   # Offer to load code from the cache if we can
   loadedCode = false
