@@ -28,6 +28,15 @@ EVAL_ASSETS =
   underscore: "lib/underscore/underscore.js"
   gamEvolveCommon: "gamEvolveCommon.js"
 
+EDITOR_URL_PAIRS = [
+  ["modelEditor", "model.json"]
+  ["assetsEditor", "assets.json"]
+  ["actionsEditor", "actions.js"] 
+  ["toolsEditor", "tools.js"]
+  ["layoutEditor", "layout.json"]
+  ["servicesEditor", "services.json"]
+]
+
 
 ### Globals ###
 
@@ -192,7 +201,7 @@ setupEditor = (id, mode = "") ->
   return editor
 
 loadIntoEditor = (editor, url) ->
-  $.ajax
+  return $.ajax
     url: url
     dataType: "text"
     cache: false
@@ -340,10 +349,7 @@ handleAnimation = ->
   requestAnimationFrame(handleAnimation)
 
 # Saves all editor contents to LocalStorage
-saveCodeToCache = ->
-  programId = window.location.hash.slice(1)
-  if !programId then throw new Error("No program ID to save")
-
+saveCodeToCache = (programId) ->
   # TODO: should check that currentFrame == 0 before saving model
   codeToCache = {}
   for id, editor of editors
@@ -354,11 +360,7 @@ saveCodeToCache = ->
 
 # Loads all editor contents from LocalStorage as JSON and returns it
 # If nothing was stored, returns null
-loadCodeFromCache = ->
-  programId = window.location.hash.slice(1)
-  if !programId then throw new Error("No program ID to load")
-
-  return localStorage.getItem(programId)
+loadCodeFromCache = (programId) -> return localStorage.getItem(programId)
 
 # Sets cached code in the editors
 setCodeFromCache = (cachedCodeJson) ->
@@ -370,11 +372,7 @@ setCodeFromCache = (cachedCodeJson) ->
     editor.selection.clearSelection() 
 
 # Remove code in LocalStorage
-clearCodeInCache = -> 
-  programId = window.location.hash.slice(1)
-  if !programId then throw new Error("No program ID to remove")
-
-  localStorage.removeItem(programId)
+clearCodeInCache = (programId) -> localStorage.removeItem(programId)
 
 # Add the factory so it can be used later
 registerService = (name, factory) -> services[name] = factory
@@ -402,6 +400,8 @@ $(document).ready ->
   setupLayout()
   setupButtonHandlers()
 
+  $(window).on "onresize", handleResize
+
   # Create all the JSON and JS editors
   for id in ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"]
     editors[id] = setupEditor(id, "ace/mode/javascript")
@@ -412,43 +412,34 @@ $(document).ready ->
   resetLogContent()
 
   # A hash needs to be set, or we won't be able to load the code
-  if not window.location.hash  then window.location.hash = "optics"
+  if not window.location.search then window.location.search = "?optics/"
+  programId = window.location.search.slice(1)
 
   # Offer to load code from the cache if we can
   loadedCode = false
-  cachedCodeJson = loadCodeFromCache()
+  cachedCodeJson = loadCodeFromCache(programId)
   if cachedCodeJson
     if window.confirm("You had made changes to this code. Should we load your last version?")
       setCodeFromCache(cachedCodeJson)
       loadedCode = true
     else 
-      clearCodeInCache()
+      clearCodeInCache(programId)
 
-  # Otherwise just load from the default "optics" directory
+  # Otherwise just load from a local directory
   if not loadedCode
-    for [id, url] in [["modelEditor", "optics/model.json"], 
-                      ["assetsEditor", "optics/assets.json"], 
-                      ["actionsEditor", "optics/actions.js"], 
-                      ["toolsEditor", "optics/tools.js"],
-                      ["layoutEditor", "optics/layout.json"],
-                      ["servicesEditor", "optics/services.json"]]
-      loadIntoEditor(editors[id], url)
+    ajaxRequests = (loadIntoEditor(editors[id], "#{programId}#{url}") for [id, url] in EDITOR_URL_PAIRS)
+    $.when(ajaxRequests...).fail(-> showMessage(MessageType.Error, "Cannot load game files")).then ->
+      # Load common assets
+      GE.loadAssets EVAL_ASSETS, (err, loadedAssets) ->
+        if err then return showMessage(MessageType.Error, "Cannot load common assets")
 
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"]
-    editors[id].getSession().on "change", -> notifyCodeChange()
+        # Make this globally available
+        evalLoadedAssets = (script for name, script of loadedAssets)
 
-  # TODO: find another way to include global data
-  globals.editors = editors
+        # Setup event handlers on code change
+        for id in ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"]
+          editors[id].getSession().on "change", -> notifyCodeChange()
 
-  # Setup event handlers
-  $(window).on "onresize", handleResize
-
-  # Load common assets
-  GE.loadAssets EVAL_ASSETS, (err, loadedAssets) ->
-    if err then return showMessage(MessageType.Error, "Cannot load common assets")
-
-    # Make this globally available
-    evalLoadedAssets = (script for name, script of loadedAssets)
-    # Load code
-    notifyCodeChange()
+        # Load code
+        notifyCodeChange()
 
