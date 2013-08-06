@@ -474,7 +474,7 @@ GE.loadAssets = (assets, callback) ->
   loadedCount = 0 
 
   onLoad = -> if ++loadedCount == _.size(assets) then callback(null, results)
-  onError = -> callback(new Error(arguments))
+  onError = (text) -> callback(new Error(text))
 
   for name, url of assets
     do (name, url) -> # The `do` is needed because of asnyc requests below
@@ -483,14 +483,14 @@ GE.loadAssets = (assets, callback) ->
           results[name] = new Image()
           results[name].onload = onLoad 
           results[name].onabort = onError
-          results[name].onerror = onError
+          results[name].onerror = -> onError("Cannot load image '#{name}'")
           results[name].src = url + "?_=#{new Date().getTime()}"
         when "JS"
           $.ajax
             url: url
             dataType: "text"
             cache: false
-            error: onError
+            error: -> onError("Cannot load JavaScript '#{name}'")
             success: (text) ->
               results[name] = text
               onLoad()
@@ -501,12 +501,12 @@ GE.loadAssets = (assets, callback) ->
             url: url
             dataType: "text"
             cache: false
-            error: onError
+            error: -> onError("Cannot load CSS '#{name}'")
             success: (css) ->
               $('<style type="text/css"></style>').html(css).appendTo("head")
               onLoad()
         else 
-          return callback(new Error("Do not know how to load #{url}"))
+          return callback(new Error("Do not know how to load #{url} for asset #{name}"))
 
 # Shortcut for timeout function, to avoid trailing the time at the end 
 GE.doLater = (f) -> setTimeout(f, 0)
