@@ -1,0 +1,33 @@
+{
+  "action": "doInParallel",
+  "children": [
+    { 
+      "send": {
+        "services.graphics.shapes": "tools.drawShape({ type: 'rectangle', layer: 'bg', position: [0, 0], size: services.graphics.size, fillStyle: 'black' })" 
+      }
+    },
+    {
+      "foreach": {
+        "from": "model.blocks",
+        "bindTo": "block"
+      },
+      "children": [
+        {
+          "send": {
+            "services.graphics.shapes": "tools.drawShape(_.extend(tools.gridCellRectangle(model.constants.grid, bindings.block), { layer: 'blocks', fillStyle: model.constants.blockColor }))" 
+          }
+        }
+      ]
+    },
+    {
+      "action": "doInSequence",
+      "children": [
+        {
+          "send": {
+            "model.blocks": "model.constants.initialBlocks"
+          }
+        }
+      ]
+    }
+  ]
+}
