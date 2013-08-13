@@ -160,6 +160,18 @@
     });
   },
 
+  makeMovableBlockShapes: function(grid, blocks, blockColor, blockSize) {
+    var that = this;
+    var movableBlocks = _.filter(blocks, function(block) { return that.canMoveBlock(blocks, block); });
+    return _.map(movableBlocks, function(block) { 
+      return _.extend(that.gridCellRectangle(grid, block, block), { 
+        layer: 'blocks', 
+        fillStyle: blockColor,
+        size: blockSize
+      });
+    });
+  },
+
   makeDraggedShape: function(size, color, mousePosition) {
     return { 
       layer: 'drag', 
@@ -182,6 +194,57 @@
     // Change it to the new coordinate and return it
     blocks[index] = this.gridCellAtPoint(grid, mousePosition);
     return blocks;
-  }
+  },
 
+  blocksAreNeighbors: function(a, b) {
+    // Find the difference between the two block coordinates
+    var diff = [Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])];
+    return diff[0] == 1 && diff[1] == 0 || diff[0] == 0 && diff[1] == 1; 
+  },
+
+  makeAdjacencyList: function(blocks) {
+    // Pre-allocate array of empty arrays
+    var adjList = _.map(blocks, function() { return []; });
+
+    // Enumerate every pair of blocks
+    for(var i = 0; i < blocks.length - 1; i++) {
+      for(var j = i + 1; j < blocks.length; j++) {
+        if(this.blocksAreNeighbors(blocks[i], blocks[j])) {
+          adjList[i].push(j);
+          adjList[j].push(i);
+        }
+      }
+    }
+
+    return adjList;
+  },
+
+  visitBlocks: function(adjList, startingIndices) {
+    var visited = [startingIndices];
+    // Loop until return call
+    while(true) {
+      // add all neighbors to 'toVisit'
+      var toVisit = _.reduce(visited[visited.length - 1], function(memo, visitingIndex) { return memo.concat(adjList[visitingIndex]); }, []);
+      // remove duplicates
+      toVisit = _.uniq(toVisit);
+      // take out previously visited ones
+      toVisit = _.difference.apply(_, [toVisit].concat(visited));
+
+      if(toVisit.length > 0) {
+        visited.push(toVisit);
+      }
+      else
+      {
+        return visited;
+      }
+    }
+  },
+
+  canMoveBlock: function(blocks, block) {
+    // The block can be moved if all other blocks are connected without the block in question
+    var blocksWithout = this.removeElement(blocks, GE.indexOfEquals(blocks, block));
+    var adjList = this.makeAdjacencyList(blocksWithout);
+    var visited = this.visitBlocks(adjList, [0]);
+    return _.flatten(visited).length == blocksWithout.length; 
+  }
 })

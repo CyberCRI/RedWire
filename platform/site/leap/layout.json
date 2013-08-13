@@ -60,7 +60,7 @@
           "action": "detectMouse",
           "params": {
             "in": {
-              "shapes": "tools.makeBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize)",
+              "shapes": "tools.makeMovableBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize)",
               "shape": "model.mouseDetection.shape",
               "mousePosition": "services.mouse.position",
               "mouseDown": "services.mouse.down",
