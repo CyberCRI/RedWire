@@ -21,10 +21,20 @@
       "children": [
         {
           "name": "drag",
-          "send": {
-            "services.mouse.cursor": "'move'",
-            "services.graphics.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, model.constants.blockColor, services.mouse.position))" 
-          }
+          "action": "if",
+          "params": {
+            "in": {
+              "value": "services.mouse.position != null"
+            }
+          },
+          "children": [
+            {
+              "send": {
+                "services.mouse.cursor": "'move'",
+                "services.graphics.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, model.constants.blockColor, services.mouse.position))" 
+              }
+            }
+          ]
         },
         {
           "name": "endDrag",

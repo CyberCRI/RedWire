@@ -138,7 +138,7 @@
 
   // Returns an array containing the index of the first child that is equal to the correct value, or an empty array
   childByName: function(children, value) {
-    var childIndex = GE.indexOfEquals(children, value);
+    var childIndex = GE.indexOf(children, value);
     return childIndex != -1 ? [childIndex] : []; 
   },
 
@@ -188,14 +188,6 @@
     return _.reduce(shapes, function(memo, shape) { return that.drawShape(shape, memo); }, {});
   },
 
-  moveBlock: function(grid, blocks, blockToMove, mousePosition) {
-    // Find the block in the list
-    var index = GE.indexOfEquals(blocks, blockToMove);
-    // Change it to the new coordinate and return it
-    blocks[index] = this.gridCellAtPoint(grid, mousePosition);
-    return blocks;
-  },
-
   blocksAreNeighbors: function(a, b) {
     // Find the difference between the two block coordinates
     var diff = [Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])];
@@ -242,9 +234,49 @@
 
   canMoveBlock: function(blocks, block) {
     // The block can be moved if all other blocks are connected without the block in question
-    var blocksWithout = this.removeElement(blocks, GE.indexOfEquals(blocks, block));
+    var blocksWithout = this.removeElement(blocks, GE.indexOf(blocks, block));
     var adjList = this.makeAdjacencyList(blocksWithout);
     var visited = this.visitBlocks(adjList, [0]);
     return _.flatten(visited).length == blocksWithout.length; 
+  },
+
+  findFreeBlockPositions: function(blocks) {
+    // Generate all neighbors of blocks
+    var freePositions = [];
+    _.each(blocks, function(block) {
+      freePositions.push([block[0] + 1, block[1]]);
+      freePositions.push([block[0] - 1, block[1]]);
+      freePositions.push([block[0], block[1] + 1]);
+      freePositions.push([block[0], block[1] - 1]);
+    });
+
+    // Take out duplicates
+    freePositions = GE.uniq(freePositions);
+
+    // Remove existing block positions
+    return _.reject(freePositions, function(block) { GE.contains(blocks, block); });
+  },
+
+  blockDistance: function(a, b) {
+    return Vector.create(a).distanceFrom(Vector.create(b));
+  },
+
+  moveBlock: function(grid, blocks, blockToMove, mousePosition) {
+    var that = this;
+    var hoveredCell = this.gridCellAtPoint(grid, mousePosition);
+    if(!hoveredCell) return blocks; // Outside of the grid, don't make any changes 
+
+    var blocksWithout = this.removeElement(blocks, GE.indexOf(blocks, blockToMove));
+    var freeBlockPositions = this.findFreeBlockPositions(blocksWithout);
+    // Find the closest free position to the mouse position
+    var closestFreePosition = _.min(freeBlockPositions, function(block) { return that.blockDistance(hoveredCell, block); });
+
+    // Find the block in the list
+    var index = GE.indexOf(blocks, blockToMove);
+    // Change it to the new coordinate and return it
+
+    this.log(GE.logLevels.INFO, "moving block from", blockToMove, "to", closestFreePosition);
+    blocks[index] = closestFreePosition;
+    return blocks;
   }
 })
