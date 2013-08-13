@@ -8,7 +8,7 @@
   "graphics": {
     "type": "Canvas",
     "options": {
-      "layers": [ "bg", "blocks" ]
+      "layers": [ "bg", "blocks", "drag" ]
     }
   }
 }

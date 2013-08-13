@@ -147,5 +147,41 @@
       strokeStyle: "white",
       fillStyle: "white"
     });
+  },
+
+  makeBlockShapes: function(grid, blocks, blockColor, blockSize) {
+    var that = this;
+    return _.map(blocks, function(block) { 
+      return _.extend(that.gridCellRectangle(grid, block, block), { 
+        layer: 'blocks', 
+        fillStyle: blockColor,
+        size: blockSize
+      });
+    });
+  },
+
+  makeDraggedShape: function(size, color, mousePosition) {
+    return { 
+      layer: 'drag', 
+      type: "rectangle",
+      position: [mousePosition[0] - size[0] / 2, mousePosition[1] - size[1] / 2],
+      size: size,
+      fillStyle: color 
+    };
+  },
+
+  drawShapes: function(shapes) 
+  {
+    var that = this;
+    return _.reduce(shapes, function(memo, shape) { return that.drawShape(shape, memo); }, {});
+  },
+
+  moveBlock: function(grid, blocks, blockToMove, mousePosition) {
+    // Find the block in the list
+    var index = GE.indexOfEquals(blocks, blockToMove);
+    // Change it to the new coordinate and return it
+    blocks[index] = this.gridCellAtPoint(grid, mousePosition);
+    return blocks;
   }
+
 })

@@ -257,7 +257,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
   # Only output parameters should be accessible
   outParams = _.pick(evaluatedParams, (paramName for paramName, paramOptions of action.paramDefs when paramOptions.direction in ["out", "inout"]))
 
-  for paramName, paramValue of node.params?.out?
+  for paramName, paramValue of node.params.out
     try
       outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
     catch error
@@ -443,7 +443,7 @@ GE.stepLoop = (options) ->
     options.outputServiceData = GE.applyPatches(result.servicePatches, options.inputServiceData)
 
   # TODO: return the service data rather than logging it here
-  options?.log?(GE.logLevels.LOG, "Output service data", options.outputServiceData)
+  # options?.log?(GE.logLevels.LOG, "Output service data", options.outputServiceData)
 
   for serviceName, service of options.services
     service.establishData(options.outputServiceData[serviceName], options.assets)
