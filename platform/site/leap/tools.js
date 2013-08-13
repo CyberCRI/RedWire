@@ -51,27 +51,6 @@
     return newArray;
   },
 
-  //converts a pixel coordinate to a board coordinate
-  //assumes that the board is made out of squares
-  toBoardCoordinate: function(pixelCoordinate, upperLeftBoardMargin, cellSize)
-  {
-    var res = Math.floor((pixelCoordinate - upperLeftBoardMargin)/cellSize);
-    return res;
-  },
-
-  //does the opposite of toBoardCoordinate
-  toPixelCoordinate: function(boardCoordinate, upperLeftBoardMargin, cellSize)
-  {
-    return (boardCoordinate + 0.5)*(cellSize-1) + upperLeftBoardMargin;
-  },
-
-  //tests whether a given position is inside the board or not
-  //@positionOnBoard: array of coordinates as column and row position
-  isInGrid: function(point, gridSize)
-  {
-    return (point[0] >= 0) && (point[0] < gridSize[0]) && (point[1] >= 0) && (point[1] < gridSize[1]);        
-  },
-
   gridCellAtPoint: function(grid, point) {
     if(point === null) return null;
 
@@ -80,7 +59,7 @@
       Math.floor((point[1] - grid.upperLeft[1]) / grid.cellSize[1])
     ];
 
-    if(gridPos[0] < 0 || gridPos[0] > grid.gridSize[0] || gridPos[1] < 0 || gridPos[1] > grid.gridSize[1]) 
+    if(grid.type != "infinite" && (gridPos[0] < 0 || gridPos[0] > grid.gridSize[0] || gridPos[1] < 0 || gridPos[1] > grid.gridSize[1])) 
       return null;
     else
       return gridPos;
@@ -110,7 +89,6 @@
   gridSizeInPixels: function(grid) {
     return [grid.cellSize[0] * grid.gridSize[0], grid.cellSize[1] * grid.gridSize[1]];
   },
-
 
   calculateRotationAngle: function (center, mousePosition) {
     var h = [mousePosition[0] - center[0], mousePosition[1] - center[1]];
@@ -147,6 +125,14 @@
       strokeStyle: "white",
       fillStyle: "white"
     });
+  },
+
+  findCenterOfCells: function(grid, cells) {
+    if(cells.length == 0) return [0, 0];
+
+    var gridCenter = [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
+    var sum = _.reduce(cells, function(memo, cell) { return [memo[0] + cell[0], memo[1] + cell[1]]; }, [0, 0]);
+    return [sum[0] * grid.cellSize[0] / cells.length - gridCenter[0], sum[1] * grid.cellSize[1] / cells.length - gridCenter[1]];
   },
 
   makeBlockShapes: function(grid, blocks, blockColor, blockSize) {
@@ -278,5 +264,20 @@
     this.log(GE.logLevels.INFO, "moving block from", blockToMove, "to", closestFreePosition);
     blocks[index] = closestFreePosition;
     return blocks;
-  }
+  },
+
+  translateShapes: function(translation, shapes) {
+    var newShapes =  _.map(shapes, function(shape) { 
+      return _.extend(shape, {
+        position: [shape.position[0] + translation[0], shape.position[1] + translation[1]]
+      });
+    });
+    return newShapes;
+  },
+
+  translatePoint: function(translation, point) {
+    return [point[0] + translation[0], point[1] + translation[1]];
+  },
+
+  inverseVector: function(vector) { return [-vector[0], -vector[1]]; }
 })

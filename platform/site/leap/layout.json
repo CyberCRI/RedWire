@@ -8,7 +8,12 @@
     },
     {
       "send": {
-        "services.graphics.shapes": "tools.drawShapes(tools.makeBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize))"
+        "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize)))"
+      }
+    },
+    {
+      "send": {
+        "model.gridTranslation": "tools.findCenterOfCells(model.constants.grid, model.blocks)"
       }
     },
     {
@@ -39,7 +44,7 @@
         {
           "name": "endDrag",
           "send": { 
-            "model.blocks": "tools.moveBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, services.mouse.position)"
+            "model.blocks": "tools.moveBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, tools.translatePoint(model.gridTranslation, services.mouse.position))"
           }
         },
         {
@@ -70,7 +75,7 @@
           "action": "detectMouse",
           "params": {
             "in": {
-              "shapes": "tools.makeMovableBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize)",
+              "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize))",
               "shape": "model.mouseDetection.shape",
               "mousePosition": "services.mouse.position",
               "mouseDown": "services.mouse.down",
