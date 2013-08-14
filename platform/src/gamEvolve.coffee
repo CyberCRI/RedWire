@@ -409,7 +409,6 @@ GE.visitNode = (node, constants, bindings = {}) ->
 # If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
 # Returns a list of model patches.
-# TODO: refactor to accept a parameter object rather than a long list of parameters
 GE.stepLoop = (options) ->
   _.defaults options, 
     node: null
@@ -443,6 +442,9 @@ GE.stepLoop = (options) ->
     if GE.doPatchesConflict(result.servicePatches) then throw new Error("Service patches conflict: #{JSON.stringify(result.servicePatches)}")
     options.outputServiceData = GE.applyPatches(result.servicePatches, options.inputServiceData)
 
+  # TODO: return the service data rather than logging it here
+  # options?.log?(GE.logLevels.LOG, "Output service data", options.outputServiceData)
+
   for serviceName, service of options.services
     service.establishData(options.outputServiceData[serviceName], options.assets)
 
@@ -470,6 +472,8 @@ GE.determineAssetType = (url) ->
 # Load all the assets in the given object (name: url) and then call callback with the results, or error
 # TODO: have cache-busting be configurable
 GE.loadAssets = (assets, callback) ->
+  if _.size(assets) == 0 then return callback(null, {})
+
   results = {}
   loadedCount = 0 
 
