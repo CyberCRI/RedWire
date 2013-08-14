@@ -27,6 +27,7 @@ SPINNER_OPTS =
 EVAL_ASSETS = 
   underscore: "lib/underscore/underscore.js"
   gamEvolveCommon: "gamEvolveCommon.js"
+  sylvester: "lib/sylvester/sylvester.src.js"
 
 EDITOR_URL_PAIRS = [
   ["modelEditor", "model.json"]
