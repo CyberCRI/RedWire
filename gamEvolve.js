@@ -630,6 +630,9 @@
 
   GE.loadAssets = function(assets, callback) {
     var loadedCount, name, onError, onLoad, results, url, _results;
+    if (_.size(assets) === 0) {
+      return callback(null, {});
+    }
     results = {};
     loadedCount = 0;
     onLoad = function() {

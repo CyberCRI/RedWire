@@ -28,7 +28,7 @@
 
   GE.signals = GE.makeConstantSet("DONE", "ERROR");
 
-  GE.indexOfEquals = function(collection, value) {
+  GE.indexOf = function(collection, value) {
     var k, v;
     for (k in collection) {
       v = collection[k];
@@ -37,6 +37,23 @@
       }
     }
     return -1;
+  };
+
+  GE.contains = function(collection, value) {
+    return GE.indexOf(collection, value) !== -1;
+  };
+
+  GE.uniq = function(array) {
+    var results, seen;
+    results = [];
+    seen = [];
+    _.each(array, function(value, index) {
+      if (!GE.contains(seen, value)) {
+        seen.push(value);
+        return results.push(array[index]);
+      }
+    });
+    return results;
   };
 
   GE.cloneData = function(o) {

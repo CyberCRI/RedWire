@@ -34,7 +34,8 @@
 
   EVAL_ASSETS = {
     underscore: "lib/underscore/underscore.js",
-    gamEvolveCommon: "gamEvolveCommon.js"
+    gamEvolveCommon: "gamEvolveCommon.js",
+    sylvester: "lib/sylvester/sylvester.src.js"
   };
 
   EDITOR_URL_PAIRS = [["modelEditor", "model.json"], ["assetsEditor", "assets.json"], ["actionsEditor", "actions.js"], ["toolsEditor", "tools.js"], ["layoutEditor", "layout.json"], ["servicesEditor", "services.json"]];
