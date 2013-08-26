@@ -74,13 +74,16 @@ registerService 'Canvas', (options = {}) ->
   # `height: 100%` preserves the aspect ratio. Make the position absolute keeps the layers on top of each other
   CANVAS_CSS = "height: 100%; position: absolute; left: 0px; top: 0px;"
 
+  options = _.defaults options,
+    elementSelector: '#gameContent'
+
   createLayers = ->
     # Convert layers to ordered
     createdLayers = {}
     zIndex = 0
     for layerName in options.layers
       layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex='0' style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
-      $('#gameContent').append(layer)
+      $(options.elementSelector).append(layer)
       createdLayers[layerName] = layer
 
     return createdLayers
@@ -211,4 +214,79 @@ registerService 'Canvas', (options = {}) ->
     destroy: -> 
       for layerName, canvas of layers then canvas.remove()
   }
+
+# Define keyboard input service
+registerService 'HTML', (options = {}) ->
+  options = _.defaults options,
+    elementSelector: '#gameContent'
+
+  forms = { }
+  layers = { }
+  views = { }
+  callbacks = { }
+
+  rivets.configure
+    adapter: 
+      subscribe: (formName, keypath, callback) -> 
+        console.log("subscribe called with ", arguments)
+        callbacks[formName][keypath] = callback
+      unsubscribe: (obj, keypath, callback) ->
+        console.log("unsubscribe called with ", arguments)
+        delete callbacks[formName][keypath]
+      read: (formName, keypath) ->
+        console.log("read called with ", arguments)
+        return forms[formName][keypath]
+      publish: (formName, keypath, value) ->
+        console.log("publish called with ", arguments)
+        forms[formName][keypath] = value
+
+  return {
+    provideData: () -> return forms
+
+    establishData: (data, assets) -> 
+      # Data is in the format of { formName: { asset: "", values: { name: value, ... }, ... }, ...}
+      existingForms = _.keys(forms)
+      newForms = _.keys(data)
+
+      # Remove all forms that are no longer to be shown
+      for formName in _.difference(existingForms, newForms) 
+        delete forms[formName]
+        layers[formName].remove()
+        delete layers[formName]
+        views[formName].unbind()
+        delete views[formName]
+        delete callbacks[formName]
+
+      # Add new forms 
+      for formName in _.difference(newForms, existingForms) 
+        # Create form
+        formHtml = assets[data[formName].asset]
+        layer = $(document.createElement(formHtml))
+        $(options.elementSelector).append(layer)
+        layers[layerName] = layer
+
+        # Create data
+        forms[formName] = data[formName] 
+        # Bind to the form name
+        callbacks[formName] = { } # Will be filled by calls to adapter.subscribe()
+        views[formName] = rivets.bind(layer[0], formName)
+
+      # Update existing forms with new data
+      for formName in _.intersection(newForms, existingForms) 
+        # TODO: call individual binders instead of syncronizing the whole model?
+        #   for key in _.union(_.keys(data[formName].values), _.keys(forms[formName].values)
+        if not _.isEqual(data[formName].values, forms[formName].values)
+          forms[formName].values = data[formName].values
+          views[formName].sync() 
+
+    # Remove all event handlers
+    destroy: -> 
+      for formName, view of views
+        view.unbind()
+      for formName, layer of layers
+        layer.remove()
+
+
+  }
+
 
