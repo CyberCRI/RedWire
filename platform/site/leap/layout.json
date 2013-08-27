@@ -78,12 +78,13 @@
               "action": "updateHtmlForm",
               "params": {
                 "in": {
-                  "htmlService": "services.html.form",
+                  "htmlService": "services.html",
                   "modelValues": "model.form",
-                  "assetName": "'form'"
+                  "assetName": "'form'",
+                  "formName": "'form'"
                 },
                 "out": {
-                  "services.html.form": "params.htmlService",
+                  "services.html": "params.htmlService",
                   "model.form": "params.modelValues"
                 }
               }
@@ -92,8 +93,7 @@
         },
         { 
           "send": {
-            "model.blocks": "model.constants.initialBlocks",
-            "services.html.form": "undefined"
+            "model.blocks": "model.constants.initialBlocks"
           }
         },
         { 

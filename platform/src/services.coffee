@@ -246,12 +246,14 @@ registerService 'HTML', (options = {}) ->
         forms[formName]["values"][keypath] = value
 
   return {
-    provideData: () -> return forms
+    provideData: () -> return { in: forms, out: {} }
 
     establishData: (data, assets) -> 
-      # Data is in the format of { formName: { asset: "", values: { name: value, ... }, ... }, ...}
+      newFormData = data.out 
+      
+      # newFormData is in the format of { formName: { asset: "", values: { name: value, ... }, ... }, ...}
       existingForms = _.keys(forms)
-      newForms = _.keys(data)
+      newForms = _.keys(newFormData)
 
       # Remove all forms that are no longer to be shown
       for formName in _.difference(existingForms, newForms) 
@@ -265,23 +267,23 @@ registerService 'HTML', (options = {}) ->
       # Add new forms 
       for formName in _.difference(newForms, existingForms) 
         # Create form
-        formHtml = assets[data[formName].asset]
+        formHtml = assets[newFormData[formName].asset]
         layer = $("<div id='html-#{formName}' style='position: absolute; z-index: 100'/>").append(formHtml)
         $(options.elementSelector).append(layer)
         layers[formName] = layer
 
-        # Create data
-        forms[formName] = data[formName] 
+        # Create newFormData
+        forms[formName] = newFormData[formName] 
         # Bind to the form name
         callbacks[formName] = { } # Will be filled by calls to adapter.subscribe()
         views[formName] = rivets.bind(layer[0], { form: formName })
 
-      # Update existing forms with new data
+      # Update existing forms with new newFormData
       for formName in _.intersection(newForms, existingForms) 
         # TODO: call individual binders instead of syncronizing the whole model?
-        #   for key in _.union(_.keys(data[formName].values), _.keys(forms[formName].values)
-        if not _.isEqual(data[formName].values, forms[formName].values)
-          forms[formName].values = data[formName].values
+        #   for key in _.union(_.keys(newFormData[formName].values), _.keys(forms[formName].values)
+        if not _.isEqual(newFormData[formName].values, forms[formName].values)
+          forms[formName].values = newFormData[formName].values
           views[formName].sync() 
 
       # Reset all event bindings to false
