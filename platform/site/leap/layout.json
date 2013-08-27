@@ -66,14 +66,14 @@
         }
       },
       "children": [
-        {
-          "send": {
-            "model.blocks": "model.constants.initialBlocks"
-          }
-        },
         { 
-          "action": "doInParallel",
-          "children": [ 
+          "action": "doWhile",
+          "params": {
+            "in": {
+              "value": "!model.form.done"
+            }
+          },
+          "children": [
             {
               "action": "updateHtmlForm",
               "params": {
@@ -87,7 +87,18 @@
                   "model.form": "params.modelValues"
                 }
               }
-            },
+            }
+          ]
+        },
+        { 
+          "send": {
+            "model.blocks": "model.constants.initialBlocks",
+            "services.html.form": "undefined"
+          }
+        },
+        { 
+          "action": "doInParallel",
+          "children": [ 
             {
               "action": "detectMouse",
               "params": {
