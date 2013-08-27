@@ -246,17 +246,7 @@ registerService 'HTML', (options = {}) ->
         forms[formName]["values"][keypath] = value
 
   return {
-    provideData: () -> 
-      # Save form data to return
-      dataToProvide = GE.cloneData(forms)
-
-      # reset all event bindings to false
-      for formName, view of views
-        for binding in view.bindings
-          if binding.type.indexOf("on-") == 0
-            forms[binding.key]["values"][binding.keypath] = false
-
-      return dataToProvide
+    provideData: () -> return forms
 
     establishData: (data, assets) -> 
       # Data is in the format of { formName: { asset: "", values: { name: value, ... }, ... }, ...}
@@ -293,6 +283,12 @@ registerService 'HTML', (options = {}) ->
         if not _.isEqual(data[formName].values, forms[formName].values)
           forms[formName].values = data[formName].values
           views[formName].sync() 
+
+      # Reset all event bindings to false
+      for formName, view of views
+        for binding in view.bindings
+          if binding.type.indexOf("on-") == 0
+            forms[binding.key]["values"][binding.keypath] = false
 
     # Remove all event handlers
     destroy: -> 
