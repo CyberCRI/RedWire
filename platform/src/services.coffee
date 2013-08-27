@@ -7,7 +7,7 @@ registerService 'Keyboard', (options = {}) ->
 
   keysDown = {}
 
-  $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", (event) ->
+  $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", "canvas", (event) ->
     event.preventDefault()   
 
     # jQuery standardizes the keycode into http://api.jquery.com/event.which/
@@ -41,7 +41,7 @@ registerService 'Mouse', (options = {}) ->
   # This disables selection, which allows the cursor to change in Chrome
   $(options.elementSelector).on("selectstart.#{eventNamespace}", -> false)
 
-  $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", (event) ->
+  $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", "canvas", (event) ->
     switch event.type 
       when 'mousedown' then mouse.down = true
       when 'mouseup' then mouse.down = false
@@ -85,6 +85,7 @@ registerService 'Canvas', (options = {}) ->
       layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex='0' style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
       $(options.elementSelector).append(layer)
       createdLayers[layerName] = layer
+      zIndex++
 
     return createdLayers
 
@@ -226,22 +227,36 @@ registerService 'HTML', (options = {}) ->
   callbacks = { }
 
   rivets.configure
+    handler: (target, event, binding) ->
+      console.log("event handler called with", arguments, ". this is", this)
+      forms[binding.key]["values"][binding.keypath] = true
+
     adapter: 
       subscribe: (formName, keypath, callback) -> 
         console.log("subscribe called with ", arguments)
         callbacks[formName][keypath] = callback
-      unsubscribe: (obj, keypath, callback) ->
+      unsubscribe: (formName, keypath, callback) ->
         console.log("unsubscribe called with ", arguments)
         delete callbacks[formName][keypath]
       read: (formName, keypath) ->
         console.log("read called with ", arguments)
-        return forms[formName][keypath]
+        return forms[formName]["values"][keypath]
       publish: (formName, keypath, value) ->
         console.log("publish called with ", arguments)
-        forms[formName][keypath] = value
+        forms[formName]["values"][keypath] = value
 
   return {
-    provideData: () -> return forms
+    provideData: () -> 
+      # Save form data to return
+      dataToProvide = GE.cloneData(forms)
+
+      # reset all event bindings to false
+      for formName, view of views
+        for binding in view.bindings
+          if binding.type.indexOf("on-") == 0
+            forms[binding.key]["values"][binding.keypath] = false
+
+      return dataToProvide
 
     establishData: (data, assets) -> 
       # Data is in the format of { formName: { asset: "", values: { name: value, ... }, ... }, ...}
@@ -261,15 +276,15 @@ registerService 'HTML', (options = {}) ->
       for formName in _.difference(newForms, existingForms) 
         # Create form
         formHtml = assets[data[formName].asset]
-        layer = $(document.createElement(formHtml))
+        layer = $("<div id='html-#{formName}' style='position: absolute; z-index: 100'/>").append(formHtml)
         $(options.elementSelector).append(layer)
-        layers[layerName] = layer
+        layers[formName] = layer
 
         # Create data
         forms[formName] = data[formName] 
         # Bind to the form name
         callbacks[formName] = { } # Will be filled by calls to adapter.subscribe()
-        views[formName] = rivets.bind(layer[0], formName)
+        views[formName] = rivets.bind(layer[0], { form: formName })
 
       # Update existing forms with new data
       for formName in _.intersection(newForms, existingForms) 

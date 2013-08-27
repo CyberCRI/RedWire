@@ -71,23 +71,42 @@
             "model.blocks": "model.constants.initialBlocks"
           }
         },
-        {
-          "action": "detectMouse",
-          "params": {
-            "in": {
-              "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize))",
-              "shape": "model.mouseDetection.shape",
-              "mousePosition": "services.mouse.position",
-              "mouseDown": "services.mouse.down",
-              "state": "model.mouseDetection.state",
-              "dragStartPosition": "model.mouseDetection.dragStartPosition"
+        { 
+          "action": "doInParallel",
+          "children": [ 
+            {
+              "action": "updateHtmlForm",
+              "params": {
+                "in": {
+                  "htmlService": "services.html.form",
+                  "modelValues": "model.form",
+                  "assetName": "'form'"
+                },
+                "out": {
+                  "services.html.form": "params.htmlService",
+                  "model.form": "params.modelValues"
+                }
+              }
             },
-            "out": {
-              "model.mouseDetection.state": "params.state",
-              "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
-              "model.mouseDetection.shape": "params.shape"
+            {
+              "action": "detectMouse",
+              "params": {
+                "in": {
+                  "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize))",
+                  "shape": "model.mouseDetection.shape",
+                  "mousePosition": "services.mouse.position",
+                  "mouseDown": "services.mouse.down",
+                  "state": "model.mouseDetection.state",
+                  "dragStartPosition": "model.mouseDetection.dragStartPosition"
+                },
+                "out": {
+                  "model.mouseDetection.state": "params.state",
+                  "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
+                  "model.mouseDetection.shape": "params.shape"
+                }
+              }
             }
-          }
+          ]
         }
       ]
     }

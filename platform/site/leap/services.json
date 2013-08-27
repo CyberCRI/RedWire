@@ -10,5 +10,8 @@
     "options": {
       "layers": [ "bg", "blocks", "drag" ]
     }
+  },
+  "html": {
+    "type": "HTML"
   }
 }
