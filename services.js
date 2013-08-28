@@ -10,7 +10,7 @@
     });
     eventNamespace = _.uniqueId('keyboard');
     keysDown = {};
-    $(options.elementSelector).on("keydown." + eventNamespace + " keyup." + eventNamespace + " focusout." + eventNamespace, function(event) {
+    $(options.elementSelector).on("keydown." + eventNamespace + " keyup." + eventNamespace + " focusout." + eventNamespace, "canvas", function(event) {
       event.preventDefault();
       switch (event.type) {
         case 'keydown':
@@ -53,7 +53,7 @@
     $(options.elementSelector).on("selectstart." + eventNamespace, function() {
       return false;
     });
-    $(options.elementSelector).on("mousedown." + eventNamespace + " mouseup." + eventNamespace + " mousemove." + eventNamespace + " mouseleave." + eventNamespace, function(event) {
+    $(options.elementSelector).on("mousedown." + eventNamespace + " mouseup." + eventNamespace + " mousemove." + eventNamespace + " mouseleave." + eventNamespace, "canvas", function(event) {
       var rect, target;
       switch (event.type) {
         case 'mousedown':
@@ -98,8 +98,9 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         layerName = _ref[_i];
         layer = $("<canvas id='canvasLayer-" + layerName + "' class='gameCanvas' width='" + options.size[0] + "' height='" + options.size[1] + "' tabIndex='0' style='z-index: " + zIndex + "; " + CANVAS_CSS + "' />");
-        $('#gameContent').append(layer);
+        $(options.elementSelector).append(layer);
         createdLayers[layerName] = layer;
+        zIndex++;
       }
       return createdLayers;
     };
@@ -245,6 +246,7 @@
       return ctx.restore();
     };
     options = _.defaults(options, {
+      elementSelector: '#gameContent',
       layers: ['default'],
       size: [960, 540]
     });
@@ -300,6 +302,122 @@
         for (layerName in layers) {
           canvas = layers[layerName];
           _results.push(canvas.remove());
+        }
+        return _results;
+      }
+    };
+  });
+
+  registerService('HTML', function(options) {
+    var callbacks, forms, layers, views;
+    if (options == null) {
+      options = {};
+    }
+    options = _.defaults(options, {
+      elementSelector: '#gameContent',
+      size: [960, 540]
+    });
+    forms = {};
+    layers = {};
+    views = {};
+    callbacks = {};
+    rivets.configure({
+      handler: function(target, event, binding) {
+        console.log("event handler called with", arguments, ". this is", this);
+        return forms[binding.view.models.form]["values"][binding.keypath] = true;
+      },
+      adapter: {
+        subscribe: function(formName, keypath, callback) {
+          console.log("subscribe called with ", arguments);
+          return callbacks[formName][keypath] = callback;
+        },
+        unsubscribe: function(formName, keypath, callback) {
+          console.log("unsubscribe called with ", arguments);
+          return delete callbacks[formName][keypath];
+        },
+        read: function(formName, keypath) {
+          console.log("read called with ", arguments);
+          return forms[formName]["values"][keypath];
+        },
+        publish: function(formName, keypath, value) {
+          console.log("publish called with ", arguments);
+          return forms[formName]["values"][keypath] = value;
+        }
+      }
+    });
+    return {
+      provideData: function() {
+        return {
+          "in": forms,
+          out: {}
+        };
+      },
+      establishData: function(data, assets) {
+        var binding, existingForms, formHtml, formName, layer, newFormData, newForms, view, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _results;
+        newFormData = data.out;
+        existingForms = _.keys(forms);
+        newForms = _.keys(newFormData);
+        _ref = _.difference(existingForms, newForms);
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          formName = _ref[_i];
+          delete forms[formName];
+          layers[formName].remove();
+          delete layers[formName];
+          views[formName].unbind();
+          delete views[formName];
+          delete callbacks[formName];
+        }
+        _ref1 = _.difference(newForms, existingForms);
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          formName = _ref1[_j];
+          formHtml = assets[newFormData[formName].asset];
+          layer = $("<div id='html-" + formName + "' style='position: absolute; z-index: 100; width: " + options.size[0] + "; height: " + options.size[1] + "'/>").append(formHtml);
+          $(options.elementSelector).append(layer);
+          layers[formName] = layer;
+          forms[formName] = newFormData[formName];
+          callbacks[formName] = {};
+          views[formName] = rivets.bind(layer[0], {
+            form: formName
+          });
+        }
+        _ref2 = _.intersection(newForms, existingForms);
+        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
+          formName = _ref2[_k];
+          if (!_.isEqual(newFormData[formName].values, forms[formName].values)) {
+            forms[formName].values = newFormData[formName].values;
+            views[formName].sync();
+          }
+        }
+        _results = [];
+        for (formName in views) {
+          view = views[formName];
+          _results.push((function() {
+            var _l, _len3, _ref3, _results1;
+            _ref3 = view.bindings;
+            _results1 = [];
+            for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
+              binding = _ref3[_l];
+              if (binding.type.indexOf("on-") === 0) {
+                _results1.push(forms[formName]["values"][binding.keypath] = false);
+              } else {
+                _results1.push(void 0);
+              }
+            }
+            return _results1;
+          })());
+        }
+        return _results;
+      },
+      destroy: function() {
+        var formName, layer, view, _results;
+        for (formName in views) {
+          view = views[formName];
+          view.unbind();
+        }
+        _results = [];
+        for (formName in layers) {
+          layer = layers[formName];
+          _results.push(layer.remove());
         }
         return _results;
       }

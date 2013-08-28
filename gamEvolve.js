@@ -174,7 +174,8 @@
   GE.extensions = {
     IMAGE: ["png", "gif", "jpeg", "jpg"],
     JS: ["js"],
-    CSS: ["css"]
+    CSS: ["css"],
+    HTML: ["html"]
   };
 
   GE.isOnlyObject = function(o) {
@@ -663,6 +664,19 @@
               cache: false,
               error: function() {
                 return onError("Cannot load JavaScript '" + name + "'");
+              },
+              success: function(text) {
+                results[name] = text;
+                return onLoad();
+              }
+            });
+          case "HTML":
+            return $.ajax({
+              url: url,
+              dataType: "text",
+              cache: false,
+              error: function() {
+                return onError("Cannot load HTML '" + name + "'");
               },
               success: function(text) {
                 results[name] = text;
