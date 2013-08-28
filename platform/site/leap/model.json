@@ -7,7 +7,7 @@
   },
   "activeChild": 0,
   "gridTranslation": [0, 0],
-  "form": {
+  "ageForm": {
     "gender": "male",
     "age": 33,
     "done": false

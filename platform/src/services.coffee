@@ -229,7 +229,8 @@ registerService 'HTML', (options = {}) ->
   rivets.configure
     handler: (target, event, binding) ->
       console.log("event handler called with", arguments, ". this is", this)
-      forms[binding.key]["values"][binding.keypath] = true
+      # binding.view.models.form will give the name of the form
+      forms[binding.view.models.form]["values"][binding.keypath] = true
 
     adapter: 
       subscribe: (formName, keypath, callback) -> 
@@ -250,7 +251,7 @@ registerService 'HTML', (options = {}) ->
 
     establishData: (data, assets) -> 
       newFormData = data.out 
-      
+
       # newFormData is in the format of { formName: { asset: "", values: { name: value, ... }, ... }, ...}
       existingForms = _.keys(forms)
       newForms = _.keys(newFormData)
@@ -290,7 +291,7 @@ registerService 'HTML', (options = {}) ->
       for formName, view of views
         for binding in view.bindings
           if binding.type.indexOf("on-") == 0
-            forms[binding.key]["values"][binding.keypath] = false
+            forms[formName]["values"][binding.keypath] = false
 
     # Remove all event handlers
     destroy: -> 
