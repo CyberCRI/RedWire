@@ -74,9 +74,6 @@ registerService 'Canvas', (options = {}) ->
   # `height: 100%` preserves the aspect ratio. Make the position absolute keeps the layers on top of each other
   CANVAS_CSS = "height: 100%; position: absolute; left: 0px; top: 0px;"
 
-  options = _.defaults options,
-    elementSelector: '#gameContent'
-
   createLayers = ->
     # Convert layers to ordered
     createdLayers = {}
@@ -176,8 +173,10 @@ registerService 'Canvas', (options = {}) ->
     ctx.restore()
 
   options = _.defaults options,
+    elementSelector: '#gameContent'
     layers: ['default'] 
     size: [960, 540]
+
   layers = createLayers()
 
   return {
@@ -220,6 +219,7 @@ registerService 'Canvas', (options = {}) ->
 registerService 'HTML', (options = {}) ->
   options = _.defaults options,
     elementSelector: '#gameContent'
+    size: [960, 540]
 
   forms = { }
   layers = { }
@@ -269,7 +269,7 @@ registerService 'HTML', (options = {}) ->
       for formName in _.difference(newForms, existingForms) 
         # Create form
         formHtml = assets[newFormData[formName].asset]
-        layer = $("<div id='html-#{formName}' style='position: absolute; z-index: 100'/>").append(formHtml)
+        layer = $("<div id='html-#{formName}' style='position: absolute; z-index: 100; width: #{options.size[0]}; height: #{options.size[1]}'/>").append(formHtml)
         $(options.elementSelector).append(layer)
         layers[formName] = layer
 
