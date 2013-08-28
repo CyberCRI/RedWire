@@ -7,7 +7,7 @@ registerService 'Keyboard', (options = {}) ->
 
   keysDown = {}
 
-  $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", (event) ->
+  $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", "canvas", (event) ->
     event.preventDefault()   
 
     # jQuery standardizes the keycode into http://api.jquery.com/event.which/
@@ -41,7 +41,7 @@ registerService 'Mouse', (options = {}) ->
   # This disables selection, which allows the cursor to change in Chrome
   $(options.elementSelector).on("selectstart.#{eventNamespace}", -> false)
 
-  $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", (event) ->
+  $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", "canvas", (event) ->
     switch event.type 
       when 'mousedown' then mouse.down = true
       when 'mouseup' then mouse.down = false
@@ -80,8 +80,9 @@ registerService 'Canvas', (options = {}) ->
     zIndex = 0
     for layerName in options.layers
       layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex='0' style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
-      $('#gameContent').append(layer)
+      $(options.elementSelector).append(layer)
       createdLayers[layerName] = layer
+      zIndex++
 
     return createdLayers
 
@@ -172,8 +173,10 @@ registerService 'Canvas', (options = {}) ->
     ctx.restore()
 
   options = _.defaults options,
+    elementSelector: '#gameContent'
     layers: ['default'] 
     size: [960, 540]
+
   layers = createLayers()
 
   return {
@@ -211,4 +214,93 @@ registerService 'Canvas', (options = {}) ->
     destroy: -> 
       for layerName, canvas of layers then canvas.remove()
   }
+
+# Define keyboard input service
+registerService 'HTML', (options = {}) ->
+  options = _.defaults options,
+    elementSelector: '#gameContent'
+    size: [960, 540]
+
+  forms = { }
+  layers = { }
+  views = { }
+  callbacks = { }
+
+  rivets.configure
+    handler: (target, event, binding) ->
+      console.log("event handler called with", arguments, ". this is", this)
+      # binding.view.models.form will give the name of the form
+      forms[binding.view.models.form]["values"][binding.keypath] = true
+
+    adapter: 
+      subscribe: (formName, keypath, callback) -> 
+        console.log("subscribe called with ", arguments)
+        callbacks[formName][keypath] = callback
+      unsubscribe: (formName, keypath, callback) ->
+        console.log("unsubscribe called with ", arguments)
+        delete callbacks[formName][keypath]
+      read: (formName, keypath) ->
+        console.log("read called with ", arguments)
+        return forms[formName]["values"][keypath]
+      publish: (formName, keypath, value) ->
+        console.log("publish called with ", arguments)
+        forms[formName]["values"][keypath] = value
+
+  return {
+    provideData: () -> return { in: forms, out: {} }
+
+    establishData: (data, assets) -> 
+      newFormData = data.out 
+
+      # newFormData is in the format of { formName: { asset: "", values: { name: value, ... }, ... }, ...}
+      existingForms = _.keys(forms)
+      newForms = _.keys(newFormData)
+
+      # Remove all forms that are no longer to be shown
+      for formName in _.difference(existingForms, newForms) 
+        delete forms[formName]
+        layers[formName].remove()
+        delete layers[formName]
+        views[formName].unbind()
+        delete views[formName]
+        delete callbacks[formName]
+
+      # Add new forms 
+      for formName in _.difference(newForms, existingForms) 
+        # Create form
+        formHtml = assets[newFormData[formName].asset]
+        layer = $("<div id='html-#{formName}' style='position: absolute; z-index: 100; width: #{options.size[0]}; height: #{options.size[1]}'/>").append(formHtml)
+        $(options.elementSelector).append(layer)
+        layers[formName] = layer
+
+        # Create newFormData
+        forms[formName] = newFormData[formName] 
+        # Bind to the form name
+        callbacks[formName] = { } # Will be filled by calls to adapter.subscribe()
+        views[formName] = rivets.bind(layer[0], { form: formName })
+
+      # Update existing forms with new newFormData
+      for formName in _.intersection(newForms, existingForms) 
+        # TODO: call individual binders instead of syncronizing the whole model?
+        #   for key in _.union(_.keys(newFormData[formName].values), _.keys(forms[formName].values)
+        if not _.isEqual(newFormData[formName].values, forms[formName].values)
+          forms[formName].values = newFormData[formName].values
+          views[formName].sync() 
+
+      # Reset all event bindings to false
+      for formName, view of views
+        for binding in view.bindings
+          if binding.type.indexOf("on-") == 0
+            forms[formName]["values"][binding.keypath] = false
+
+    # Remove all event handlers
+    destroy: -> 
+      for formName, view of views
+        view.unbind()
+      for formName, layer of layers
+        layer.remove()
+
+
+  }
+
 

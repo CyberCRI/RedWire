@@ -187,6 +187,25 @@
           throw new Error("Unknown state '" + this.params.state + "'");
       }
     }
+  },
+
+  updateHtmlForm: {
+    paramDefs: {
+      "htmlService": { direction: "inout" },
+      "modelValues": { direction: "inout" },
+      "assetName": null,
+      "formName": null
+    },
+    update: function() { 
+      if(!this.params.htmlService.in[this.params.formName]) {
+        // If the form does not exist in the service, use the model values as a default
+        this.params.htmlService.out[this.params.formName] = { asset: this.params.assetName, values: this.params.modelValues };
+      } else {
+        // Otherwise update the model from what the service provides, and then re-stablish the form
+        this.params.modelValues = this.params.htmlService.in[this.params.formName].values;
+        this.params.htmlService.out[this.params.formName] = this.params.htmlService.in[this.params.formName]
+      }
+    }
   }
 
 });
