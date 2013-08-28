@@ -111,6 +111,7 @@ GE.extensions =
     IMAGE: ["png", "gif", "jpeg", "jpg"]
     JS: ["js"]
     CSS: ["css"]
+    HTML: ["html"]
 
 # Reject arrays as objects
 GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
@@ -495,6 +496,15 @@ GE.loadAssets = (assets, callback) ->
             dataType: "text"
             cache: false
             error: -> onError("Cannot load JavaScript '#{name}'")
+            success: (text) ->
+              results[name] = text
+              onLoad()
+        when "HTML"
+          $.ajax
+            url: url
+            dataType: "text"
+            cache: false
+            error: -> onError("Cannot load HTML '#{name}'")
             success: (text) ->
               results[name] = text
               onLoad()

@@ -66,28 +66,58 @@
         }
       },
       "children": [
-        {
+        { 
+          "action": "doWhile",
+          "params": {
+            "in": {
+              "value": "!model.ageForm.done"
+            }
+          },
+          "children": [
+            {
+              "action": "updateHtmlForm",
+              "params": {
+                "in": {
+                  "htmlService": "services.html",
+                  "modelValues": "model.ageForm",
+                  "assetName": "'form'",
+                  "formName": "'ageForm'"
+                },
+                "out": {
+                  "services.html": "params.htmlService",
+                  "model.ageForm": "params.modelValues"
+                }
+              }
+            }
+          ]
+        },
+        { 
           "send": {
             "model.blocks": "model.constants.initialBlocks"
           }
         },
-        {
-          "action": "detectMouse",
-          "params": {
-            "in": {
-              "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize))",
-              "shape": "model.mouseDetection.shape",
-              "mousePosition": "services.mouse.position",
-              "mouseDown": "services.mouse.down",
-              "state": "model.mouseDetection.state",
-              "dragStartPosition": "model.mouseDetection.dragStartPosition"
-            },
-            "out": {
-              "model.mouseDetection.state": "params.state",
-              "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
-              "model.mouseDetection.shape": "params.shape"
+        { 
+          "action": "doInParallel",
+          "children": [ 
+            {
+              "action": "detectMouse",
+              "params": {
+                "in": {
+                  "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize))",
+                  "shape": "model.mouseDetection.shape",
+                  "mousePosition": "services.mouse.position",
+                  "mouseDown": "services.mouse.down",
+                  "state": "model.mouseDetection.state",
+                  "dragStartPosition": "model.mouseDetection.dragStartPosition"
+                },
+                "out": {
+                  "model.mouseDetection.state": "params.state",
+                  "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
+                  "model.mouseDetection.shape": "params.shape"
+                }
+              }
             }
-          }
+          ]
         }
       ]
     }

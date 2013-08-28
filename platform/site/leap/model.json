@@ -7,6 +7,11 @@
   },
   "activeChild": 0,
   "gridTranslation": [0, 0],
+  "ageForm": {
+    "gender": "male",
+    "age": 33,
+    "done": false
+  },
   "constants": {
     "grid": {
       "type": "infinite",

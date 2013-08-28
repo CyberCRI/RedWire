@@ -1,0 +1,12 @@
+#gameContent {
+	color: white;
+	font-family: Arial;
+	font-size: 20px;
+}
+
+#gameContent input, button {
+	color: black;
+	font-family: Arial;
+	font-size: 20px;
+}
+
