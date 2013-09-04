@@ -221,7 +221,7 @@ registerService 'HTML', (options = {}) ->
     elementSelector: '#gameContent'
     size: [960, 540]
 
-  forms = { }
+  templates = { }
   layers = { }
   views = { }
   callbacks = { }
@@ -229,78 +229,76 @@ registerService 'HTML', (options = {}) ->
   rivets.configure
     handler: (target, event, binding) ->
       console.log("event handler called with", arguments, ". this is", this)
-      # binding.view.models.form will give the name of the form
-      forms[binding.view.models.form]["values"][binding.keypath] = true
+      # binding.view.models.template will give the name of the template
+      templates[binding.view.models.data]["values"][binding.keypath] = true
 
     adapter: 
-      subscribe: (formName, keypath, callback) -> 
-        console.log("subscribe called with ", arguments)
-        callbacks[formName][keypath] = callback
-      unsubscribe: (formName, keypath, callback) ->
-        console.log("unsubscribe called with ", arguments)
-        delete callbacks[formName][keypath]
-      read: (formName, keypath) ->
-        console.log("read called with ", arguments)
-        return forms[formName]["values"][keypath]
-      publish: (formName, keypath, value) ->
-        console.log("publish called with ", arguments)
-        forms[formName]["values"][keypath] = value
+      subscribe: (templateName, keypath, callback) -> 
+        # console.log("subscribe called with ", arguments)
+        callbacks[templateName][keypath] = callback
+      unsubscribe: (templateName, keypath, callback) ->
+        # console.log("unsubscribe called with ", arguments)
+        delete callbacks[templateName][keypath]
+      read: (templateName, keypath) ->
+        # console.log("read called with ", arguments)
+        return templates[templateName]["values"][keypath]
+      publish: (templateName, keypath, value) ->
+        # console.log("publish called with ", arguments)
+        templates[templateName]["values"][keypath] = value
 
   return {
-    provideData: () -> return { in: forms, out: {} }
+    provideData: () -> return { in: templates, out: {} }
 
     establishData: (data, assets) -> 
-      newFormData = data.out 
+      newTemplateData = data.out 
 
-      # newFormData is in the format of { formName: { asset: "", values: { name: value, ... }, ... }, ...}
-      existingForms = _.keys(forms)
-      newForms = _.keys(newFormData)
+      # data.out and data.in are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
+      existingTemplates = _.keys(templates)
+      newTemplates = _.keys(newTemplateData)
 
-      # Remove all forms that are no longer to be shown
-      for formName in _.difference(existingForms, newForms) 
-        delete forms[formName]
-        layers[formName].remove()
-        delete layers[formName]
-        views[formName].unbind()
-        delete views[formName]
-        delete callbacks[formName]
+      # Remove all templates that are no longer to be shown
+      for templateName in _.difference(existingTemplates, newTemplates) 
+        delete templates[templateName]
+        layers[templateName].remove()
+        delete layers[templateName]
+        views[templateName].unbind()
+        delete views[templateName]
+        delete callbacks[templateName]
 
-      # Add new forms 
-      for formName in _.difference(newForms, existingForms) 
-        # Create form
-        formHtml = assets[newFormData[formName].asset]
-        layer = $("<div id='html-#{formName}' style='position: absolute; z-index: 100; width: #{options.size[0]}; height: #{options.size[1]}'/>").append(formHtml)
+      # Add new templates 
+      for templateName in _.difference(newTemplates, existingTemplates) 
+        # Create template
+        templateHtml = assets[newTemplateData[templateName].asset]
+        layer = $("<div id='html-#{templateName}' style='position: absolute; z-index: 100; width: #{options.size[0]}; height: #{options.size[1]}'/>").append(templateHtml)
         $(options.elementSelector).append(layer)
-        layers[formName] = layer
+        layers[templateName] = layer
 
-        # Create newFormData
-        forms[formName] = newFormData[formName] 
-        # Bind to the form name
-        callbacks[formName] = { } # Will be filled by calls to adapter.subscribe()
-        views[formName] = rivets.bind(layer[0], { form: formName })
+        # Create newTemplateData
+        templates[templateName] = newTemplateData[templateName] 
+        # Bind to the template name
+        callbacks[templateName] = { } # Will be filled by calls to adapter.subscribe()
+        views[templateName] = rivets.bind(layer[0], { data: templateName })
 
-      # Update existing forms with new newFormData
-      for formName in _.intersection(newForms, existingForms) 
+      # Update existing templates with new newTemplateData
+      for templateName in _.intersection(newTemplates, existingTemplates) 
         # TODO: call individual binders instead of syncronizing the whole model?
-        #   for key in _.union(_.keys(newFormData[formName].values), _.keys(forms[formName].values)
-        if not _.isEqual(newFormData[formName].values, forms[formName].values)
-          forms[formName].values = newFormData[formName].values
-          views[formName].sync() 
+        #   for key in _.union(_.keys(newTemplateData[templateName].values), _.keys(templates[templateName].values)
+        if not _.isEqual(newTemplateData[templateName].values, templates[templateName].values)
+          templates[templateName].values = newTemplateData[templateName].values
+          views[templateName].sync() 
 
       # Reset all event bindings to false
-      for formName, view of views
+      for templateName, view of views
         for binding in view.bindings
           if binding.type.indexOf("on-") == 0
-            forms[formName]["values"][binding.keypath] = false
+            templates[templateName]["values"][binding.keypath] = false
 
     # Remove all event handlers
     destroy: -> 
-      for formName, view of views
+      for templateName, view of views
         view.unbind()
-      for formName, layer of layers
+      for templateName, layer of layers
         layer.remove()
-
-
   }
 
 
