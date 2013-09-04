@@ -309,7 +309,7 @@
   });
 
   registerService('HTML', function(options) {
-    var callbacks, forms, layers, views;
+    var callbacks, layers, templates, views;
     if (options == null) {
       options = {};
     }
@@ -317,80 +317,76 @@
       elementSelector: '#gameContent',
       size: [960, 540]
     });
-    forms = {};
+    templates = {};
     layers = {};
     views = {};
     callbacks = {};
     rivets.configure({
       handler: function(target, event, binding) {
         console.log("event handler called with", arguments, ". this is", this);
-        return forms[binding.view.models.form]["values"][binding.keypath] = true;
+        return templates[binding.view.models.data]["values"][binding.keypath] = true;
       },
       adapter: {
-        subscribe: function(formName, keypath, callback) {
-          console.log("subscribe called with ", arguments);
-          return callbacks[formName][keypath] = callback;
+        subscribe: function(templateName, keypath, callback) {
+          return callbacks[templateName][keypath] = callback;
         },
-        unsubscribe: function(formName, keypath, callback) {
-          console.log("unsubscribe called with ", arguments);
-          return delete callbacks[formName][keypath];
+        unsubscribe: function(templateName, keypath, callback) {
+          return delete callbacks[templateName][keypath];
         },
-        read: function(formName, keypath) {
-          console.log("read called with ", arguments);
-          return forms[formName]["values"][keypath];
+        read: function(templateName, keypath) {
+          return templates[templateName]["values"][keypath];
         },
-        publish: function(formName, keypath, value) {
-          console.log("publish called with ", arguments);
-          return forms[formName]["values"][keypath] = value;
+        publish: function(templateName, keypath, value) {
+          return templates[templateName]["values"][keypath] = value;
         }
       }
     });
     return {
       provideData: function() {
         return {
-          "in": forms,
+          "in": templates,
           out: {}
         };
       },
       establishData: function(data, assets) {
-        var binding, existingForms, formHtml, formName, layer, newFormData, newForms, view, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _results;
-        newFormData = data.out;
-        existingForms = _.keys(forms);
-        newForms = _.keys(newFormData);
-        _ref = _.difference(existingForms, newForms);
+        var binding, existingTemplates, layer, newTemplateData, newTemplates, templateHtml, templateName, view, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _results;
+        newTemplateData = data.out;
+        existingTemplates = _.keys(templates);
+        newTemplates = _.keys(newTemplateData);
+        _ref = _.difference(existingTemplates, newTemplates);
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          formName = _ref[_i];
-          delete forms[formName];
-          layers[formName].remove();
-          delete layers[formName];
-          views[formName].unbind();
-          delete views[formName];
-          delete callbacks[formName];
+          templateName = _ref[_i];
+          delete templates[templateName];
+          layers[templateName].remove();
+          delete layers[templateName];
+          views[templateName].unbind();
+          delete views[templateName];
+          delete callbacks[templateName];
         }
-        _ref1 = _.difference(newForms, existingForms);
+        _ref1 = _.difference(newTemplates, existingTemplates);
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          formName = _ref1[_j];
-          formHtml = assets[newFormData[formName].asset];
-          layer = $("<div id='html-" + formName + "' style='position: absolute; z-index: 100; width: " + options.size[0] + "; height: " + options.size[1] + "'/>").append(formHtml);
+          templateName = _ref1[_j];
+          templateHtml = assets[newTemplateData[templateName].asset];
+          layer = $("<div id='html-" + templateName + "' style='position: absolute; z-index: 100; width: " + options.size[0] + "; height: " + options.size[1] + "'/>").append(templateHtml);
           $(options.elementSelector).append(layer);
-          layers[formName] = layer;
-          forms[formName] = newFormData[formName];
-          callbacks[formName] = {};
-          views[formName] = rivets.bind(layer[0], {
-            form: formName
+          layers[templateName] = layer;
+          templates[templateName] = newTemplateData[templateName];
+          callbacks[templateName] = {};
+          views[templateName] = rivets.bind(layer[0], {
+            data: templateName
           });
         }
-        _ref2 = _.intersection(newForms, existingForms);
+        _ref2 = _.intersection(newTemplates, existingTemplates);
         for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-          formName = _ref2[_k];
-          if (!_.isEqual(newFormData[formName].values, forms[formName].values)) {
-            forms[formName].values = newFormData[formName].values;
-            views[formName].sync();
+          templateName = _ref2[_k];
+          if (!_.isEqual(newTemplateData[templateName].values, templates[templateName].values)) {
+            templates[templateName].values = newTemplateData[templateName].values;
+            views[templateName].sync();
           }
         }
         _results = [];
-        for (formName in views) {
-          view = views[formName];
+        for (templateName in views) {
+          view = views[templateName];
           _results.push((function() {
             var _l, _len3, _ref3, _results1;
             _ref3 = view.bindings;
@@ -398,7 +394,7 @@
             for (_l = 0, _len3 = _ref3.length; _l < _len3; _l++) {
               binding = _ref3[_l];
               if (binding.type.indexOf("on-") === 0) {
-                _results1.push(forms[formName]["values"][binding.keypath] = false);
+                _results1.push(templates[templateName]["values"][binding.keypath] = false);
               } else {
                 _results1.push(void 0);
               }
@@ -409,14 +405,14 @@
         return _results;
       },
       destroy: function() {
-        var formName, layer, view, _results;
-        for (formName in views) {
-          view = views[formName];
+        var layer, templateName, view, _results;
+        for (templateName in views) {
+          view = views[templateName];
           view.unbind();
         }
         _results = [];
-        for (formName in layers) {
-          layer = layers[formName];
+        for (templateName in layers) {
+          layer = layers[templateName];
           _results.push(layer.remove());
         }
         return _results;
