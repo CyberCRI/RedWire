@@ -75,13 +75,13 @@
           },
           "children": [
             {
-              "action": "updateHtmlForm",
+              "action": "updateHtmlTemplate",
               "params": {
                 "in": {
                   "htmlService": "services.html",
                   "modelValues": "model.ageForm",
                   "assetName": "'form'",
-                  "formName": "'ageForm'"
+                  "templateName": "'ageForm'"
                 },
                 "out": {
                   "services.html": "params.htmlService",
