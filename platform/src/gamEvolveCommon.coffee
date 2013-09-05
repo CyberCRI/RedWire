@@ -46,3 +46,5 @@ GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))
 # Create new array with the value of these arrays
 GE.concatenate = (rest...) -> _.flatten(rest, true)
 
+# Create new array with the value of these arrays
+GE.append = (array, element) -> GE.concatenate(array, [element])

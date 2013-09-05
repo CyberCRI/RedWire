@@ -78,6 +78,11 @@
                 "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize)))"
               }
             },
+            { 
+              "send": {
+                "services.graphics.shapes": "tools.drawShape({ layer: 'gallery', type: 'rectangle', position: [800, 0], size: [160, 100], fillStyle: 'grey', strokeStyle: 'white' })"
+              }
+            },
             {
               "send": {
                 "model.gridTranslation": "tools.findCenterOfCells(model.constants.grid, model.blocks)"
@@ -124,8 +129,38 @@
             },
             {
               "send": { 
-                "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: 2 } }"
+                "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: model.gallery.length, ready: model.gallery.length >= 5 } }"
               }
+            },
+            { 
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "services.html.receive.blocksForm && services.html.receive.blocksForm.values.addShape"
+                }
+              },
+              "children": [
+                {
+                  "send": {
+                    "model.gallery" : "GE.append(model.gallery, model.blocks)"
+                  }
+                }
+              ]
+            },
+            {
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "model.gallery.length > 0"
+                }
+              },
+              "children": [
+                { 
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(model.constants.galleryGrid, _.last(model.gallery))), tools.makeBlockShapes(model.constants.galleryGrid, _.last(model.gallery), model.constants.blockColor, model.constants.galleryBlockSize)))"
+                  }
+                }
+              ]
             }
           ]
         }

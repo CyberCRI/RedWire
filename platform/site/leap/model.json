@@ -12,6 +12,10 @@
     "age": 33,
     "done": false
   },
+  "blocksForm": {
+    "done": false
+  },
+  "gallery": [],
   "constants": {
     "grid": {
       "type": "infinite",
@@ -19,8 +23,15 @@
       "cellSize": [55, 55],
       "gridSize": [16, 9]
     },
+    "galleryGrid": {
+      "type": "infinite",
+      "upperLeft": [800, 0],
+      "cellSize": [10, 10],
+      "gridSize": [16, 9]
+    },
     "initialBlocks": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0]],
     "blockColor": "rgb(129, 231, 0)",
-    "blockSize": [50, 50]
+    "blockSize": [50, 50],
+    "galleryBlockSize": [8, 8]
   }
 }
