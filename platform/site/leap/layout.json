@@ -80,7 +80,7 @@
             },
             { 
               "send": {
-                "services.graphics.shapes": "tools.drawShape({ layer: 'gallery', type: 'rectangle', position: [800, 0], size: [160, 100], fillStyle: 'grey', strokeStyle: 'white' })"
+                "services.graphics.shapes": "tools.drawShape({ layer: 'gallery', type: 'rectangle', position: model.constants.galleryGrid.upperLeft, size: tools.gridSizeInPixels(model.constants.galleryGrid), fillStyle: 'grey', strokeStyle: 'white' })"
               }
             },
             {
@@ -158,6 +158,40 @@
                 { 
                   "send": {
                     "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(model.constants.galleryGrid, _.last(model.gallery))), tools.makeBlockShapes(model.constants.galleryGrid, _.last(model.gallery), model.constants.blockColor, model.constants.galleryBlockSize)))"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "send": {
+            "model.selectionGrids": "tools.makeSelectionGalleryGrids(model.constants.selectionGrid, model.constants.galleryGrid, model.gallery)"
+          }
+        },
+        {
+          "action": "doWhile",
+          "params": {
+            "in": {
+              "value": "!services.html.receive.selectionForm || !services.html.receive.selectionForm.values.done"
+            }
+          },
+          "children": [
+            {
+              "foreach": {
+                "from": "model.selectionGrids",
+                "bindTo": "selectionGrid",
+                "index": "selectionGridIndex"
+              },         
+              "children": [
+                {
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShape({ layer: 'gallery', type: 'rectangle', position: bindings.selectionGrid.upperLeft, size: tools.gridSizeInPixels(bindings.selectionGrid), fillStyle: 'grey', strokeStyle: 'white' })"
+                  }
+                },
+                { 
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex])), tools.makeBlockShapes(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex], model.constants.blockColor, model.constants.galleryBlockSize)))"
                   }
                 }
               ]

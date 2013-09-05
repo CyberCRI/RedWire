@@ -16,22 +16,30 @@
     "done": false
   },
   "gallery": [],
+  "selectionGrids" : [],
+  "selectedGalleryIndexes" : [],
   "constants": {
     "grid": {
       "type": "infinite",
-      "upperLeft": [10, 10],
+      "upperLeft": [205, 0],
       "cellSize": [55, 55],
-      "gridSize": [16, 9]
+      "gridSize": [10, 10]
     },
     "galleryGrid": {
       "type": "infinite",
-      "upperLeft": [800, 0],
-      "cellSize": [10, 10],
-      "gridSize": [16, 9]
+      "upperLeft": [800, 10],
+      "cellSize": [15, 15],
+      "gridSize": [10, 10]
+    },
+    "selectionGrid": {
+      "type": "fixed",
+      "upperLeft": [30, 50],
+      "cellSize": [150, 150],
+      "gridSize": [6, 3]
     },
     "initialBlocks": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0]],
     "blockColor": "rgb(129, 231, 0)",
     "blockSize": [50, 50],
-    "galleryBlockSize": [8, 8]
+    "galleryBlockSize": [12, 12]
   }
 }

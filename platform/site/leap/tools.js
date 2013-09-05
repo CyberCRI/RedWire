@@ -90,6 +90,11 @@
     return [grid.cellSize[0] * grid.gridSize[0], grid.cellSize[1] * grid.gridSize[1]];
   },
 
+  gridIndexToCell: function(grid, index) {
+    // Assumes that cells are laid out from left to right, then top to bottom 
+    return [index % grid.gridSize[0], Math.floor(index / grid.gridSize[0])];
+  },
+
   calculateRotationAngle: function (center, mousePosition) {
     var h = [mousePosition[0] - center[0], mousePosition[1] - center[1]];
     var omDistance = Math.sqrt(h[0]*h[0] + h[1]*h[1]);
@@ -131,7 +136,7 @@
     if(cells.length == 0) return [0, 0];
 
     var gridCenter = [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
-    var sum = _.reduce(cells, function(memo, cell) { return [memo[0] + cell[0], memo[1] + cell[1]]; }, [0, 0]);
+    var sum = _.reduce(cells, function(memo, cell) { return [memo[0] + cell[0] + 0.5, memo[1] + cell[1] + 0.5]; }, [0, 0]);
     return [sum[0] * grid.cellSize[0] / cells.length - gridCenter[0], sum[1] * grid.cellSize[1] / cells.length - gridCenter[1]];
   },
 
@@ -279,5 +284,18 @@
     return [point[0] + translation[0], point[1] + translation[1]];
   },
 
-  inverseVector: function(vector) { return [-vector[0], -vector[1]]; }
+  inverseVector: function(vector) { return [-vector[0], -vector[1]]; },
+
+  makeSelectionGalleryGrids: function(selectionGrid, galleryGrid, gallery) { 
+    var that = this;
+    return _.map(_.range(gallery.length), function(index) {
+      var cell = that.gridIndexToCell(selectionGrid, index);
+      return {
+        type: "infinite",
+        "upperLeft": that.gridCellUpperLeft(selectionGrid, cell),
+        "cellSize": galleryGrid.cellSize,
+        "gridSize": galleryGrid.gridSize
+      };
+    });
+  }
 })
