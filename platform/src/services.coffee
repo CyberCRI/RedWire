@@ -247,12 +247,12 @@ registerService 'HTML', (options = {}) ->
         templates[templateName]["values"][keypath] = value
 
   return {
-    provideData: () -> return { in: templates, out: {} }
+    provideData: () -> return { receive: templates, send: {} }
 
     establishData: (data, assets) -> 
-      newTemplateData = data.out 
+      newTemplateData = data.send 
 
-      # data.out and data.in are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
+      # data.send and data.receive are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
       existingTemplates = _.keys(templates)
       newTemplates = _.keys(newTemplateData)
 
@@ -269,15 +269,18 @@ registerService 'HTML', (options = {}) ->
       for templateName in _.difference(newTemplates, existingTemplates) 
         # Create template
         templateHtml = assets[newTemplateData[templateName].asset]
-        layer = $("<div id='html-#{templateName}' style='position: absolute; z-index: 100; width: #{options.size[0]}; height: #{options.size[1]}'/>").append(templateHtml)
-        $(options.elementSelector).append(layer)
-        layers[templateName] = layer
+        innerWrapper = $("<div style='pointer-events: auto'/>")
+        innerWrapper.append(templateHtml)
+        outerWrapper = $("<div id='html-#{templateName}' style='position: absolute; z-index: 100; pointer-events: none; width: #{options.size[0]}; height: #{options.size[1]}'/>")
+        outerWrapper.append(innerWrapper)
+        $(options.elementSelector).append(outerWrapper)
+        layers[templateName] = outerWrapper
 
         # Create newTemplateData
         templates[templateName] = newTemplateData[templateName] 
         # Bind to the template name
         callbacks[templateName] = { } # Will be filled by calls to adapter.subscribe()
-        views[templateName] = rivets.bind(layer[0], { data: templateName })
+        views[templateName] = rivets.bind(outerWrapper[0], { data: templateName })
 
       # Update existing templates with new newTemplateData
       for templateName in _.intersection(newTemplates, existingTemplates) 

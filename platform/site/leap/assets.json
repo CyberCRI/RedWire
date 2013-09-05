@@ -1,4 +1,5 @@
 {
   "form": "assets/form.html",
+  "blocksForm": "assets/blocks.html",
   "formCss": "assets/form.css"
 }

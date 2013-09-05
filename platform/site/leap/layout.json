@@ -7,55 +7,6 @@
       }
     },
     {
-      "send": {
-        "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize)))"
-      }
-    },
-    {
-      "send": {
-        "model.gridTranslation": "tools.findCenterOfCells(model.constants.grid, model.blocks)"
-      }
-    },
-    {
-      "action": "when",
-      "params": {
-        "in": {
-          "value": "model.mouseDetection.state"
-        }
-      },
-      "children": [
-        {
-          "name": "drag",
-          "action": "if",
-          "params": {
-            "in": {
-              "value": "services.mouse.position != null"
-            }
-          },
-          "children": [
-            {
-              "send": {
-                "services.mouse.cursor": "'move'",
-                "services.graphics.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, model.constants.blockColor, services.mouse.position))" 
-              }
-            }
-          ]
-        },
-        {
-          "name": "endDrag",
-          "send": { 
-            "model.blocks": "tools.moveBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, tools.translatePoint(model.gridTranslation, services.mouse.position))"
-          }
-        },
-        {
-          "name": "hover",
-          "send": {
-            "services.mouse.cursor": "'pointer'"
-          }  
-        }
-      ]
-    },
-    {
       "action": "doInSequence",
       "params": {
         "in": {
@@ -97,8 +48,13 @@
           }
         },
         { 
-          "action": "doInParallel",
-          "children": [ 
+          "action": "doWhile",
+          "params": {
+            "in": {
+              "value": "!services.html.receive.blocksForm || !services.html.receive.blocksForm.values.done"
+            }
+          },
+          "children": [
             {
               "action": "detectMouse",
               "params": {
@@ -115,6 +71,60 @@
                   "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
                   "model.mouseDetection.shape": "params.shape"
                 }
+              }
+            },
+            { 
+              "send": {
+                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize)))"
+              }
+            },
+            {
+              "send": {
+                "model.gridTranslation": "tools.findCenterOfCells(model.constants.grid, model.blocks)"
+              }
+            },
+            {
+              "action": "when",
+              "params": {
+                "in": {
+                  "value": "model.mouseDetection.state"
+                }
+              },
+              "children": [
+                {
+                  "name": "drag",
+                  "action": "if",
+                  "params": {
+                    "in": {
+                      "value": "services.mouse.position != null"
+                    }
+                  },
+                  "children": [
+                    {
+                      "send": {
+                        "services.mouse.cursor": "'move'",
+                        "services.graphics.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, model.constants.blockColor, services.mouse.position))" 
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "endDrag",
+                  "send": { 
+                    "model.blocks": "tools.moveBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, tools.translatePoint(model.gridTranslation, services.mouse.position))"
+                  }
+                },
+                {
+                  "name": "hover",
+                  "send": {
+                    "services.mouse.cursor": "'pointer'"
+                  }  
+                }
+              ]
+            },
+            {
+              "send": { 
+                "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: 2 } }"
               }
             }
           ]
