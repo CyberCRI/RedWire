@@ -319,6 +319,29 @@
         layer: 'gallery'
       });
     });
+  },
+
+  serializeBlocks: function(blocks) {
+    /*  The first ten integers are the ten possible rows of output (for a cubicle of size ten).
+        Each integer is the decimal form of the binary number showing the occupancy of a row.
+        For example take the first entry: 1023 is 1111111111 i.e. The first row is completely filled with tiles. All the other rows are 0 because they are empty. In the second entry the first row is 1022 = '1111111110' and the second row is 2 = '0000000010'; i.e. the rightmost tile has been moved down and left.
+    */
+
+    // Find the top-most (lowest) row and the left-most (lowest) column block coordinates
+    var min = _.reduce(blocks, function(memo, block) { 
+      return [Math.min(memo[0], block[0]), Math.min(memo[1], block[1])];
+    }, [Infinity, Infinity]);
+
+    // Initialize the row numbers to zero
+    var rowNumbers = _.map(_.range(10), function() { return 0; });
+    // Check off each block in binary
+    _.each(blocks, function(block) { 
+      var index = block[1] - min[1];
+      rowNumbers[index] = rowNumbers[index] | (1 << (9 - (block[0] - min[0]))); 
+    });
+
+    // Return as a string of space-seperated decimal numbers 
+    return rowNumbers.join(" ");
   }
 
 })
