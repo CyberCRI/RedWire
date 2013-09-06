@@ -142,7 +142,7 @@
               "children": [
                 {
                   "send": {
-                    "model.gallery" : "GE.append(model.gallery, model.blocks)"
+                    "model.gallery" : "GE.appendToArray(model.gallery, model.blocks)"
                   }
                 }
               ]
@@ -185,13 +185,54 @@
               },         
               "children": [
                 {
+
                   "send": {
-                    "services.graphics.shapes": "tools.drawShape({ layer: 'gallery', type: 'rectangle', position: bindings.selectionGrid.upperLeft, size: tools.gridSizeInPixels(bindings.selectionGrid), fillStyle: 'grey', strokeStyle: 'white' })"
+                    "services.graphics.shapes": "tools.drawShapes(tools.makeSelectionGalleryShapes(model.selectionGrids, model.selectedGalleryIndexes))"
                   }
                 },
                 { 
                   "send": {
                     "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex])), tools.makeBlockShapes(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex], model.constants.blockColor, model.constants.galleryBlockSize)))"
+                  }
+                }
+              ]
+            },
+            {
+              "action": "detectMouse",
+              "params": {
+                "in": {
+                  "shapes": "_.map(model.selectionGrids, tools.makeGridCoveringRectangle, tools)",
+                  "shape": "model.mouseDetection.shape",
+                  "mousePosition": "services.mouse.position",
+                  "mouseDown": "services.mouse.down",
+                  "state": "model.mouseDetection.state",
+                  "dragStartPosition": "model.mouseDetection.dragStartPosition"
+                },
+                "out": {
+                  "model.mouseDetection.state": "params.state",
+                  "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
+                  "model.mouseDetection.shape": "params.shape"
+                }
+              }
+            },
+            {
+              "action": "when",
+              "params": {
+                "in": {
+                  "value": "model.mouseDetection.state"
+                }
+              },
+              "children": [
+                {
+                  "name": "hover",
+                  "send": {
+                    "services.mouse.cursor": "'pointer'"
+                  }  
+                },
+                {
+                  "name": "click",
+                  "send": {
+                    "model.selectedGalleryIndexes": "GE.toggleValueInArray(model.selectedGalleryIndexes, model.mouseDetection.shape.meta)"
                   }
                 }
               ]

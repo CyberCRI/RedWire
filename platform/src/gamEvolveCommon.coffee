@@ -46,5 +46,12 @@ GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))
 # Create new array with the value of these arrays
 GE.concatenate = (rest...) -> _.flatten(rest, true)
 
-# Create new array with the value of these arrays
-GE.append = (array, element) -> GE.concatenate(array, [element])
+# Return an array with the new value added
+GE.appendToArray = (array, value) -> GE.concatenate(array, [value])
+
+# Return an array with all instances of the element removed
+GE.removeFromArray = (array, value) -> return (element for element in array when not _.isEqual(value, element))
+
+# If the value is not in the array, then add it, else remove it
+GE.toggleValueInArray = (array, value) ->
+  return if GE.contains(array, value) then GE.removeFromArray(array, value) else GE.appendToArray(array, value)

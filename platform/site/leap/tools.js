@@ -132,6 +132,17 @@
     });
   },
 
+  makeGridCoveringRectangle: function(grid, meta) {
+    return {
+      meta: meta,
+      type: "rectangle",
+      position: grid.upperLeft,
+      size: this.gridSizeInPixels(grid),
+      strokeStyle: "white",
+      fillStyle: "white"
+    };
+  },
+
   findCenterOfCells: function(grid, cells) {
     if(cells.length == 0) return [0, 0];
 
@@ -297,5 +308,17 @@
         "gridSize": galleryGrid.gridSize
       };
     });
+  },
+
+  makeSelectionGalleryShapes: function(selectionGrids, selectedGalleryIndexes) {
+    var that = this;
+    return _.map(selectionGrids, function(selectionGrid, index) {
+      return _.extend(that.makeGridCoveringRectangle(selectionGrid, index), {
+        fillStyle: GE.contains(selectedGalleryIndexes, index) ? 'red' : 'grey',
+        strokeStyle: 'white',
+        layer: 'gallery'
+      });
+    });
   }
+
 })
