@@ -13,5 +13,8 @@
   },
   "html": {
     "type": "HTML"
+  },
+  "time" : {
+    "type": "Time"
   }
 }

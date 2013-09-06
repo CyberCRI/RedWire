@@ -304,4 +304,12 @@ registerService 'HTML', (options = {}) ->
         layer.remove()
   }
 
+# Define time service, that provides the current time in ms
+registerService 'Time', () ->
+  return {
+    provideData: () -> return Date.now()
 
+    establishData: (data, assets) -> # NOP
+
+    destroy: -> # NOP
+  }

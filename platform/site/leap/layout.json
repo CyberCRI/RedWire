@@ -3,7 +3,7 @@
   "children": [
     { 
       "send": {
-        "services.graphics.shapes": "tools.drawShape({ type: 'rectangle', layer: 'bg', position: [0, 0], size: services.graphics.size, fillStyle: 'black' })" 
+        "services.graphics.shapes": "tools.drawShape({ type: 'rectangle', layer: 'bg', position: [0, 0], size: services.graphics.size, fillStyle: 'black' })"
       }
     },
     {

@@ -342,6 +342,12 @@
 
     // Return as a string of space-seperated decimal numbers 
     return rowNumbers.join(" ");
+  },
+
+  makeTimestamp: function(ms) {
+    // Ugly timestamp: yyyymmdd-hhmmss-ms
+    //year()+nf(month(),2)+nf(day(),2)+"-"+nf(hour(),2)+nf(minute(),2)+nf(second(),2)+"-"+millis();
+    return new Date(ms).toUTCString();
   }
 
 })
