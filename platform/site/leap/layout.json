@@ -236,6 +236,11 @@
                   }
                 }
               ]
+            },
+            {
+              "send": { 
+                "services.html.send.selectionForm": "{ asset: 'selectionForm', values: { done: false, ready: model.selectedGalleryIndexes.length >= 1 } }"
+              }
             }
           ]
         }

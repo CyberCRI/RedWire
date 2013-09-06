@@ -1,5 +1,6 @@
 {
   "form": "assets/form.html",
   "blocksForm": "assets/blocks.html",
-  "formCss": "assets/form.css"
+  "formCss": "assets/form.css",
+  "selectionForm": "assets/selection.html"
 }
