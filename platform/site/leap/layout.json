@@ -18,6 +18,13 @@
       },
       "children": [
         { 
+          "send": {
+            "model.blocks": "model.constants.initialBlocks",
+            "model.gallery": "[]",
+            "model.selectedGalleryIndexes": "[]"
+          }
+        },
+        { 
           "action": "doWhile",
           "params": {
             "in": {
@@ -41,11 +48,6 @@
               }
             }
           ]
-        },
-        { 
-          "send": {
-            "model.blocks": "model.constants.initialBlocks"
-          }
         },
         { 
           "action": "doWhile",
@@ -240,6 +242,21 @@
             {
               "send": { 
                 "services.html.send.selectionForm": "{ asset: 'selectionForm', values: { done: false, ready: model.selectedGalleryIndexes.length >= 1 } }"
+              }
+            }
+          ]
+        },
+        {
+          "action": "doWhile",
+          "params": {
+            "in": {
+              "value": "!services.html.receive.thanksForm || !services.html.receive.thanksForm.values.done"
+            }
+          },
+          "children": [
+            {
+              "send": { 
+                "services.html.send.thanksForm": "{ asset: 'thanksForm', values: { done: false } }"
               }
             }
           ]

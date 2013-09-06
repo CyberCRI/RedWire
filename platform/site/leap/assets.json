@@ -2,5 +2,6 @@
   "form": "assets/form.html",
   "blocksForm": "assets/blocks.html",
   "formCss": "assets/form.css",
-  "selectionForm": "assets/selection.html"
+  "selectionForm": "assets/selection.html",
+  "thanksForm": "assets/thanks.html"  
 }
