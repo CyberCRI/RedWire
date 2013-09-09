@@ -86,9 +86,24 @@
               }
             },
             {
-              "send": {
-                "model.gridTranslation": "tools.findCenterOfCells(model.constants.grid, model.blocks)"
-              }
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "model.mouseDetection.state == 'drag'"
+                }
+              },
+              "children": [
+                {
+                  "send": {
+                    "model.gridTranslation": "tools.meanOfCoordinates(GE.appendToArray(tools.listBlockCenters(model.constants.grid, model.blocks), tools.draggingBlockOffset(model.constants.grid, services.mouse.position)))"
+                  }
+                },
+                {
+                  "send": {
+                    "model.gridTranslation": "tools.meanOfCoordinates(tools.listBlockCenters(model.constants.grid, model.blocks))"
+                  }
+                }
+              ]
             },
             {
               "action": "when",
@@ -116,9 +131,15 @@
                   ]
                 },
                 {
+                  "name": "startDrag",
+                  "send": { 
+                    "model.blocks": "GE.removeFromArray(model.blocks, model.mouseDetection.shape.meta)"
+                  }
+                },
+                {
                   "name": "endDrag",
                   "send": { 
-                    "model.blocks": "tools.moveBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, tools.translatePoint(model.gridTranslation, services.mouse.position))"
+                    "model.blocks": "tools.dropBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, tools.translatePoint(model.gridTranslation, services.mouse.position))"
                   }
                 },
                 {

@@ -143,12 +143,29 @@
     };
   },
 
+  meanOfCoordinates: function(coordinates) {
+    var sum = _.reduce(coordinates, function(memo, cell) { return [memo[0] + cell[0], memo[1] + cell[1]]; }, [0, 0]);
+    return [sum[0] / coordinates.length, sum[1] / coordinates.length];
+  },
+
   findCenterOfCells: function(grid, cells) {
     if(cells.length == 0) return [0, 0];
 
     var gridCenter = [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
     var sum = _.reduce(cells, function(memo, cell) { return [memo[0] + cell[0] + 0.5, memo[1] + cell[1] + 0.5]; }, [0, 0]);
     return [sum[0] * grid.cellSize[0] / cells.length - gridCenter[0], sum[1] * grid.cellSize[1] / cells.length - gridCenter[1]];
+  },
+
+  listBlockCenters: function(grid, blocks) {
+    var gridCenter = [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
+    return _.map(blocks, function(block) { 
+      return [(block[0] + 0.5) * grid.cellSize[0] - gridCenter[0], (block[1] + 0.5) * grid.cellSize[1] - gridCenter[1]];
+    });
+  },
+
+  draggingBlockOffset: function(grid, mousePosition) {
+    var gridCenter = [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
+    return [mousePosition[0] - gridCenter[0], mousePosition[1] - gridCenter[1]]; 
   },
 
   makeBlockShapes: function(grid, blocks, blockColor, blockSize) {
@@ -263,7 +280,7 @@
     return Vector.create(a).distanceFrom(Vector.create(b));
   },
 
-  moveBlock: function(grid, blocks, blockToMove, mousePosition) {
+  dropBlock: function(grid, blocks, blockToMove, mousePosition) {
     var that = this;
     var hoveredCell = this.gridCellAtPoint(grid, mousePosition);
     if(!hoveredCell) return blocks; // Outside of the grid, don't make any changes 
@@ -273,13 +290,10 @@
     // Find the closest free position to the mouse position
     var closestFreePosition = _.min(freeBlockPositions, function(block) { return that.blockDistance(hoveredCell, block); });
 
-    // Find the block in the list
-    var index = GE.indexOf(blocks, blockToMove);
-    // Change it to the new coordinate and return it
-
     this.log(GE.logLevels.INFO, "moving block from", blockToMove, "to", closestFreePosition);
-    blocks[index] = closestFreePosition;
-    return blocks;
+
+    // Add block to end of list
+    return GE.appendToArray(blocks, closestFreePosition);
   },
 
   translateShapes: function(translation, shapes) {
