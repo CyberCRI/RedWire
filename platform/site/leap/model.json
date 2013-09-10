@@ -42,6 +42,6 @@
     "blockColor": "rgb(129, 231, 0)",
     "blockSize": [50, 50],
     "galleryBlockSize": [12, 12],
-    "minGridTranslation": 10
+    "minGridTranslation": 1
   }
 }
