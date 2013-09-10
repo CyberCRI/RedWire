@@ -146,8 +146,8 @@
                 {
                   "name": "endDrag",
                   "send": { 
-                    "model.blockGroupsToBeHighlighted": "tools.makeBlockGroupsToBeHighlighted(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, services.mouse.position))",
-                    "model.blocks": "tools.dropBlock(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position))"
+                    "model.blockGroupsToBeHighlighted": "tools.makeBlockGroupsToBeHighlighted(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))",
+                    "model.blocks": "GE.appendToArray(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))"
                   }
                 },
                 {
