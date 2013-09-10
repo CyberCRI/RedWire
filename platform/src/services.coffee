@@ -54,7 +54,6 @@ registerService 'Mouse', (options = {}) ->
           Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width)
           Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)
         ]
-      else throw new Error('Unexpected event type')
 
   return {
     provideData: -> return mouse
