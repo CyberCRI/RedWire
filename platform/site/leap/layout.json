@@ -95,12 +95,12 @@
               "children": [
                 {
                   "send": {
-                    "model.gridTranslation": "tools.meanOfCoordinates(GE.appendToArray(tools.listBlockCenters(model.constants.grid, model.blocks), tools.draggingBlockOffset(model.constants.grid, services.mouse.position)))"
+                    "model.gridTranslation": "tools.calculateStableGridTranslation(model.constants.grid, model.blocks, services.mouse.position, model.gridTranslation)"
                   }
                 },
                 {
                   "send": {
-                    "model.gridTranslation": "tools.meanOfCoordinates(tools.listBlockCenters(model.constants.grid, model.blocks))"
+                    "model.gridTranslation": "tools.subtractVectors(tools.meanOfCoordinates(tools.listBlockCenters(model.constants.grid, model.blocks)), tools.gridCenter(model.constants.grid))"
                   }
                 }
               ]

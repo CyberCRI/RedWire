@@ -157,15 +157,13 @@
   },
 
   listBlockCenters: function(grid, blocks) {
-    var gridCenter = [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
     return _.map(blocks, function(block) { 
-      return [(block[0] + 0.5) * grid.cellSize[0] - gridCenter[0], (block[1] + 0.5) * grid.cellSize[1] - gridCenter[1]];
+      return [(block[0] + 0.5) * grid.cellSize[0], (block[1] + 0.5) * grid.cellSize[1]];
     });
   },
 
-  draggingBlockOffset: function(grid, mousePosition) {
-    var gridCenter = [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
-    return [mousePosition[0] - gridCenter[0], mousePosition[1] - gridCenter[1]]; 
+  gridCenter: function(grid) {
+    return [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
   },
 
   makeBlockShapes: function(grid, blocks, blockColor, blockSize) {
@@ -311,6 +309,8 @@
 
   inverseVector: function(vector) { return [-vector[0], -vector[1]]; },
 
+  subtractVectors: function(a, b) { return [a[0] - b[0], a[1] - b[1]]; },
+
   makeSelectionGalleryGrids: function(selectionGrid, galleryGrid, gallery) { 
     var that = this;
     return _.map(_.range(gallery.length), function(index) {
@@ -362,6 +362,18 @@
     // Ugly timestamp: yyyymmdd-hhmmss-ms
     //year()+nf(month(),2)+nf(day(),2)+"-"+nf(hour(),2)+nf(minute(),2)+nf(second(),2)+"-"+millis();
     return new Date(ms).toUTCString();
+  },
+
+  calculateGridTranslation: function(grid, blocks, mousePosition, oldGridTranslation) {
+    return this.subtractVectors(this.meanOfCoordinates(GE.appendToArray(this.listBlockCenters(grid, blocks), [mousePosition[0] + oldGridTranslation[0], mousePosition[1] + oldGridTranslation[1]])), this.gridCenter(grid));
+  },
+
+  calculateStableGridTranslation: function(grid, blocks, mousePosition, oldGridTranslation) {
+    var newGridTranslation = oldGridTranslation;
+    for(var i = 0; i < 5; i++) {
+      newGridTranslation = this.calculateGridTranslation(grid, blocks, mousePosition, newGridTranslation);
+    }
+    return newGridTranslation;
   }
 
 })
