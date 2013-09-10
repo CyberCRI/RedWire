@@ -348,6 +348,34 @@
     // Ugly timestamp: yyyymmdd-hhmmss-ms
     //year()+nf(month(),2)+nf(day(),2)+"-"+nf(hour(),2)+nf(minute(),2)+nf(second(),2)+"-"+millis();
     return new Date(ms).toUTCString();
+  },
+
+  findDroppedPosition: function(grid, blocks, blockToMove, mousePosition) {
+    var that = this;
+    var hoveredCell = this.gridCellAtPoint(grid, mousePosition);
+    if(!hoveredCell) return blocks; // Outside of the grid, don't make any changes 
+
+    var blocksWithout = this.removeElement(blocks, GE.indexOf(blocks, blockToMove));
+    var freeBlockPositions = this.findFreeBlockPositions(blocksWithout);
+    // Find the closest free position to the mouse position
+    return _.min(freeBlockPositions, function(block) { return that.blockDistance(hoveredCell, block); });
+  },
+
+  makeBlockGroupsToBeHighlighted: function(blocks, blockToMove, newPosition) {
+    var newBlocks = GE.appendToArray(GE.removeFromArray(blocks, blockToMove), newPosition);
+    var adjList = this.makeAdjacencyList(newBlocks);
+    var visitedBlocks = this.visitBlocks(adjList, [newBlocks.length - 1]);
+    return _.rest(visitedBlocks);
+  },
+
+  adjustShapesByMeta: function(shapes, meta, properties) {
+    return _.map(shapes, function(shape) {
+      if(_.isEqual(shape.meta, meta)) {
+        return _.extend(GE.clone(shape), properties);
+      } else {
+        return shape;
+      }
+    });
   }
 
 })
