@@ -21,6 +21,7 @@
   "selectedGalleryIndexes" : [],
   "blockGroupsToBeHighlighted": [],
   "highlightedBlocks": [],
+  "dragFrameCounter": 0,
   "constants": {
     "grid": {
       "type": "infinite",
@@ -41,8 +42,9 @@
       "gridSize": [6, 3]
     },
     "initialBlocks": [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0]],
-    "blockColor": "rgb(129, 231, 0)",
-    "highlightedBlockColor": "rgb(89, 133, 59)",
+    "blockColor": [129, 231, 0],
+    "highlightedBlockColor": [89, 133, 59],
+    "dragHighlightPeriod": 30,
     "blockSize": [50, 50],
     "galleryBlockSize": [12, 12],
     "minGridTranslation": 1

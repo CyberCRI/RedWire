@@ -396,8 +396,20 @@
   },
 
   interpolateVector: function(start, end, fraction) { 
-    var diff = [end[0] - start[0], end[1] - start[1]];
-    return [start[0] + fraction * diff[0], start[1] + fraction * diff[1]];
+    return _.map(_.zip(start, end), function(pair) {
+      return pair[0] + fraction * (pair[1] - pair[0]);
+    });
+  },
+
+  cyclicInterpolate: function(start, end, fraction) {
+    var result = fraction < 0.5 ? this.interpolateVector(start, end, fraction / 0.5) : this.interpolateVector(end, start, (fraction - 0.5) / 0.5)
+    this.log(GE.logLevels.INFO, "cyclicInterpolate", arguments, result);
+    return result;
+  },
+
+  rgbColorString: function(colorArray) { 
+    var flooredArray = _.map(colorArray, function(value) { return Math.floor(value); });
+    return "rgb(" + flooredArray.join(", ") + ")"; 
   }
 
 })

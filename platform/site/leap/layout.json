@@ -61,7 +61,7 @@
               "action": "detectMouse",
               "params": {
                 "in": {
-                  "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize))",
+                  "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, tools.rgbColorString(model.constants.blockColor), model.constants.blockSize))",
                   "shape": "model.mouseDetection.shape",
                   "mousePosition": "services.mouse.position",
                   "mouseDown": "services.mouse.down",
@@ -77,12 +77,12 @@
             },
             { 
               "send": {
-                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, GE.difference(model.blocks, model.highlightedBlocks), model.constants.blockColor, model.constants.blockSize)))"
+                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, GE.difference(model.blocks, model.highlightedBlocks), tools.rgbColorString(model.constants.blockColor), model.constants.blockSize)))"
               }
             },
             {
               "send": {
-                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.highlightedBlocks, model.constants.highlightedBlockColor, model.constants.blockSize)))"
+                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.highlightedBlocks, tools.rgbColorString(model.constants.highlightedBlockColor), model.constants.blockSize)))"
               }
             },
             { 
@@ -130,7 +130,8 @@
                     {
                       "send": {
                         "services.mouse.cursor": "'move'",
-                        "services.graphics.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, model.constants.blockColor, services.mouse.position))" 
+                        "services.graphics.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, tools.rgbColorString(tools.cyclicInterpolate(model.constants.highlightedBlockColor, model.constants.blockColor, model.dragFrameCounter / model.constants.dragHighlightPeriod)), services.mouse.position))",
+                        "model.dragFrameCounter": "(model.dragFrameCounter + 1) % model.constants.dragHighlightPeriod"
                       }
                     }
                   ]
@@ -138,7 +139,8 @@
                 {
                   "name": "startDrag",
                   "send": { 
-                    "model.blocks": "GE.removeFromArray(model.blocks, model.mouseDetection.shape.meta)"
+                    "model.blocks": "GE.removeFromArray(model.blocks, model.mouseDetection.shape.meta)",
+                    "model.dragFrameCounter": 0
                   }
                 },
                 {
@@ -180,7 +182,6 @@
                     "model.highlightedBlocks": "[]"
                   }
                 }
-
               ]
             },
             { 
@@ -208,7 +209,7 @@
               "children": [
                 { 
                   "send": {
-                    "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(model.constants.galleryGrid, _.last(model.gallery))), tools.makeBlockShapes(model.constants.galleryGrid, _.last(model.gallery), model.constants.blockColor, model.constants.galleryBlockSize)))"
+                    "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(model.constants.galleryGrid, _.last(model.gallery))), tools.makeBlockShapes(model.constants.galleryGrid, _.last(model.gallery), tools.rgbColorString(model.constants.blockColor), model.constants.galleryBlockSize)))"
                   }
                 }
               ]
@@ -243,7 +244,7 @@
                 },
                 { 
                   "send": {
-                    "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex])), tools.makeBlockShapes(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex], model.constants.blockColor, model.constants.galleryBlockSize)))"
+                    "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex])), tools.makeBlockShapes(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex], tools.rgbColorString(model.constants.blockColor), model.constants.galleryBlockSize)))"
                   }
                 }
               ]
