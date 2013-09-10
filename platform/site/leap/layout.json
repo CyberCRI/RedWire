@@ -147,7 +147,7 @@
                   "name": "endDrag",
                   "send": { 
                     "model.blockGroupsToBeHighlighted": "tools.makeBlockGroupsToBeHighlighted(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, services.mouse.position))",
-                    "model.blocks": "tools.dropBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, tools.translatePoint(model.gridTranslation, services.mouse.position))"
+                    "model.blocks": "tools.dropBlock(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position))"
                   }
                 },
                 {

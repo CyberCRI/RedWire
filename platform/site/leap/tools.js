@@ -271,24 +271,25 @@
     freePositions = GE.uniq(freePositions);
 
     // Remove existing block positions
-    return _.reject(freePositions, function(block) { GE.contains(blocks, block); });
+    return GE.difference(freePositions, blocks);
   },
 
   distanceBetweenPoints: function(a, b) {
     return Vector.create(a).distanceFrom(Vector.create(b));
   },
 
-  dropBlock: function(grid, blocks, blockToMove, mousePosition) {
+  dropBlock: function(grid, blocks, mousePosition) {
     var that = this;
     var hoveredCell = this.gridCellAtPoint(grid, mousePosition);
     if(!hoveredCell) return blocks; // Outside of the grid, don't make any changes 
 
-    var blocksWithout = this.removeElement(blocks, GE.indexOf(blocks, blockToMove));
-    var freeBlockPositions = this.findFreeBlockPositions(blocksWithout);
+    var freeBlockPositions = this.findFreeBlockPositions(blocks);
+    this.log(GE.logLevels.INFO, "freeBlockPositions", freeBlockPositions);
+
     // Find the closest free position to the mouse position
     var closestFreePosition = _.min(freeBlockPositions, function(block) { return that.distanceBetweenPoints(hoveredCell, block); });
 
-    this.log(GE.logLevels.INFO, "moving block from", blockToMove, "to", closestFreePosition);
+    this.log(GE.logLevels.INFO, "moved block to", closestFreePosition);
 
     // Add block to end of list
     return GE.appendToArray(blocks, closestFreePosition);
@@ -402,9 +403,7 @@
   },
 
   cyclicInterpolate: function(start, end, fraction) {
-    var result = fraction < 0.5 ? this.interpolateVector(start, end, fraction / 0.5) : this.interpolateVector(end, start, (fraction - 0.5) / 0.5)
-    this.log(GE.logLevels.INFO, "cyclicInterpolate", arguments, result);
-    return result;
+    return fraction < 0.5 ? this.interpolateVector(start, end, fraction / 0.5) : this.interpolateVector(end, start, (fraction - 0.5) / 0.5)
   },
 
   rgbColorString: function(colorArray) { 
