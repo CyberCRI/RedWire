@@ -143,12 +143,27 @@
     };
   },
 
+  meanOfCoordinates: function(coordinates) {
+    var sum = _.reduce(coordinates, function(memo, cell) { return [memo[0] + cell[0], memo[1] + cell[1]]; }, [0, 0]);
+    return [sum[0] / coordinates.length, sum[1] / coordinates.length];
+  },
+
   findCenterOfCells: function(grid, cells) {
     if(cells.length == 0) return [0, 0];
 
-    var gridCenter = [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
+    var gridCenter = this.gridCenter(grid);
     var sum = _.reduce(cells, function(memo, cell) { return [memo[0] + cell[0] + 0.5, memo[1] + cell[1] + 0.5]; }, [0, 0]);
     return [sum[0] * grid.cellSize[0] / cells.length - gridCenter[0], sum[1] * grid.cellSize[1] / cells.length - gridCenter[1]];
+  },
+
+  listBlockCenters: function(grid, blocks) {
+    return _.map(blocks, function(block) { 
+      return [(block[0] + 0.5) * grid.cellSize[0], (block[1] + 0.5) * grid.cellSize[1]];
+    });
+  },
+
+  gridCenter: function(grid) {
+    return [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
   },
 
   makeBlockShapes: function(grid, blocks, blockColor, blockSize) {
@@ -259,11 +274,11 @@
     return _.reject(freePositions, function(block) { GE.contains(blocks, block); });
   },
 
-  blockDistance: function(a, b) {
+  distanceBetweenPoints: function(a, b) {
     return Vector.create(a).distanceFrom(Vector.create(b));
   },
 
-  moveBlock: function(grid, blocks, blockToMove, mousePosition) {
+  dropBlock: function(grid, blocks, blockToMove, mousePosition) {
     var that = this;
     var hoveredCell = this.gridCellAtPoint(grid, mousePosition);
     if(!hoveredCell) return blocks; // Outside of the grid, don't make any changes 
@@ -271,15 +286,12 @@
     var blocksWithout = this.removeElement(blocks, GE.indexOf(blocks, blockToMove));
     var freeBlockPositions = this.findFreeBlockPositions(blocksWithout);
     // Find the closest free position to the mouse position
-    var closestFreePosition = _.min(freeBlockPositions, function(block) { return that.blockDistance(hoveredCell, block); });
-
-    // Find the block in the list
-    var index = GE.indexOf(blocks, blockToMove);
-    // Change it to the new coordinate and return it
+    var closestFreePosition = _.min(freeBlockPositions, function(block) { return that.distanceBetweenPoints(hoveredCell, block); });
 
     this.log(GE.logLevels.INFO, "moving block from", blockToMove, "to", closestFreePosition);
-    blocks[index] = closestFreePosition;
-    return blocks;
+
+    // Add block to end of list
+    return GE.appendToArray(blocks, closestFreePosition);
   },
 
   translateShapes: function(translation, shapes) {
@@ -296,6 +308,8 @@
   },
 
   inverseVector: function(vector) { return [-vector[0], -vector[1]]; },
+
+  subtractVectors: function(a, b) { return [a[0] - b[0], a[1] - b[1]]; },
 
   makeSelectionGalleryGrids: function(selectionGrid, galleryGrid, gallery) { 
     var that = this;
@@ -350,22 +364,25 @@
     return new Date(ms).toUTCString();
   },
 
-  findDroppedPosition: function(grid, blocks, blockToMove, mousePosition) {
+  findDroppedPosition: function(grid, blocks, mousePosition) {
     var that = this;
     var hoveredCell = this.gridCellAtPoint(grid, mousePosition);
     if(!hoveredCell) return blocks; // Outside of the grid, don't make any changes 
 
-    var blocksWithout = this.removeElement(blocks, GE.indexOf(blocks, blockToMove));
-    var freeBlockPositions = this.findFreeBlockPositions(blocksWithout);
+    var freeBlockPositions = this.findFreeBlockPositions(blocks);
     // Find the closest free position to the mouse position
-    return _.min(freeBlockPositions, function(block) { return that.blockDistance(hoveredCell, block); });
+    return _.min(freeBlockPositions, function(block) { return that.distanceBetweenPoints(hoveredCell, block); });
   },
 
-  makeBlockGroupsToBeHighlighted: function(blocks, blockToMove, newPosition) {
-    var newBlocks = GE.appendToArray(GE.removeFromArray(blocks, blockToMove), newPosition);
+  makeBlockGroupsToBeHighlighted: function(blocks, newPosition) {
+    var newBlocks = GE.appendToArray(blocks, newPosition);
     var adjList = this.makeAdjacencyList(newBlocks);
-    var visitedBlocks = this.visitBlocks(adjList, [newBlocks.length - 1]);
-    return _.rest(visitedBlocks);
+    var visitedBlockIndexes = _.rest(this.visitBlocks(adjList, [newBlocks.length - 1]));
+    return _.map(visitedBlockIndexes, function(blockIndexes) {
+      return _.map(blockIndexes, function(index) { 
+        return newBlocks[index];
+      });
+    });
   },
 
   adjustShapesByMeta: function(shapes, meta, properties) {
@@ -376,6 +393,11 @@
         return shape;
       }
     });
+  },
+
+  interpolateVector: function(start, end, fraction) { 
+    var diff = [end[0] - start[0], end[1] - start[1]];
+    return [start[0] + fraction * diff[0], start[1] + fraction * diff[1]];
   }
 
 })

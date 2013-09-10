@@ -77,7 +77,12 @@
             },
             { 
               "send": {
-                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize)))"
+                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, GE.difference(model.blocks, model.highlightedBlocks), model.constants.blockColor, model.constants.blockSize)))"
+              }
+            },
+            {
+              "send": {
+                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.highlightedBlocks, model.constants.highlightedBlockColor, model.constants.blockSize)))"
               }
             },
             { 
@@ -87,8 +92,23 @@
             },
             {
               "send": {
-                "model.gridTranslation": "tools.findCenterOfCells(model.constants.grid, model.blocks)"
+                "model.targetGridTranslation": "tools.subtractVectors(tools.meanOfCoordinates(tools.listBlockCenters(model.constants.grid, model.blocks)), tools.gridCenter(model.constants.grid))"
               }
+            },
+            {
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "model.targetGridTranslation && tools.distanceBetweenPoints(model.gridTranslation, model.targetGridTranslation) > model.constants.minGridTranslation"
+                }
+              },
+              "children": [
+                {
+                  "send": {
+                    "model.gridTranslation": "tools.interpolateVector(model.gridTranslation, model.targetGridTranslation, 0.5)"
+                  }
+                }
+              ]
             },
             {
               "action": "when",
@@ -116,10 +136,16 @@
                   ]
                 },
                 {
+                  "name": "startDrag",
+                  "send": { 
+                    "model.blocks": "GE.removeFromArray(model.blocks, model.mouseDetection.shape.meta)"
+                  }
+                },
+                {
                   "name": "endDrag",
                   "send": { 
-                    "model.blocks": "tools.moveBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, tools.translatePoint(model.gridTranslation, services.mouse.position))",
-                    "model.blockGroupsToBeHighlighted": "tools.makeBlockGroupsToBeHighlighted(model.blocks, model.mouseDetection.shape.meta, tools.findDroppedPosition(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, services.mouse.position))"
+                    "model.blockGroupsToBeHighlighted": "tools.makeBlockGroupsToBeHighlighted(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, services.mouse.position))",
+                    "model.blocks": "tools.dropBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, tools.translatePoint(model.gridTranslation, services.mouse.position))"
                   }
                 },
                 {
@@ -134,6 +160,28 @@
               "send": { 
                 "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: model.gallery.length, ready: model.gallery.length >= 5 } }"
               }
+            },
+            {
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "model.blockGroupsToBeHighlighted.length > 0"
+                }
+              },
+              "children": [
+                {
+                  "send": {
+                    "model.highlightedBlocks": "_.first(model.blockGroupsToBeHighlighted)",
+                    "model.blockGroupsToBeHighlighted": "_.rest(model.blockGroupsToBeHighlighted)"
+                  }
+                },
+                {
+                  "send": {
+                    "model.highlightedBlocks": "[]"
+                  }
+                }
+
+              ]
             },
             { 
               "action": "if",
@@ -185,7 +233,7 @@
                 "from": "model.selectionGrids",
                 "bindTo": "selectionGrid",
                 "index": "selectionGridIndex"
-              },         
+              },
               "children": [
                 {
 
