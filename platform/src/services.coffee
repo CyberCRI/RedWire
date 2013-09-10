@@ -45,9 +45,6 @@ registerService 'Mouse', (options = {}) ->
     switch event.type 
       when 'mousedown' then mouse.down = true
       when 'mouseup' then mouse.down = false
-      when 'mouseleave' 
-        mouse.down = false
-        mouse.position = null
       when 'mousemove'
         # Get position relative to canvas.
         # Based on http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
@@ -269,10 +266,8 @@ registerService 'HTML', (options = {}) ->
       for templateName in _.difference(newTemplates, existingTemplates) 
         # Create template
         templateHtml = assets[newTemplateData[templateName].asset]
-        innerWrapper = $("<div style='pointer-events: auto'/>")
-        innerWrapper.append(templateHtml)
         outerWrapper = $("<div id='html-#{templateName}' style='position: absolute; z-index: 100; pointer-events: none; width: #{options.size[0]}; height: #{options.size[1]}'/>")
-        outerWrapper.append(innerWrapper)
+        outerWrapper.append(templateHtml)
         $(options.elementSelector).append(outerWrapper)
         layers[templateName] = outerWrapper
 
