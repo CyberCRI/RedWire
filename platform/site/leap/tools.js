@@ -151,7 +151,7 @@
   findCenterOfCells: function(grid, cells) {
     if(cells.length == 0) return [0, 0];
 
-    var gridCenter = [grid.cellSize[0] * grid.gridSize[0] / 2, grid.cellSize[1] * grid.gridSize[1] / 2];
+    var gridCenter = this.gridCenter(grid);
     var sum = _.reduce(cells, function(memo, cell) { return [memo[0] + cell[0] + 0.5, memo[1] + cell[1] + 0.5]; }, [0, 0]);
     return [sum[0] * grid.cellSize[0] / cells.length - gridCenter[0], sum[1] * grid.cellSize[1] / cells.length - gridCenter[1]];
   },
@@ -274,7 +274,7 @@
     return _.reject(freePositions, function(block) { GE.contains(blocks, block); });
   },
 
-  blockDistance: function(a, b) {
+  distanceBetweenPoints: function(a, b) {
     return Vector.create(a).distanceFrom(Vector.create(b));
   },
 
@@ -286,7 +286,7 @@
     var blocksWithout = this.removeElement(blocks, GE.indexOf(blocks, blockToMove));
     var freeBlockPositions = this.findFreeBlockPositions(blocksWithout);
     // Find the closest free position to the mouse position
-    var closestFreePosition = _.min(freeBlockPositions, function(block) { return that.blockDistance(hoveredCell, block); });
+    var closestFreePosition = _.min(freeBlockPositions, function(block) { return that.distanceBetweenPoints(hoveredCell, block); });
 
     this.log(GE.logLevels.INFO, "moving block from", blockToMove, "to", closestFreePosition);
 
@@ -364,16 +364,9 @@
     return new Date(ms).toUTCString();
   },
 
-  calculateGridTranslation: function(grid, blocks, mousePosition, oldGridTranslation) {
-    return this.subtractVectors(this.meanOfCoordinates(GE.appendToArray(this.listBlockCenters(grid, blocks), [mousePosition[0] + oldGridTranslation[0], mousePosition[1] + oldGridTranslation[1]])), this.gridCenter(grid));
-  },
-
-  calculateStableGridTranslation: function(grid, blocks, mousePosition, oldGridTranslation) {
-    var newGridTranslation = oldGridTranslation;
-    for(var i = 0; i < 5; i++) {
-      newGridTranslation = this.calculateGridTranslation(grid, blocks, mousePosition, newGridTranslation);
-    }
-    return newGridTranslation;
+  interpolateVector: function(start, end, fraction) { 
+    var diff = [end[0] - start[0], end[1] - start[1]];
+    return [start[0] + fraction * diff[0], start[1] + fraction * diff[1]];
   }
 
 })

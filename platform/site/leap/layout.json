@@ -89,18 +89,28 @@
               "action": "if",
               "params": {
                 "in": {
-                  "value": "model.mouseDetection.state == 'drag'"
+                  "value": "model.mouseDetection.state != 'drag'"
                 }
               },
               "children": [
                 {
                   "send": {
-                    "model.gridTranslation": "tools.calculateStableGridTranslation(model.constants.grid, model.blocks, services.mouse.position, model.gridTranslation)"
+                    "model.targetGridTranslation": "tools.subtractVectors(tools.meanOfCoordinates(tools.listBlockCenters(model.constants.grid, model.blocks)), tools.gridCenter(model.constants.grid))"
                   }
-                },
+                }
+              ]
+            },
+            {
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "model.targetGridTranslation && tools.distanceBetweenPoints(model.gridTranslation, model.targetGridTranslation) > model.constants.minGridTranslation"
+                }
+              },
+              "children": [
                 {
                   "send": {
-                    "model.gridTranslation": "tools.subtractVectors(tools.meanOfCoordinates(tools.listBlockCenters(model.constants.grid, model.blocks)), tools.gridCenter(model.constants.grid))"
+                    "model.gridTranslation": "tools.interpolateVector(model.gridTranslation, model.targetGridTranslation, 0.5)"
                   }
                 }
               ]
@@ -205,7 +215,7 @@
                 "from": "model.selectionGrids",
                 "bindTo": "selectionGrid",
                 "index": "selectionGridIndex"
-              },         
+              },
               "children": [
                 {
 
