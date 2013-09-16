@@ -65,6 +65,7 @@ isPlaying = false
 automaticallyUpdatingModel = false
 gameScreenScale = 1
 
+# Find the correct function across browsers
 requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
   window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 
@@ -88,7 +89,19 @@ handleResize = ->
   adjustEditorToSize(log)
 
   # Update the scale sent to stepLoop()
-  gameScreenScale = Math.min($('#gameContent').parent().width() / GAME_DIMENSIONS[0], $('#gameContent').parent().height() / GAME_DIMENSIONS[1])
+  screenElement = $('#gameContent')
+  scale = Math.min(screenElement.parent().outerWidth() / GAME_DIMENSIONS[0], screenElement.parent().outerHeight() / GAME_DIMENSIONS[1])
+  roundedScale = GE.roundOffDigits(scale, 2)
+  newSize = [
+    screenElement.parent().outerWidth() - roundedScale * GAME_DIMENSIONS[0]
+    screenElement.parent().outerHeight() - roundedScale * GAME_DIMENSIONS[1]
+  ]
+  screenElement.css 
+    "-webkit-transform": "scale(#{roundedScale})"
+    "width": "#{newSize[0]}px"
+    "height": "#{newSize[1]}px"
+    "left": "#{newSize[0] / 2}px"
+    "top": "#{newSize[1] / 2}px"
 
 showMessage = (messageType, message) ->
   switch messageType
@@ -434,6 +447,7 @@ $(document).ready ->
   log = setupEditor("log")
   log.setReadOnly(true)
   resetLogContent()
+  handleResize()
 
   # Offer to load code from the cache if we can
   loadedCode = false

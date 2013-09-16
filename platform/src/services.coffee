@@ -62,7 +62,7 @@ registerService 'Mouse', (options = {}) ->
 # Define canvas output service
 registerService 'Canvas', (options = {}) ->
   # `height: 100%` preserves the aspect ratio. Make the position absolute keeps the layers on top of each other
-  CANVAS_CSS = "position: absolute; left: 0px; top: 0px; tabIndex: 0; -webkit-transform-origin: 0% 0%;"
+  CANVAS_CSS = "position: absolute; left: 0px; top: 0px; tabIndex: 0;"
 
   createLayers = ->
     # Convert layers to ordered
@@ -181,8 +181,6 @@ registerService 'Canvas', (options = {}) ->
       # Clear layers and create shapeArrays
       shapeArrays = {}
       for layerName, canvas of layers
-        roundedScale = GE.roundOffDigits(config.scale, 2)
-        canvas.css("-webkit-transform", "scale(#{roundedScale})")
         canvas[0].getContext('2d').clearRect(0, 0, options.size[0], options.size[1])
         shapeArrays[layerName] = []
 
@@ -235,7 +233,7 @@ registerService 'HTML', (options = {}) ->
   return {
     provideData: () -> return { receive: templates, send: {} }
 
-    establishData: (data, assets) -> 
+    establishData: (data, config, assets) -> 
       newTemplateData = data.send 
 
       # data.send and data.receive are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
@@ -293,7 +291,7 @@ registerService 'Time', () ->
   return {
     provideData: () -> return Date.now()
 
-    establishData: (data, assets) -> # NOP
+    establishData: () -> # NOP
 
     destroy: -> # NOP
   }

@@ -65,8 +65,7 @@ body {
 }
 
 #gameContent {
+  /* Other CSS is set during resize */
   position: absolute;
-  top: 0px;
-  left: 0px;
-  height: 100%;
-}
+  -webkit-transform-origin: 0% 0%;
+ }
