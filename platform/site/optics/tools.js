@@ -206,7 +206,7 @@
       };
       //put at the right place
       res.boxedPieces = boxedPieces.concat(res.boxedPiece);
-      res.pieces = this.removeElement(pieces, GE.indexOfEquals(pieces, piece));
+      res.pieces = this.removeElement(pieces, GE.indexOf(pieces, piece));
     } else { //the piece was moved from the box
       //console.log("putPieceIntoBox: the piece was moved from the box");
       //console.log("finished putPieceIntoBox(piece="+this.pieceToString(piece)+", pieces="+this.piecesToString(pieces)+", boxedPieces="+this.piecesToString(boxedPieces)+") - did nothing");
@@ -729,7 +729,7 @@
 
   // Returns an array containing the index of the first child that is equal to the correct value, or an empty array
   childByName: function(children, value) {
-    var childIndex = GE.indexOfEquals(children, value);
+    var childIndex = GE.indexOf(children, value);
     return childIndex != -1 ? [childIndex] : []; 
   },
 
