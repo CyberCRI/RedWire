@@ -62,14 +62,14 @@ registerService 'Mouse', (options = {}) ->
 # Define canvas output service
 registerService 'Canvas', (options = {}) ->
   # `height: 100%` preserves the aspect ratio. Make the position absolute keeps the layers on top of each other
-  CANVAS_CSS = "position: absolute; left: 0px; top: 0px; tabIndex: 0;"
+  CANVAS_CSS = "position: absolute; left: 0px; top: 0px;"
 
   createLayers = ->
     # Convert layers to ordered
     createdLayers = {}
     zIndex = 0
     for layerName in options.layers
-      layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
+      layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
       $(options.elementSelector).append(layer)
       createdLayers[layerName] = layer
       zIndex++
