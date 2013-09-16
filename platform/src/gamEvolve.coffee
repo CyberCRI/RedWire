@@ -406,7 +406,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
 
   return new GE.NodeVisitorResult()
 
-# The argument "options" can values for "node", modelData", "assets", "actions", "tools", "services", and "evaluator".
+# The argument "options" can values for "node", modelData", "assets", "actions", "tools", "services", "serviceConfig", and "evaluator".
 # By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
 # If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
@@ -417,6 +417,8 @@ GE.stepLoop = (options) ->
     modelData: {}
     assets: {}
     actions: {}
+    services: {}
+    serviceConfig: {}
     log: null
     inputServiceData: null
     outputServiceData: null 
@@ -427,7 +429,7 @@ GE.stepLoop = (options) ->
     if options.inputServiceData == null
       options.inputServiceData = {}
       for serviceName, service of options.services
-        options.inputServiceData[serviceName] = service.provideData(options.assets)
+        options.inputServiceData[serviceName] = service.provideData(options.serviceConfig, options.assets)
 
     result = GE.visitNode options.node, new GE.NodeVisitorConstants
       modelData: options.modelData
@@ -448,7 +450,7 @@ GE.stepLoop = (options) ->
   # options?.log?(GE.logLevels.LOG, "Output service data", options.outputServiceData)
 
   for serviceName, service of options.services
-    service.establishData(options.outputServiceData[serviceName], options.assets)
+    service.establishData(options.outputServiceData[serviceName], options.serviceConfig, options.assets)
 
   return modelPatches
 

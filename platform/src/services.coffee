@@ -1,8 +1,5 @@
 # Define keyboard input service
 registerService 'Keyboard', (options = {}) ->
-  options = _.defaults options,
-    elementSelector: '#gameContent'
-
   eventNamespace = _.uniqueId('keyboard')
 
   keysDown = {}
@@ -28,9 +25,6 @@ registerService 'Keyboard', (options = {}) ->
 
 # Define mouse input/output service
 registerService 'Mouse', (options = {}) ->
-  options = _.defaults options,
-    elementSelector: '#gameContent'
-
   eventNamespace = _.uniqueId('mouse')
 
   mouse =
@@ -68,14 +62,14 @@ registerService 'Mouse', (options = {}) ->
 # Define canvas output service
 registerService 'Canvas', (options = {}) ->
   # `height: 100%` preserves the aspect ratio. Make the position absolute keeps the layers on top of each other
-  CANVAS_CSS = "height: 100%; position: absolute; left: 0px; top: 0px;"
+  CANVAS_CSS = "position: absolute; left: 0px; top: 0px; tabIndex: 0; -webkit-transform-origin: 0% 0%;"
 
   createLayers = ->
     # Convert layers to ordered
     createdLayers = {}
     zIndex = 0
     for layerName in options.layers
-      layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex='0' style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
+      layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
       $(options.elementSelector).append(layer)
       createdLayers[layerName] = layer
       zIndex++
@@ -169,9 +163,7 @@ registerService 'Canvas', (options = {}) ->
     ctx.restore()
 
   options = _.defaults options,
-    elementSelector: '#gameContent'
     layers: ['default'] 
-    size: [960, 540]
 
   layers = createLayers()
 
@@ -183,12 +175,14 @@ registerService 'Canvas', (options = {}) ->
         shapes: {}
       }
 
-    establishData: (data, assets) -> 
+    establishData: (data, config, assets) -> 
       if not data.shapes then return 
 
       # Clear layers and create shapeArrays
       shapeArrays = {}
       for layerName, canvas of layers
+        roundedScale = GE.roundOffDigits(config.scale, 2)
+        canvas.css("-webkit-transform", "scale(#{roundedScale})")
         canvas[0].getContext('2d').clearRect(0, 0, options.size[0], options.size[1])
         shapeArrays[layerName] = []
 
@@ -213,10 +207,6 @@ registerService 'Canvas', (options = {}) ->
 
 # Define keyboard input service
 registerService 'HTML', (options = {}) ->
-  options = _.defaults options,
-    elementSelector: '#gameContent'
-    size: [960, 540]
-
   templates = { }
   layers = { }
   views = { }
