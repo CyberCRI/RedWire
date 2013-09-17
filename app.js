@@ -3,7 +3,7 @@
 
 
 (function() {
-  var CODE_CHANGE_TIMEOUT, EDITOR_URL_PAIRS, EVAL_ASSETS, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentExpressionEvaluator, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, currentServices, currentTools, editors, evalLoadedAssets, executeCode, getFormattedTime, globals, handleAnimation, handleResize, isPlaying, loadCodeFromCache, loadIntoEditor, log, logWithPrefix, notifyCodeChange, registerService, reloadCode, requestAnimationFrame, resetLogContent, saveCodeToCache, services, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner, togglePlayMode, zeroPad,
+  var CODE_CHANGE_TIMEOUT, EDITOR_URL_PAIRS, EVAL_ASSETS, GAME_DIMENSIONS, MODEL_FORMATTING_INDENTATION, MessageType, SPINNER_OPTS, adjustEditorToSize, automaticallyUpdatingModel, clearCodeInCache, clearMessage, currentActions, currentAssets, currentExpressionEvaluator, currentFrame, currentLayout, currentLoadedAssets, currentModel, currentModelData, currentServices, currentTools, editors, evalLoadedAssets, executeCode, gameScreenScale, getFormattedTime, globals, handleAnimation, handleResize, isPlaying, loadCodeFromCache, loadIntoEditor, log, logWithPrefix, notifyCodeChange, registerService, reloadCode, requestAnimationFrame, resetLogContent, saveCodeToCache, services, setCodeFromCache, setupButtonHandlers, setupEditor, setupLayout, showMessage, spinner, togglePlayMode, zeroPad,
     __slice = [].slice;
 
   globals = this;
@@ -11,6 +11,8 @@
   CODE_CHANGE_TIMEOUT = 1000;
 
   MODEL_FORMATTING_INDENTATION = 2;
+
+  GAME_DIMENSIONS = [960, 540];
 
   MessageType = GE.makeConstantSet("Error", "Info");
 
@@ -77,6 +79,8 @@
 
   automaticallyUpdatingModel = false;
 
+  gameScreenScale = 1;
+
   requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 
   /* Functions*/
@@ -97,12 +101,23 @@
   };
 
   handleResize = function() {
-    var editor, editorName;
+    var editor, editorName, newSize, roundedScale, scale, screenElement;
     for (editorName in editors) {
       editor = editors[editorName];
       adjustEditorToSize(editor);
     }
-    return adjustEditorToSize(log);
+    adjustEditorToSize(log);
+    screenElement = $('#gameContent');
+    scale = Math.min(screenElement.parent().outerWidth() / GAME_DIMENSIONS[0], screenElement.parent().outerHeight() / GAME_DIMENSIONS[1]);
+    roundedScale = GE.roundOffDigits(scale, 2);
+    newSize = [screenElement.parent().outerWidth() - roundedScale * GAME_DIMENSIONS[0], screenElement.parent().outerHeight() - roundedScale * GAME_DIMENSIONS[1]];
+    return screenElement.css({
+      "-webkit-transform": "scale(" + roundedScale + ")",
+      "width": "" + newSize[0] + "px",
+      "height": "" + newSize[1] + "px",
+      "left": "" + (newSize[0] / 2) + "px",
+      "top": "" + (newSize[1] / 2) + "px"
+    });
   };
 
   showMessage = function(messageType, message) {
@@ -279,7 +294,7 @@
   };
 
   reloadCode = function(callback) {
-    var actionsEvaluator, error, name, programId, service, serviceDef, serviceDefs, serviceName, toolsEvaluator, url,
+    var actionsEvaluator, error, name, options, programId, service, serviceDef, serviceDefs, serviceName, toolsEvaluator, url,
       _this = this;
     programId = window.location.search.slice(1);
     try {
@@ -333,7 +348,11 @@
       currentServices = {};
       for (serviceName in serviceDefs) {
         serviceDef = serviceDefs[serviceName];
-        currentServices[serviceName] = services[serviceDef.type](serviceDef.options);
+        options = _.defaults(serviceDef.options || {}, {
+          elementSelector: '#gameContent',
+          size: GAME_DIMENSIONS
+        });
+        currentServices[serviceName] = services[serviceDef.type](options);
       }
     } catch (_error) {
       error = _error;
@@ -381,6 +400,9 @@
         actions: currentActions,
         tools: currentTools,
         services: currentServices,
+        serviceConfig: {
+          scale: gameScreenScale
+        },
         evaluator: currentExpressionEvaluator,
         log: logWithPrefix
       });
@@ -517,6 +539,7 @@
     log = setupEditor("log");
     log.setReadOnly(true);
     resetLogContent();
+    handleResize();
     loadedCode = false;
     cachedCodeJson = loadCodeFromCache(programId);
     if (cachedCodeJson) {

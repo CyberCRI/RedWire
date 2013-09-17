@@ -66,4 +66,55 @@
     return _.flatten(rest, true);
   };
 
+  GE.appendToArray = function(array, value) {
+    return GE.concatenate(array, [value]);
+  };
+
+  GE.removeFromArray = function(array, value) {
+    var element;
+    return (function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = array.length; _i < _len; _i++) {
+        element = array[_i];
+        if (!_.isEqual(value, element)) {
+          _results.push(element);
+        }
+      }
+      return _results;
+    })();
+  };
+
+  GE.toggleValueInArray = function(array, value) {
+    if (GE.contains(array, value)) {
+      return GE.removeFromArray(array, value);
+    } else {
+      return GE.appendToArray(array, value);
+    }
+  };
+
+  GE.intersection = function(array) {
+    var rest;
+    rest = Array.prototype.slice.call(arguments, 1);
+    return _.filter(_.uniq(array), function(item) {
+      return _.every(rest, function(other) {
+        return GE.indexOf(other, item) >= 0;
+      });
+    });
+  };
+
+  GE.difference = function(array) {
+    var rest;
+    rest = Array.prototype.concat.apply(Array.prototype, Array.prototype.slice.call(arguments, 1));
+    return _.filter(array, function(value) {
+      return !GE.contains(rest, value);
+    });
+  };
+
+  GE.roundOffDigits = function(n, d) {
+    var m;
+    m = Math.pow(10, d);
+    return Math.round(n * m) / m;
+  };
+
 }).call(this);

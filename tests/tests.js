@@ -555,7 +555,7 @@
           services: services,
           outputServiceData: outputServiceData
         });
-        expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {});
+        expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {}, {});
         return expect(modelPatches).toBeEmpty();
       });
       it("sends service input data to visitNode()", function() {
@@ -603,11 +603,11 @@
         });
         expect(services.myService.establishData).toHaveBeenCalledWith({
           a: 2
-        }, {});
+        }, {}, {});
         return expect(modelPatches).toBeEmpty();
       });
       it("gathers service input data, visits nodes, uses tools, and gives output to services", function() {
-        var actions, layout, modelPatches, services, tools;
+        var actions, layout, modelPatches, serviceConfig, services, tools;
         services = {
           myService: {
             provideData: function() {
@@ -651,17 +651,21 @@
             }
           }
         };
+        serviceConfig = {
+          configA: 1
+        };
         modelPatches = GE.stepLoop({
           node: layout,
           actions: actions,
           tools: tools,
           services: services,
+          serviceConfig: serviceConfig,
           evaluator: GE.makeEvaluator()
         });
-        expect(services.myService.provideData).toHaveBeenCalledWith({});
+        expect(services.myService.provideData).toHaveBeenCalledWith(serviceConfig, {});
         expect(services.myService.establishData).toHaveBeenCalledWith({
           a: 2
-        }, {});
+        }, serviceConfig, {});
         return expect(modelPatches).toBeEmpty();
       });
       return it("rejects conflicting patches", function() {

@@ -5,9 +5,6 @@
     if (options == null) {
       options = {};
     }
-    options = _.defaults(options, {
-      elementSelector: '#gameContent'
-    });
     eventNamespace = _.uniqueId('keyboard');
     keysDown = {};
     $(options.elementSelector).on("keydown." + eventNamespace + " keyup." + eventNamespace + " focusout." + eventNamespace, "canvas", function(event) {
@@ -41,9 +38,6 @@
     if (options == null) {
       options = {};
     }
-    options = _.defaults(options, {
-      elementSelector: '#gameContent'
-    });
     eventNamespace = _.uniqueId('mouse');
     mouse = {
       down: false,
@@ -60,15 +54,10 @@
           return mouse.down = true;
         case 'mouseup':
           return mouse.down = false;
-        case 'mouseleave':
-          mouse.down = false;
-          return mouse.position = null;
         case 'mousemove':
           rect = event.target.getBoundingClientRect();
           target = $(event.target);
           return mouse.position = [Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width), Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)];
-        default:
-          throw new Error('Unexpected event type');
       }
     });
     return {
@@ -89,7 +78,7 @@
     if (options == null) {
       options = {};
     }
-    CANVAS_CSS = "height: 100%; position: absolute; left: 0px; top: 0px;";
+    CANVAS_CSS = "position: absolute; left: 0px; top: 0px;";
     createLayers = function() {
       var createdLayers, layer, layerName, zIndex, _i, _len, _ref;
       createdLayers = {};
@@ -97,7 +86,7 @@
       _ref = options.layers;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         layerName = _ref[_i];
-        layer = $("<canvas id='canvasLayer-" + layerName + "' class='gameCanvas' width='" + options.size[0] + "' height='" + options.size[1] + "' tabIndex='0' style='z-index: " + zIndex + "; " + CANVAS_CSS + "' />");
+        layer = $("<canvas id='canvasLayer-" + layerName + "' class='gameCanvas' width='" + options.size[0] + "' height='" + options.size[1] + "' tabIndex=0 style='z-index: " + zIndex + "; " + CANVAS_CSS + "' />");
         $(options.elementSelector).append(layer);
         createdLayers[layerName] = layer;
         zIndex++;
@@ -246,9 +235,7 @@
       return ctx.restore();
     };
     options = _.defaults(options, {
-      elementSelector: '#gameContent',
-      layers: ['default'],
-      size: [960, 540]
+      layers: ['default']
     });
     layers = createLayers();
     return {
@@ -259,7 +246,7 @@
           shapes: {}
         };
       },
-      establishData: function(data, assets) {
+      establishData: function(data, config, assets) {
         var canvas, ctx, id, layerName, shape, shapeArray, shapeArrays, _ref, _results;
         if (!data.shapes) {
           return;
@@ -313,10 +300,6 @@
     if (options == null) {
       options = {};
     }
-    options = _.defaults(options, {
-      elementSelector: '#gameContent',
-      size: [960, 540]
-    });
     templates = {};
     layers = {};
     views = {};
@@ -344,13 +327,13 @@
     return {
       provideData: function() {
         return {
-          "in": templates,
-          out: {}
+          receive: templates,
+          send: {}
         };
       },
-      establishData: function(data, assets) {
-        var binding, existingTemplates, layer, newTemplateData, newTemplates, templateHtml, templateName, view, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _results;
-        newTemplateData = data.out;
+      establishData: function(data, config, assets) {
+        var binding, existingTemplates, newTemplateData, newTemplates, outerWrapper, templateHtml, templateName, view, _i, _j, _k, _len, _len1, _len2, _ref, _ref1, _ref2, _results;
+        newTemplateData = data.send;
         existingTemplates = _.keys(templates);
         newTemplates = _.keys(newTemplateData);
         _ref = _.difference(existingTemplates, newTemplates);
@@ -367,12 +350,13 @@
         for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
           templateName = _ref1[_j];
           templateHtml = assets[newTemplateData[templateName].asset];
-          layer = $("<div id='html-" + templateName + "' style='position: absolute; z-index: 100; width: " + options.size[0] + "; height: " + options.size[1] + "'/>").append(templateHtml);
-          $(options.elementSelector).append(layer);
-          layers[templateName] = layer;
+          outerWrapper = $("<div id='html-" + templateName + "' style='position: absolute; z-index: 100; pointer-events: none; width: " + options.size[0] + "; height: " + options.size[1] + "'/>");
+          outerWrapper.append(templateHtml);
+          $(options.elementSelector).append(outerWrapper);
+          layers[templateName] = outerWrapper;
           templates[templateName] = newTemplateData[templateName];
           callbacks[templateName] = {};
-          views[templateName] = rivets.bind(layer[0], {
+          views[templateName] = rivets.bind(outerWrapper[0], {
             data: templateName
           });
         }
@@ -417,6 +401,16 @@
         }
         return _results;
       }
+    };
+  });
+
+  registerService('Time', function() {
+    return {
+      provideData: function() {
+        return Date.now();
+      },
+      establishData: function() {},
+      destroy: function() {}
     };
   });
 

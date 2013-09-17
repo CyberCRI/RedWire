@@ -189,7 +189,10 @@
     if (pathParts.length === 1) {
       return [parent, pathParts[0]];
     }
-    return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts));
+    if (pathParts[0] in parent) {
+      return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts));
+    }
+    throw new Error("Cannot find intermediate key '" + pathParts[0] + "'");
   };
 
   GE.deepSet = function(root, pathParts, value) {
@@ -565,6 +568,8 @@
       modelData: {},
       assets: {},
       actions: {},
+      services: {},
+      serviceConfig: {},
       log: null,
       inputServiceData: null,
       outputServiceData: null
@@ -577,7 +582,7 @@
         _ref = options.services;
         for (serviceName in _ref) {
           service = _ref[serviceName];
-          options.inputServiceData[serviceName] = service.provideData(options.assets);
+          options.inputServiceData[serviceName] = service.provideData(options.serviceConfig, options.assets);
         }
       }
       result = GE.visitNode(options.node, new GE.NodeVisitorConstants({
@@ -601,7 +606,7 @@
     _ref1 = options.services;
     for (serviceName in _ref1) {
       service = _ref1[serviceName];
-      service.establishData(options.outputServiceData[serviceName], options.assets);
+      service.establishData(options.outputServiceData[serviceName], options.serviceConfig, options.assets);
     }
     return modelPatches;
   };

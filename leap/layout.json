@@ -3,57 +3,8 @@
   "children": [
     { 
       "send": {
-        "services.graphics.shapes": "tools.drawShape({ type: 'rectangle', layer: 'bg', position: [0, 0], size: services.graphics.size, fillStyle: 'black' })" 
+        "services.graphics.shapes": "tools.drawShape({ type: 'rectangle', layer: 'bg', position: [0, 0], size: services.graphics.size, fillStyle: 'black' })"
       }
-    },
-    {
-      "send": {
-        "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize)))"
-      }
-    },
-    {
-      "send": {
-        "model.gridTranslation": "tools.findCenterOfCells(model.constants.grid, model.blocks)"
-      }
-    },
-    {
-      "action": "when",
-      "params": {
-        "in": {
-          "value": "model.mouseDetection.state"
-        }
-      },
-      "children": [
-        {
-          "name": "drag",
-          "action": "if",
-          "params": {
-            "in": {
-              "value": "services.mouse.position != null"
-            }
-          },
-          "children": [
-            {
-              "send": {
-                "services.mouse.cursor": "'move'",
-                "services.graphics.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, model.constants.blockColor, services.mouse.position))" 
-              }
-            }
-          ]
-        },
-        {
-          "name": "endDrag",
-          "send": { 
-            "model.blocks": "tools.moveBlock(model.constants.grid, model.blocks, model.mouseDetection.shape.meta, tools.translatePoint(model.gridTranslation, services.mouse.position))"
-          }
-        },
-        {
-          "name": "hover",
-          "send": {
-            "services.mouse.cursor": "'pointer'"
-          }  
-        }
-      ]
     },
     {
       "action": "doInSequence",
@@ -66,6 +17,13 @@
         }
       },
       "children": [
+        { 
+          "send": {
+            "model.blocks": "model.constants.initialBlocks",
+            "model.gallery": "[]",
+            "model.selectedGalleryIndexes": "[]"
+          }
+        },
         { 
           "action": "doWhile",
           "params": {
@@ -92,18 +50,18 @@
           ]
         },
         { 
-          "send": {
-            "model.blocks": "model.constants.initialBlocks"
-          }
-        },
-        { 
-          "action": "doInParallel",
-          "children": [ 
+          "action": "doWhile",
+          "params": {
+            "in": {
+              "value": "!services.html.receive.blocksForm || !services.html.receive.blocksForm.values.done"
+            }
+          },
+          "children": [
             {
               "action": "detectMouse",
               "params": {
                 "in": {
-                  "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, model.constants.blockColor, model.constants.blockSize))",
+                  "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, tools.rgbColorString(model.constants.blockColor), model.constants.blockSize))",
                   "shape": "model.mouseDetection.shape",
                   "mousePosition": "services.mouse.position",
                   "mouseDown": "services.mouse.down",
@@ -115,6 +73,240 @@
                   "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
                   "model.mouseDetection.shape": "params.shape"
                 }
+              }
+            },
+            { 
+              "send": {
+                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, GE.difference(model.blocks, model.highlightedBlocks), tools.rgbColorString(model.constants.blockColor), model.constants.blockSize)))"
+              }
+            },
+            {
+              "send": {
+                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.highlightedBlocks, tools.rgbColorString(model.constants.highlightedBlockColor), model.constants.blockSize)))"
+              }
+            },
+            { 
+              "send": {
+                "services.graphics.shapes": "tools.drawShape({ layer: 'gallery', type: 'rectangle', position: model.constants.galleryGrid.upperLeft, size: tools.gridSizeInPixels(model.constants.galleryGrid), fillStyle: 'grey', strokeStyle: 'white' })"
+              }
+            },
+            {
+              "send": {
+                "model.targetGridTranslation": "tools.subtractVectors(tools.meanOfCoordinates(tools.listBlockCenters(model.constants.grid, model.blocks)), tools.gridCenter(model.constants.grid))"
+              }
+            },
+            {
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "model.targetGridTranslation && tools.distanceBetweenPoints(model.gridTranslation, model.targetGridTranslation) > model.constants.minGridTranslation"
+                }
+              },
+              "children": [
+                {
+                  "send": {
+                    "model.gridTranslation": "tools.interpolateVector(model.gridTranslation, model.targetGridTranslation, 0.5)"
+                  }
+                }
+              ]
+            },
+            {
+              "action": "when",
+              "params": {
+                "in": {
+                  "value": "model.mouseDetection.state"
+                }
+              },
+              "children": [
+                {
+                  "name": "drag",
+                  "action": "if",
+                  "params": {
+                    "in": {
+                      "value": "services.mouse.position != null"
+                    }
+                  },
+                  "children": [
+                    {
+                      "send": {
+                        "services.mouse.cursor": "'move'",
+                        "services.graphics.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, tools.rgbColorString(tools.cyclicInterpolate(model.constants.highlightedBlockColor, model.constants.blockColor, model.dragFrameCounter / model.constants.dragHighlightPeriod)), services.mouse.position))",
+                        "model.dragFrameCounter": "(model.dragFrameCounter + 1) % model.constants.dragHighlightPeriod"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "name": "startDrag",
+                  "send": { 
+                    "model.blocks": "GE.removeFromArray(model.blocks, model.mouseDetection.shape.meta)",
+                    "model.dragFrameCounter": 0
+                  }
+                },
+                {
+                  "name": "endDrag",
+                  "send": { 
+                    "model.blockGroupsToBeHighlighted": "tools.makeBlockGroupsToBeHighlighted(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))",
+                    "model.blocks": "GE.appendToArray(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))"
+                  }
+                },
+                {
+                  "name": "hover",
+                  "send": {
+                    "services.mouse.cursor": "'pointer'"
+                  }  
+                }
+              ]
+            },
+            {
+              "send": { 
+                "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: model.gallery.length, ready: model.gallery.length >= 5 } }"
+              }
+            },
+            {
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "model.blockGroupsToBeHighlighted.length > 0"
+                }
+              },
+              "children": [
+                {
+                  "send": {
+                    "model.highlightedBlocks": "_.first(model.blockGroupsToBeHighlighted)",
+                    "model.blockGroupsToBeHighlighted": "_.rest(model.blockGroupsToBeHighlighted)"
+                  }
+                },
+                {
+                  "send": {
+                    "model.highlightedBlocks": "[]"
+                  }
+                }
+              ]
+            },
+            { 
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "services.html.receive.blocksForm && services.html.receive.blocksForm.values.addShape"
+                }
+              },
+              "children": [
+                {
+                  "send": {
+                    "model.gallery" : "GE.appendToArray(model.gallery, model.blocks)"
+                  }
+                }
+              ]
+            },
+            {
+              "action": "if",
+              "params": {
+                "in": {
+                  "value": "model.gallery.length > 0"
+                }
+              },
+              "children": [
+                { 
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(model.constants.galleryGrid, _.last(model.gallery))), tools.makeBlockShapes(model.constants.galleryGrid, _.last(model.gallery), tools.rgbColorString(model.constants.blockColor), model.constants.galleryBlockSize)))"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "send": {
+            "model.selectionGrids": "tools.makeSelectionGalleryGrids(model.constants.selectionGrid, model.constants.galleryGrid, model.gallery)"
+          }
+        },
+        {
+          "action": "doWhile",
+          "params": {
+            "in": {
+              "value": "!services.html.receive.selectionForm || !services.html.receive.selectionForm.values.done"
+            }
+          },
+          "children": [
+            {
+              "foreach": {
+                "from": "model.selectionGrids",
+                "bindTo": "selectionGrid",
+                "index": "selectionGridIndex"
+              },
+              "children": [
+                {
+
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShapes(tools.makeSelectionGalleryShapes(model.selectionGrids, model.selectedGalleryIndexes))"
+                  }
+                },
+                { 
+                  "send": {
+                    "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex])), tools.makeBlockShapes(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex], tools.rgbColorString(model.constants.blockColor), model.constants.galleryBlockSize)))"
+                  }
+                }
+              ]
+            },
+            {
+              "action": "detectMouse",
+              "params": {
+                "in": {
+                  "shapes": "_.map(model.selectionGrids, tools.makeGridCoveringRectangle, tools)",
+                  "shape": "model.mouseDetection.shape",
+                  "mousePosition": "services.mouse.position",
+                  "mouseDown": "services.mouse.down",
+                  "state": "model.mouseDetection.state",
+                  "dragStartPosition": "model.mouseDetection.dragStartPosition"
+                },
+                "out": {
+                  "model.mouseDetection.state": "params.state",
+                  "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
+                  "model.mouseDetection.shape": "params.shape"
+                }
+              }
+            },
+            {
+              "action": "when",
+              "params": {
+                "in": {
+                  "value": "model.mouseDetection.state"
+                }
+              },
+              "children": [
+                {
+                  "name": "hover",
+                  "send": {
+                    "services.mouse.cursor": "'pointer'"
+                  }  
+                },
+                {
+                  "name": "click",
+                  "send": {
+                    "model.selectedGalleryIndexes": "GE.toggleValueInArray(model.selectedGalleryIndexes, model.mouseDetection.shape.meta)"
+                  }
+                }
+              ]
+            },
+            {
+              "send": { 
+                "services.html.send.selectionForm": "{ asset: 'selectionForm', values: { done: false, ready: model.selectedGalleryIndexes.length >= 1 } }"
+              }
+            }
+          ]
+        },
+        {
+          "action": "doWhile",
+          "params": {
+            "in": {
+              "value": "!services.html.receive.thanksForm || !services.html.receive.thanksForm.values.done"
+            }
+          },
+          "children": [
+            {
+              "send": { 
+                "services.html.send.thanksForm": "{ asset: 'thanksForm', values: { done: false } }"
               }
             }
           ]
