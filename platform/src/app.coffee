@@ -4,6 +4,7 @@ globals = @
 
 CODE_CHANGE_TIMEOUT = 1000
 MODEL_FORMATTING_INDENTATION = 2
+GAME_DIMENSIONS = [960, 540]
 
 MessageType = GE.makeConstantSet("Error", "Info")
 
@@ -62,7 +63,9 @@ currentExpressionEvaluator = null
 
 isPlaying = false
 automaticallyUpdatingModel = false
+gameScreenScale = 1
 
+# Find the correct function across browsers
 requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
   window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 
@@ -81,8 +84,24 @@ adjustEditorToSize = (editor) ->
       session.setWrapLimitRange(limit, limit)
 
 handleResize = -> 
+  # Update the ACE editors
   for editorName, editor of editors then adjustEditorToSize(editor)
   adjustEditorToSize(log)
+
+  # Update the scale sent to stepLoop()
+  screenElement = $('#gameContent')
+  scale = Math.min(screenElement.parent().outerWidth() / GAME_DIMENSIONS[0], screenElement.parent().outerHeight() / GAME_DIMENSIONS[1])
+  roundedScale = GE.roundOffDigits(scale, 2)
+  newSize = [
+    screenElement.parent().outerWidth() - roundedScale * GAME_DIMENSIONS[0]
+    screenElement.parent().outerHeight() - roundedScale * GAME_DIMENSIONS[1]
+  ]
+  screenElement.css 
+    "-webkit-transform": "scale(#{roundedScale})"
+    "width": "#{newSize[0]}px"
+    "height": "#{newSize[1]}px"
+    "left": "#{newSize[0] / 2}px"
+    "top": "#{newSize[1] / 2}px"
 
 showMessage = (messageType, message) ->
   switch messageType
@@ -262,7 +281,10 @@ reloadCode = (callback) ->
     # Create new services
     currentServices = {}
     for serviceName, serviceDef of serviceDefs
-      currentServices[serviceName] = services[serviceDef.type](serviceDef.options)
+      options = _.defaults serviceDef.options || {},
+        elementSelector: '#gameContent'
+        size: GAME_DIMENSIONS
+      currentServices[serviceName] = services[serviceDef.type](options)
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Services error. #{error}")
     return showMessage(MessageType.Error, "<strong>Services error.</strong> #{error}")
@@ -307,6 +329,8 @@ executeCode = ->
       actions: currentActions
       tools: currentTools
       services: currentServices
+      serviceConfig: 
+        scale: gameScreenScale
       evaluator: currentExpressionEvaluator
       log: logWithPrefix
     if modelPatches.length > 0 then logWithPrefix(GE.logLevels.LOG, "Model patches are: #{JSON.stringify(modelPatches)}.")
@@ -423,6 +447,7 @@ $(document).ready ->
   log = setupEditor("log")
   log.setReadOnly(true)
   resetLogContent()
+  handleResize()
 
   # Offer to load code from the cache if we can
   loadedCode = false

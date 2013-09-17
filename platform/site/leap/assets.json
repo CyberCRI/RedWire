@@ -1,4 +1,8 @@
 {
+  "colour": "assets/colour.js",
   "form": "assets/form.html",
-  "formCss": "assets/form.css"
+  "blocksForm": "assets/blocks.html",
+  "formCss": "assets/form.css",
+  "selectionForm": "assets/selection.html",
+  "thanksForm": "assets/thanks.html"  
 }

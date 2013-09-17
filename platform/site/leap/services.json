@@ -8,10 +8,13 @@
   "graphics": {
     "type": "Canvas",
     "options": {
-      "layers": [ "bg", "blocks", "drag" ]
+      "layers": [ "bg", "gallery", "blocks", "drag" ]
     }
   },
   "html": {
     "type": "HTML"
+  },
+  "time" : {
+    "type": "Time"
   }
 }

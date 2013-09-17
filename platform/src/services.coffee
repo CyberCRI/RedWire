@@ -1,8 +1,5 @@
 # Define keyboard input service
 registerService 'Keyboard', (options = {}) ->
-  options = _.defaults options,
-    elementSelector: '#gameContent'
-
   eventNamespace = _.uniqueId('keyboard')
 
   keysDown = {}
@@ -28,9 +25,6 @@ registerService 'Keyboard', (options = {}) ->
 
 # Define mouse input/output service
 registerService 'Mouse', (options = {}) ->
-  options = _.defaults options,
-    elementSelector: '#gameContent'
-
   eventNamespace = _.uniqueId('mouse')
 
   mouse =
@@ -45,9 +39,6 @@ registerService 'Mouse', (options = {}) ->
     switch event.type 
       when 'mousedown' then mouse.down = true
       when 'mouseup' then mouse.down = false
-      when 'mouseleave' 
-        mouse.down = false
-        mouse.position = null
       when 'mousemove'
         # Get position relative to canvas.
         # Based on http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
@@ -57,7 +48,6 @@ registerService 'Mouse', (options = {}) ->
           Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width)
           Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)
         ]
-      else throw new Error('Unexpected event type')
 
   return {
     provideData: -> return mouse
@@ -72,14 +62,14 @@ registerService 'Mouse', (options = {}) ->
 # Define canvas output service
 registerService 'Canvas', (options = {}) ->
   # `height: 100%` preserves the aspect ratio. Make the position absolute keeps the layers on top of each other
-  CANVAS_CSS = "height: 100%; position: absolute; left: 0px; top: 0px;"
+  CANVAS_CSS = "position: absolute; left: 0px; top: 0px;"
 
   createLayers = ->
     # Convert layers to ordered
     createdLayers = {}
     zIndex = 0
     for layerName in options.layers
-      layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex='0' style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
+      layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
       $(options.elementSelector).append(layer)
       createdLayers[layerName] = layer
       zIndex++
@@ -173,9 +163,7 @@ registerService 'Canvas', (options = {}) ->
     ctx.restore()
 
   options = _.defaults options,
-    elementSelector: '#gameContent'
     layers: ['default'] 
-    size: [960, 540]
 
   layers = createLayers()
 
@@ -187,7 +175,7 @@ registerService 'Canvas', (options = {}) ->
         shapes: {}
       }
 
-    establishData: (data, assets) -> 
+    establishData: (data, config, assets) -> 
       if not data.shapes then return 
 
       # Clear layers and create shapeArrays
@@ -217,10 +205,6 @@ registerService 'Canvas', (options = {}) ->
 
 # Define keyboard input service
 registerService 'HTML', (options = {}) ->
-  options = _.defaults options,
-    elementSelector: '#gameContent'
-    size: [960, 540]
-
   templates = { }
   layers = { }
   views = { }
@@ -247,12 +231,12 @@ registerService 'HTML', (options = {}) ->
         templates[templateName]["values"][keypath] = value
 
   return {
-    provideData: () -> return { in: templates, out: {} }
+    provideData: () -> return { receive: templates, send: {} }
 
-    establishData: (data, assets) -> 
-      newTemplateData = data.out 
+    establishData: (data, config, assets) -> 
+      newTemplateData = data.send 
 
-      # data.out and data.in are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
+      # data.send and data.receive are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
       existingTemplates = _.keys(templates)
       newTemplates = _.keys(newTemplateData)
 
@@ -269,15 +253,16 @@ registerService 'HTML', (options = {}) ->
       for templateName in _.difference(newTemplates, existingTemplates) 
         # Create template
         templateHtml = assets[newTemplateData[templateName].asset]
-        layer = $("<div id='html-#{templateName}' style='position: absolute; z-index: 100; width: #{options.size[0]}; height: #{options.size[1]}'/>").append(templateHtml)
-        $(options.elementSelector).append(layer)
-        layers[templateName] = layer
+        outerWrapper = $("<div id='html-#{templateName}' style='position: absolute; z-index: 100; pointer-events: none; width: #{options.size[0]}; height: #{options.size[1]}'/>")
+        outerWrapper.append(templateHtml)
+        $(options.elementSelector).append(outerWrapper)
+        layers[templateName] = outerWrapper
 
         # Create newTemplateData
         templates[templateName] = newTemplateData[templateName] 
         # Bind to the template name
         callbacks[templateName] = { } # Will be filled by calls to adapter.subscribe()
-        views[templateName] = rivets.bind(layer[0], { data: templateName })
+        views[templateName] = rivets.bind(outerWrapper[0], { data: templateName })
 
       # Update existing templates with new newTemplateData
       for templateName in _.intersection(newTemplates, existingTemplates) 
@@ -301,4 +286,12 @@ registerService 'HTML', (options = {}) ->
         layer.remove()
   }
 
+# Define time service, that provides the current time in ms
+registerService 'Time', () ->
+  return {
+    provideData: () -> return Date.now()
 
+    establishData: () -> # NOP
+
+    destroy: -> # NOP
+  }

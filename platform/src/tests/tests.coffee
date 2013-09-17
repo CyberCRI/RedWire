@@ -451,7 +451,7 @@ describe "gamEvolve", ->
         services: services
         outputServiceData: outputServiceData
 
-      expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {})
+      expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {}, {})
       expect(modelPatches).toBeEmpty()
 
     it "sends service input data to visitNode()", ->
@@ -487,7 +487,7 @@ describe "gamEvolve", ->
         inputServiceData: inputServiceData
         evaluator: GE.makeEvaluator()
 
-      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
+      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {}, {})
       expect(modelPatches).toBeEmpty()
 
     it "gathers service input data, visits nodes, uses tools, and gives output to services", ->
@@ -519,15 +519,18 @@ describe "gamEvolve", ->
           out:
             "services.myService": "params.service"
 
+      serviceConfig = { configA: 1 }
+
       modelPatches = GE.stepLoop 
         node: layout
         actions: actions 
         tools: tools
         services: services
+        serviceConfig: serviceConfig
         evaluator: GE.makeEvaluator()
 
-      expect(services.myService.provideData).toHaveBeenCalledWith({})
-      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
+      expect(services.myService.provideData).toHaveBeenCalledWith(serviceConfig, {})
+      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, serviceConfig, {})
       expect(modelPatches).toBeEmpty()
 
     it "rejects conflicting patches", ->
