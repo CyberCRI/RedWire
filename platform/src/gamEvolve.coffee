@@ -120,9 +120,10 @@ GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
 # Takes a parent object/array and the "path" as an array
 # Returns [parent, key] where parent is the array/object and key w
 GE.getParentAndKey = (parent, pathParts) ->
-  if pathParts.length == 0 then return [parent, null]
-  if pathParts.length == 1 then return [parent, pathParts[0]]
-  return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
+  if pathParts.length is 0 then return [parent, null]
+  if pathParts.length is 1 then return [parent, pathParts[0]]
+  if pathParts[0] of parent then return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
+  throw new Error("Cannot find intermediate key '#{pathParts[0]}'")
 
 # Sets a value within an embedded object or array, creating intermediate objects if necessary
 # Takes a root object/array and the "path" as an array of keys
@@ -405,7 +406,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
 
   return new GE.NodeVisitorResult()
 
-# The argument "options" can values for "node", modelData", "assets", "actions", "tools", "services", and "evaluator".
+# The argument "options" can values for "node", modelData", "assets", "actions", "tools", "services", "serviceConfig", and "evaluator".
 # By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
 # If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
@@ -416,6 +417,8 @@ GE.stepLoop = (options) ->
     modelData: {}
     assets: {}
     actions: {}
+    services: {}
+    serviceConfig: {}
     log: null
     inputServiceData: null
     outputServiceData: null 
@@ -426,7 +429,7 @@ GE.stepLoop = (options) ->
     if options.inputServiceData == null
       options.inputServiceData = {}
       for serviceName, service of options.services
-        options.inputServiceData[serviceName] = service.provideData(options.assets)
+        options.inputServiceData[serviceName] = service.provideData(options.serviceConfig, options.assets)
 
     result = GE.visitNode options.node, new GE.NodeVisitorConstants
       modelData: options.modelData
@@ -447,7 +450,7 @@ GE.stepLoop = (options) ->
   # options?.log?(GE.logLevels.LOG, "Output service data", options.outputServiceData)
 
   for serviceName, service of options.services
-    service.establishData(options.outputServiceData[serviceName], options.assets)
+    service.establishData(options.outputServiceData[serviceName], options.serviceConfig, options.assets)
 
   return modelPatches
 

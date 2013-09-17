@@ -46,3 +46,31 @@ GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))
 # Create new array with the value of these arrays
 GE.concatenate = (rest...) -> _.flatten(rest, true)
 
+# Return an array with the new value added
+GE.appendToArray = (array, value) -> GE.concatenate(array, [value])
+
+# Return an array with all instances of the element removed
+GE.removeFromArray = (array, value) -> return (element for element in array when not _.isEqual(value, element))
+
+# If the value is not in the array, then add it, else remove it
+GE.toggleValueInArray = (array, value) ->
+  return if GE.contains(array, value) then GE.removeFromArray(array, value) else GE.appendToArray(array, value)
+
+# Like Underscore's method, but uses GE.indexOf()
+GE.intersection = (array) ->
+  rest = Array.prototype.slice.call(arguments, 1)
+  return _.filter _.uniq(array), (item) ->
+    return _.every rest, (other) ->
+      return GE.indexOf(other, item) >= 0
+
+# Like Underscore's method, but uses GE.contains()
+GE.difference = (array) ->
+  rest = Array.prototype.concat.apply(Array.prototype, Array.prototype.slice.call(arguments, 1))
+  return _.filter array, (value) -> 
+    return not GE.contains(rest, value)
+
+# Rounds off a number `n` to a certain number of digits `d`. 
+# E.g GE.roundOffDigits(12.3456789, 2) -> 12.35
+GE.roundOffDigits = (n, d) -> 
+  m = Math.pow(10, d) 
+  return Math.round(n * m) / m
