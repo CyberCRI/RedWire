@@ -339,7 +339,7 @@ GE.visitActionNode = (node, constants, bindings) ->
       if not _.isArray(activeChildren) then throw new Error("Calling listActiveChildren() on node '#{node.action}' did not return an array")
     else
       # By default, all children are considered active
-      activeChildren = [0..node.children.length - 1]
+      activeChildren = _.range(node.children.length)
     
     # Continue with children
     childSignals = new Array(node.children.length)

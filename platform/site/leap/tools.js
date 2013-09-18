@@ -339,7 +339,7 @@
     });
 
     // Return as a string of space-seperated decimal numbers 
-    return rowNumbers.join(" ");
+    return rowNumbers;
   },
 
   makeTimestamp: function(ms) {
@@ -393,6 +393,10 @@
   rgbColorString: function(colorArray) { 
     var flooredArray = _.map(colorArray, function(value) { return Math.floor(value); });
     return "rgb(" + flooredArray.join(", ") + ")"; 
+  },
+
+  makeTrackingString: function(player, events) {
+    return JSON.stringify({ player: player, events: events });
   }
 
 })
