@@ -312,7 +312,7 @@
         },
         {
           "send": { 
-            "services.http.requests.playerTracking" : "{ url: 'http://localhost/', data: tools.makeTrackingString({ age: model.age, gender: model.gender}, model.events), method: 'POST', contentType: 'application/json; charset=UTF-8',  }"
+            "services.http.requests.playerTracking" : "{ url: 'http://localhost/', data: tools.makeTrackingString({ age: model.ageForm.age, gender: model.ageForm.gender}, model.events), method: 'POST', contentType: 'application/json; charset=UTF-8',  }"
           }
         },
         {

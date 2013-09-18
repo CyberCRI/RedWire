@@ -9,8 +9,3 @@
 	font-family: Arial;
 	font-size: 20px;
 }
-
-#gameContent input, button {
-	pointer-events: auto;
-}
-
