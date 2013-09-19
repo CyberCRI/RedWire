@@ -21,7 +21,8 @@
           "send": {
             "model.blocks": "model.constants.initialBlocks",
             "model.gallery": "[]",
-            "model.selectedGalleryIndexes": "[]"
+            "model.selectedGalleryIndexes": "[]",
+            "model.events" : "[{ type: 'began game', time: tools.makeTimestamp(services.time) }]"
           }
         },
         { 
@@ -49,7 +50,12 @@
             }
           ]
         },
-        { 
+        {
+          "send": {
+            "model.events" : "GE.appendToArray(model.events, { type: 'filled form', time: tools.makeTimestamp(services.time) })"
+          }
+        },
+        {
           "action": "doWhile",
           "params": {
             "in": {
@@ -147,7 +153,8 @@
                   "name": "endDrag",
                   "send": { 
                     "model.blockGroupsToBeHighlighted": "tools.makeBlockGroupsToBeHighlighted(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))",
-                    "model.blocks": "GE.appendToArray(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))"
+                    "model.blocks": "GE.appendToArray(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))",
+                    "model.events" : "GE.appendToArray(model.events, { type: 'moved tile', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(GE.appendToArray(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))) })"
                   }
                 },
                 {
@@ -194,7 +201,8 @@
               "children": [
                 {
                   "send": {
-                    "model.gallery" : "GE.appendToArray(model.gallery, model.blocks)"
+                    "model.gallery" : "GE.appendToArray(model.gallery, model.blocks)",
+                    "model.events" : "GE.appendToArray(model.events, { type: 'added shape to gallery', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(model.blocks) })"
                   }
                 }
               ]
@@ -218,7 +226,8 @@
         },
         {
           "send": {
-            "model.selectionGrids": "tools.makeSelectionGalleryGrids(model.constants.selectionGrid, model.constants.galleryGrid, model.gallery)"
+            "model.selectionGrids": "tools.makeSelectionGalleryGrids(model.constants.selectionGrid, model.constants.galleryGrid, model.gallery)",
+            "model.events" : "GE.appendToArray(model.events, { type: 'began gallery selection', time: tools.makeTimestamp(services.time) })"
           }
         },
         {
@@ -237,7 +246,6 @@
               },
               "children": [
                 {
-
                   "send": {
                     "services.graphics.shapes": "tools.drawShapes(tools.makeSelectionGalleryShapes(model.selectionGrids, model.selectedGalleryIndexes))"
                   }
@@ -284,7 +292,8 @@
                 {
                   "name": "click",
                   "send": {
-                    "model.selectedGalleryIndexes": "GE.toggleValueInArray(model.selectedGalleryIndexes, model.mouseDetection.shape.meta)"
+                    "model.selectedGalleryIndexes": "GE.toggleValueInArray(model.selectedGalleryIndexes, model.mouseDetection.shape.meta)",
+                    "model.events" : "GE.appendToArray(model.events, { type: 'selected shape', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(model.gallery[model.mouseDetection.shape.meta]) })"
                   }
                 }
               ]
@@ -295,6 +304,16 @@
               }
             }
           ]
+        },
+        {
+          "send": { 
+            "model.events" : "GE.appendToArray(model.events, { type: 'completed selection', time: tools.makeTimestamp(services.time) })"
+          }
+        },
+        {
+          "send": { 
+            "services.http.requests.playerTracking" : "{ url: 'http://localhost/', data: tools.makeTrackingString({ age: model.ageForm.age, gender: model.ageForm.gender}, model.events), method: 'POST', contentType: 'application/json; charset=UTF-8',  }"
+          }
         },
         {
           "action": "doWhile",

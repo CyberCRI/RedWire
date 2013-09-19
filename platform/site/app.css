@@ -69,3 +69,7 @@ body {
   position: absolute;
   -webkit-transform-origin: 0% 0%;
  }
+
+#gameContent input, button, label {
+  pointer-events: auto;
+}
