@@ -14,7 +14,10 @@
   "html": {
     "type": "HTML"
   },
-  "time" : {
+  "time": {
     "type": "Time"
+  },
+  "http": {
+    "type": "Http"
   }
 }

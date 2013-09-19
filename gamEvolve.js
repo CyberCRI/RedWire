@@ -462,7 +462,7 @@
   };
 
   GE.visitActionNode = function(node, constants, bindings) {
-    var activeChildren, activeChildrenResult, childIndex, childResult, childSignals, errorResult, result, _i, _j, _len, _ref, _results;
+    var activeChildren, activeChildrenResult, childIndex, childResult, childSignals, errorResult, result, _i, _len;
     if (!(node.action in constants.actions)) {
       throw new Error("Cannot find action '" + node.action + "'");
     }
@@ -479,15 +479,11 @@
           throw new Error("Calling listActiveChildren() on node '" + node.action + "' did not return an array");
         }
       } else {
-        activeChildren = (function() {
-          _results = [];
-          for (var _i = 0, _ref = node.children.length - 1; 0 <= _ref ? _i <= _ref : _i >= _ref; 0 <= _ref ? _i++ : _i--){ _results.push(_i); }
-          return _results;
-        }).apply(this);
+        activeChildren = _.range(node.children.length);
       }
       childSignals = new Array(node.children.length);
-      for (_j = 0, _len = activeChildren.length; _j < _len; _j++) {
-        childIndex = activeChildren[_j];
+      for (_i = 0, _len = activeChildren.length; _i < _len; _i++) {
+        childIndex = activeChildren[_i];
         childResult = GE.visitNode(node.children[childIndex], constants, bindings);
         childSignals[childIndex] = childResult.result;
         result = result.appendWith(childResult);

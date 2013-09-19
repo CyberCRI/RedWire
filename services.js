@@ -306,7 +306,6 @@
     callbacks = {};
     rivets.configure({
       handler: function(target, event, binding) {
-        console.log("event handler called with", arguments, ". this is", this);
         return templates[binding.view.models.data]["values"][binding.keypath] = true;
       },
       adapter: {
@@ -410,6 +409,57 @@
         return Date.now();
       },
       establishData: function() {},
+      destroy: function() {}
+    };
+  });
+
+  registerService('Http', function() {
+    var state;
+    state = {
+      requests: {},
+      responses: {}
+    };
+    return {
+      provideData: function() {
+        return state;
+      },
+      establishData: function(serviceData, config, assets) {
+        var requestName, _fn, _i, _j, _len, _len1, _ref, _ref1;
+        _ref = _.difference(_.keys(serviceData.requests), _.keys(state.requests));
+        _fn = function(requestName) {
+          var jqXhr, _ref1, _ref2;
+          jqXhr = $.ajax({
+            url: serviceData.requests[requestName].url,
+            type: (_ref1 = serviceData.requests[requestName].method) != null ? _ref1 : "GET",
+            cache: (_ref2 = serviceData.requests[requestName].cache) != null ? _ref2 : true,
+            data: serviceData.requests[requestName].data,
+            contentType: serviceData.requests[requestName].contentType
+          });
+          jqXhr.done(function(data, textStatus) {
+            return state.responses[requestName] = {
+              status: textStatus,
+              data: data
+            };
+          });
+          jqXhr.fail(function(__, textStatus, errorThrown) {
+            return state.responses[requestName] = {
+              status: textStatus,
+              error: errorThrown
+            };
+          });
+          return delete state.requests[requestName];
+        };
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          requestName = _ref[_i];
+          _fn(requestName);
+        }
+        _ref1 = _.difference(_.keys(state.responses), _.keys(serviceData.responses));
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          requestName = _ref1[_j];
+          delete state.responses[requestName];
+        }
+        return state;
+      },
       destroy: function() {}
     };
   });
