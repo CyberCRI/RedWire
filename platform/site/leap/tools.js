@@ -338,7 +338,6 @@
       rowNumbers[index] = rowNumbers[index] | (1 << (9 - (block[0] - min[0]))); 
     });
 
-    // Return as a string of space-seperated decimal numbers 
     return rowNumbers;
   },
 
