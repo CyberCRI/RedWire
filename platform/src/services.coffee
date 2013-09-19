@@ -212,7 +212,6 @@ registerService 'HTML', (options = {}) ->
 
   rivets.configure
     handler: (target, event, binding) ->
-      console.log("event handler called with", arguments, ". this is", this)
       # binding.view.models.template will give the name of the template
       templates[binding.view.models.data]["values"][binding.keypath] = true
 
@@ -294,4 +293,45 @@ registerService 'Time', () ->
     establishData: () -> # NOP
 
     destroy: -> # NOP
+  }
+
+# The HTTP service makes AJAX requests 
+registerService 'Http', () ->
+  state = 
+    requests: {}
+    responses: {}
+
+  return {
+    provideData: () -> return state
+
+    establishData: (serviceData, config, assets) -> 
+      # Expecting a format like { requests: { id: { method:, url:, data:, cache:, contentType: }, ... }, { responses: { id: { code:, data: }, ... }
+
+      # Create new requests
+      for requestName in _.difference(_.keys(serviceData.requests), _.keys(state.requests)) 
+        do (requestName) ->
+          jqXhr = $.ajax 
+            url: serviceData.requests[requestName].url
+            type: serviceData.requests[requestName].method ? "GET"
+            cache: serviceData.requests[requestName].cache ? true
+            data: serviceData.requests[requestName].data
+            contentType: serviceData.requests[requestName].contentType
+          jqXhr.done (data, textStatus) -> 
+            state.responses[requestName] = 
+              status: textStatus
+              data: data
+          jqXhr.fail (__, textStatus, errorThrown) -> 
+            state.responses[requestName] = 
+              status: textStatus
+              error: errorThrown
+
+          delete state.requests[requestName]
+
+      # Remove deleted responses
+      for requestName in _.difference(_.keys(state.responses), _.keys(serviceData.responses)) 
+        delete state.responses[requestName]
+
+      return state
+
+    destroy: () -> # NOP
   }
