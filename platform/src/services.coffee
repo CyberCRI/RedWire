@@ -61,7 +61,6 @@ registerService 'Mouse', (options = {}) ->
 
 # Define canvas output service
 registerService 'Canvas', (options = {}) ->
-  # `height: 100%` preserves the aspect ratio. Make the position absolute keeps the layers on top of each other
   CANVAS_CSS = "position: absolute; left: 0px; top: 0px;"
 
   createLayers = ->
@@ -335,3 +334,67 @@ registerService 'Http', () ->
 
     destroy: () -> # NOP
   }
+
+# Define chart output service
+registerService 'Chart', (options = {}) ->
+  CANVAS_CSS = "position: absolute; left: 0px; top: 0px;"
+
+  capitalizeFirstLetter = (str) -> str[0].toUpperCase() + str.slice(1)
+
+  createLayers = ->
+    # Convert layers to ordered
+    createdLayers = {}
+    zIndex = 0
+    for layerName in options.layers
+      layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
+      $(options.elementSelector).append(layer)
+      createdLayers[layerName] = layer
+      zIndex++
+
+    return createdLayers
+
+  layers = {}
+
+  return {
+    provideData: -> {}
+
+    establishData: (serviceData, config, assets) -> 
+      # Expecting serviceData like { chartA: { size:, position:, depth:, data:, options: }}
+
+      # Remove old charts 
+      # OPT: keep old charts around if not changed
+      for layerName, canvas of layers then canvas.remove()
+
+      layers = {}
+
+      # Create new ones
+      for chartName, chartData of serviceData
+        # Define options
+        displayOptions = 
+          size: chartData.size ? options.size
+          position: chartData.position ? [0, 0]
+          depth: chartData.depth ? 50
+        chartOptions = _.defaults chartData.options ? {},
+          animation: false
+
+        # Create a canvas element 
+        canvasProps = "id='chartLayer-#{chartName}' class='chartCanvas' width='#{displayOptions.size[0]}' height='#{displayOptions.size[1]}' tabIndex=0"
+        canvasCss = "z-index: #{displayOptions.depth}; position: absolute; left: #{displayOptions.position[0]}px; top: #{displayOptions.position[1]}px;"
+        canvas = $("<canvas #{canvasProps} style='#{canvasCss}' />")
+        $(options.elementSelector).append(canvas)
+        layers[layerName] = canvas
+
+        # Create a new Chart object
+        chart = new Chart(canvas[0].getContext("2d"))
+
+        # Check it's a real chart type
+        if chartData.type not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
+          throw new Error("Unknown chart type: '#{chartData.type}'")
+
+        # Call the correct method on it
+        chart[capitalizeFirstLetter(chartData.type)](chartData.data, chartOptions)
+
+    destroy: -> 
+      for layerName, canvas of layers then canvas.remove()
+  }
+

@@ -1,0 +1,20 @@
+{
+  "keyboard": {
+    "type": "Keyboard"
+  },
+  "mouse": {
+    "type": "Mouse"
+  },
+  "graphics": {
+    "type": "Canvas",
+    "options": {
+      "layers": [ ]
+    }
+  },
+  "html": {
+    "type": "HTML"
+  },
+  "charts": {
+    "type": "Chart"
+  }
+}

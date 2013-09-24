@@ -1,0 +1,10 @@
+{
+  "action": "doInParallel",
+  "children": [
+    { 
+      "send": {
+        "services.charts.test": "{ type: 'line', data: model.chartData }"
+      }
+    }
+  ]
+}
