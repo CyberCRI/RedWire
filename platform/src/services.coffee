@@ -337,23 +337,10 @@ registerService 'Http', () ->
 
 # Define chart output service
 registerService 'Chart', (options = {}) ->
-  CANVAS_CSS = "position: absolute; left: 0px; top: 0px;"
-
   capitalizeFirstLetter = (str) -> str[0].toUpperCase() + str.slice(1)
 
-  createLayers = ->
-    # Convert layers to ordered
-    createdLayers = {}
-    zIndex = 0
-    for layerName in options.layers
-      layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{zIndex}; #{CANVAS_CSS}' />")
-      $(options.elementSelector).append(layer)
-      createdLayers[layerName] = layer
-      zIndex++
-
-    return createdLayers
-
-  layers = {}
+  # Format { name: { canvas:, data: }} 
+  charts = {}
 
   return {
     provideData: -> {}
@@ -362,13 +349,19 @@ registerService 'Chart', (options = {}) ->
       # Expecting serviceData like { chartA: { size:, position:, depth:, data:, options: }}
 
       # Remove old charts 
-      # OPT: keep old charts around if not changed
-      for layerName, canvas of layers then canvas.remove()
+      for chartName in _.difference(_.keys(charts), _.keys(serviceData)) 
+        charts[chartName].remove()
+        delete charts[chartName]
 
-      layers = {}
-
-      # Create new ones
+      # Create new charts and update old ones
       for chartName, chartData of serviceData
+        # If the chart exists and has the same data, don't bother redrawing it
+        if _.isEqual(charts[chartName]?.data, chartData) then continue
+
+        # Check it's a valid chart type
+        if chartData.type not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
+          throw new Error("Unknown chart type: '#{chartData.type}'")
+
         # Define options
         displayOptions = 
           size: chartData.size ? options.size
@@ -382,19 +375,17 @@ registerService 'Chart', (options = {}) ->
         canvasCss = "z-index: #{displayOptions.depth}; position: absolute; left: #{displayOptions.position[0]}px; top: #{displayOptions.position[1]}px;"
         canvas = $("<canvas #{canvasProps} style='#{canvasCss}' />")
         $(options.elementSelector).append(canvas)
-        layers[layerName] = canvas
+        charts[chartName] = 
+          canvas: canvas
+          data: chartData
 
         # Create a new Chart object
         chart = new Chart(canvas[0].getContext("2d"))
-
-        # Check it's a real chart type
-        if chartData.type not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
-          throw new Error("Unknown chart type: '#{chartData.type}'")
 
         # Call the correct method on it
         chart[capitalizeFirstLetter(chartData.type)](chartData.data, chartOptions)
 
     destroy: -> 
-      for layerName, canvas of layers then canvas.remove()
+      for chartName, canvas of charts then canvas.remove()
   }
 
