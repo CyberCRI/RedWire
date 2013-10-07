@@ -16,5 +16,8 @@
   },
   "charts": {
     "type": "Chart"
+  },
+  "time": {
+    "type": "Time"
   }
 }

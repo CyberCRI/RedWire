@@ -398,7 +398,7 @@
     return JSON.stringify({ player: player, events: events });
   },
 
-  generateChartData: function(userValue) {
+  generateChartData: function(userValue, networkValue) {
     return {
       "labels" : _.range(10),
       "datasets" : [
@@ -407,10 +407,17 @@
           "strokeColor" : "rgba(220,220,220,1)",
           "pointColor" : "rgba(220,220,220,1)",
           "pointStrokeColor" : "#fff",
-          "data" : [65,59,90,81,56,55,40, 20, 68, 82]
+          "data" : [65, 59, 90, 81, 56, 55, 40, 20, 68, 82]
         },
         {
-          "fillColor" : "rgba(151,187,205,0.5)",
+          "fillColor" : "rgba(199, 96, 76, 0.5)",
+          "strokeColor" : "rgba(199, 96, 76, 1)",
+          "pointColor" : "rgba(199, 96, 76, 1)",
+          "pointStrokeColor" : "#fff",
+          "data" : _.map(_.range(10), function(a) { return 50 + 25 * Math.sin(networkValue / 2000 * a); })
+        },
+        {
+          "fillColor" : "rgba(151,187,205,0.7)",
           "strokeColor" : "rgba(151,187,205,1)",
           "pointColor" : "rgba(151,187,205,1)",
           "pointStrokeColor" : "#fff",
