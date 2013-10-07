@@ -342,6 +342,10 @@ registerService 'Chart', (options = {}) ->
   # Format { name: { canvas:, data: }} 
   charts = {}
 
+  removeChart = (chartName) ->
+    charts[chartName].canvas.remove()
+    delete charts[chartName]
+
   return {
     provideData: -> {}
 
@@ -349,14 +353,16 @@ registerService 'Chart', (options = {}) ->
       # Expecting serviceData like { chartA: { size:, position:, depth:, data:, options: }}
 
       # Remove old charts 
-      for chartName in _.difference(_.keys(charts), _.keys(serviceData)) 
-        charts[chartName].remove()
-        delete charts[chartName]
+      for chartName in _.difference(_.keys(charts), _.keys(serviceData)) then removeChart(chartName)
 
       # Create new charts and update old ones
       for chartName, chartData of serviceData
-        # If the chart exists and has the same data, don't bother redrawing it
-        if _.isEqual(charts[chartName]?.data, chartData) then continue
+        # If the chart already exists...
+        if chartName of charts 
+          #... and has the same data, don't bother redrawing it
+          if _.isEqual(charts[chartName].data, chartData) then continue
+          # Otherwise remove it.
+          else removeChart(chartName)
 
         # Check it's a valid chart type
         if chartData.type not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 

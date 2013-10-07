@@ -1,10 +1,25 @@
 {
-  "action": "doInParallel",
-  "children": [
-    { 
-      "send": {
-        "services.charts.test": "{ type: 'line', data: model.chartData }"
-      }
-    }
-  ]
+	"action": "doInParallel",
+	"children": [
+		{
+			"send": {
+				"services.charts.test": "{ type: 'line', data: tools.generateChartData(model.userValue) }"
+			}
+		},
+		{
+			"action": "updateHtmlTemplate",
+			"params": {
+				"in": {
+					"htmlService": "services.html",
+					"modelValues": "{ userValue: model.userValue }",
+					"assetName": "'controls'",
+					"templateName": "'controls'"
+				},
+				"out": {
+					"services.html": "params.htmlService",
+					"model.userValue": "params.modelValues.userValue"
+				}
+			}
+		}
+	]
 }

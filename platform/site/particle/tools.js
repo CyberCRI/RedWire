@@ -396,6 +396,28 @@
 
   makeTrackingString: function(player, events) {
     return JSON.stringify({ player: player, events: events });
+  },
+
+  generateChartData: function(userValue) {
+    return {
+      "labels" : _.range(10),
+      "datasets" : [
+        {
+          "fillColor" : "rgba(220,220,220,0.5)",
+          "strokeColor" : "rgba(220,220,220,1)",
+          "pointColor" : "rgba(220,220,220,1)",
+          "pointStrokeColor" : "#fff",
+          "data" : [65,59,90,81,56,55,40, 20, 68, 82]
+        },
+        {
+          "fillColor" : "rgba(151,187,205,0.5)",
+          "strokeColor" : "rgba(151,187,205,1)",
+          "pointColor" : "rgba(151,187,205,1)",
+          "pointStrokeColor" : "#fff",
+          "data" : _.map(_.range(10), function(a) { return 50 + 50 * Math.sin(userValue * a); })
+        }
+      ]
+    };
   }
 
 })
