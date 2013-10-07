@@ -414,7 +414,7 @@
           "strokeColor" : "rgba(151,187,205,1)",
           "pointColor" : "rgba(151,187,205,1)",
           "pointStrokeColor" : "#fff",
-          "data" : _.map(_.range(10), function(a) { return 50 + 50 * Math.sin(userValue * a); })
+          "data" : _.map(_.range(10), function(a) { return 50 + 25 * Math.sin(userValue * a); })
         }
       ]
     };

@@ -3,7 +3,7 @@
 	"children": [
 		{
 			"send": {
-				"services.charts.test": "{ type: 'line', data: tools.generateChartData(model.userValue) }"
+				"services.charts.test": "{ type: 'line', position: model.constants.chart.position, size: model.constants.chart.size, data: tools.generateChartData(model.userValue) }"
 			}
 		},
 		{

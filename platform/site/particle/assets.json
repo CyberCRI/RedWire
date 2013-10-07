@@ -1,3 +1,4 @@
 {
-	"controls": "assets/controls.html"
+	"controls": "assets/controls.html",
+	"controlsCss": "assets/controls.css"
 }
