@@ -206,6 +206,22 @@
         this.params.htmlService.send[this.params.templateName] = this.params.htmlService.receive[this.params.templateName]
       }
     }
-  }
+  },
+
+  doPeriodically: {
+    paramDefs: {
+      currentTime: null,
+      lastTime: { direction: "inout" },
+      period: null
+    },
+    listActiveChildren: function() { 
+      return (this.params.currentTime >= this.params.lastTime + this.params.period) ? this.children : [];
+    },
+    handleSignals: function() {
+      if(this.activeChildren.length > 0) {
+        this.params.lastTime = this.params.currentTime;
+      }
+    }
+  },
 
 });

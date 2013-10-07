@@ -398,7 +398,7 @@
     return JSON.stringify({ player: player, events: events });
   },
 
-  generateChartData: function(userValue, networkValue) {
+  generateChartData: function(userValue, networkValues, timeValue) {
     return {
       "labels" : _.range(10),
       "datasets" : [
@@ -407,14 +407,14 @@
           "strokeColor" : "rgba(220,220,220,1)",
           "pointColor" : "rgba(220,220,220,1)",
           "pointStrokeColor" : "#fff",
-          "data" : [65, 59, 90, 81, 56, 55, 40, 20, 68, 82]
+          "data" : _.map(_.range(10), function(a) { return 50 + 25 * Math.sin(timeValue / 2000 * a); })
         },
         {
           "fillColor" : "rgba(199, 96, 76, 0.5)",
           "strokeColor" : "rgba(199, 96, 76, 1)",
           "pointColor" : "rgba(199, 96, 76, 1)",
           "pointStrokeColor" : "#fff",
-          "data" : _.map(_.range(10), function(a) { return 50 + 25 * Math.sin(networkValue / 2000 * a); })
+          "data" : networkValues
         },
         {
           "fillColor" : "rgba(151,187,205,0.7)",
@@ -425,6 +425,30 @@
         }
       ]
     };
+  },
+
+  makeRandomNumberRequest: function(min, max, count) {
+    return {
+      url: "http://www.random.org/integers/",
+      data: {
+        num: count,
+        min: min,
+        max: max,
+        base: 10,
+        format: "plain",
+        rnd: "new"
+      },
+      cache: false
+    };
+  },
+
+  obtainRandomNumbers: function(response) {
+    if(typeof(response.error) !== "undefined") { 
+      return _.range(10);
+    }
+    else {
+      return response.data.split("\n");
+    }
   }
 
 })

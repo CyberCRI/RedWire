@@ -1,9 +1,12 @@
 {
   "userValue": "5",
+  "networkValues": [65, 59, 90, 81, 56, 55, 40, 20, 68, 82],
+  "lastNetworkRequestTime": 0,
   "constants": {
     "chart": {
       "position": [0, 40],
       "size": [960, 500]
-    }
+    },
+    "networkRequestPeriod": 5000
   }
 }

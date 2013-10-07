@@ -19,5 +19,8 @@
   },
   "time": {
     "type": "Time"
+  },
+  "http": {
+    "type": "Http"
   }
 }
