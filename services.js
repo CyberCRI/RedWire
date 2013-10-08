@@ -464,4 +464,74 @@
     };
   });
 
+  registerService('Chart', function(options) {
+    var capitalizeFirstLetter, charts, removeChart;
+    if (options == null) {
+      options = {};
+    }
+    capitalizeFirstLetter = function(str) {
+      return str[0].toUpperCase() + str.slice(1);
+    };
+    charts = {};
+    removeChart = function(chartName) {
+      charts[chartName].canvas.remove();
+      return delete charts[chartName];
+    };
+    return {
+      provideData: function() {
+        return {};
+      },
+      establishData: function(serviceData, config, assets) {
+        var canvas, canvasCss, canvasProps, chart, chartData, chartName, chartOptions, displayOptions, _i, _len, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _results;
+        _ref = _.difference(_.keys(charts), _.keys(serviceData));
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          chartName = _ref[_i];
+          removeChart(chartName);
+        }
+        _results = [];
+        for (chartName in serviceData) {
+          chartData = serviceData[chartName];
+          if (chartName in charts) {
+            if (_.isEqual(charts[chartName].data, chartData)) {
+              continue;
+            } else {
+              removeChart(chartName);
+            }
+          }
+          if ((_ref1 = chartData.type) !== "line" && _ref1 !== "bar" && _ref1 !== "radar" && _ref1 !== "polar" && _ref1 !== "pie" && _ref1 !== "doughnut") {
+            throw new Error("Unknown chart type: '" + chartData.type + "'");
+          }
+          displayOptions = {
+            size: (_ref2 = chartData.size) != null ? _ref2 : options.size,
+            position: (_ref3 = chartData.position) != null ? _ref3 : [0, 0],
+            depth: (_ref4 = chartData.depth) != null ? _ref4 : 50
+          };
+          chartOptions = _.defaults((_ref5 = chartData.options) != null ? _ref5 : {}, {
+            animation: false
+          });
+          canvasProps = "id='chartLayer-" + chartName + "' class='chartCanvas' width='" + displayOptions.size[0] + "' height='" + displayOptions.size[1] + "' tabIndex=0";
+          canvasCss = "z-index: " + displayOptions.depth + "; position: absolute; left: " + displayOptions.position[0] + "px; top: " + displayOptions.position[1] + "px;";
+          canvas = $("<canvas " + canvasProps + " style='" + canvasCss + "' />");
+          $(options.elementSelector).append(canvas);
+          charts[chartName] = {
+            canvas: canvas,
+            data: chartData
+          };
+          chart = new Chart(canvas[0].getContext("2d"));
+          _results.push(chart[capitalizeFirstLetter(chartData.type)](chartData.data, chartOptions));
+        }
+        return _results;
+      },
+      destroy: function() {
+        var canvas, chartName, _results;
+        _results = [];
+        for (chartName in charts) {
+          canvas = charts[chartName];
+          _results.push(canvas.remove());
+        }
+        return _results;
+      }
+    };
+  });
+
 }).call(this);

@@ -167,7 +167,7 @@
             },
             {
               "send": { 
-                "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: model.gallery.length, ready: model.gallery.length >= 5 } }"
+                "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: model.gallery.length, canAddShape: model.gallery.length < 12, ready: model.gallery.length >= 5 } }"
               }
             },
             {

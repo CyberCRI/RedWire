@@ -309,10 +309,13 @@
     return false;
   };
 
-  GE.sandboxActionCall = function(node, constants, bindings, methodName, signals) {
+  GE.sandboxActionCall = function(node, constants, bindings, methodName, signals, activeChildren) {
     var action, child, childNames, e, error, evaluatedParams, evaluationContext, index, key, locals, methodResult, outParams, outputValue, paramName, paramOptions, paramValue, parent, result, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
     if (signals == null) {
-      signals = {};
+      signals = [];
+    }
+    if (activeChildren == null) {
+      activeChildren = [];
     }
     action = constants.actions[node.action];
     childNames = (function() {
@@ -362,6 +365,7 @@
       params: evaluatedParams,
       children: childNames,
       signals: signals,
+      activeChildren: activeChildren,
       assets: constants.assets,
       tools: constants.tools,
       log: constants.log
@@ -489,7 +493,7 @@
         result = result.appendWith(childResult);
       }
       if ("handleSignals" in constants.actions[node.action]) {
-        errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals);
+        errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals, activeChildren);
         result = result.appendWith(errorResult);
         result.result = errorResult;
       }
