@@ -209,7 +209,7 @@ GE.doPatchesConflict = (patches) ->
 
 # Catches all errors in the function 
 # The signals parameter is only used in the "handleSignals" call
-GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
+GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], activeChildren = []) ->
   action = constants.actions[node.action]
   childNames = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
 
@@ -245,6 +245,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = {}) ->
     params: evaluatedParams
     children: childNames
     signals: signals
+    activeChildren: activeChildren
     assets: constants.assets
     tools: constants.tools
     log: constants.log
@@ -351,7 +352,7 @@ GE.visitActionNode = (node, constants, bindings) ->
     # Handle signals
     # TODO: if handler not defined, propogate error signals upwards? How to merge them?
     if "handleSignals" of constants.actions[node.action]
-      errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals)
+      errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals, activeChildren)
       result = result.appendWith(errorResult)
       result.result = errorResult # appendWith() does not affect result
 
