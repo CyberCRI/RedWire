@@ -436,7 +436,8 @@
         max: max,
         base: 10,
         format: "plain",
-        rnd: "new"
+        rnd: "new",
+        col: 1
       },
       cache: false
     };
