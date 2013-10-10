@@ -68,9 +68,3 @@ GE.difference = (array) ->
   rest = Array.prototype.concat.apply(Array.prototype, Array.prototype.slice.call(arguments, 1))
   return _.filter array, (value) -> 
     return not GE.contains(rest, value)
-
-# Rounds off a number `n` to a certain number of digits `d`. 
-# E.g GE.roundOffDigits(12.3456789, 2) -> 12.35
-GE.roundOffDigits = (n, d) -> 
-  m = Math.pow(10, d) 
-  return Math.round(n * m) / m
