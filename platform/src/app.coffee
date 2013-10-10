@@ -91,7 +91,7 @@ handleResize = ->
   # Update the scale sent to stepLoop()
   screenElement = $('#gameContent')
   scale = Math.min(screenElement.parent().outerWidth() / GAME_DIMENSIONS[0], screenElement.parent().outerHeight() / GAME_DIMENSIONS[1])
-  roundedScale = GE.roundOffDigits(scale, 2)
+  roundedScale = scale.toFixed(2)
   newSize = [
     screenElement.parent().outerWidth() - roundedScale * GAME_DIMENSIONS[0]
     screenElement.parent().outerHeight() - roundedScale * GAME_DIMENSIONS[1]
