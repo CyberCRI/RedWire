@@ -111,10 +111,4 @@
     });
   };
 
-  GE.roundOffDigits = function(n, d) {
-    var m;
-    m = Math.pow(10, d);
-    return Math.round(n * m) / m;
-  };
-
 }).call(this);
