@@ -68,6 +68,7 @@ body {
   /* Other CSS is set during resize */
   position: absolute;
   -webkit-transform-origin: 0% 0%;
+  transform-origin: 0% 0%;
  }
 
 #gameContent input, button, label {

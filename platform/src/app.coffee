@@ -98,6 +98,7 @@ handleResize = ->
   ]
   screenElement.css 
     "-webkit-transform": "scale(#{roundedScale})"
+    "transform": "scale(#{roundedScale})"
     "width": "#{newSize[0]}px"
     "height": "#{newSize[1]}px"
     "left": "#{newSize[0] / 2}px"
