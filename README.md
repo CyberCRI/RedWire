@@ -20,23 +20,18 @@ In terms of development, we follow [Beck's Directive]:
 3. Make it fast
 
 
-Dependencies
+Getting Started
 ------------
 
-Compiling the project requires the following dependencies:
+To get the application up and running, check our [Getting Started](https://github.com/CyberCRI/gamEvolve/wiki/Getting-Started) Page
 
-1. [Node.js](http://nodejs.org/) and [NPM](https://npmjs.org/)
-2. NPM modules (can be installed by running `npm install` within the `platform` folder):
-  - [Coffeescript](http://coffeescript.org/)
-  - [win-spawn](https://npmjs.org/package/win-spawn)
-  - [Docco](http://jashkenas.github.com/docco/)
-3. [PhantomJS](http://phantomjs.org/) for testing
 
 Wiki
 ----
 
 Feel free to check these out:
 
+- [Getting Started](https://github.com/CyberCRI/gamEvolve/wiki/Getting-Started) Page
 - Our [GIT Workflow](https://github.com/CyberCRI/gamEvolve/wiki/Our-Git-workflow)
 - [Compiling](https://github.com/CyberCRI/gamEvolve/wiki/Compiling)
 - [Documentation](https://github.com/CyberCRI/gamEvolve/wiki/Documentation)

@@ -286,13 +286,9 @@ registerService 'HTML', (options = {}) ->
 
 # Define time service, that provides the current time in ms
 registerService 'Time', () ->
-  return {
-    provideData: () -> return Date.now()
-
-    establishData: () -> # NOP
-
-    destroy: -> # NOP
-  }
+  provideData: () -> return Date.now()
+  establishData: () -> # NOP
+  destroy: -> # NOP
 
 # The HTTP service makes AJAX requests 
 registerService 'Http', () ->
@@ -300,7 +296,8 @@ registerService 'Http', () ->
     requests: {}
     responses: {}
 
-  return {
+  service =
+
     provideData: () -> return state
 
     establishData: (serviceData, config, assets) -> 
@@ -333,7 +330,8 @@ registerService 'Http', () ->
       return state
 
     destroy: () -> # NOP
-  }
+
+  return service
 
 # Define chart output service
 registerService 'Chart', (options = {}) ->
