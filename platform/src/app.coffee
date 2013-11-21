@@ -30,14 +30,13 @@ EVAL_ASSETS =
   gamEvolveCommon: "gamEvolveCommon.js"
   sylvester: "lib/sylvester/sylvester.src.js"
 
-EDITOR_URL_PAIRS = [
-  ["modelEditor", "model.json"]
-  ["assetsEditor", "assets.json"]
-  ["actionsEditor", "actions.js"] 
-  ["toolsEditor", "tools.js"]
-  ["layoutEditor", "layout.json"]
-  ["servicesEditor", "services.json"]
-]
+GAME_JSON_PROPERTY_TO_EDITOR =
+  model: "modelEditor"
+  assets: "assetsEditor"
+  actions: "actionsEditor"
+  tools: "toolsEditor"
+  layout: "layoutEditor"
+  services: "servicesEditor"
 
 
 ### Globals ###
@@ -221,24 +220,15 @@ setupEditor = (id, mode = "") ->
   editor.setWrapBehavioursEnabled(true)
   return editor
 
-loadIntoEditor = (editor, url) ->
-  return $.ajax
-    url: url
-    dataType: "text"
-    cache: false
-    success: (data) -> 
-      editor.setValue(data)
-      # The new content will be selected by default
-      editor.selection.clearSelection() 
-
 reloadCode = (callback) ->
-  programId = window.location.search.slice(1)
+  #programId = window.location.search.slice(1)
 
   try
     currentAssets = JSON.parse(editors.assetsEditor.getValue())
-    # Prefix the asset URLS with the location of the game files
-    for name, url of currentAssets
-      currentAssets[name] = programId + url
+    for name, dataUrl of currentAssets
+      blob = Util.dataURLToBlob(dataUrl)
+      url = window.URL.createObjectURL(blob)
+      console.log("url #{name} -> #{url}")
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Assets error. #{error}")
     return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
@@ -452,6 +442,8 @@ $(document).ready ->
 
   # Offer to load code from the cache if we can
   loadedCode = false
+  # TODO: re-enable cache 
+  ### 
   cachedCodeJson = loadCodeFromCache(programId)
   if cachedCodeJson
     if window.confirm("You had made changes to this code. Should we load your last version?")
@@ -459,12 +451,23 @@ $(document).ready ->
       loadedCode = true
     else 
       clearCodeInCache(programId)
+  ###
 
-  # Otherwise just load from a local directory
+  # Otherwise just load from a URL
   if not loadedCode
-    ajaxRequests = (loadIntoEditor(editors[id], "#{programId}#{url}") for [id, url] in EDITOR_URL_PAIRS)
-    $.when(ajaxRequests...).fail(-> showMessage(MessageType.Error, "Cannot load game files")).then ->
-      # Load common assets
+    ajaxRequest = $.ajax
+      url:  programId
+      dataType: "json"
+      cache: false
+    ajaxRequest.fail(-> showMessage(MessageType.Error, "Cannot load game files"))
+    ajaxRequest.done (gameJson) ->
+      for property, editorId of GAME_JSON_PROPERTY_TO_EDITOR
+        editor = editors[editorId]
+        editor.setValue(JSON.stringify(gameJson[property], null, 2))
+        # The new content will be selected by default
+        editor.selection.clearSelection() 
+
+      # Load common script assets
       GE.loadAssets EVAL_ASSETS, (err, loadedAssets) ->
         if err then return showMessage(MessageType.Error, "Cannot load common assets")
 
@@ -477,4 +480,3 @@ $(document).ready ->
 
         # Load code
         notifyCodeChange()
-

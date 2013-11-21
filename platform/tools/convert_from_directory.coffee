@@ -40,7 +40,7 @@ parsedToObj = (parsed, codeTransformer) ->
 createDataUri = (filename) ->
   buffer = fs.readFileSync(filename)
   mimeType = mime.lookup(filename)
-  return "data:#{mimeType};#{buffer.toString('base64')}"
+  return "data:#{mimeType};base64,#{buffer.toString('base64')}"
 
 
 # MAIN
