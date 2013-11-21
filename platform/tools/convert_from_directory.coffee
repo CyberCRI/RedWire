@@ -1,7 +1,6 @@
 #!/usr/bin/env coffee
 
-OUTPUT_VERSION = 0.1
-
+# IMPORTS 
 escodegen = require("escodegen")
 esprima = require("esprima")
 fs = require("fs.extra")
@@ -9,6 +8,36 @@ path = require("path")
 util = require("util")
 
 
+# CONSTANTS
+OUTPUT_VERSION = 0.1
+
+# 2-space indent 
+CODE_GENERATION_OPTIONS =
+  indent: "  "
+
+
+# FUNCTIONS
+toJson = (obj) -> JSON.stringify(obj, null, 2)
+
+parsedToObj = (parsed) -> 
+  switch parsed.type
+    when "Literal"
+      return parsed.value
+    when "ObjectExpression"
+      obj = {}
+      for property in parsed.properties
+        propertyName = property.key.name || property.key.value
+        obj[propertyName] = parsedToObj(property.value)
+      return obj
+    when "FunctionExpression" 
+      # Don't include the upper-level BlockStatement
+      return (escodegen.generate(body, CODE_GENERATION_OPTIONS) for body in parsed.body.body).join("\n")
+    else
+      util.error("How do I handle parsed type #{parsed.type}?")
+      process.exit(2)
+
+
+# MAIN
 if process.argv.length < 4
   util.error("Usage: coffee convert_from_directory.coffee <input_dir> <output_dir>")
   process.exit(1)
@@ -28,32 +57,17 @@ outputObj =
   version: OUTPUT_VERSION
 
 # Actions are a JS file that needs to be parsed
-# TODO: literals such as objects or strings should be returned as such, without string quoiting
-# TODO: functions should be returned without the braces
-# TODO: quoted action names such as "if" are returned as undefined
-parsedActions = esprima.parse(fs.readFileSync(path.join(inputDir, "/actions.js"), { encoding: "utf8" }))
-for action in parsedActions.body[0].expression.properties
-  actionName = action.key.name
-  outputObj.actions[actionName] = {}
-  for property in action.value.properties
-    propertyName = property.key.name || propery.key.value
-    switch property.value.type
-      when "ObjectExpression", "Literal"
-        outputObj.actions[actionName][propertyName] = escodegen.generate(property.value)
-      when "FunctionExpression" 
-        outputObj.actions[actionName][propertyName] = escodegen.generate(property.value.body)
-      else
-        util.error("Action #{actionName} has unrecognized type #{property.value.type}")
-        process.exit(2)
+parsedActions = esprima.parse(fs.readFileSync(path.join(inputDir, "actions.js"), { encoding: "utf8" }))
+outputObj.actions = parsedToObj(parsedActions.body[0].expression)
 
 # Copy over layout JSON
-outputObj.layout = JSON.parse(fs.readFileSync(path.join(inputDir, "/layout.json"), { encoding: "utf8" }))
+outputObj.layout = JSON.parse(fs.readFileSync(path.join(inputDir, "layout.json"), { encoding: "utf8" }))
 
 # Copy over model JSON
-outputObj.model = JSON.parse(fs.readFileSync(path.join(inputDir, "/model.json"), { encoding: "utf8" }))
+outputObj.model = JSON.parse(fs.readFileSync(path.join(inputDir, "model.json"), { encoding: "utf8" }))
 
 # Copy over asset JSON
-outputObj.assets = JSON.parse(fs.readFileSync(path.join(inputDir, "/assets.json"), { encoding: "utf8" }))
+outputObj.assets = JSON.parse(fs.readFileSync(path.join(inputDir, "assets.json"), { encoding: "utf8" }))
 
 # TODO: create base64 version of all assets
 
@@ -67,6 +81,4 @@ for name, filepath of outputObj.assets
       if err? 
         util.error("WARNING: Cannot copy #{filename}: #{err}")
 
-
-# TODO: pretty-print JSON output
-fs.writeFileSync(path.join(outputDir, "/game.json"), JSON.stringify(outputObj))
+fs.writeFileSync(path.join(outputDir, "game.json"), toJson(outputObj))
