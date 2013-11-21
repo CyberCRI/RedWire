@@ -4,6 +4,7 @@
 escodegen = require("escodegen")
 esprima = require("esprima")
 fs = require("fs.extra")
+mime = require("mime")
 path = require("path")
 util = require("util")
 
@@ -36,28 +37,32 @@ parsedToObj = (parsed) ->
       util.error("How do I handle parsed type #{parsed.type}?")
       process.exit(2)
 
+createDataUri = (filename) ->
+  buffer = fs.readFileSync(filename)
+  mimeType = mime.lookup(filename)
+  return "data:#{mimeType};#{buffer.toString('base64')}"
+
 
 # MAIN
 if process.argv.length < 4
-  util.error("Usage: coffee convert_from_directory.coffee <input_dir> <output_dir>")
+  util.error("Usage: coffee convert_from_directory.coffee <input_dir> <output_file>")
   process.exit(1)
 
 inputDir = process.argv[2]
 outputDir = process.argv[3]
 
-# TODO: remove output directory before starting?
-fs.mkdirRecursiveSync(outputDir)
-
 # This object will be written out as JSON at the end 
 outputObj = 
-  actions: {}
-  assets: {}
-  layout: {}
-  model: {}
   version: OUTPUT_VERSION
+  model: {}
+  layout: {}
+  actions: {}
+  tools: {}
+  assets: {}
 
 # Actions are a JS file that needs to be parsed
 parsedActions = esprima.parse(fs.readFileSync(path.join(inputDir, "actions.js"), { encoding: "utf8" }))
+# TODO: remove references to "this"
 outputObj.actions = parsedToObj(parsedActions.body[0].expression)
 
 # Copy over layout JSON
@@ -66,19 +71,11 @@ outputObj.layout = JSON.parse(fs.readFileSync(path.join(inputDir, "layout.json")
 # Copy over model JSON
 outputObj.model = JSON.parse(fs.readFileSync(path.join(inputDir, "model.json"), { encoding: "utf8" }))
 
-# Copy over asset JSON
-outputObj.assets = JSON.parse(fs.readFileSync(path.join(inputDir, "assets.json"), { encoding: "utf8" }))
+# TODO: Copy over tools
 
-# TODO: create base64 version of all assets
-
-# Copy referenced assets
-for name, filepath of outputObj.assets
-  # Remove extra directories for output destination
-  filename = path.basename(filepath)
-  outputObj.assets[name] = filename
-  do (filepath, filename) ->
-    fs.copy path.join(inputDir, filepath), path.join(outputDir, filename), (err) -> 
-      if err? 
-        util.error("WARNING: Cannot copy #{filename}: #{err}")
+# Create data-URI encoded versions of all assets
+assetMap = JSON.parse(fs.readFileSync(path.join(inputDir, "assets.json"), { encoding: "utf8" }))
+for name, filename of outputObj.assets
+  outputObj.assets[name] = createDataUri(filename)
 
 fs.writeFileSync(path.join(outputDir, "game.json"), toJson(outputObj))
