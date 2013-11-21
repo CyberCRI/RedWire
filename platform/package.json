@@ -17,7 +17,8 @@
     "phantom-jasmine": "*",
     "fs.extra": "*",
     "esprime": "*",
-    "escodegen": "*"
+    "escodegen": "*",
+    "mime": "*"
   },
   "license": "MIT"
 }

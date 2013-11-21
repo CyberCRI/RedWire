@@ -49,7 +49,7 @@ if process.argv.length < 4
   process.exit(1)
 
 inputDir = process.argv[2]
-outputDir = process.argv[3]
+outputFile = process.argv[3]
 
 # This object will be written out as JSON at the end 
 outputObj = 
@@ -71,11 +71,14 @@ outputObj.layout = JSON.parse(fs.readFileSync(path.join(inputDir, "layout.json")
 # Copy over model JSON
 outputObj.model = JSON.parse(fs.readFileSync(path.join(inputDir, "model.json"), { encoding: "utf8" }))
 
-# TODO: Copy over tools
+# Tools are a JS file that needs to be parsed
+parsedTools = esprima.parse(fs.readFileSync(path.join(inputDir, "tools.js"), { encoding: "utf8" }))
+# TODO: remove references to "this"
+outputObj.tools = parsedToObj(parsedTools.body[0].expression)
 
 # Create data-URI encoded versions of all assets
 assetMap = JSON.parse(fs.readFileSync(path.join(inputDir, "assets.json"), { encoding: "utf8" }))
-for name, filename of outputObj.assets
-  outputObj.assets[name] = createDataUri(filename)
+for name, filename of assetMap
+  outputObj.assets[name] = createDataUri(path.join(inputDir, filename))
 
-fs.writeFileSync(path.join(outputDir, "game.json"), toJson(outputObj))
+fs.writeFileSync(outputFile, toJson(outputObj))
