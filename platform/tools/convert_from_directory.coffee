@@ -55,6 +55,7 @@ outputFile = process.argv[3]
 outputObj = 
   fileVersion: OUTPUT_VERSION
   model: {}
+  services: {}
   layout: {}
   actions: {}
   tools: {}
@@ -70,6 +71,9 @@ outputObj.layout = JSON.parse(fs.readFileSync(path.join(inputDir, "layout.json")
 
 # Copy over model JSON
 outputObj.model = JSON.parse(fs.readFileSync(path.join(inputDir, "model.json"), { encoding: "utf8" }))
+
+# Copy over services JSON
+outputObj.services = JSON.parse(fs.readFileSync(path.join(inputDir, "services.json"), { encoding: "utf8" }))
 
 # Tools are a JS file that needs to be parsed
 parsedTools = esprima.parse(fs.readFileSync(path.join(inputDir, "tools.js"), { encoding: "utf8" }))
