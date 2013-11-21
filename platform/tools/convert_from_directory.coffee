@@ -20,7 +20,7 @@ CODE_GENERATION_OPTIONS =
 # FUNCTIONS
 toJson = (obj) -> JSON.stringify(obj, null, 2)
 
-parsedToObj = (parsed) -> 
+parsedToObj = (parsed, codeTransformer) -> 
   switch parsed.type
     when "Literal"
       return parsed.value
@@ -28,11 +28,11 @@ parsedToObj = (parsed) ->
       obj = {}
       for property in parsed.properties
         propertyName = property.key.name || property.key.value
-        obj[propertyName] = parsedToObj(property.value)
+        obj[propertyName] = parsedToObj(property.value, codeTransformer)
       return obj
     when "FunctionExpression" 
       # Don't include the upper-level BlockStatement
-      return (escodegen.generate(body, CODE_GENERATION_OPTIONS) for body in parsed.body.body).join("\n")
+      return (codeTransformer(escodegen.generate(body, CODE_GENERATION_OPTIONS)) for body in parsed.body.body).join("\n")
     else
       util.error("How do I handle parsed type #{parsed.type}?")
       process.exit(2)
@@ -53,7 +53,7 @@ outputFile = process.argv[3]
 
 # This object will be written out as JSON at the end 
 outputObj = 
-  version: OUTPUT_VERSION
+  fileVersion: OUTPUT_VERSION
   model: {}
   layout: {}
   actions: {}
@@ -62,8 +62,8 @@ outputObj =
 
 # Actions are a JS file that needs to be parsed
 parsedActions = esprima.parse(fs.readFileSync(path.join(inputDir, "actions.js"), { encoding: "utf8" }))
-# TODO: remove references to "this"
-outputObj.actions = parsedToObj(parsedActions.body[0].expression)
+# Remove references to "this"
+outputObj.actions = parsedToObj(parsedActions.body[0].expression, (code) -> code.replace(/this./g, ""))
 
 # Copy over layout JSON
 outputObj.layout = JSON.parse(fs.readFileSync(path.join(inputDir, "layout.json"), { encoding: "utf8" }))
@@ -73,8 +73,8 @@ outputObj.model = JSON.parse(fs.readFileSync(path.join(inputDir, "model.json"), 
 
 # Tools are a JS file that needs to be parsed
 parsedTools = esprima.parse(fs.readFileSync(path.join(inputDir, "tools.js"), { encoding: "utf8" }))
-# TODO: remove references to "this"
-outputObj.tools = parsedToObj(parsedTools.body[0].expression)
+# Replace "this" references with tools 
+outputObj.tools = parsedToObj(parsedTools.body[0].expression, (code) -> code.replace(/this./g, "tools."))
 
 # Create data-URI encoded versions of all assets
 assetMap = JSON.parse(fs.readFileSync(path.join(inputDir, "assets.json"), { encoding: "utf8" }))
