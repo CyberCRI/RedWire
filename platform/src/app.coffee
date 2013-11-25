@@ -239,13 +239,15 @@ reloadCode = (callback) ->
   try
     currentActions = JSON.parse(editors.actionsEditor.getValue())
     compiledActions = GE.mapObject currentActions, (value, key) ->
+      compiledAction = {}
       try
-        if "update" of value then GE.compileUpdate(value.update, currentEvaluator) 
-        else 
-          methods = {}
-          if "listActiveChildren" of value then methods.listActiveChildren = GE.compileListActiveChildren(value.listActiveChildren, currentEvaluator)
-          if "handleSignals" of value then methods.handleSignals = GE.compileHandleSignals(value.handleSignals, currentEvaluator)
-          return methods
+        for actionKey, actionValue of value
+          compiledAction[actionKey] = switch actionKey
+            when "update" then GE.compileUpdate(actionValue, currentEvaluator)
+            when "listActiveChildren" then GE.compileListActiveChildren(actionValue, currentEvaluator)
+            when "handleSignals" then GE.compileHandleSignals(actionValue, currentEvaluator)
+            else actionValue
+        return compiledAction
       catch compilationError
         throw new Error("Error compiling action '#{key}'. #{compilationError}")
   catch error
@@ -254,11 +256,16 @@ reloadCode = (callback) ->
 
   try
     currentTools = JSON.parse(editors.toolsEditor.getValue())
+    toolsContext = 
+      tools: null
+      log: null
     compiledTools = GE.mapObject currentTools, (value, key) -> 
       try
-        GE.compileTool(value, currentEvaluator)
+        toolFactory = GE.compileTool(value.body, toolsContext, value.args, currentEvaluator)
+        return toolFactory(toolsContext)
       catch compilationError
         throw new Error("Error compiling tool '#{key}'. #{compilationError}")
+    toolsContext.tools = compiledTools
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Tools error. #{error}")
     return showMessage(MessageType.Error, "<strong>Tools error.</strong> #{error}")

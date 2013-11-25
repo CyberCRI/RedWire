@@ -262,7 +262,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], act
     try
       outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}\nOutput params were #{JSON.stringify(outputParams)}.")
+      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}\nOutput params were #{JSON.stringify(outParams)}.")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
     parent[key] = outputValue
@@ -453,22 +453,28 @@ GE.stepLoop = (options) ->
 
   return modelPatches
 
-# Compile expression source into sanboxed function of (model, services, assets, tools, bindings, log, params) 
-GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "log", "params"])
+# Compile expression source into sandboxed function of (model, services, assets, tools, bindings, params) 
+GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "params"])
 
-# Compile tool source into sanboxed function of (tools, log) 
-GE.compileTool = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["tools", "log"])
+# Compile tool source into sandboxed function of args..., "baking in" the "tools" and "log" parameters of "context" 
+GE.compileTool = (expressionText, context, args, evaluator) -> 
+  source = """
+    var tools = context.tools; 
+    var log = context.log; 
+    return function(#{args.join(', ')}) { #{expressionText} };
+  """
+  return GE.compileSource(source, evaluator, ["context"])
 
-# Compile action.update() source into sanboxed function of (params, tools, log) 
+# Compile action.update() source into sandboxed function of (params, tools, log) 
 GE.compileUpdate = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "tools", "log"])
 
-# Compile action listActiveChildren source into sanboxed function of (params, children, tools, log) 
+# Compile action listActiveChildren source into sandboxed function of (params, children, tools, log) 
 GE.compileListActiveChildren = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "tools", "log"])
 
-# Compile action handleSignals source into sanboxed function of (params, children, signals, tools, log) 
+# Compile action handleSignals source into sandboxed function of (params, children, signals, tools, log) 
 GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "signals", "tools", "log"])
 
-# Compile source into sanboxed function of params
+# Compile source into sandboxed function of params
 GE.compileSource = (expressionText, evaluator, params) ->
   # Parentheses are needed around function because of strange JavaScript syntax rules
   # TODO: use "new Function" instead of eval? 
