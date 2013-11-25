@@ -59,8 +59,9 @@ currentLayout = null
 currentServices = null
 currentEvaluator = null
 
-# Contains references to object URLS or DOM elements
 assetNamesToData = {} 
+assetNamesToObjectUrls = {}
+
 compiledActions = {}
 compiledTools = {}
 
@@ -326,9 +327,10 @@ updateAssets = (newAssetMap, evaluators...) ->
     else if splitUrl.mimeType == "text/css"
       assetNamesToData[name].remove()
     else if splitUrl.mimeType.indexOf("image/") == 0
-      URL.revokeObjectUrl(assetNamesToData[name])
+      URL.revokeObjectURL(assetNamesToObjectUrls[name])
 
   assetNamesToData = {}
+  assetNamesToObjectUrls = {}
 
   # Create new assets
   for name, dataUrl of newAssetMap
@@ -341,7 +343,15 @@ updateAssets = (newAssetMap, evaluators...) ->
       css = atob(splitUrl.data)
       assetNamesToData[name] = $('<style type="text/css"></style>').html(css).appendTo("head")
     else if splitUrl.mimeType.indexOf("image/") == 0
-      assetNamesToData[name] = Util.strToObjectURL(splitUrl.data, splitUrl.mimeType)
+      blob = Util.dataURLToBlob(dataUrl)
+      objectUrl = URL.createObjectURL(blob)
+
+      image = new Image()
+      image.src = objectUrl
+      # TODO: verify that images loaded correctly?
+
+      assetNamesToObjectUrls[name] = objectUrl
+      assetNamesToData[name] = image
     else
       assetNamesToData[name] = atob(splitUrl.data)
 
