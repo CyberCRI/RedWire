@@ -84,7 +84,7 @@ parsedTools = esprima.parse(fs.readFileSync(path.join(inputDir, "tools.js"), { e
 outputObj.tools = parsedToObj parsedTools.body[0].expression, (args, body) -> 
   {
     args: args
-    body: body.replace(/this\b/g, "tools")
+    body: body.replace(/this\.log/, "log").replace(/this\b/g, "tools") # Rename "this.log" -> "log" and "this.toto" to "tools.toto"
   }
 
 # Create data-URI encoded versions of all assets

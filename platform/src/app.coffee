@@ -57,7 +57,6 @@ currentActions = null
 currentTools = null
 currentLayout = null
 currentServices = null
-currentLoadedAssets = null
 currentEvaluator = null
 
 # Contains references to object URLS or DOM elements
@@ -266,6 +265,7 @@ reloadCode = (callback) ->
       catch compilationError
         throw new Error("Error compiling tool '#{key}'. #{compilationError}")
     toolsContext.tools = compiledTools
+    toolsContext.log = logWithPrefix
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Tools error. #{error}")
     return showMessage(MessageType.Error, "<strong>Tools error.</strong> #{error}")
@@ -323,7 +323,7 @@ updateAssets = (newAssetMap, evaluators...) ->
     splitUrl = splitDataUrl(dataUrl)
     if splitUrl.mimeType == "application/javascript"
       # Nothing to do, cannot unload JS!
-    else if splitUrl.mimeType == "data:text/css"
+    else if splitUrl.mimeType == "text/css"
       assetNamesToData[name].remove()
     else if splitUrl.mimeType.indexOf("image/") == 0
       URL.revokeObjectUrl(assetNamesToData[name])
@@ -337,7 +337,7 @@ updateAssets = (newAssetMap, evaluators...) ->
       script = atob(splitUrl.data)
       for evaluator in evaluators
         evaluator(script)
-    else if splitUrl.mimeType == "data:text/css"
+    else if splitUrl.mimeType == "text/css"
       css = atob(splitUrl.data)
       assetNamesToData[name] = $('<style type="text/css"></style>').html(css).appendTo("head")
     else if splitUrl.mimeType.indexOf("image/") == 0
@@ -356,7 +356,7 @@ executeCode = ->
     modelPatches = GE.stepLoop
       node: currentLayout
       modelData: modelAtFrame.clonedData()
-      assets: currentLoadedAssets
+      assets: assetNamesToData
       actions: compiledActions
       tools: compiledTools
       services: currentServices

@@ -459,9 +459,11 @@ GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #
 # Compile tool source into sandboxed function of args..., "baking in" the "tools" and "log" parameters of "context" 
 GE.compileTool = (expressionText, context, args, evaluator) -> 
   source = """
-    var tools = context.tools; 
-    var log = context.log; 
-    return function(#{args.join(', ')}) { #{expressionText} };
+    return function(#{args.join(', ')}) { 
+      var tools = context.tools; 
+      var log = context.log; 
+      #{expressionText} 
+    };
   """
   return GE.compileSource(source, evaluator, ["context"])
 
@@ -480,7 +482,7 @@ GE.compileSource = (expressionText, evaluator, params) ->
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
   # TODO: detect errors
-  functionText = "(function(#{params.join(', ')}) { #{expressionText} })"
+  functionText = "(function(#{params.join(', ')}) {\n#{expressionText}\n})"
   expressionFunc = evaluator(functionText)
   if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
   return expressionFunc
