@@ -455,13 +455,28 @@ GE.stepLoop = (options) ->
 
   return modelPatches
 
-# Compile expression into sanboxed function that will produces an input value
-GE.compileExpression = (expressionText, evaluator) ->
+# Compile expression source into sanboxed function of (model, services, assets, tools, bindings, log, params) 
+GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "log", "params"])
+
+# Compile tool source into sanboxed function of (tools, log) 
+GE.compileTool = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["tools", "log"])
+
+# Compile action.update() source into sanboxed function of (params, tools, log) 
+GE.compileUpdate = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "tools", "log"])
+
+# Compile action listActiveChildren source into sanboxed function of (params, children, tools, log) 
+GE.compileListActiveChildren = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "tools", "log"])
+
+# Compile action handleSignals source into sanboxed function of (params, children, signals, tools, log) 
+GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "signals", "tools", "log"])
+
+# Compile source into sanboxed function of params
+GE.compileSource = (expressionText, evaluator, params) ->
   # Parentheses are needed around function because of strange JavaScript syntax rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
   # TODO: detect errors
-  functionText = "(function(model, services, assets, tools, bindings, params) { return #{expressionText}; })"
+  functionText = "(function(#{params.join(', ')}) { #{expressionText} })"
   expressionFunc = evaluator(functionText)
   if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
   return expressionFunc
@@ -476,6 +491,7 @@ GE.determineAssetType = (url) ->
 
 # Load all the assets in the given object (name: url) and then call callback with the results, or error
 # TODO: have cache-busting be configurable
+# TODO: use promises rather than a counter
 GE.loadAssets = (assets, callback) ->
   if _.size(assets) == 0 then return callback(null, {})
 

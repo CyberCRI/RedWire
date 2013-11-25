@@ -58,7 +58,12 @@ currentTools = null
 currentLayout = null
 currentServices = null
 currentLoadedAssets = null
-currentExpressionEvaluator = null
+currentEvaluator = null
+
+# Contains references to object URLS or DOM elements
+assetNamesToData = {} 
+compiledActions = {}
+compiledTools = {}
 
 isPlaying = false
 automaticallyUpdatingModel = false
@@ -223,15 +228,7 @@ setupEditor = (id, mode = "") ->
 reloadCode = (callback) ->
   #programId = window.location.search.slice(1)
 
-  try
-    currentAssets = JSON.parse(editors.assetsEditor.getValue())
-    for name, dataUrl of currentAssets
-      blob = Util.dataURLToBlob(dataUrl)
-      url = window.URL.createObjectURL(blob)
-      console.log("url #{name} -> #{url}")
-  catch error
-    logWithPrefix(GE.logLevels.ERROR, "Assets error. #{error}")
-    return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
+  currentEvaluator = GE.makeEvaluator(evalLoadedAssets...)
 
   try
     currentModelData = JSON.parse(editors.modelEditor.getValue())
@@ -239,25 +236,35 @@ reloadCode = (callback) ->
     logWithPrefix(GE.logLevels.ERROR, "Model error. #{error}")
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
-  # We will use actionEvaluator later to evaluate all loaded JS assets
-  actionsEvaluator = GE.makeEvaluator(evalLoadedAssets...)
   try
-    currentActions = actionsEvaluator(editors.actionsEditor.getValue())
+    currentActions = JSON.parse(editors.actionsEditor.getValue())
+    compiledActions = GE.mapObject currentActions, (value, key) ->
+      try
+        if "update" of value then GE.compileUpdate(value.update, currentEvaluator) 
+        else {
+          listActiveChildren: "listActiveChildren" of value and GE.compileListActiveChildren(value.listActiveChildren, currentEvaluator)
+          handleSignals: "handleSignals" of value and GE.compileHandleSignals(value.handleSignals, currentEvaluator)
+        }
+      catch compilationError
+        throw new Error("Error compiling action '#{key}'. #{compilationError}")
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
-  # We will use toolsEvaluator later to evaluate all loaded JS assets
-  toolsEvaluator = GE.makeEvaluator(evalLoadedAssets...)
   try
-    currentTools = toolsEvaluator(editors.toolsEditor.getValue())
-    currentTools.log = logWithPrefix # Expose the log() function to tools
+    currentTools = JSON.parse(editors.toolsEditor.getValue())
+    compiledTools = GE.mapObject currentTools, (value, key) -> 
+      try
+        GE.compileTool(value, currentEvaluator)
+      catch compilationError
+        throw new Error("Error compiling tool '#{key}'. #{compilationError}")
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Tools error. #{error}")
     return showMessage(MessageType.Error, "<strong>Tools error.</strong> #{error}")
 
   try
     currentLayout = JSON.parse(editors.layoutEditor.getValue())
+    # TODO: compile expressions ahead of time
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Layout error. #{error}")
     return showMessage(MessageType.Error, "<strong>Layout error.</strong> #{error}")
@@ -280,32 +287,57 @@ reloadCode = (callback) ->
     logWithPrefix(GE.logLevels.ERROR, "Services error. #{error}")
     return showMessage(MessageType.Error, "<strong>Services error.</strong> #{error}")
 
-  GE.loadAssets currentAssets, (err, loadedAssets) =>
-    if err? 
-      logWithPrefix(GE.logLevels.ERROR, "Cannot load assets. #{err}")
-      showMessage(MessageType.Error, "Cannot load assets. #{err}")
-      return callback(err)
+  try
+    newAssets = JSON.parse(editors.assetsEditor.getValue())
+    updateAssets(newAssets, currentEvaluator)
+  catch error
+    logWithPrefix(GE.logLevels.ERROR, "Assets error. #{error}")
+    return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
 
-    # Execute all JS assets in the actions and tools sandbox, so that actions have access
-    for name, url of currentAssets 
-      if GE.determineAssetType(url) is "JS" 
-        for evaluator in [actionsEvaluator, toolsEvaluator] 
-          evaluator(loadedAssets[name])
+  # TODO: move these handlers to MVC events
+  currentModel.atVersion(currentFrame).data = currentModelData
 
-    currentExpressionEvaluator = GE.makeEvaluator(evalLoadedAssets...)
+  $("#timeSlider").slider "option", 
+    value: currentFrame
+    max: currentFrame
 
-    currentLoadedAssets = loadedAssets
+  logWithPrefix(GE.logLevels.INFO, "Game updated")
+  showMessage(MessageType.Info, "Game updated")
+  callback(null)
 
-    # TODO: move these handlers to MVC events
-    currentModel.atVersion(currentFrame).data = currentModelData
+# Unload previous assets and load new ones. The given list of evaluators are initialized with any JS assets.
+# Updates currentAssets.
+# TODO: move asset handling into gamEvolve.coffee. CSS could be handled by the HTML service. JS is harder.
+updateAssets = (newAssetMap, evaluators...) ->
+  # Remove old assets
+  # TODO: Only update new assets
+  for name, dataUrl of currentAssets
+    splitUrl = splitDataUrl(dataUrl)
+    if splitUrl.mimeType == "application/javascript"
+      # Nothing to do, cannot unload JS!
+    else if splitUrl.mimeType == "data:text/css"
+      assetNamesToData[name].remove()
+    else if splitUrl.mimeType.indexOf("image/") == 0
+      URL.revokeObjectUrl(assetNamesToData[name])
 
-    $("#timeSlider").slider "option", 
-      value: currentFrame
-      max: currentFrame
+  assetNamesToData = {}
 
-    logWithPrefix(GE.logLevels.INFO, "Game updated")
-    showMessage(MessageType.Info, "Game updated")
-    callback(null)
+  # Create new assets
+  for name, dataUrl of newAssetMap
+    splitUrl = splitDataUrl(dataUrl)
+    if splitUrl.mimeType == "application/javascript"
+      script = atob(splitUrl.data)
+      for evaluator in evaluators
+        evaluator(script)
+    else if splitUrl.mimeType == "data:text/css"
+      css = atob(splitUrl.data)
+      assetNamesToData[name] = $('<style type="text/css"></style>').html(css).appendTo("head")
+    else if splitUrl.mimeType.indexOf("image/") == 0
+      assetNamesToData[name] = Util.strToObjectURL(splitUrl.data, splitUrl.mimeType)
+    else
+      assetNamesToData[name] = atob(splitUrl.data)
+
+  currentAssets = newAssetMap
 
 # Runs the currently loaded code on the current frame
 # Returns a new model
@@ -317,12 +349,12 @@ executeCode = ->
       node: currentLayout
       modelData: modelAtFrame.clonedData()
       assets: currentLoadedAssets
-      actions: currentActions
-      tools: currentTools
+      actions: compiledActions
+      tools: compiledTools
       services: currentServices
       serviceConfig: 
         scale: gameScreenScale
-      evaluator: currentExpressionEvaluator
+      evaluator: currentEvaluator
       log: logWithPrefix
     if modelPatches.length > 0 then logWithPrefix(GE.logLevels.LOG, "Model patches are: #{JSON.stringify(modelPatches)}.")
     return modelAtFrame.applyPatches(modelPatches)
@@ -409,11 +441,22 @@ resetLogContent = ->
   
   logWithPrefix(GE.logLevels.INFO, "Reset log")
 
+# Add a leading zero if necessary to have a number take 2 digits
 zeroPad = (number) -> if number < 10 then "0" + number else number
 
 getFormattedTime = ->
   date = new Date()
   return "#{zeroPad(date.getHours())}:#{zeroPad(date.getMinutes())}:#{zeroPad(date.getSeconds())}"
+
+# Returns an object { mimeType: String, base64: Bool, data: String}
+splitDataUrl = (url) -> 
+  matches = url.match(/data:([^;]+);([^,]*),(.*)/)
+  return {
+    mimeType: matches[1]
+    base64: matches[2] == "base64"
+    data: matches[3]
+  }
+
 
 ### Main ###
 
