@@ -209,6 +209,7 @@ GE.doPatchesConflict = (patches) ->
 
 # Catches all errors in the function 
 # The signals parameter is only used in the "handleSignals" call
+# TODO: split this into multiple functions
 GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], activeChildren = []) ->
   action = constants.actions[node.action]
   childNames = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
@@ -241,19 +242,16 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], act
     catch error
       throw new Error("Error evaluating the input parameter expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}")
 
-  locals = 
-    params: evaluatedParams
-    children: childNames
-    signals: signals
-    activeChildren: activeChildren
-    assets: constants.assets
-    tools: constants.tools
-    log: constants.log
+  args = switch methodName
+    when "update" then [evaluatedParams, constants.tools, constants.log]
+    when "listActiveChildren" then [evaluatedParams, childNames, constants.tools, constants.log]
+    when "handleSignals" then [evaluatedParams, childNames, signals, constants.tools, constants.log]
+    else throw new Error("Unknown action method '#{methodName}'")
   try
-    methodResult = action[methodName].apply(locals)
+    methodResult = action[methodName](args...)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}. Input params were #{JSON.stringify(locals.params)}. Children are #{JSON.stringify(locals.children)}.\n#{e.stack}")
+    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
 
   result = new GE.NodeVisitorResult(methodResult)
 

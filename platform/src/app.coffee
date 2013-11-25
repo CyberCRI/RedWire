@@ -241,10 +241,11 @@ reloadCode = (callback) ->
     compiledActions = GE.mapObject currentActions, (value, key) ->
       try
         if "update" of value then GE.compileUpdate(value.update, currentEvaluator) 
-        else {
-          listActiveChildren: "listActiveChildren" of value and GE.compileListActiveChildren(value.listActiveChildren, currentEvaluator)
-          handleSignals: "handleSignals" of value and GE.compileHandleSignals(value.handleSignals, currentEvaluator)
-        }
+        else 
+          methods = {}
+          if "listActiveChildren" of value then methods.listActiveChildren = GE.compileListActiveChildren(value.listActiveChildren, currentEvaluator)
+          if "handleSignals" of value then methods.handleSignals = GE.compileHandleSignals(value.handleSignals, currentEvaluator)
+          return methods
       catch compilationError
         throw new Error("Error compiling action '#{key}'. #{compilationError}")
   catch error
