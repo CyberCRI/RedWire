@@ -3,7 +3,7 @@ fs = require "fs.extra"
 path = require "path"
 glob = require "glob"
 
-path_to_site = "site"
+path_to_site = "../public"
 path_to_gh_pages = ".temp_ghpages"
 path_to_bin = "node_modules/.bin"
 
@@ -39,10 +39,10 @@ spawnCallStdout = (func, args, debug, callback) ->
   call.on "exit", (code) -> callback(code, localData)
 
 build = (callback) ->
-  spawnCall "#{path_to_bin}/coffee", ['-c', '-o', 'site', 'src'], "build", callback
+  spawnCall "#{path_to_bin}/coffee", ['-c', '-o', path_to_site, 'src'], "build", callback
 
 getTestsResults = (callback) ->
-  spawnCallStdout "#{path_to_bin}/phantomjs", ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html'], "phantomjs/phantom-jasmine test", callback
+  spawnCallStdout "#{path_to_bin}/phantomjs", [path_to_site + '/lib/phantom-jasmine/run_jasmine_test.coffee', path_to_site + '/tests/phantom.html'], "phantomjs/phantom-jasmine test", callback
 
 runTests = (callback) ->
   getTestsResults (err, res) ->
@@ -87,7 +87,7 @@ task 'build', 'build once', ->
   build()
 
 task 'watch', 'continually build with --watch', ->
-  spawnCall "#{path_to_bin}/coffee", ['-cw', '-o', 'site', 'src'], "watch"
+  spawnCall "#{path_to_bin}/coffee", ['-cw', '-o', path_to_site, 'src'], "watch"
 
 task 'doc', 'create documentation', ->
   srcFiles = glob.sync("src/*.coffee")
@@ -98,7 +98,7 @@ task 'deploy', 'deploy on gh-pages', ->
   deploy()
 
 task 'test', 'test GE', ->
-  phantomjs = spawn "#{path_to_bin}/phantomjs", ['site/lib/phantom-jasmine/run_jasmine_test.coffee', 'site/tests/phantom.html']
+  phantomjs = spawn "#{path_to_bin}/phantomjs", [path_to_site + '/lib/phantom-jasmine/run_jasmine_test.coffee', path_to_site + '/tests/phantom.html']
   phantomjs.stdout.on 'data', (data) -> console.log data.toString().trim()
   phantomjs.on "exit", (code) -> 
     console.log "exited with code #{code}"

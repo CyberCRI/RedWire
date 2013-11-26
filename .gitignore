@@ -2,9 +2,8 @@
 .DS_Store
 
 # Ignore JS not in libraries
-concepts/*.js
-platform/site/*.js
-platform/site/tests/*.js
+public/*.js
+public/tests/*.js
 
 # Ignore generated documentation
 docs/
@@ -14,3 +13,8 @@ platform/node_modules/
 
 # Ignore deployment directory
 platform/.temp_ghpages/
+
+# Ignore dpd temp files
+.dpd/*
+data
+npm-debug.log
