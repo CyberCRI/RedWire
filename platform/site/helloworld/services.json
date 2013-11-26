@@ -6,10 +6,7 @@
     "type": "Mouse"
   },
   "graphics": {
-    "type": "Canvas",
-    "options": {
-      "layers": [ ]
-    }
+    "type": "Canvas"
   },
   "html": {
     "type": "HTML"
