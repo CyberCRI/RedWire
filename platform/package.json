@@ -16,7 +16,7 @@
     "phantomjs": "*",
     "phantom-jasmine": "*",
     "fs.extra": "*",
-    "esprime": "*",
+    "esprima": "*",
     "escodegen": "*",
     "mime": "*"
   },

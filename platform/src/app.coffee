@@ -247,9 +247,9 @@ reloadCode = (callback) ->
             when "listActiveChildren" then GE.compileListActiveChildren(actionValue, currentEvaluator)
             when "handleSignals" then GE.compileHandleSignals(actionValue, currentEvaluator)
             else actionValue
-        return compiledAction
       catch compilationError
         throw new Error("Error compiling action '#{key}'. #{compilationError}")
+      return compiledAction
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
