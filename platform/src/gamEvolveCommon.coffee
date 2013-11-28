@@ -68,3 +68,10 @@ GE.difference = (array) ->
   rest = Array.prototype.concat.apply(Array.prototype, Array.prototype.slice.call(arguments, 1))
   return _.filter array, (value) -> 
     return not GE.contains(rest, value)
+
+# Returns a new object with the same keys as obj, but with the values computed by calling f(value, key, obj)
+GE.mapObject = (obj, f) ->
+  newObj = {}
+  for key, value of obj
+    newObj[key] = f(value, key, obj)
+  return newObj

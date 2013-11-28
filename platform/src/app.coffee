@@ -30,14 +30,13 @@ EVAL_ASSETS =
   gamEvolveCommon: "gamEvolveCommon.js"
   sylvester: "lib/sylvester/sylvester.src.js"
 
-EDITOR_URL_PAIRS = [
-  ["modelEditor", "model.json"]
-  ["assetsEditor", "assets.json"]
-  ["actionsEditor", "actions.js"] 
-  ["toolsEditor", "tools.js"]
-  ["layoutEditor", "layout.json"]
-  ["servicesEditor", "services.json"]
-]
+GAME_JSON_PROPERTY_TO_EDITOR =
+  model: "modelEditor"
+  assets: "assetsEditor"
+  actions: "actionsEditor"
+  tools: "toolsEditor"
+  layout: "layoutEditor"
+  services: "servicesEditor"
 
 
 ### Globals ###
@@ -58,8 +57,13 @@ currentActions = null
 currentTools = null
 currentLayout = null
 currentServices = null
-currentLoadedAssets = null
-currentExpressionEvaluator = null
+currentEvaluator = null
+
+assetNamesToData = {} 
+assetNamesToObjectUrls = {}
+
+compiledActions = {}
+compiledTools = {}
 
 isPlaying = false
 automaticallyUpdatingModel = false
@@ -221,27 +225,10 @@ setupEditor = (id, mode = "") ->
   editor.setWrapBehavioursEnabled(true)
   return editor
 
-loadIntoEditor = (editor, url) ->
-  return $.ajax
-    url: url
-    dataType: "text"
-    cache: false
-    success: (data) -> 
-      editor.setValue(data)
-      # The new content will be selected by default
-      editor.selection.clearSelection() 
-
 reloadCode = (callback) ->
-  programId = window.location.search.slice(1)
+  #programId = window.location.search.slice(1)
 
-  try
-    currentAssets = JSON.parse(editors.assetsEditor.getValue())
-    # Prefix the asset URLS with the location of the game files
-    for name, url of currentAssets
-      currentAssets[name] = programId + url
-  catch error
-    logWithPrefix(GE.logLevels.ERROR, "Assets error. #{error}")
-    return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
+  currentEvaluator = GE.makeEvaluator(evalLoadedAssets...)
 
   try
     currentModelData = JSON.parse(editors.modelEditor.getValue())
@@ -249,25 +236,44 @@ reloadCode = (callback) ->
     logWithPrefix(GE.logLevels.ERROR, "Model error. #{error}")
     return showMessage(MessageType.Error, "<strong>Model error.</strong> #{error}")
 
-  # We will use actionEvaluator later to evaluate all loaded JS assets
-  actionsEvaluator = GE.makeEvaluator(evalLoadedAssets...)
   try
-    currentActions = actionsEvaluator(editors.actionsEditor.getValue())
+    currentActions = JSON.parse(editors.actionsEditor.getValue())
+    compiledActions = GE.mapObject currentActions, (value, key) ->
+      compiledAction = {}
+      try
+        for actionKey, actionValue of value
+          compiledAction[actionKey] = switch actionKey
+            when "update" then GE.compileUpdate(actionValue, currentEvaluator)
+            when "listActiveChildren" then GE.compileListActiveChildren(actionValue, currentEvaluator)
+            when "handleSignals" then GE.compileHandleSignals(actionValue, currentEvaluator)
+            else actionValue
+      catch compilationError
+        throw new Error("Error compiling action '#{key}'. #{compilationError}")
+      compiledAction
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
 
-  # We will use toolsEvaluator later to evaluate all loaded JS assets
-  toolsEvaluator = GE.makeEvaluator(evalLoadedAssets...)
   try
-    currentTools = toolsEvaluator(editors.toolsEditor.getValue())
-    currentTools.log = logWithPrefix # Expose the log() function to tools
+    currentTools = JSON.parse(editors.toolsEditor.getValue())
+    toolsContext = 
+      tools: null
+      log: null
+    compiledTools = GE.mapObject currentTools, (value, key) -> 
+      try
+        toolFactory = GE.compileTool(value.body, toolsContext, value.args, currentEvaluator)
+        return toolFactory(toolsContext)
+      catch compilationError
+        throw new Error("Error compiling tool '#{key}'. #{compilationError}")
+    toolsContext.tools = compiledTools
+    toolsContext.log = logWithPrefix
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Tools error. #{error}")
     return showMessage(MessageType.Error, "<strong>Tools error.</strong> #{error}")
 
   try
     currentLayout = JSON.parse(editors.layoutEditor.getValue())
+    # TODO: compile expressions ahead of time
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Layout error. #{error}")
     return showMessage(MessageType.Error, "<strong>Layout error.</strong> #{error}")
@@ -290,32 +296,66 @@ reloadCode = (callback) ->
     logWithPrefix(GE.logLevels.ERROR, "Services error. #{error}")
     return showMessage(MessageType.Error, "<strong>Services error.</strong> #{error}")
 
-  GE.loadAssets currentAssets, (err, loadedAssets) =>
-    if err? 
-      logWithPrefix(GE.logLevels.ERROR, "Cannot load assets. #{err}")
-      showMessage(MessageType.Error, "Cannot load assets. #{err}")
-      return callback(err)
+  try
+    newAssets = JSON.parse(editors.assetsEditor.getValue())
+    updateAssets(newAssets, currentEvaluator)
+  catch error
+    logWithPrefix(GE.logLevels.ERROR, "Assets error. #{error}")
+    return showMessage(MessageType.Error, "<strong>Assets error.</strong> #{error}")
 
-    # Execute all JS assets in the actions and tools sandbox, so that actions have access
-    for name, url of currentAssets 
-      if GE.determineAssetType(url) is "JS" 
-        for evaluator in [actionsEvaluator, toolsEvaluator] 
-          evaluator(loadedAssets[name])
+  # TODO: move these handlers to MVC events
+  currentModel.atVersion(currentFrame).data = currentModelData
 
-    currentExpressionEvaluator = GE.makeEvaluator(evalLoadedAssets...)
+  $("#timeSlider").slider "option", 
+    value: currentFrame
+    max: currentFrame
 
-    currentLoadedAssets = loadedAssets
+  logWithPrefix(GE.logLevels.INFO, "Game updated")
+  showMessage(MessageType.Info, "Game updated")
+  callback(null)
 
-    # TODO: move these handlers to MVC events
-    currentModel.atVersion(currentFrame).data = currentModelData
+# Unload previous assets and load new ones. The given list of evaluators are initialized with any JS assets.
+# Updates currentAssets.
+# TODO: move asset handling into gamEvolve.coffee. CSS could be handled by the HTML service. JS is harder.
+updateAssets = (newAssetMap, evaluators...) ->
+  # Remove old assets
+  # TODO: Only update new assets
+  for name, dataUrl of currentAssets
+    splitUrl = splitDataUrl(dataUrl)
+    if splitUrl.mimeType == "application/javascript"
+      # Nothing to do, cannot unload JS!
+    else if splitUrl.mimeType == "text/css"
+      assetNamesToData[name].remove()
+    else if splitUrl.mimeType.indexOf("image/") == 0
+      URL.revokeObjectURL(assetNamesToObjectUrls[name])
 
-    $("#timeSlider").slider "option", 
-      value: currentFrame
-      max: currentFrame
+  assetNamesToData = {}
+  assetNamesToObjectUrls = {}
 
-    logWithPrefix(GE.logLevels.INFO, "Game updated")
-    showMessage(MessageType.Info, "Game updated")
-    callback(null)
+  # Create new assets
+  for name, dataUrl of newAssetMap
+    splitUrl = splitDataUrl(dataUrl)
+    if splitUrl.mimeType == "application/javascript"
+      script = atob(splitUrl.data)
+      for evaluator in evaluators
+        evaluator(script)
+    else if splitUrl.mimeType == "text/css"
+      css = atob(splitUrl.data)
+      assetNamesToData[name] = $('<style type="text/css"></style>').html(css).appendTo("head")
+    else if splitUrl.mimeType.indexOf("image/") == 0
+      blob = Util.dataURLToBlob(dataUrl)
+      objectUrl = URL.createObjectURL(blob)
+
+      image = new Image()
+      image.src = objectUrl
+      # TODO: verify that images loaded correctly?
+
+      assetNamesToObjectUrls[name] = objectUrl
+      assetNamesToData[name] = image
+    else
+      assetNamesToData[name] = atob(splitUrl.data)
+
+  currentAssets = newAssetMap
 
 # Runs the currently loaded code on the current frame
 # Returns a new model
@@ -326,13 +366,13 @@ executeCode = ->
     modelPatches = GE.stepLoop
       node: currentLayout
       modelData: modelAtFrame.clonedData()
-      assets: currentLoadedAssets
-      actions: currentActions
-      tools: currentTools
+      assets: assetNamesToData
+      actions: compiledActions
+      tools: compiledTools
       services: currentServices
       serviceConfig: 
         scale: gameScreenScale
-      evaluator: currentExpressionEvaluator
+      evaluator: currentEvaluator
       log: logWithPrefix
     if modelPatches.length > 0 then logWithPrefix(GE.logLevels.LOG, "Model patches are: #{JSON.stringify(modelPatches)}.")
     return modelAtFrame.applyPatches(modelPatches)
@@ -419,11 +459,22 @@ resetLogContent = ->
   
   logWithPrefix(GE.logLevels.INFO, "Reset log")
 
+# Add a leading zero if necessary to have a number take 2 digits
 zeroPad = (number) -> if number < 10 then "0" + number else number
 
 getFormattedTime = ->
   date = new Date()
   return "#{zeroPad(date.getHours())}:#{zeroPad(date.getMinutes())}:#{zeroPad(date.getSeconds())}"
+
+# Returns an object { mimeType: String, base64: Bool, data: String}
+splitDataUrl = (url) -> 
+  matches = url.match(/data:([^;]+);([^,]*),(.*)/)
+  return {
+    mimeType: matches[1]
+    base64: matches[2] == "base64"
+    data: matches[3]
+  }
+
 
 ### Main ###
 
@@ -452,6 +503,8 @@ $(document).ready ->
 
   # Offer to load code from the cache if we can
   loadedCode = false
+  # TODO: re-enable cache 
+  ### 
   cachedCodeJson = loadCodeFromCache(programId)
   if cachedCodeJson
     if window.confirm("You had made changes to this code. Should we load your last version?")
@@ -459,12 +512,23 @@ $(document).ready ->
       loadedCode = true
     else 
       clearCodeInCache(programId)
+  ###
 
-  # Otherwise just load from a local directory
+  # Otherwise just load from a URL
   if not loadedCode
-    ajaxRequests = (loadIntoEditor(editors[id], "#{programId}#{url}") for [id, url] in EDITOR_URL_PAIRS)
-    $.when(ajaxRequests...).fail(-> showMessage(MessageType.Error, "Cannot load game files")).then ->
-      # Load common assets
+    ajaxRequest = $.ajax
+      url:  programId
+      dataType: "json"
+      cache: false
+    ajaxRequest.fail(-> showMessage(MessageType.Error, "Cannot load game files"))
+    ajaxRequest.done (gameJson) ->
+      for property, editorId of GAME_JSON_PROPERTY_TO_EDITOR
+        editor = editors[editorId]
+        editor.setValue(JSON.stringify(gameJson[property], null, 2))
+        # The new content will be selected by default
+        editor.selection.clearSelection() 
+
+      # Load common script assets
       GE.loadAssets EVAL_ASSETS, (err, loadedAssets) ->
         if err then return showMessage(MessageType.Error, "Cannot load common assets")
 
@@ -477,4 +541,3 @@ $(document).ready ->
 
         # Load code
         notifyCodeChange()
-

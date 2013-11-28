@@ -15,7 +15,10 @@
     "glob": "*",
     "phantomjs": "*",
     "phantom-jasmine": "*",
-    "fs.extra": "*"
+    "fs.extra": "*",
+    "esprima": "*",
+    "escodegen": "*",
+    "mime": "*"
   },
   "license": "MIT"
 }

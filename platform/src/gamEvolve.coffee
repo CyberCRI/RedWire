@@ -208,7 +208,8 @@ GE.doPatchesConflict = (patches) ->
   return false
 
 # Catches all errors in the function 
-# The signals parameter is only used in the "handleSignals" call
+# The signals and activeChildren parameters are only used in the "handleSignals" call
+# TODO: split this into multiple functions
 GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], activeChildren = []) ->
   action = constants.actions[node.action]
   childNames = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
@@ -241,19 +242,16 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], act
     catch error
       throw new Error("Error evaluating the input parameter expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}")
 
-  locals = 
-    params: evaluatedParams
-    children: childNames
-    signals: signals
-    activeChildren: activeChildren
-    assets: constants.assets
-    tools: constants.tools
-    log: constants.log
+  args = switch methodName
+    when "update" then [evaluatedParams, constants.tools, constants.log]
+    when "listActiveChildren" then [evaluatedParams, childNames, constants.tools, constants.log]
+    when "handleSignals" then [evaluatedParams, childNames, activeChildren, signals, constants.tools, constants.log]
+    else throw new Error("Unknown action method '#{methodName}'")
   try
-    methodResult = action[methodName].apply(locals)
+    methodResult = action[methodName](args...)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}. Input params were #{JSON.stringify(locals.params)}. Children are #{JSON.stringify(locals.children)}.\n#{e.stack}")
+    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
 
   result = new GE.NodeVisitorResult(methodResult)
 
@@ -264,7 +262,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], act
     try
       outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}\nOutput params were #{JSON.stringify(outputParams)}.")
+      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}\nOutput params were #{JSON.stringify(outParams)}.")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
     parent[key] = outputValue
@@ -455,13 +453,36 @@ GE.stepLoop = (options) ->
 
   return modelPatches
 
-# Compile expression into sanboxed function that will produces an input value
-GE.compileExpression = (expressionText, evaluator) ->
+# Compile expression source into sandboxed function of (model, services, assets, tools, bindings, params) 
+GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "params"])
+
+# Compile tool source into sandboxed function of args..., "baking in" the "tools" and "log" parameters of "context" 
+GE.compileTool = (expressionText, context, args, evaluator) -> 
+  source = """
+    return function(#{args.join(', ')}) { 
+      var tools = context.tools; 
+      var log = context.log; 
+      #{expressionText} 
+    };
+  """
+  return GE.compileSource(source, evaluator, ["context"])
+
+# Compile action.update() source into sandboxed function of (params, tools, log) 
+GE.compileUpdate = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "tools", "log"])
+
+# Compile action listActiveChildren source into sandboxed function of (params, children, tools, log) 
+GE.compileListActiveChildren = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "tools", "log"])
+
+# Compile action handleSignals source into sandboxed function of (params, children, activeChildren, signals, tools, log) 
+GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "activeChildren", "signals", "tools", "log"])
+
+# Compile source into sandboxed function of params
+GE.compileSource = (expressionText, evaluator, params) ->
   # Parentheses are needed around function because of strange JavaScript syntax rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
   # TODO: detect errors
-  functionText = "(function(model, services, assets, tools, bindings, params) { return #{expressionText}; })"
+  functionText = "(function(#{params.join(', ')}) {\n#{expressionText}\n})"
   expressionFunc = evaluator(functionText)
   if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
   return expressionFunc
@@ -476,6 +497,7 @@ GE.determineAssetType = (url) ->
 
 # Load all the assets in the given object (name: url) and then call callback with the results, or error
 # TODO: have cache-busting be configurable
+# TODO: use promises rather than a counter
 GE.loadAssets = (assets, callback) ->
   if _.size(assets) == 0 then return callback(null, {})
 
