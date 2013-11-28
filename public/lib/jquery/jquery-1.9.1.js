@@ -9403,7 +9403,7 @@ jQuery.offset = {
 	setOffset: function( elem, options, i ) {
 		var position = jQuery.css( elem, "position" );
 
-		// set position first, in-case top/left are set even on static elem
+		// set position first, in-case top/left are set even on json elem
 		if ( position === "static" ) {
 			elem.style.position = "relative";
 		}

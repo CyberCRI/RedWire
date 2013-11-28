@@ -366,7 +366,7 @@ $.widget = function( name, base, prototype ) {
 			this._createWidget( options, element );
 		}
 	};
-	// extend with the existing constructor to carry over any static properties
+	// extend with the existing constructor to carry over any json properties
 	$.extend( constructor, existingConstructor, {
 		version: prototype.version,
 		// copy the object used to create the prototype in case we need to
@@ -8298,7 +8298,7 @@ $.extend(Datepicker.prototype, {
 	},
 
 	/* Attach the onxxx handlers.  These are declared statically so
-	 * they work with static code transformers like Caja.
+	 * they work with json code transformers like Caja.
 	 */
 	_attachHandlers: function(inst) {
 		var stepMonths = this._get(inst, "stepMonths"),
@@ -10203,7 +10203,7 @@ $.widget( "ui.progressbar", {
 		this.element
 			.addClass( "ui-progressbar ui-widget ui-widget-content ui-corner-all" )
 			.attr({
-				// Only set static values, aria-valuenow and aria-valuemax are
+				// Only set json values, aria-valuenow and aria-valuemax are
 				// set inside _refreshValue()
 				role: "progressbar",
 				"aria-valuemin": this.min

@@ -153,8 +153,12 @@ togglePlayMode = ->
 
 setupLayout = ->
   # top
-  $("#saveButton").button({ icons: { primary: "ui-icon-transferthick-e-w" }})
-  $("#shareButton").button({ icons: { primary: "ui-icon-link" }})
+  $("#saveButton")
+    .button({ icons: { primary: "ui-icon-transferthick-e-w" }})
+    .click( -> Games.save(Games.current))
+  $("#shareButton")
+    .button({ icons: { primary: "ui-icon-link" }})
+    .click( -> Games.share({method:"to implement"}))
 
   # west
   $("#playButton").button({ icons: { primary: "ui-icon-play" }, text: false })
@@ -482,9 +486,7 @@ $(document).ready ->
   # A hash needs to be set, or we won't be able to load the code
   if not window.location.search 
     # Reload the page
-    return window.location.search = "?optics/"
-
-  programId = window.location.search.slice(1)
+    return window.location.search = "?optics"
 
   setupLayout()
   setupButtonHandlers()
@@ -516,17 +518,14 @@ $(document).ready ->
 
   # Otherwise just load from a URL
   if not loadedCode
-    ajaxRequest = $.ajax
-      url:  programId
-      dataType: "json"
-      cache: false
-    ajaxRequest.fail(-> showMessage(MessageType.Error, "Cannot load game files"))
-    ajaxRequest.done (gameJson) ->
+    gameName = window.location.search.slice(1)
+    Games.loadJson gameName, (gameJson) ->
+      Games.current = gameJson
       for property, editorId of GAME_JSON_PROPERTY_TO_EDITOR
         editor = editors[editorId]
-        editor.setValue(JSON.stringify(gameJson[property], null, 2))
+        editor.setValue(gameJson[property])
         # The new content will be selected by default
-        editor.selection.clearSelection() 
+        editor.selection.clearSelection()
 
       # Load common script assets
       GE.loadAssets EVAL_ASSETS, (err, loadedAssets) ->

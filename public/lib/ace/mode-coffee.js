@@ -141,7 +141,7 @@ define('ace/mode/coffee_highlight_rules', ['require', 'exports', 'module' , 'ace
 
         var illegal = (
             "case|const|default|function|var|void|with|enum|export|implements|" +
-            "interface|let|package|private|protected|public|static|yield|" +
+            "interface|let|package|private|protected|public|json|yield|" +
             "__hasProp|slice|bind|indexOf"
         );
 

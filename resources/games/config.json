@@ -1,0 +1,69 @@
+{
+	"type": "Collection",
+	"properties": {
+		"ownerId": {
+			"name": "ownerId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "ownerId",
+			"order": 0
+		},
+		"parentId": {
+			"name": "parentId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "parentId",
+			"order": 1
+		},
+		"fileVersion": {
+			"name": "fileVersion",
+			"type": "number",
+			"typeLabel": "number",
+			"required": true,
+			"id": "fileVersion",
+			"order": 2
+		},
+		"model": {
+			"name": "model",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "model",
+			"order": 3
+		},
+		"services": {
+			"name": "services",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "services",
+			"order": 4
+		},
+		"layout": {
+			"name": "layout",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "layout",
+			"order": 5
+		},
+		"tools": {
+			"name": "tools",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "tools",
+			"order": 6
+		},
+		"assets": {
+			"name": "assets",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "assets",
+			"order": 7
+		}
+	}
+}
