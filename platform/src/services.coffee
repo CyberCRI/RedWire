@@ -29,7 +29,7 @@ registerService 'Mouse', (options = {}) ->
 
   mouse =
     down: false
-    position: null
+    position: [0, 0]
     cursor: null
 
   # This disables selection, which allows the cursor to change in Chrome
@@ -149,6 +149,7 @@ registerService 'Canvas', (options = {}) ->
           if shape.miterLimit then ctx.miterLimit = shape.miterLimit
           ctx.stroke()
       when 'circle'
+        ctx.beginPath();
         ctx.moveTo(shape.position[0], shape.position[1])
         ctx.arc(shape.position[0], shape.position[1], shape.radius, 0, 2 * Math.PI)
         if shape.fillStyle
