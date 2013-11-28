@@ -41,7 +41,7 @@
     eventNamespace = _.uniqueId('mouse');
     mouse = {
       down: false,
-      position: null,
+      position: [0, 0],
       cursor: null
     };
     $(options.elementSelector).on("selectstart." + eventNamespace, function() {
@@ -215,6 +215,7 @@
           }
           break;
         case 'circle':
+          ctx.beginPath();
           ctx.moveTo(shape.position[0], shape.position[1]);
           ctx.arc(shape.position[0], shape.position[1], shape.radius, 0, 2 * Math.PI);
           if (shape.fillStyle) {
@@ -414,12 +415,12 @@
   });
 
   registerService('Http', function() {
-    var state;
+    var service, state;
     state = {
       requests: {},
       responses: {}
     };
-    return {
+    service = {
       provideData: function() {
         return state;
       },
@@ -462,6 +463,7 @@
       },
       destroy: function() {}
     };
+    return service;
   });
 
   registerService('Chart', function(options) {
