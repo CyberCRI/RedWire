@@ -15,6 +15,4 @@ platform/node_modules/
 platform/.temp_ghpages/
 
 # Ignore dpd temp files
-.dpd/*
-data
 npm-debug.log
