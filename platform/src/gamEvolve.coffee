@@ -208,7 +208,7 @@ GE.doPatchesConflict = (patches) ->
   return false
 
 # Catches all errors in the function 
-# The signals parameter is only used in the "handleSignals" call
+# The signals and activeChildren parameters are only used in the "handleSignals" call
 # TODO: split this into multiple functions
 GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], activeChildren = []) ->
   action = constants.actions[node.action]
@@ -245,7 +245,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], act
   args = switch methodName
     when "update" then [evaluatedParams, constants.tools, constants.log]
     when "listActiveChildren" then [evaluatedParams, childNames, constants.tools, constants.log]
-    when "handleSignals" then [evaluatedParams, childNames, signals, constants.tools, constants.log]
+    when "handleSignals" then [evaluatedParams, childNames, activeChildren, signals, constants.tools, constants.log]
     else throw new Error("Unknown action method '#{methodName}'")
   try
     methodResult = action[methodName](args...)
@@ -473,8 +473,8 @@ GE.compileUpdate = (expressionText, evaluator) -> GE.compileSource(expressionTex
 # Compile action listActiveChildren source into sandboxed function of (params, children, tools, log) 
 GE.compileListActiveChildren = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "tools", "log"])
 
-# Compile action handleSignals source into sandboxed function of (params, children, signals, tools, log) 
-GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "signals", "tools", "log"])
+# Compile action handleSignals source into sandboxed function of (params, children, activeChildren, signals, tools, log) 
+GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "activeChildren", "signals", "tools", "log"])
 
 # Compile source into sandboxed function of params
 GE.compileSource = (expressionText, evaluator, params) ->
