@@ -8,7 +8,7 @@ GAME_DIMENSIONS = [960, 540]
 
 MessageType = GE.makeConstantSet("Error", "Info")
 
-SPINNER_OPTS =
+SPINNER_OPTS = 
   lines: 9
   length: 7
   width: 4
@@ -249,7 +249,7 @@ reloadCode = (callback) ->
             else actionValue
       catch compilationError
         throw new Error("Error compiling action '#{key}'. #{compilationError}")
-      compiledAction
+      return compiledAction
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
