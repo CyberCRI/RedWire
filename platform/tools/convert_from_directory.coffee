@@ -1,6 +1,7 @@
 #!/usr/bin/env coffee
 
 # IMPORTS 
+_ = require("underscore")
 escodegen = require("escodegen")
 esprima = require("esprima")
 fs = require("fs.extra")
@@ -45,6 +46,22 @@ createDataUri = (filename) ->
   mimeType = mime.lookup(filename)
   return "data:#{mimeType};base64,#{buffer.toString('base64')}"
 
+# Changes layout in-place
+correctActions = (actions, processes, layoutNode) ->
+  if "action" of layoutNode
+    if layoutNode.action of actions 
+      # leave as is 
+      if "children" of layoutNode
+        throw new Error("Action '#{layoutNode.action}' cannot have children") 
+    else if layoutNode.action of processes
+      # change from "action: 'blah'"" to "process: 'blah'"
+      layoutNode.process = layoutNode.action
+      delete layoutNode.action
+
+      for child in layoutNode.children
+        correctActions(actions, processes, child)
+    else
+      throw new Error("Action '#{layoutNode.action}' is not an action or a process") 
 
 # MAIN
 if process.argv.length < 4
@@ -61,16 +78,25 @@ outputObj =
   services: {}
   layout: {}
   actions: {}
+  processes: {}
   tools: {}
   assets: {}
 
-# Actions are a JS file that needs to be parsed
+# Actions are in a JS file that needs to be parsed
 parsedActions = esprima.parse(fs.readFileSync(path.join(inputDir, "actions.js"), { encoding: "utf8" }))
 # Remove references to "this"
-outputObj.actions = parsedToObj(parsedActions.body[0].expression, (args, body) -> body.replace(/this\./g, ""))
+actionsJson = parsedToObj(parsedActions.body[0].expression, (args, body) -> body.replace(/this\./g, ""))
+# Split between actions and processes
+for name, value of actionsJson 
+  if "update" of value 
+    outputObj.actions[name] = value
+  else
+    outputObj.processes[name] = value
 
 # Copy over layout JSON
 outputObj.layout = JSON.parse(fs.readFileSync(path.join(inputDir, "layout.json"), { encoding: "utf8" }))
+# Correct between actions and processes
+correctActions(outputObj.actions, outputObj.processes, outputObj.layout)
 
 # Copy over model JSON
 outputObj.model = JSON.parse(fs.readFileSync(path.join(inputDir, "model.json"), { encoding: "utf8" }))

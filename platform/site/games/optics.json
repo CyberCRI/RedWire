@@ -274,7 +274,6 @@
     }
   },
   "layout": {
-    "action": "doInParallel",
     "children": [
       {
         "send": {
@@ -282,7 +281,6 @@
         }
       },
       {
-        "action": "doInSequence",
         "params": {
           "in": {
             "activeChild": "model.topLevelActiveChild"
@@ -293,7 +291,6 @@
         },
         "children": [
           {
-            "action": "doForSomeTime",
             "params": {
               "in": {
                 "time": "model.constants.startingTime",
@@ -322,10 +319,10 @@
                   "model.selectedPiece": "model.constants.level.selectedPiece"
                 }
               }
-            ]
+            ],
+            "process": "doForSomeTime"
           },
           {
-            "action": "doWhile",
             "params": {
               "in": {
                 "value": "!tools.reachedGoal(tools.makeLightPath(model.pieces, model.constants.boardGrid.gridSize, model.constants.mirrorAttenuationFactor, model.constants.minimumAttenuation).cells, model.pieces)"
@@ -461,7 +458,6 @@
                 }
               },
               {
-                "action": "if",
                 "params": {
                   "in": {
                     "value": "model.mouseDetection.shape && model.mouseDetection.shape.meta != 'rotate'"
@@ -469,7 +465,6 @@
                 },
                 "children": [
                   {
-                    "action": "when",
                     "params": {
                       "in": {
                         "value": "model.mouseDetection.state"
@@ -478,7 +473,6 @@
                     "children": [
                       {
                         "name": "startDrag",
-                        "action": "if",
                         "params": {
                           "in": {
                             "value": "tools.pieceIsMovable(model.mouseDetection.shape.meta, model.constants.unmovablePieceTypes)"
@@ -490,11 +484,11 @@
                               "model.draggedPiece": "model.mouseDetection.shape.meta"
                             }
                           }
-                        ]
+                        ],
+                        "process": "if"
                       },
                       {
                         "name": "endDrag",
-                        "action": "if",
                         "params": {
                           "in": {
                             "value": "tools.pieceIsMovable(model.mouseDetection.shape.meta, model.constants.unmovablePieceTypes)"
@@ -508,7 +502,8 @@
                               "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieceTypes).boxedPieces"
                             }
                           }
-                        ]
+                        ],
+                        "process": "if"
                       },
                       {
                         "name": "click",
@@ -522,12 +517,13 @@
                           "services.mouse.cursor": "'pointer'"
                         }
                       }
-                    ]
+                    ],
+                    "process": "when"
                   }
-                ]
+                ],
+                "process": "if"
               },
               {
-                "action": "if",
                 "params": {
                   "in": {
                     "value": "model.draggedPiece"
@@ -540,12 +536,13 @@
                       "services.graphics.shapes": "tools.drawShape({ type: 'image', layer: 'drag', asset: model.draggedPiece.type, alpha: 0.5, position: [-model.constants.pieceAssetCentering, -model.constants.pieceAssetCentering], translation: services.mouse.position, rotation: model.draggedPiece.rotation })"
                     }
                   }
-                ]
+                ],
+                "process": "if"
               }
-            ]
+            ],
+            "process": "doWhile"
           },
           {
-            "action": "doForSomeTime",
             "params": {
               "in": {
                 "time": "model.constants.endingTime",
@@ -576,11 +573,14 @@
                   }
                 ]
               }
-            ]
+            ],
+            "process": "doForSomeTime"
           }
-        ]
+        ],
+        "process": "doInSequence"
       }
-    ]
+    ],
+    "process": "doInParallel"
   },
   "actions": {
     "clickListener": {
@@ -630,9 +630,6 @@
       },
       "update": "var that = this;\nfunction selectSquare(square, params) {\n  if (that.tools.isInGrid(square, that.params.constants.gridSize)) {\n    params.selected = {\n      col: square[0],\n      row: square[1]\n    };\n  }\n}\nfunction mouseDownOnPiece(piecePressed, params) {\n  if (piecePressed) {\n    params.selectedPiece = null;\n    params.rotating = false;\n    params.originalRotation = null;\n    params.originalPieceRotation = null;\n    if (that.tools.isMovable(piecePressed, that.params.constants.unmovablePieces)) {\n      params.draggedPiece = piecePressed;\n    }\n  }\n}\nvar newLeftMouseDown = params.mouse.down && !params.leftMouseDown;\nvar newLeftMouseReleased = !params.mouse.down && params.leftMouseDown;\nvar selected = params.selected;\nif (params.rotating && params.selectedPiece && params.mouse.position) {\n  if (params.originalPieceRotation === null) {\n    params.originalPieceRotation = params.selectedPiece.rotation;\n  }\n  var objectPosition = {};\n  objectPosition.x = (params.selectedPiece.col + 0.5) * (params.constants.cellSize - 1) + params.constants.upperLeftBoardMargin;\n  objectPosition.y = (params.selectedPiece.row + 0.5) * (params.constants.cellSize - 1) + params.constants.upperLeftBoardMargin;\n  var hxPosition = params.mouse.position[0] - objectPosition.x;\n  var hyPosition = params.mouse.position[1] - objectPosition.y;\n  var omDistance = Math.sqrt(hxPosition * hxPosition + hyPosition * hyPosition);\n  var ohyDistance = -hyPosition;\n  var ratio = ohyDistance / omDistance;\n  var angle = 0;\n  if (omDistance !== 0) {\n    var absValueAngle = Math.acos(ratio) * 180 / Math.PI;\n    if (hxPosition <= 0) {\n      angle = -absValueAngle;\n    } else {\n      angle = absValueAngle;\n    }\n  }\n  if (params.originalRotation === null) {\n    params.originalRotation = angle;\n  }\n  var piece = tools.findGridElement([\n      params.selectedPiece.col,\n      params.selectedPiece.row\n    ], params.pieces);\n  var newRotation = angle - params.originalRotation + params.originalPieceRotation;\n  piece.rotation = newRotation % 360;\n}\nif (newLeftMouseDown || newLeftMouseReleased) {\n  if (that.params.mouse.position) {\n    var clickedColumn = tools.toBoardCoordinate(that.params.mouse.position[0], params.constants.upperLeftBoardMargin, params.constants.cellSize);\n    var clickedRow = tools.toBoardCoordinate(that.params.mouse.position[1], params.constants.upperLeftBoardMargin, params.constants.cellSize);\n    var boardCoordinates = [\n        clickedColumn,\n        clickedRow\n      ];\n    if (newLeftMouseDown) {\n      params.leftMouseDown = true;\n      if (!tools.isInGrid(boardCoordinates, params.constants.gridSize)) {\n        var boxIndex = tools.getIndexInBox([\n            that.params.mouse.position[0],\n            that.params.mouse.position[1]\n          ], params.constants.boxLeft, params.constants.boxTop, params.constants.boxCellSize, params.constants.boxRowsCount, params.constants.boxColumnsCount);\n        if (boxIndex !== null) {\n          var boxedPiece = params.boxedPieces[boxIndex];\n          var pieceType = null;\n          if (boxedPiece) {\n            pieceType = boxedPiece.type;\n            mouseDownOnPiece(boxedPiece, params);\n          } else if (params.selectedPiece != null) {\n            params.selectedPiece = null;\n            params.rotating = false;\n            params.originalRotation = null;\n            params.originalPieceRotation = null;\n          } else {\n          }\n        }\n      } else {\n        var pieceClickedOn = tools.findGridElement(boardCoordinates, params.pieces);\n        if (params.selectedPiece) {\n          var selectedPiecePosition = {};\n          selectedPiecePosition.x = tools.toPixelCoordinate(params.selectedPiece.col, params.constants.upperLeftBoardMargin, params.constants.cellSize);\n          selectedPiecePosition.y = tools.toPixelCoordinate(params.selectedPiece.row, params.constants.upperLeftBoardMargin, params.constants.cellSize);\n          if (tools.distance(params.mouse.position, selectedPiecePosition) < params.constants.cellSize * 1.2 && tools.distance(params.mouse.position, selectedPiecePosition) > params.constants.cellSize * 0.7) {\n            params.rotating = true;\n            var rotatedPiece = tools.findGridElement([\n                params.selectedPiece.col,\n                params.selectedPiece.row\n              ], params.pieces);\n            params.originalPieceRotation = 0;\n            if (rotatedPiece)\n              params.originalPieceRotation = rotatedPiece.rotation;\n          } else {\n            mouseDownOnPiece(pieceClickedOn, params);\n            selectSquare([\n              clickedColumn,\n              clickedRow\n            ], params);\n          }\n        } else {\n          mouseDownOnPiece(pieceClickedOn, params);\n          selectSquare([\n            clickedColumn,\n            clickedRow\n          ], params);\n        }\n      }\n    } else if (newLeftMouseReleased) {\n      params.leftMouseDown = false;\n      if (!tools.isInGrid(boardCoordinates, params.constants.gridSize)) {\n        var boxIndex = tools.getIndexInBox([\n            that.params.mouse.position[0],\n            that.params.mouse.position[1]\n          ], params.constants.boxLeft, params.constants.boxTop, params.constants.boxCellSize, params.constants.boxRowsCount, params.constants.boxColumnsCount);\n        if (boxIndex !== null) {\n          var boxedPiece = params.boxedPieces[boxIndex];\n          var pieceType = null;\n          if (boxedPiece !== undefined) {\n            params.draggedPiece = null;\n          } else {\n            if (params.selectedPiece) {\n            } else if (params.draggedPiece) {\n              var put = tools.putPieceIntoBox(that.params.draggedPiece, params.pieces, params.boxedPieces);\n              params.pieces = put.pieces;\n              params.boxedPieces = put.boxedPieces;\n              params.draggedPiece = null;\n              params.selectedPiece = null;\n              params.rotating = false;\n              params.originalRotation = null;\n              params.originalPieceRotation = null;\n            } else {\n            }\n          }\n        } else {\n          var put = tools.putPieceIntoBox(that.params.draggedPiece, params.pieces, params.boxedPieces);\n          params.pieces = put.pieces;\n          params.boxedPieces = put.boxedPieces;\n          params.draggedPiece = null;\n          params.selectedPiece = null;\n          params.rotating = false;\n          params.originalRotation = null;\n          params.originalPieceRotation = null;\n        }\n      } else {\n        var pieceReleasedOn = tools.findGridElement(boardCoordinates, params.pieces);\n        if (pieceReleasedOn) {\n          if (params.draggedPiece && params.draggedPiece.col == boardCoordinates[0] && params.draggedPiece.row == boardCoordinates[1]) {\n            params.selectedPiece = pieceReleasedOn;\n          } else if (!params.draggedPiece && !params.selectedPiece) {\n            params.selectedPiece = pieceReleasedOn;\n          } else {\n            params.selectedPiece = null;\n            params.rotating = false;\n            params.originalRotation = null;\n            params.originalPieceRotation = null;\n          }\n          params.draggedPiece = null;\n        } else {\n          if (params.selectedPiece) {\n            if (params.rotating) {\n              params.rotating = false;\n              params.originalRotation = null;\n              params.originalPieceRotation = null;\n            } else {\n              params.selectedPiece = null;\n              params.rotating = false;\n              params.originalRotation = null;\n              params.originalPieceRotation = null;\n            }\n          } else if (params.draggedPiece) {\n            selectSquare([\n              clickedColumn,\n              clickedRow\n            ], params);\n            var move = tools.movePieceTo(params.draggedPiece, [\n                clickedColumn,\n                clickedRow\n              ], params.pieces, params.boxedPieces, params.constants.gridSize, params.constants.unmovablePieces);\n            _.extend(params, move);\n          } else {\n          }\n        }\n      }\n    }\n  }\n}"
     },
-    "doInParallel": {
-      "doc": "Just to place children under it"
-    },
     "changeParameterThroughKeyboard": {
       "paramDefs": {
         "parameter": {
@@ -642,6 +639,31 @@
         "keyMap": null
       },
       "update": "for (var keyCode in params.keyMap) {\n  if (params.keysDown[keyCode]) {\n    var value = params.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      params.parameter += Number(value);\n    } else {\n      params.parameter = value;\n    }\n    break;\n  }\n}"
+    },
+    "detectMouse": {
+      "paramDefs": {
+        "shapes": null,
+        "shape": {
+          "direction": "inout"
+        },
+        "mousePosition": null,
+        "mouseDown": null,
+        "state": {
+          "direction": "inout"
+        },
+        "dragStartPosition": {
+          "direction": "inout"
+        },
+        "minimumDragDistance": {
+          "default": "5"
+        }
+      },
+      "update": "if (!params.state)\n  params.state = 'none';\nswitch (params.state) {\ncase 'none':\n  if (params.mousePosition) {\n    for (var i in params.shapes) {\n      if (tools.pointIntersectsShape(params.mousePosition, params.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + params.state);\n        params.state = 'hover';\n        params.shape = params.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!params.mousePosition || !tools.pointIntersectsShape(params.mousePosition, params.shape)) {\n    params.state = 'none';\n    params.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (params.mouseDown) {\n    params.dragStartPosition = params.mousePosition;\n    params.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!params.mouseDown) {\n    params.state = 'click';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(params.dragStartPosition).distanceFrom(Vector.create(params.mousePosition)) >= params.minimumDragDistance) {\n    params.state = 'startDrag';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  params.state = 'hover';\n  break;\ncase 'startDrag':\n  params.state = 'drag';\n  break;\ncase 'drag':\n  if (!params.mouseDown) {\n    params.state = 'endDrag';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  params.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + params.state + '\\'');\n}"
+    }
+  },
+  "processes": {
+    "doInParallel": {
+      "doc": "Just to place children under it"
     },
     "doInSequence": {
       "paramDefs": {
@@ -660,13 +682,15 @@
           "direction": "inout"
         }
       },
-      "update": "if (params.timer++ >= params.time) {\n  params.timer = 0;\n  return GE.signals.DONE;\n}"
+      "listActiveChildren": "return children;",
+      "handleSignals": "if (params.timer++ >= params.time) {\n  params.timer = 0;\n  return GE.signals.DONE;\n}"
     },
     "doWhile": {
       "paramDefs": {
         "value": null
       },
-      "update": "if (!params.value)\n  return GE.signals.DONE;"
+      "listActiveChildren": "return !!params.value ? children : [];",
+      "handleSignals": "if (!params.value)\n  return GE.signals.DONE;"
     },
     "when": {
       "paramDefs": {
@@ -688,26 +712,6 @@
         }
       },
       "listActiveChildren": "if (!params.track) {\n  if (!params.condition) {\n    return [0];\n  } else {\n    params.track = true;\n    return [1];\n  }\n} else {\n  if (params.condition) {\n    return [1];\n  } else {\n    params.track = false;\n    return [2];\n  }\n}"
-    },
-    "detectMouse": {
-      "paramDefs": {
-        "shapes": null,
-        "shape": {
-          "direction": "inout"
-        },
-        "mousePosition": null,
-        "mouseDown": null,
-        "state": {
-          "direction": "inout"
-        },
-        "dragStartPosition": {
-          "direction": "inout"
-        },
-        "minimumDragDistance": {
-          "default": "5"
-        }
-      },
-      "update": "if (!params.state)\n  params.state = 'none';\nswitch (params.state) {\ncase 'none':\n  if (params.mousePosition) {\n    for (var i in params.shapes) {\n      if (tools.pointIntersectsShape(params.mousePosition, params.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + params.state);\n        params.state = 'hover';\n        params.shape = params.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!params.mousePosition || !tools.pointIntersectsShape(params.mousePosition, params.shape)) {\n    params.state = 'none';\n    params.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (params.mouseDown) {\n    params.dragStartPosition = params.mousePosition;\n    params.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!params.mouseDown) {\n    params.state = 'click';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(params.dragStartPosition).distanceFrom(Vector.create(params.mousePosition)) >= params.minimumDragDistance) {\n    params.state = 'startDrag';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  params.state = 'hover';\n  break;\ncase 'startDrag':\n  params.state = 'drag';\n  break;\ncase 'drag':\n  if (!params.mouseDown) {\n    params.state = 'endDrag';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  params.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + params.state + '\\'');\n}"
     }
   },
   "tools": {
