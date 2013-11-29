@@ -25,20 +25,20 @@
 			"id": "fileVersion",
 			"order": 2
 		},
-		"model": {
-			"name": "model",
+		"actions": {
+			"name": "actions",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
-			"id": "model",
+			"id": "actions",
 			"order": 3
 		},
-		"services": {
-			"name": "services",
+		"assets": {
+			"name": "assets",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
-			"id": "services",
+			"id": "assets",
 			"order": 4
 		},
 		"layout": {
@@ -49,21 +49,37 @@
 			"id": "layout",
 			"order": 5
 		},
+		"model": {
+			"name": "model",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "model",
+			"order": 6
+		},
+		"processes": {
+			"name": "processes",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "processes",
+			"order": 7
+		},
+		"services": {
+			"name": "services",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "services",
+			"order": 8
+		},
 		"tools": {
 			"name": "tools",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
 			"id": "tools",
-			"order": 6
-		},
-		"assets": {
-			"name": "assets",
-			"type": "string",
-			"typeLabel": "string",
-			"required": true,
-			"id": "assets",
-			"order": 7
+			"order": 9
 		}
 	}
 }

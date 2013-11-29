@@ -154,14 +154,21 @@ togglePlayMode = ->
       icons: 
         primary: "ui-icon-pause"
 
+getCurrentGame = ->
+  gameJson = {}
+  for property, editorId of GAME_JSON_PROPERTY_TO_EDITOR
+    gameJson[property] = editors[editorId].getValue()
+  gameJson
+
 setupLayout = ->
   # top
   $("#saveButton")
     .button({ icons: { primary: "ui-icon-transferthick-e-w" }})
-    .click( -> Games.save(Games.current))
+    .click -> games.create(getCurrentGame())
+
   $("#shareButton")
     .button({ icons: { primary: "ui-icon-link" }})
-    .click( -> Games.share({method:"to implement"}))
+    .click( -> games.share({method:"to implement"}))
 
   # west
   $("#playButton").button({ icons: { primary: "ui-icon-play" }, text: false })
@@ -224,8 +231,6 @@ setupButtonHandlers = ->
       # Execute again
       executeCode()
 
-  $("#saveButton").on("click", -> console.log("Game JSON: #{serializeGameJson()}")) 
-
 # Mode should be something that ACE Editor recognizes, like "ace/mode/javascript"
 setupEditor = (id, mode = "") ->
   editor = ace.edit(id)
@@ -257,6 +262,7 @@ reloadCode = (callback) ->
         return compiledAction
       catch compilationError
         throw new Error("Error compiling action '#{key}'. #{compilationError}")
+      compiledAction
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
@@ -274,6 +280,7 @@ reloadCode = (callback) ->
         return compiledProcess
       catch compilationError
         throw new Error("Error compiling process '#{key}'. #{compilationError}")
+      compiledProcess
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Processes error. #{error}")
     return showMessage(MessageType.Error, "<strong>Processes error.</strong> #{error}")
@@ -500,12 +507,6 @@ splitDataUrl = (url) ->
     data: matches[3]
   }
 
-serializeGameJson = ->
-  gameJson = {}
-  for property, editorId of GAME_JSON_PROPERTY_TO_EDITOR
-    gameJson[property] = editors[editorId].getValue()
-  return JSON.stringify(gameJson, null, 2)
-
 
 ### Main ###
 
@@ -546,8 +547,7 @@ $(document).ready ->
   # Otherwise just load from a URL
   if not loadedCode
     gameName = window.location.search.slice(1)
-    Games.loadJson gameName, (gameJson) ->
-      Games.current = gameJson
+    games.loadJson gameName, (gameJson) ->
       for property, editorId of GAME_JSON_PROPERTY_TO_EDITOR
         editor = editors[editorId]
         editor.setValue(gameJson[property])
