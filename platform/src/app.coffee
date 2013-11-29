@@ -220,6 +220,8 @@ setupButtonHandlers = ->
       # Execute again
       executeCode()
 
+  $("#saveButton").on("click", -> console.log("Game JSON: #{serializeGameJson()}")) 
+
 # Mode should be something that ACE Editor recognizes, like "ace/mode/javascript"
 setupEditor = (id, mode = "") ->
   editor = ace.edit(id)
@@ -493,6 +495,12 @@ splitDataUrl = (url) ->
     base64: matches[2] == "base64"
     data: matches[3]
   }
+
+serializeGameJson = ->
+  gameJson = {}
+  for property, editorId of GAME_JSON_PROPERTY_TO_EDITOR
+    gameJson[property] = editors[editorId].getValue()
+  return JSON.stringify(gameJson, null, 2)
 
 
 ### Main ###
