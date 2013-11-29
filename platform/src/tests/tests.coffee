@@ -103,10 +103,9 @@ describe "gamEvolve", ->
             y: 
               direction: "in"
               default: "'z'"
-          update: ->
+          update: (params, tools, log) ->
             isCalled = true
-            expect(arguments.length).toEqual(0)
-            expect(@params).toDeeplyEqual
+            expect(params).toDeeplyEqual
               x: 2
               y: "z"
 
@@ -122,7 +121,7 @@ describe "gamEvolve", ->
       GE.visitNode(layout, constants, {})
       expect(isCalled).toBeTruthy()
 
-    it "calls children of actions", ->
+    it "calls children of processes", ->
       timesCalled = 0
 
       actions = 
@@ -130,8 +129,13 @@ describe "gamEvolve", ->
           paramDefs: {}
           update: -> timesCalled++
 
+      processes = 
+        doAll: 
+          paramDefs: {}
+          handleSignals: -> timesCalled++
+
       layout = 
-        action: "doNothing"
+        process: "doAll"
         params: {}
         children: [
           {
@@ -146,6 +150,7 @@ describe "gamEvolve", ->
 
       constants = new GE.NodeVisitorConstants
         actions: actions
+        processes: processes
       GE.visitNode(layout, constants, {})
       expect(timesCalled).toEqual(3)
 
@@ -169,12 +174,12 @@ describe "gamEvolve", ->
             d: 
               default: "2"
             e: {}
-          update: ->
-            @params.x++
-            @params.y--
-            @params.z = 30
-            expect(@params.d).toBe(2)
-            expect(@params.e).toBe(assets.image)
+          update: (params, tools, log) ->
+            params.x++
+            params.y--
+            params.z = 30
+            expect(params.d).toBe(2)
+            expect(params.e).toBe(assets.image)
 
       layout = 
         action: "adjustModel"
@@ -247,31 +252,33 @@ describe "gamEvolve", ->
         }
       ]
 
-      actions = 
+      processes = 
         nextOnDone: 
           paramDefs: 
             activeChild: 
               direction: "inout"
               default: 0
-          listActiveChildren: -> 
-            expect(@children).toDeeplyEqual(["0", "2nd"])
-            return [@params.activeChild]
-          handleSignals: ->
-            expect(@children).toDeeplyEqual(["0", "2nd"])
-            if @signals[@params.activeChild] == GE.signals.DONE 
-              @params.activeChild++
-            if @params.activeChild >= @children.length - 1
+          listActiveChildren: (params, children, tools, log) -> 
+            expect(children).toDeeplyEqual(["0", "2nd"])
+            return [params.activeChild]
+          handleSignals: (params, children, activeChildren, signals, tools, log) ->
+            expect(children).toDeeplyEqual(["0", "2nd"])
+            if signals[params.activeChild] == GE.signals.DONE 
+              params.activeChild++
+            if params.activeChild >= children.length - 1
               return GE.signals.DONE
+
+      actions =
         reportDone:
           paramDefs:
             timesCalled: 
               direction: "inout"
-          update: -> 
-            @params.timesCalled++
+          update: (params, tools, log) -> 
+            params.timesCalled++
             return GE.signals.DONE
 
       layout = 
-        action: "nextOnDone"
+        process: "nextOnDone"
         params: 
           in:
             activeChild: "model.activeChild"
@@ -300,6 +307,7 @@ describe "gamEvolve", ->
       constants = new GE.NodeVisitorConstants
         modelData: models[0]
         actions: actions
+        processes: processes
         evaluator: GE.makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       models[1] = GE.applyPatches(results.modelPatches, models[0])
@@ -311,6 +319,7 @@ describe "gamEvolve", ->
       constants = new GE.NodeVisitorConstants
         modelData: models[1]
         actions: actions
+        processes: processes
         evaluator: GE.makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       models[2] = GE.applyPatches(results.modelPatches, models[1])
@@ -332,8 +341,8 @@ describe "gamEvolve", ->
               direction: "in" 
             index: 
               direction: "in"
-          update: -> 
-            expect(@params.index).toEqual(if @params.name is "bill" then "0" else "1")
+          update: (params, tools, log) -> 
+            expect(params.index).toEqual(if params.name is "bill" then "0" else "1")
 
       spyOn(actions.getName, "update").andCallThrough()
 
@@ -375,9 +384,9 @@ describe "gamEvolve", ->
               direction: "out"
             index: 
               direction: "in"
-          update: -> 
-            expect(@params.index).toEqual(if @params.newName is "bill" then "0" else "1")
-            @params.toChange = @params.newName
+          update: (params, tools, log) -> 
+            expect(params.index).toEqual(if params.newName is "bill" then "0" else "1")
+            params.toChange = params.newName
 
       layout = 
         foreach:
@@ -416,9 +425,9 @@ describe "gamEvolve", ->
           paramDefs:
             service:
               direction: "inout"
-          update: -> 
-            expect(@params.service.a).toBe(1)
-            @params.service.a++
+          update: (params, tools, log) -> 
+            expect(params.service.a).toBe(1)
+            params.service.a++
 
       layout = 
         action: "incrementServiceData"
@@ -468,9 +477,9 @@ describe "gamEvolve", ->
           paramDefs:
             service:
               direction: "inout"
-          update: -> 
-            expect(@params.service.a).toBe(1)
-            @params.service.a++
+          update: (params, tools, log) -> 
+            expect(params.service.a).toBe(1)
+            params.service.a++
 
       layout = 
         action: "incrementServiceData"
@@ -507,9 +516,9 @@ describe "gamEvolve", ->
           paramDefs:
             service: 
               direction: "inout"
-          update: -> 
-            expect(@tools.testTool(@params.service.a, 2)._1).toBe(1)
-            @params.service.a++
+          update: (params, tools, log) -> 
+            expect(tools.testTool(params.service.a, 2)._1).toBe(1)
+            params.service.a++
 
       layout = 
         action: "incrementServiceData"
