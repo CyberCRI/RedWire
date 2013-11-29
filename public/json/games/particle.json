@@ -56,7 +56,6 @@
     }
   },
   "layout": {
-    "action": "doInParallel",
     "children": [
       {
         "send": {
@@ -79,7 +78,6 @@
         }
       },
       {
-        "action": "doPeriodically",
         "params": {
           "in": {
             "currentTime": "services.time",
@@ -96,10 +94,10 @@
               "services.http.requests.random": "tools.makeRandomNumberRequest(20, 90, 10)"
             }
           }
-        ]
+        ],
+        "process": "doPeriodically"
       },
       {
-        "action": "if",
         "params": {
           "in": {
             "value": "services.http.responses && services.http.responses.random"
@@ -112,14 +110,13 @@
               "services.http.responses.random": null
             }
           }
-        ]
+        ],
+        "process": "if"
       }
-    ]
+    ],
+    "process": "doInParallel"
   },
   "actions": {
-    "doInParallel": {
-      "doc": "Just to place children under it"
-    },
     "changeParameterThroughKeyboard": {
       "paramDefs": {
         "parameter": {
@@ -129,16 +126,6 @@
         "keyMap": null
       },
       "update": "for (var keyCode in params.keyMap) {\n  if (params.keysDown[keyCode]) {\n    var value = params.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      params.parameter += Number(value);\n    } else {\n      params.parameter = value;\n    }\n    break;\n  }\n}"
-    },
-    "doInSequence": {
-      "paramDefs": {
-        "activeChild": {
-          "direction": "inout",
-          "default": 0
-        }
-      },
-      "listActiveChildren": "return [params.activeChild];",
-      "handleSignals": "if (signals[params.activeChild] == GE.signals.DONE)\n  params.activeChild++;\nif (params.activeChild > children.length - 1) {\n  params.activeChild = 0;\n  return GE.signals.DONE;\n}"
     },
     "doForSomeTime": {
       "paramDefs": {
@@ -154,27 +141,6 @@
         "value": null
       },
       "update": "if (!params.value)\n  return GE.signals.DONE;"
-    },
-    "when": {
-      "paramDefs": {
-        "value": null
-      },
-      "listActiveChildren": "return tools.childByName(children, params.value);"
-    },
-    "if": {
-      "paramDefs": {
-        "value": null
-      },
-      "listActiveChildren": "return params.value ? [0] : children.length > 1 ? [1] : [];"
-    },
-    "sandwich": {
-      "paramDefs": {
-        "condition": null,
-        "started": {
-          "direction": "inout"
-        }
-      },
-      "listActiveChildren": "if (!params.track) {\n  if (!params.condition) {\n    return [0];\n  } else {\n    params.track = true;\n    return [1];\n  }\n} else {\n  if (params.condition) {\n    return [1];\n  } else {\n    params.track = false;\n    return [2];\n  }\n}"
     },
     "detectMouse": {
       "paramDefs": {
@@ -208,6 +174,42 @@
         "templateName": null
       },
       "update": "if (!params.htmlService.receive[params.templateName]) {\n  params.htmlService.send[params.templateName] = {\n    asset: params.assetName,\n    values: params.modelValues\n  };\n} else {\n  params.modelValues = params.htmlService.receive[params.templateName].values;\n  params.htmlService.send[params.templateName] = params.htmlService.receive[params.templateName];\n}"
+    }
+  },
+  "processes": {
+    "doInParallel": {
+      "doc": "Just to place children under it"
+    },
+    "doInSequence": {
+      "paramDefs": {
+        "activeChild": {
+          "direction": "inout",
+          "default": 0
+        }
+      },
+      "listActiveChildren": "return [params.activeChild];",
+      "handleSignals": "if (signals[params.activeChild] == GE.signals.DONE)\n  params.activeChild++;\nif (params.activeChild > children.length - 1) {\n  params.activeChild = 0;\n  return GE.signals.DONE;\n}"
+    },
+    "when": {
+      "paramDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return tools.childByName(children, params.value);"
+    },
+    "if": {
+      "paramDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return params.value ? [0] : children.length > 1 ? [1] : [];"
+    },
+    "sandwich": {
+      "paramDefs": {
+        "condition": null,
+        "started": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "if (!params.track) {\n  if (!params.condition) {\n    return [0];\n  } else {\n    params.track = true;\n    return [1];\n  }\n} else {\n  if (params.condition) {\n    return [1];\n  } else {\n    params.track = false;\n    return [2];\n  }\n}"
     },
     "doPeriodically": {
       "paramDefs": {

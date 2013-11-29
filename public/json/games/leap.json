@@ -167,7 +167,6 @@
     }
   },
   "layout": {
-    "action": "doInParallel",
     "children": [
       {
         "send": {
@@ -175,7 +174,6 @@
         }
       },
       {
-        "action": "doInSequence",
         "params": {
           "in": {
             "activeChild": "model.activeChild"
@@ -194,7 +192,6 @@
             }
           },
           {
-            "action": "doWhile",
             "params": {
               "in": {
                 "value": "!model.ageForm.done"
@@ -216,7 +213,8 @@
                   }
                 }
               }
-            ]
+            ],
+            "process": "doWhile"
           },
           {
             "send": {
@@ -224,7 +222,6 @@
             }
           },
           {
-            "action": "doWhile",
             "params": {
               "in": {
                 "value": "!services.html.receive.blocksForm || !services.html.receive.blocksForm.values.done"
@@ -270,7 +267,6 @@
                 }
               },
               {
-                "action": "if",
                 "params": {
                   "in": {
                     "value": "model.targetGridTranslation && tools.distanceBetweenPoints(model.gridTranslation, model.targetGridTranslation) > model.constants.minGridTranslation"
@@ -282,10 +278,10 @@
                       "model.gridTranslation": "tools.interpolateVector(model.gridTranslation, model.targetGridTranslation, 0.5)"
                     }
                   }
-                ]
+                ],
+                "process": "if"
               },
               {
-                "action": "when",
                 "params": {
                   "in": {
                     "value": "model.mouseDetection.state"
@@ -294,7 +290,6 @@
                 "children": [
                   {
                     "name": "drag",
-                    "action": "if",
                     "params": {
                       "in": {
                         "value": "services.mouse.position != null"
@@ -308,7 +303,8 @@
                           "model.dragFrameCounter": "(model.dragFrameCounter + 1) % model.constants.dragHighlightPeriod"
                         }
                       }
-                    ]
+                    ],
+                    "process": "if"
                   },
                   {
                     "name": "startDrag",
@@ -331,7 +327,8 @@
                       "services.mouse.cursor": "'pointer'"
                     }
                   }
-                ]
+                ],
+                "process": "when"
               },
               {
                 "send": {
@@ -339,7 +336,6 @@
                 }
               },
               {
-                "action": "if",
                 "params": {
                   "in": {
                     "value": "model.blockGroupsToBeHighlighted.length > 0"
@@ -357,10 +353,10 @@
                       "model.highlightedBlocks": "[]"
                     }
                   }
-                ]
+                ],
+                "process": "if"
               },
               {
-                "action": "if",
                 "params": {
                   "in": {
                     "value": "services.html.receive.blocksForm && services.html.receive.blocksForm.values.addShape"
@@ -373,10 +369,10 @@
                       "model.events": "GE.appendToArray(model.events, { type: 'added shape to gallery', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(model.blocks) })"
                     }
                   }
-                ]
+                ],
+                "process": "if"
               },
               {
-                "action": "if",
                 "params": {
                   "in": {
                     "value": "model.gallery.length > 0"
@@ -388,9 +384,11 @@
                       "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(model.constants.galleryGrid, _.last(model.gallery))), tools.makeBlockShapes(model.constants.galleryGrid, _.last(model.gallery), tools.rgbColorString(model.constants.blockColor), model.constants.galleryBlockSize)))"
                     }
                   }
-                ]
+                ],
+                "process": "if"
               }
-            ]
+            ],
+            "process": "doWhile"
           },
           {
             "send": {
@@ -399,7 +397,6 @@
             }
           },
           {
-            "action": "doWhile",
             "params": {
               "in": {
                 "value": "!services.html.receive.selectionForm || !services.html.receive.selectionForm.values.done"
@@ -444,7 +441,6 @@
                 }
               },
               {
-                "action": "when",
                 "params": {
                   "in": {
                     "value": "model.mouseDetection.state"
@@ -464,14 +460,16 @@
                       "model.events": "GE.appendToArray(model.events, { type: 'selected shape', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(model.gallery[model.mouseDetection.shape.meta]) })"
                     }
                   }
-                ]
+                ],
+                "process": "when"
               },
               {
                 "send": {
                   "services.html.send.selectionForm": "{ asset: 'selectionForm', values: { done: false, ready: model.selectedGalleryIndexes.length >= 1 } }"
                 }
               }
-            ]
+            ],
+            "process": "doWhile"
           },
           {
             "send": {
@@ -484,7 +482,6 @@
             }
           },
           {
-            "action": "doWhile",
             "params": {
               "in": {
                 "value": "!services.html.receive.thanksForm || !services.html.receive.thanksForm.values.done"
@@ -496,16 +493,16 @@
                   "services.html.send.thanksForm": "{ asset: 'thanksForm', values: { done: false } }"
                 }
               }
-            ]
+            ],
+            "process": "doWhile"
           }
-        ]
+        ],
+        "process": "doInSequence"
       }
-    ]
+    ],
+    "process": "doInParallel"
   },
   "actions": {
-    "doInParallel": {
-      "doc": "Just to place children under it"
-    },
     "changeParameterThroughKeyboard": {
       "paramDefs": {
         "parameter": {
@@ -516,16 +513,6 @@
       },
       "update": "for (var keyCode in params.keyMap) {\n  if (params.keysDown[keyCode]) {\n    var value = params.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      params.parameter += Number(value);\n    } else {\n      params.parameter = value;\n    }\n    break;\n  }\n}"
     },
-    "doInSequence": {
-      "paramDefs": {
-        "activeChild": {
-          "direction": "inout",
-          "default": 0
-        }
-      },
-      "listActiveChildren": "return [params.activeChild];",
-      "handleSignals": "if (signals[params.activeChild] == GE.signals.DONE)\n  params.activeChild++;\nif (params.activeChild > children.length - 1) {\n  params.activeChild = 0;\n  return GE.signals.DONE;\n}"
-    },
     "doForSomeTime": {
       "paramDefs": {
         "time": null,
@@ -534,33 +521,6 @@
         }
       },
       "update": "if (params.timer++ >= params.time) {\n  params.timer = 0;\n  return GE.signals.DONE;\n}"
-    },
-    "doWhile": {
-      "paramDefs": {
-        "value": null
-      },
-      "update": "if (!params.value)\n  return GE.signals.DONE;"
-    },
-    "when": {
-      "paramDefs": {
-        "value": null
-      },
-      "listActiveChildren": "return tools.childByName(children, params.value);"
-    },
-    "if": {
-      "paramDefs": {
-        "value": null
-      },
-      "listActiveChildren": "return params.value ? [0] : children.length > 1 ? [1] : [];"
-    },
-    "sandwich": {
-      "paramDefs": {
-        "condition": null,
-        "started": {
-          "direction": "inout"
-        }
-      },
-      "listActiveChildren": "if (!params.track) {\n  if (!params.condition) {\n    return [0];\n  } else {\n    params.track = true;\n    return [1];\n  }\n} else {\n  if (params.condition) {\n    return [1];\n  } else {\n    params.track = false;\n    return [2];\n  }\n}"
     },
     "detectMouse": {
       "paramDefs": {
@@ -594,6 +554,49 @@
         "templateName": null
       },
       "update": "if (!params.htmlService.receive[params.templateName]) {\n  params.htmlService.send[params.templateName] = {\n    asset: params.assetName,\n    values: params.modelValues\n  };\n} else {\n  params.modelValues = params.htmlService.receive[params.templateName].values;\n  params.htmlService.send[params.templateName] = params.htmlService.receive[params.templateName];\n}"
+    }
+  },
+  "processes": {
+    "doInParallel": {
+      "doc": "Just to place children under it"
+    },
+    "doInSequence": {
+      "paramDefs": {
+        "activeChild": {
+          "direction": "inout",
+          "default": 0
+        }
+      },
+      "listActiveChildren": "return [params.activeChild];",
+      "handleSignals": "if (signals[params.activeChild] == GE.signals.DONE)\n  params.activeChild++;\nif (params.activeChild > children.length - 1) {\n  params.activeChild = 0;\n  return GE.signals.DONE;\n}"
+    },
+    "doWhile": {
+      "paramDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return !!params.value ? children : [];",
+      "handleSignals": "if (!params.value)\n  return GE.signals.DONE;"
+    },
+    "when": {
+      "paramDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return tools.childByName(children, params.value);"
+    },
+    "if": {
+      "paramDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return params.value ? [0] : children.length > 1 ? [1] : [];"
+    },
+    "sandwich": {
+      "paramDefs": {
+        "condition": null,
+        "started": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "if (!params.track) {\n  if (!params.condition) {\n    return [0];\n  } else {\n    params.track = true;\n    return [1];\n  }\n} else {\n  if (params.condition) {\n    return [1];\n  } else {\n    params.track = false;\n    return [2];\n  }\n}"
     }
   },
   "tools": {

@@ -392,7 +392,8 @@
       time: null,
       timer: { direction: "inout" }
     },
-    update: function() { 
+    listActiveChildren: function() { return this.children; },
+    handleSignals: function() { 
       if(this.params.timer++ >= this.params.time) {
         this.params.timer = 0;
         return GE.signals.DONE;
@@ -404,10 +405,11 @@
     paramDefs: {
       value: null
     },
-    update: function() { 
+    listActiveChildren: function() { return !!this.params.value ? this.children : []; },
+    handleSignals: function() { 
       if(!this.params.value) return GE.signals.DONE;
     }
-  },
+ },
 
   when: {
     paramDefs: {
