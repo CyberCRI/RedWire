@@ -248,9 +248,9 @@ reloadCode = (callback) ->
           compiledAction[actionKey] = switch actionKey
             when "update" then GE.compileUpdate(actionValue, currentEvaluator)
             else actionValue
+        return compiledAction
       catch compilationError
         throw new Error("Error compiling action '#{key}'. #{compilationError}")
-      return compiledAction
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
@@ -261,13 +261,13 @@ reloadCode = (callback) ->
       compiledProcess = {}
       try
         for processKey, processValue of value
-          compiledProcesses[processKey] = switch processKey
+          compiledProcess[processKey] = switch processKey
             when "listActiveChildren" then GE.compileListActiveChildren(processValue, currentEvaluator)
             when "handleSignals" then GE.compileHandleSignals(processValue, currentEvaluator)
             else processValue
+        return compiledProcess
       catch compilationError
         throw new Error("Error compiling process '#{key}'. #{compilationError}")
-      return compiledProcess
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Processes error. #{error}")
     return showMessage(MessageType.Error, "<strong>Processes error.</strong> #{error}")

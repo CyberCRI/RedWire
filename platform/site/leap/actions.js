@@ -67,10 +67,11 @@
     paramDefs: {
       value: null
     },
-    update: function() { 
+    listActiveChildren: function() { return !!this.params.value ? this.children : []; },
+    handleSignals: function() { 
       if(!this.params.value) return GE.signals.DONE;
     }
-  },
+ },
 
   when: {
     paramDefs: {

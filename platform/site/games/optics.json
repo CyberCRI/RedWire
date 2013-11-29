@@ -392,7 +392,6 @@
                     }
                   },
                   {
-                    "action": "if",
                     "params": {
                       "in": {
                         "value": "model.mouseDetection.shape && model.mouseDetection.shape.meta == 'rotate'"
@@ -400,7 +399,6 @@
                     },
                     "children": [
                       {
-                        "action": "when",
                         "params": {
                           "in": {
                             "value": "model.mouseDetection.state"
@@ -433,9 +431,11 @@
                               "model.rotating": "false"
                             }
                           }
-                        ]
+                        ],
+                        "process": "when"
                       }
-                    ]
+                    ],
+                    "process": "if"
                   }
                 ]
               },

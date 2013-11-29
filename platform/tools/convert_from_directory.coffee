@@ -57,11 +57,12 @@ correctActions = (actions, processes, layoutNode) ->
       # change from "action: 'blah'"" to "process: 'blah'"
       layoutNode.process = layoutNode.action
       delete layoutNode.action
-
-      for child in layoutNode.children
-        correctActions(actions, processes, child)
     else
       throw new Error("Action '#{layoutNode.action}' is not an action or a process") 
+
+  if layoutNode.children
+    for child in layoutNode.children
+      correctActions(actions, processes, child)
 
 # MAIN
 if process.argv.length < 4
