@@ -34,6 +34,7 @@ GAME_JSON_PROPERTY_TO_EDITOR =
   model: "modelEditor"
   assets: "assetsEditor"
   actions: "actionsEditor"
+  processes: "processesEditor"
   tools: "toolsEditor"
   layout: "layoutEditor"
   services: "servicesEditor"
@@ -54,6 +55,7 @@ currentFrame = 0
 currentModelData = null
 currentAssets = null
 currentActions = null
+currentProcesses = null
 currentTools = null
 currentLayout = null
 currentServices = null
@@ -63,6 +65,7 @@ assetNamesToData = {}
 assetNamesToObjectUrls = {}
 
 compiledActions = {}
+compiledProcesses = {}
 compiledTools = {}
 
 isPlaying = false
@@ -244,15 +247,30 @@ reloadCode = (callback) ->
         for actionKey, actionValue of value
           compiledAction[actionKey] = switch actionKey
             when "update" then GE.compileUpdate(actionValue, currentEvaluator)
-            when "listActiveChildren" then GE.compileListActiveChildren(actionValue, currentEvaluator)
-            when "handleSignals" then GE.compileHandleSignals(actionValue, currentEvaluator)
             else actionValue
+        return compiledAction
       catch compilationError
         throw new Error("Error compiling action '#{key}'. #{compilationError}")
-      return compiledAction
   catch error
     logWithPrefix(GE.logLevels.ERROR, "Actions error. #{error}")
     return showMessage(MessageType.Error, "<strong>Actions error.</strong> #{error}")
+
+  try
+    currentProcesses = JSON.parse(editors.processesEditor.getValue())
+    compiledProcesses = GE.mapObject currentProcesses, (value, key) ->
+      compiledProcess = {}
+      try
+        for processKey, processValue of value
+          compiledProcess[processKey] = switch processKey
+            when "listActiveChildren" then GE.compileListActiveChildren(processValue, currentEvaluator)
+            when "handleSignals" then GE.compileHandleSignals(processValue, currentEvaluator)
+            else processValue
+        return compiledProcess
+      catch compilationError
+        throw new Error("Error compiling process '#{key}'. #{compilationError}")
+  catch error
+    logWithPrefix(GE.logLevels.ERROR, "Processes error. #{error}")
+    return showMessage(MessageType.Error, "<strong>Processes error.</strong> #{error}")
 
   try
     currentTools = JSON.parse(editors.toolsEditor.getValue())
@@ -368,6 +386,7 @@ executeCode = ->
       modelData: modelAtFrame.clonedData()
       assets: assetNamesToData
       actions: compiledActions
+      processes: compiledProcesses
       tools: compiledTools
       services: currentServices
       serviceConfig: 
@@ -492,7 +511,7 @@ $(document).ready ->
   $(window).on "onresize", handleResize
 
   # Create all the JSON and JS editors
-  for id in ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"]
+  for property, id of GAME_JSON_PROPERTY_TO_EDITOR
     editors[id] = setupEditor(id, "ace/mode/javascript")
 
   # Create the log, which is plain text
@@ -536,7 +555,7 @@ $(document).ready ->
         evalLoadedAssets = (script for name, script of loadedAssets)
 
         # Setup event handlers on code change
-        for id in ["modelEditor", "assetsEditor", "actionsEditor", "toolsEditor", "layoutEditor", "servicesEditor"]
+        for property, id of GAME_JSON_PROPERTY_TO_EDITOR
           editors[id].getSession().on "change", -> notifyCodeChange()
 
         # Load code
