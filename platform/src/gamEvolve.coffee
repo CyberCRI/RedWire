@@ -260,7 +260,7 @@ GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], act
   # Only output parameters should be accessible
   outParams = _.pick(evaluatedParams, (paramName for paramName, paramOptions of action.paramDefs when paramOptions.direction in ["out", "inout"]))
 
-  for paramName, paramValue of node.params.out
+  for paramName, paramValue of node.params?.out
     try
       outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
     catch error
