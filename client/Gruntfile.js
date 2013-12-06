@@ -461,14 +461,14 @@ module.exports = function ( grunt ) {
       },
 
       /**
-       * When our CoffeeScript source files change, we want to run lint them and
+       * When our CoffeeScript source files change, we 
        * run our unit tests.
        */
       coffeesrc: {
         files: [ 
           '<%= app_files.coffee %>'
         ],
-        tasks: [ 'coffeelint:src', 'coffee:source', 'karma:unit:run', 'copy:build_appjs' ]
+        tasks: [ 'coffee:source', 'karma:unit:run', 'copy:build_appjs' ]
       },
 
       /**
@@ -524,14 +524,14 @@ module.exports = function ( grunt ) {
       },
 
       /**
-       * When a CoffeeScript unit test file changes, we only want to lint it and
+       * When a CoffeeScript unit test file changes, we only want 
        * run the unit tests. We don't want to do any live reloading.
        */
       coffeeunit: {
         files: [
           '<%= app_files.coffeeunit %>'
         ],
-        tasks: [ 'coffeelint:test', 'karma:unit:run' ],
+        tasks: [ 'karma:unit:run' ],
         options: {
           livereload: false
         }
@@ -560,7 +560,7 @@ module.exports = function ( grunt ) {
    * The `build` task gets your app ready to run for development and testing.
    */
   grunt.registerTask( 'build', [
-    'clean', 'html2js', 'jshint', 'coffeelint', 'coffee', 'recess:build',
+    'clean', 'html2js', 'jshint', 'coffee', 'recess:build',
     'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_assets',
     'copy:build_appjs', 'copy:build_vendorjs', 'index:build', 'karmaconfig',
     'karma:continuous' 

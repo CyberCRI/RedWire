@@ -2,16 +2,11 @@
 .DS_Store
 *~
 
-# Ignore JS not in libraries
-public/*.js
-public/tests/*.js
-
-# Ignore generated documentation
-docs/
+# Ignore generated files
+client/build/
 
 # Ignore node modules
 npm-debug.log
-node_modules/
 node_modules/
 
 # Ignore browser dependencies 

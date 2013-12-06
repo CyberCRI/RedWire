@@ -1,6 +1,7 @@
 {
   "name": "gamEvolve",
   "version": "0.0.1",
+  "author": "",
   "description": "A tool for creating, sharing, and modifing online games using simple concepts.",
   "repository": {
     "type": "git",
