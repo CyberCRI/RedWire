@@ -4,6 +4,7 @@
 
 # Ignore generated files
 client/build/
+bin/
 
 # Ignore node modules
 npm-debug.log
