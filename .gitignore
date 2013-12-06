@@ -1,5 +1,6 @@
 # Ignore OS garbage
 .DS_Store
+*~
 
 # Ignore JS not in libraries
 public/*.js
@@ -9,10 +10,12 @@ public/tests/*.js
 docs/
 
 # Ignore node modules
-platform/node_modules/
+npm-debug.log
+node_modules/
+node_modules/
 
-# Ignore deployment directory
-platform/.temp_ghpages/
+# Ignore browser dependencies 
+vendor/
 
 # Ignore dpd temp files
-npm-debug.log
+server/data/mongod.lock
