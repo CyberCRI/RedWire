@@ -20,9 +20,18 @@
       callback gameJson
 
   create: (game, callback) ->
-    dpd.games.post game, callback
+    gameVersion = game
+    dpd.games.post game, (error, createdGame) ->
+      if error or not result
+        callback error, result
+      else
+        gameVersion
+        dpd.game-versions.post game, callback
 
-  save: (game, callback) ->
+  read: (id, callback) ->
+    dpd.games.get id, callback
+
+  update: (game, callback) ->
     dpd.games.put game, callback
 
   share: (game) ->

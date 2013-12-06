@@ -160,6 +160,27 @@ getCurrentGame = ->
     gameJson[property] = editors[editorId].getValue()
   gameJson
 
+loadGame = (game) ->
+  for property, editorId of GAME_JSON_PROPERTY_TO_EDITOR
+    editor = editors[editorId]
+    editor.setValue(game[property])
+    # The new content will be selected by default
+    editor.selection.clearSelection()
+
+  # Load common script assets
+  GE.loadAssets EVAL_ASSETS, (err, loadedAssets) ->
+    if err then return showMessage(MessageType.Error, "Cannot load common assets")
+
+    # Make this globally available
+    evalLoadedAssets = (script for name, script of loadedAssets)
+
+    # Setup event handlers on code change
+    for property, id of GAME_JSON_PROPERTY_TO_EDITOR
+      editors[id].getSession().on "change", -> notifyCodeChange()
+
+    # Load code
+    notifyCodeChange()
+
 setupLayout = ->
   # top
   $("#saveButton")
@@ -168,7 +189,7 @@ setupLayout = ->
 
   $("#shareButton")
     .button({ icons: { primary: "ui-icon-link" }})
-    .click( -> games.share({method:"to implement"}))
+    .click( -> games.read('c39c32ed1959e8ae', loadGame))
 
   # west
   $("#playButton").button({ icons: { primary: "ui-icon-play" }, text: false })
@@ -547,23 +568,5 @@ $(document).ready ->
   # Otherwise just load from a URL
   if not loadedCode
     gameName = window.location.search.slice(1)
-    games.loadJson gameName, (gameJson) ->
-      for property, editorId of GAME_JSON_PROPERTY_TO_EDITOR
-        editor = editors[editorId]
-        editor.setValue(gameJson[property])
-        # The new content will be selected by default
-        editor.selection.clearSelection()
-
-      # Load common script assets
-      GE.loadAssets EVAL_ASSETS, (err, loadedAssets) ->
-        if err then return showMessage(MessageType.Error, "Cannot load common assets")
-
-        # Make this globally available
-        evalLoadedAssets = (script for name, script of loadedAssets)
-
-        # Setup event handlers on code change
-        for property, id of GAME_JSON_PROPERTY_TO_EDITOR
-          editors[id].getSession().on "change", -> notifyCodeChange()
-
-        # Load code
-        notifyCodeChange()
+    games.loadJson gameName, (game) ->
+      loadGame game

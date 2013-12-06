@@ -1,0 +1,1 @@
+cancel("Game version deletion is not currently allowed");

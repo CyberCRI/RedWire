@@ -1,6 +1,9 @@
 # Ignore OS garbage
 .DS_Store
 
+# Ignore IDE config files
+.idea/
+
 # Ignore JS not in libraries
 public/*.js
 public/tests/*.js
