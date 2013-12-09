@@ -58,8 +58,10 @@ module.exports = {
       'vendor/angular-ui-utils/modules/route/route.js',
       'vendor/jquery/jquery.js',
       'vendor/underscore/underscore.js',
+      'vendor/flexy-layout/flexy-layout.debug.js'
     ],
     css: [
+      'vendor/flexy-layout/flexyLayout.css'
     ],
     assets: [
     ]
