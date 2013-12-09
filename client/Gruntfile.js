@@ -145,7 +145,27 @@ module.exports = function ( grunt ) {
             expand: true
           }
         ]
-      }
+      },
+      build_tests_vendor: {
+        files: [
+          {
+            src: [ '*' ],
+            dest: '<%= build_dir %>/tests/',
+            cwd: 'vendor/jasmine/',
+            expand: true
+          }
+        ]
+      },
+      build_tests_runner: {
+        files: [
+          {
+            src: [ 'index.html' ],
+            dest: '<%= build_dir %>/tests/',
+            cwd: 'src/tests/',
+            expand: true
+          }
+        ]
+      },
     },
 
     /**
@@ -199,6 +219,14 @@ module.exports = function ( grunt ) {
         cwd: '.',
         src: [ '<%= app_files.coffee %>' ],
         dest: '<%= build_dir %>',
+        ext: '.js'
+      },
+
+      tests: {
+        expand: true,
+        cwd: 'src/tests/',
+        src: [ '*.coffee' ],
+        dest: '<%= build_dir %>/tests',
         ext: '.js'
       }
     },
@@ -355,19 +383,18 @@ module.exports = function ( grunt ) {
       },
 
       /**
-       * When the Gruntfile changes, we just want to lint it. In fact, when
-       * your Gruntfile changes, it will automatically be reloaded!
+       * When the Gruntfile changes, it will automatically be reloaded!
        */
       gruntfile: {
         files: 'Gruntfile.js',
-        tasks: [ 'jshint:gruntfile' ],
+        tasks: [ ],
         options: {
           livereload: false
         }
       },
 
       /**
-       * When our JavaScript source files change, we want to run lint them and
+       * When our JavaScript source files change, we want to 
        * run our unit tests.
        */
       jssrc: {
@@ -378,14 +405,23 @@ module.exports = function ( grunt ) {
       },
 
       /**
-       * When our CoffeeScript source files change, we 
-       * run our unit tests.
+       * When our CoffeeScript source files change, we rebuild.
        */
       coffeesrc: {
         files: [ 
           '<%= app_files.coffee %>'
         ],
         tasks: [ 'coffee:source', 'copy:build_appjs' ]
+      },
+
+      /**
+       * When our CoffeeScript tests files change, we rebuild.
+       */
+      coffeetests: {
+        files: [ 
+          'src/tests/*.coffee'
+        ],
+        tasks: [ 'coffee:tests' ]
       },
 
       /**
@@ -451,7 +487,8 @@ module.exports = function ( grunt ) {
   grunt.registerTask( 'build', [
     'clean', 'html2js', 'coffee', 'recess:build',
     'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_assets',
-    'copy:build_appjs', 'copy:build_vendorjs', 'index:build'
+    'copy:build_appjs', 'copy:build_vendorjs', 'index:build',
+    'copy:build_tests_runner', 'copy:build_tests_vendor'
   ]);
 
   /**

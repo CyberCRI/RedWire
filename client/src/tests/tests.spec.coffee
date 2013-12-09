@@ -7,7 +7,7 @@ describe "gamEvolve", ->
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
       toBeEmpty: () -> @actual.length == 0
 
-  describe "patches", ->
+  describe "patches", -> 
     it "can remove value from array", ->
       a = 
         v: [10..15]
