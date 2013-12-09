@@ -1,5 +1,6 @@
-
 @.games =
+
+  lastSavedVersion: {}
 
   loadJson: (gameName, callback) ->
     ajaxRequest = $.ajax
@@ -21,12 +22,22 @@
 
   create: (game, callback) ->
     gameVersion = game
-    dpd.games.post game, (error, createdGame) ->
-      if error or not result
-        callback error, result
+    dpd.games.post game, (createdGame, error) ->
+      if not error and createdGame?
+        gameVersion.gameId = createdGame.id
+        games.saveVersion gameVersion, () ->
+          games.saveVersion games.lastSavedVersion
       else
-        gameVersion
-        dpd.game-versions.post game, callback
+        console.log error
+        callback createdGame, error
+
+  saveVersion: (gameVersion, callback) ->
+    dpd.gameversions.post gameVersion, (savedGameVersion, error) ->
+      if error
+        console.log error
+      else
+        games.lastSavedVersion = gameVersion
+      callback?(savedGameVersion, error)
 
   read: (id, callback) ->
     dpd.games.get id, callback
