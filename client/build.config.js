@@ -61,7 +61,7 @@ module.exports = {
       'vendor/flexy-layout/flexy-layout.debug.js'
     ],
     css: [
-      'vendor/flexy-layout/flexyLayout.css'
+      'vendor/flexy-layout/src/flexyLayout.css'
     ],
     assets: [
     ]
