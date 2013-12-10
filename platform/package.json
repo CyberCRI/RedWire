@@ -15,7 +15,8 @@
     "glob": "*",
     "phantomjs": "*",
     "phantom-jasmine": "*",
-    "fs.extra": "*"
+    "fs.extra": "*",
+    "graphviz": "*"
   },
   "license": "MIT"
 }
