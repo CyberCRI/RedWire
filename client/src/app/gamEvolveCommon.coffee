@@ -3,8 +3,10 @@ globals = @
 
 # All will be in the "GE" namespace
 GE = {}
-# Export GE globally
-globals.GE = GE
+if globals.GE
+  GE = globals.GE
+else
+  globals.GE = GE
 
 # Can be used to mimic enums in JS
 # Since this is called by the GE namspace definition below, it must be defined first

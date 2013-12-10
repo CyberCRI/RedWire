@@ -4,12 +4,11 @@
   "author": "",
   "description": "A tool for creating, sharing, and modifing online games using simple concepts.",
   "homepage": "https://github.com/CyberCRI/gamEvolve",
-  "version": "0.1",
   "repository": {
     "type": "git",
     "url": "https://github.com/CyberCRI/gamEvolve"
   },
-  "dependencies" : {
+  "dependencies": {
     "coffee-script": "*",
     "win-spawn": "*",
     "docco": "*",

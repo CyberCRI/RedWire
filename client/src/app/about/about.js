@@ -1,4 +1,4 @@
-angular.module( 'ngBoilerplate.about', [
+angular.module( 'gamEvolve.about', [
   'ui.state',
   'ui.bootstrap'
 ])

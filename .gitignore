@@ -15,3 +15,7 @@ vendor/
 
 # Ignore dpd temp files
 server/data/mongod.lock
+
+# Ignore compilation result
+server/public-dev/
+server/public-prod/
