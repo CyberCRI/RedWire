@@ -2,6 +2,7 @@ this.versionNumber = 1;
 if (!me) {
     cancel("You should be logged in to save a game", 401);
 } else {
+    cancelIf(!this.gameId, 'gameId is required', 403);
     dpd.games.get(this.gameId, function(game, error) {
         if (error) {
             console.log(error);

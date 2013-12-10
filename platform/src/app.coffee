@@ -185,7 +185,7 @@ setupLayout = ->
   # top
   $("#saveButton")
     .button({ icons: { primary: "ui-icon-transferthick-e-w" }})
-    .click -> games.create(getCurrentGame())
+    .click -> games.save(getCurrentGame())
 
   $("#shareButton")
     .button({ icons: { primary: "ui-icon-link" }})
