@@ -22,11 +22,10 @@ angular.module('gamEvolve.game', [
 
         $scope.noGameMessage = "Game Name";
 
-        $scope.user = loggedUser;
-
+        // Binding services
         $scope.games = games;
-
-        $scope.login = users.login;
+        $scope.user = loggedUser;
+        $scope.users = users;
 
     })
 
