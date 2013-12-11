@@ -1,0 +1,36 @@
+<flexy-layout orientation="vertical">
+
+    <!-- Header -->
+    <block-container init="80">
+        <flexy-layout orientation="horizontal">
+            <block-container init="150">
+                <div>
+                    <p>Logo</p>
+                </div>
+            </block-container>
+            <block-container>
+                <div>
+                    <p>Slider</p>
+                </div>
+            </block-container>
+            <block-container init="200">
+                <div>
+                    <p>Options</p>
+                </div>
+            </block-container>
+        </flexy-layout>
+    </block-container>
+
+    <!-- Main -->
+    <block-container>
+        <flexy-layout ui-view="game.main"></flexy-layout>
+    </block-container>
+
+    <!-- Footer -->
+    <block-container init="40">
+        <div>
+            <p>Footer</p>
+        </div>
+    </block-container>
+
+</flexy-layout>

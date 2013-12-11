@@ -2,19 +2,23 @@
 .DS_Store
 *~
 
-# Ignore generated files
-client/build/
-bin/
+# Ignore IDE config files
+.idea/
+
+# Ignore generated documentation
+docs/
 
 # Ignore node modules
-npm-debug.log
-node_modules/
+client/npm-debug.log
+client/node_modules/
 
 # Ignore browser dependencies 
-vendor/
+client/vendor/
+client/.bowerrc
 
 # Ignore dpd temp files
 server/data/mongod.lock
+server/.dpd/
 
 # Ignore compilation result
 server/public-dev/

@@ -1,4 +1,4 @@
-angular.module('gamEvolve.logger', [])
+angular.module('gamEvolve.util.logger', [])
 
 .factory 'logger', ($window) ->
 

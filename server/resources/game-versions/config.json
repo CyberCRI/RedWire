@@ -1,0 +1,77 @@
+{
+	"type": "Collection",
+	"properties": {
+		"gameId": {
+			"name": "gameId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "gameId",
+			"order": 0
+		},
+		"versionNumber": {
+			"name": "versionNumber",
+			"type": "number",
+			"typeLabel": "number",
+			"required": true,
+			"id": "versionNumber",
+			"order": 1
+		},
+		"actions": {
+			"name": "actions",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "actions",
+			"order": 2
+		},
+		"assets": {
+			"name": "assets",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "assets",
+			"order": 3
+		},
+		"layout": {
+			"name": "layout",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "layout",
+			"order": 4
+		},
+		"model": {
+			"name": "model",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "model",
+			"order": 5
+		},
+		"processes": {
+			"name": "processes",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "processes",
+			"order": 6
+		},
+		"services": {
+			"name": "services",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "services",
+			"order": 7
+		},
+		"tools": {
+			"name": "tools",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "tools",
+			"order": 8
+		}
+	}
+}

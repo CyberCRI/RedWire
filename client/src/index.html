@@ -9,7 +9,6 @@
     <!-- compiled JavaScript --><% scripts.forEach( function ( file ) { %>
     <script type="text/javascript" src="<%= file %>"></script><% }); %>
   </head>
-  <body>
-    <div class="container" ui-view="main"></div>
+  <body ui-view="main">
   </body>
 </html>

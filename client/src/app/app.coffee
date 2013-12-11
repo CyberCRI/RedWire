@@ -1,16 +1,19 @@
 angular.module( 'gamEvolve', [
   'templates-app',
   'templates-common',
-  'ui.state',
-  'ui.route',
+  'ui.bootstrap',
+  'ui.router',
   'gamEvolve.home',
   'gamEvolve.about',
-  'gamEvolve.games',
-  'gamEvolve.logger'
+  'gamEvolve.model.games',
+  'gamEvolve.model.users',
+  'gamEvolve.util.logger',
+  'gamEvolve.game',
+  'gamEvolve.game.edit'
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->
-  $urlRouterProvider.otherwise( '/home' )
+  $urlRouterProvider.otherwise( '/game/1234/edit' )
 )
 
 .run( ->

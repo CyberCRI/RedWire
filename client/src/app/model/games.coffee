@@ -1,8 +1,32 @@
-angular.module('gamEvolve.games', [])
+angular.module('gamEvolve.model.games', [])
 
-.factory 'games', ->
+.factory 'games', ($http, $q) ->
 
-    current: null,
+    propertyNames: [
+      'actions'
+      'assets'
+      'layout'
+      'model'
+      'processes'
+      'services'
+      'tools'
+    ]
 
-    save: ->
-      console.log 'games.save() not implemented yet'
+    current: null
+
+    loadJson: (gameName) ->
+      deferred = $q.defer()
+      promise = deferred.promise
+      $http.get("/json/games/#{gameName}.json")
+        .error( (error) ->
+          console.log 'games.loadJson()', error
+          # showMessage(MessageType.Error, "Cannot load game files")
+          deferred.reject error
+        )
+        .success( (result) ->
+          game = {}
+          for propertyName in @propertyNames
+            game[propertyName] = JSON.stringify(result[propertyName], null, 2)
+          deferred.resolve game
+        )
+      promise
