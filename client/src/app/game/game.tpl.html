@@ -10,12 +10,24 @@
             </block-container>
             <block-container>
                 <div>
+                    <h4>{{games.current.name || noGameMessage}}</h4>
                     <p>Slider</p>
                 </div>
             </block-container>
             <block-container init="200">
-                <div>
-                    <p>Options</p>
+                <div ng-show="user.isLogged()">
+                    Welcome, {{user.get().username}}
+                    <button ng-click="games.loadJson('leap')" class="btn btn-primary">
+                        Load Game
+                    </button>
+                    <button ng-click="games.save()" class="btn btn-primary">
+                        Save Game
+                    </button>
+                </div>
+                <div ng-hide="user.isLogged()">
+                    <button ng-click="login('micouz', 'password')" class="btn btn-primary">
+                        Login
+                    </button>
                 </div>
             </block-container>
         </flexy-layout>

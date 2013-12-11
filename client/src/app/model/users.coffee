@@ -1,14 +1,24 @@
 angular.module('gamEvolve.model.users', [])
 
-.factory 'users', ($http, $q) ->
+.factory 'loggedUser', ->
 
-    loggedUser: null,
+    loggedUser: null
 
-    isUserLogged: ->
-      @loggedUser?
+    set: (user) -> @loggedUser = user
+
+    get: -> @loggedUser
+
+    isLogged: -> @loggedUser?
+
+.factory 'users', (loggedUser, $http, $q) ->
 
     login: (username, password) ->
       deferred = $q.defer()
       promise = deferred.promise
-      console.log 'Not implemented'
+      $http.post('/users/login', {username: username, password: password})
+        .then -> $http.get('/users/me')
+        .then (result) ->
+          user = result.data
+          loggedUser.set user
+          deferred.resolve(user)
       promise
