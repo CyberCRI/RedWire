@@ -16,7 +16,7 @@
             </block-container>
             <block-container init="200">
                 <div ng-show="user.isLogged()">
-                    Welcome, {{user.get().username}}
+                    Welcome, {{user.profile.username}}
                     <button ng-click="games.loadJson('leap')" class="btn btn-primary">
                         Load Game
                     </button>

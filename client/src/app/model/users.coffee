@@ -2,13 +2,10 @@ angular.module('gamEvolve.model.users', [])
 
 .factory 'loggedUser', ->
 
-    loggedUser: null
+    profile: null
 
-    set: (user) -> @loggedUser = user
+    isLogged: -> @profile?
 
-    get: -> @loggedUser
-
-    isLogged: -> @loggedUser?
 
 .factory 'users', (loggedUser, $http, $q) ->
 
@@ -19,6 +16,6 @@ angular.module('gamEvolve.model.users', [])
         .then -> $http.get('/users/me')
         .then (result) ->
           user = result.data
-          loggedUser.set user
+          loggedUser.profile = user
           deferred.resolve(user)
       promise
