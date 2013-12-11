@@ -130,25 +130,7 @@
                   "value": "model.mouseDetection.state"
                 }
               },
-              "children": [
-                {
-                  "name": "drag",
-                  "action": "if",
-                  "params": {
-                    "in": {
-                      "value": "services.mouse.position != null"
-                    }
-                  },
-                  "children": [
-                    {
-                      "send": {
-                        "services.mouse.cursor": "'move'",
-                        "services.graphics.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, tools.rgbColorString(tools.cyclicInterpolate(model.constants.highlightedBlockColor, model.constants.blockColor, model.dragFrameCounter / model.constants.dragHighlightPeriod)), services.mouse.position))",
-                        "model.dragFrameCounter": "(model.dragFrameCounter + 1) % model.constants.dragHighlightPeriod"
-                      }
-                    }
-                  ]
-                },             
+              "children": [          
                 {
                   "name": "click",
                   "send": {
