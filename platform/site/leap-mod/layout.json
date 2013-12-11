@@ -20,6 +20,7 @@
         { 
           "send": {
             "model.blocks": "model.constants.initialBlocks",
+            "model.neighbors": "model.constants.initialNeighbors",
             "model.gallery": "[]",
             "model.selectedGalleryIndexes": "[]",
             "model.events" : "[{ type: 'began game', time: tools.makeTimestamp(services.time) }]"
@@ -67,7 +68,7 @@
               "action": "detectMouse",
               "params": {
                 "in": {
-                  "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, tools.rgbColorString(model.constants.blockColor), model.constants.blockSize))",
+                  "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeNeighborBlockShapes(model.constants.grid, model.neighbors, tools.rgbColorString(model.constants.blockColor), model.constants.blockSize))",
                   "shape": "model.mouseDetection.shape",
                   "mousePosition": "services.mouse.position",
                   "mouseDown": "services.mouse.down",
@@ -80,12 +81,18 @@
                   "model.mouseDetection.shape": "params.shape"
                 }
               }
-            },
+            },            
             { 
               "send": {
                 "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, GE.difference(model.blocks, model.highlightedBlocks), tools.rgbColorString(model.constants.blockColor), model.constants.blockSize)))"
               }
             },
+            { 
+              "send": {
+                "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, GE.difference(model.neighbors, model.highlightedBlocks), tools.rgbColorString(model.constants.neighborColor), model.constants.blockSize)))"
+              }
+            },
+            
             {
               "send": {
                 "services.graphics.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.highlightedBlocks, tools.rgbColorString(model.constants.highlightedBlockColor), model.constants.blockSize)))"
@@ -141,20 +148,14 @@
                       }
                     }
                   ]
-                },
+                },             
                 {
-                  "name": "startDrag",
-                  "send": { 
-                    "model.blocks": "GE.removeFromArray(model.blocks, model.mouseDetection.shape.meta)",
-                    "model.dragFrameCounter": 0
-                  }
-                },
-                {
-                  "name": "endDrag",
-                  "send": { 
-                    "model.blockGroupsToBeHighlighted": "tools.makeBlockGroupsToBeHighlighted(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))",
-                    "model.blocks": "GE.appendToArray(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))",
-                    "model.events" : "GE.appendToArray(model.events, { type: 'moved tile', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(GE.appendToArray(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))) })"
+                  "name": "click",
+                  "send": {
+                    "model.blocks": "tools.updateBlocks(model.mouseDetection.shape.meta, model.blocks, model.neighbors)",
+                    "model.neighbors": "tools.updateNeighbors(model.mouseDetection.shape.meta, model.blocks, model.neighbors)",
+                    "model.blocksLeft": "model.blocksLeft - 1",
+                    "model.events" : "GE.appendToArray(model.events, { type: 'added tile', time: tools.makeTimestamp(services.time), shape: model.mouseDetection.shape.meta})"
                   }
                 },
                 {
@@ -167,7 +168,7 @@
             },
             {
               "send": { 
-                "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: model.gallery.length, canAddShape: model.gallery.length < 12, ready: model.gallery.length >= 5 } }"
+                "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, blocksLeftCount: model.blocksLeft, shape_ready: (model.blocksLeft == 0)} }"
               }
             },
             {

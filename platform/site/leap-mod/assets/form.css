@@ -79,7 +79,7 @@ input, select, InputField {
 }
 
 .addShapeButton {
-    background-color: brown;
+    background-color: darkgreen;
     border: 2px solid orange;
     color:white;
     font-size: 0.7em;
@@ -88,39 +88,41 @@ input, select, InputField {
     border: 2px dotted orange; 
 }
 
-#addShape{
+
+.startAgainButton {
+    background-color: olive;
+    border: 2px solid orange;
+    color:white;
+    font-size: 0.7em;
+}
+.startAgainButton:hover{
+    border: 2px dotted orange; 
+}
+
+#toolbar{
     float: right;
     margin-top: 168px;
     margin-right: 10px;
+    text-align: center;
     
 }
 
+#toolbar .end {    
+    margin-top: 100px;
+}
 
 .infos{
     float: none;
     text-align: center;
     margin-top: 460px;
-    font-size: 0.8em;
-
-   
+    font-size: 0.8em;   
 }
 
-#wrapDone{
-    text-align: center;
-    margin-top: 0px;
-    margin-left: 0px;
-   
-   
-}
-
-#done{
-   text-align: center;
-}
 .doneButton{
     background-color: brown;
     border: 2px solid orange;
     color:white;
-    font-size: 1em;
+    font-size: 0.7em;
     margin-top: -5px;
 
 

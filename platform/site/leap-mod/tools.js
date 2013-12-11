@@ -1,4 +1,48 @@
 ({
+  debug: function() {    
+    return true;
+  },
+  //Update blocks and neighbors after click
+  updateBlocks: function(clicked_block, blocks, neighbors) {
+    blocks.push(clicked_block);
+    return blocks;
+  },
+
+  updateNeighbors: function(clicked_block, blocks, neighbors) {
+    if (blocks.length == 9) {
+      return [];
+    }
+    //Well, this is extremely ineffective and stupid way to check everything
+    //Should fix it with a map: {"[0,1]": 1, "[0,2]": 2}, where undefined - empty, 1 - neighbor and 2 - block 
+    var new_neighbours = [[clicked_block[0]-1, clicked_block[1]],[clicked_block[0]+1, clicked_block[1]],[clicked_block[0], clicked_block[1]-1],[clicked_block[0], clicked_block[1]+1]];
+    var result = [];
+    for (var i in neighbors) {
+      if (!(neighbors[i][0] == clicked_block[0] && neighbors[i][1] == clicked_block[1])) {
+        result.push(neighbors[i]);
+      }
+    }
+
+    var exist = false;
+    for (var i in new_neighbours) {
+      var new_neighbour = new_neighbours[i];
+      for (var j in blocks) {
+        if (new_neighbour[0] == blocks[j][0] && new_neighbour[1] == blocks[j][1]) {
+          exist = true;
+        }
+      }            
+      for (var j in neighbors) {
+        if (new_neighbour[0] == neighbors[j][0] && new_neighbour[1] == neighbors[j][1]) {
+          exist = true;
+        }
+      }
+      if (!exist) {
+        result.push(new_neighbour);
+      }
+      exist = false
+    }
+    return result;
+  },
+
   // Add a shape to be drawn to graphics
   drawShape: function(shape, oldShapes) 
   {
@@ -168,6 +212,17 @@
 
   makeBlockShapes: function(grid, blocks, blockColor, blockSize) {
     var that = this;
+    return _.map(blocks, function(block) { 
+      return _.extend(that.gridCellRectangle(grid, block, block), { 
+        layer: 'blocks', 
+        fillStyle: blockColor,
+        size: blockSize
+      });
+    });
+  },
+
+  makeNeighborBlockShapes: function(grid, blocks, blockColor, blockSize) {
+    var that = this;    
     return _.map(blocks, function(block) { 
       return _.extend(that.gridCellRectangle(grid, block, block), { 
         layer: 'blocks', 

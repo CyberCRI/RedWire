@@ -1,20 +1,21 @@
 
-<div id="addShape"><button class="addShapeButton" data-show="data.canAddShape" data-on-click="data.addShape">Add shape to gallery</button>
-</div>
+<div id="toolbar">
+	<div data-show="data.shape_ready">	
+		<button class="addShapeButton" data-on-click="data.addShape">Add shape to gallery</button>
+	</div>
+	<div data-show="data.shape_ready">
+		<button class="startAgainButton" data-on-click="data.startAgain">Start again</button>
+	</div>
 
+	<div class="end">
+		<button class="doneButton"  data-on-click="data.done">End the experiment</button>
+	</div>
+</div>
 
 <div class="infos">
-<h2>
-<p>You have <span data-text="data.galleryShapeCount"></span> shapes in your gallery.</p>
-</h2>
-</div>
-
-<div id="wrapDone"
-<div id="done" data-show="data.ready">
-
-        <button class="doneButton"  data-on-click="data.done">Choose your favorite shapes</button>
-</div>
-</div>
-    
+	<h2>
+		<p><span data-text="data.blocksLeftCount"></span> blocks left.</p>
+	</h2>
+</div>    
 
 
