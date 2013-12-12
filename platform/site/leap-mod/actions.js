@@ -130,7 +130,12 @@
       // Implement a state machine, starting at the "none" state
       if(!this.params.state) this.params.state = "none";
 
-      //this.log(GE.logLevels.INFO, "shapes", this.params.shapes);
+      // Check that `shape` is still part of `shapes`. Otherwise reset it to null and the state to "none"
+      if(this.params.shape != null && !GE.contains(this.params.shapes, this.params.shape))
+      {
+        this.params.shape = null;
+        this.params.state = "none";
+      }
 
       switch(this.params.state) {
         case "none":
