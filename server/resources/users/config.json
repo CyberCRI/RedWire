@@ -1,3 +1,13 @@
 {
-	"type": "UserCollection"
+	"type": "UserCollection",
+	"properties": {
+		"isAdmin": {
+			"name": "isAdmin",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": true,
+			"id": "isAdmin",
+			"order": 0
+		}
+	}
 }
