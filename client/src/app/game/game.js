@@ -18,11 +18,12 @@ angular.module('gamEvolve.game', [
         ;
     })
 
-    .controller('GameCtrl', function HomeController($scope, games, loggedUser, users) {
+    .controller('GameCtrl', function HomeController($scope, currentGame, games, loggedUser, users) {
 
         $scope.noGameMessage = "Game Name";
 
         // Binding services
+        $scope.currentGame = currentGame;
         $scope.games = games;
         $scope.user = loggedUser;
         $scope.users = users;

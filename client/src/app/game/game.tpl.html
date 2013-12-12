@@ -6,7 +6,7 @@
             <block-container init="150" class="logo"></block-container>
             <block-container>
                 <div>
-                    <h4>{{games.current.name || noGameMessage}}</h4>
+                    <h4>{{currentGame.info.name || noGameMessage}}</h4>
                     <p>Slider</p>
                 </div>
             </block-container>
@@ -16,8 +16,8 @@
                     <button ng-click="games.loadJson('leap')" class="btn btn-primary">
                         Load Game
                     </button>
-                    <button ng-click="games.save()" class="btn btn-primary">
-                        Save Game
+                    <button ng-click="games.saveCurrent()" class="btn btn-primary">
+                        {{games.getSaveAction().name}}
                     </button>
                 </div>
                 <div ng-hide="user.isLogged()">
