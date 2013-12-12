@@ -18,6 +18,7 @@ client/.bowerrc
 
 # Ignore dpd temp files
 server/data/mongod.lock
+server/data/-deployd*
 server/.dpd/
 
 # Ignore compilation result
