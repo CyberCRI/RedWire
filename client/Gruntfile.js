@@ -105,11 +105,11 @@ module.exports = function ( grunt ) {
           }
        ]   
       },
-      build_vendor_assets: {
+      build_vendor_images: {
         files: [
           { 
-            src: [ '<%= vendor_files.assets %>' ],
-            dest: '<%= build_dir %>/assets/',
+            src: [ '<%= vendor_files.images %>' ],
+            dest: '<%= build_dir %>/assets/images/',
             cwd: '.',
             expand: true,
             flatten: true
@@ -396,11 +396,16 @@ module.exports = function ( grunt ) {
        * When the Gruntfile changes, it will automatically be reloaded!
        */
       gruntfile: {
-        files: ['Gruntfile.js', 'build.config.js'],
-        tasks: [ ],
-        options: {
-          livereload: false
-        }
+        files: ['Gruntfile.js'],
+        tasks: [ "build" ]
+      },
+
+      /**
+       * When the config chagnes, rebuild!
+       */
+      config: {
+        files: ['build.config.js'],
+        tasks: [ 'build' ]
       },
 
       /**
@@ -496,7 +501,7 @@ module.exports = function ( grunt ) {
    */
   grunt.registerTask( 'build', [
     'clean', 'html2js', 'coffee', 'recess:build',
-    'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_assets',
+    'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_images',
     'copy:build_appjs', 'copy:build_vendorjs', 'copy:build_vendorcss', 
     'index:build', 'copy:build_tests_runner', 'copy:build_tests_vendor'
   ]);

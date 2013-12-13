@@ -2,11 +2,8 @@
 globals = @
 
 # All will be in the "GE" namespace
-GE = {}
-if globals.GE
-  GE = globals.GE
-else
-  globals.GE = GE
+GE = globals.GE ? {}
+globals.GE = GE
 
 # Can be used to mimic enums in JS
 # Since this is called by the GE namspace definition below, it must be defined first

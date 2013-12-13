@@ -2,8 +2,8 @@ angular.module( 'gamEvolve', [
   'templates-app',
   'templates-common',
   'ui.bootstrap',
-  'ui.state',
   'ui.router',
+  'ui.state',
   'gamEvolve.home',
   'gamEvolve.model.games',
   'gamEvolve.model.users',
@@ -11,6 +11,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game',
   'gamEvolve.game.edit',
   'gamEvolve.game.select'
+  'gamEvolve.game.time',  
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->

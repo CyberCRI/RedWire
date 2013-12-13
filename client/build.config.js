@@ -6,7 +6,7 @@ module.exports = {
    * The `build_dir` folder is where our projects are compiled during
    * development and the `compile_dir` folder is where our app resides once it's
    * completely built.
-   */
+   */  
   build_dir: '../server/public-dev',
   compile_dir: '../server/public-prod',
 
@@ -46,24 +46,25 @@ module.exports = {
    * The `vendor_files.css` property holds any CSS files to be automatically
    * included in our app.
    *
-   * The `vendor_files.assets` property holds any assets to be copied along
+   * The `vendor_files.images` property holds any images to be copied along
    * with our app's assets. This structure is flattened, so it is not
    * recommended that you use wildcards.
    */
   vendor_files: {
     js: [
+      'vendor/jquery/jquery.js',
       'vendor/angular/angular.js',
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
       'vendor/angular-ui-utils/modules/route/route.js',
-      'vendor/jquery/jquery.js',
       'vendor/underscore/underscore.js',
-      'vendor/flexy-layout/flexy-layout.debug.js'
+      'vendor/flexy-layout/flexy-layout.debug.js',
     ],
     css: [
-      'vendor/flexy-layout/src/flexyLayout.css'
+      'vendor/flexy-layout/src/flexyLayout.css',
     ],
-    assets: [
+    images: [
+      'vendor/bootstrap/img/*.png',
     ]
   }
 };
