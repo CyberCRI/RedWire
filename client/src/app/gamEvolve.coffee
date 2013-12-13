@@ -27,11 +27,8 @@
 globals = @
 
 # All will be in the "GE" namespace
-GE = {}
-if globals.GE
-  GE = globals.GE
-else
-  globals.GE = GE
+GE = globals.GE ? {}
+globals.GE = GE
 
 GE.Model = class 
   constructor: (data = {}, @previous = null) -> 
