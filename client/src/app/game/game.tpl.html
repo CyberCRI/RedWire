@@ -56,9 +56,7 @@
 
     <!-- Footer -->
     <block-container init="40">
-        <div>
-            <p>Footer</p>
-        </div>
+        <div ui-ace="{ onLoad : aceLoaded }" ng-controller="LogCtrl" ng-model="text"></div>
     </block-container>
 
 </flexy-layout>

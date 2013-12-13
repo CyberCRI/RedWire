@@ -57,6 +57,8 @@ module.exports = {
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
       'vendor/angular-ui-utils/modules/route/route.js',
+      'vendor/ace-builds/src-min-noconflict/ace.js',
+      'vendor/angular-ui-ace/ui-ace.js',
       'vendor/underscore/underscore.js',
       'vendor/flexy-layout/flexy-layout.debug.js',
     ],
