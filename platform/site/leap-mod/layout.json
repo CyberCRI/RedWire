@@ -178,14 +178,35 @@
               "action": "if",
               "params": {
                 "in": {
+                  "value": "services.html.receive.blocksForm && services.html.receive.blocksForm.values.startAgain"
+                }
+              },
+              "children": [
+                {
+                  "send": {
+                    "model.blocks": "model.constants.initialBlocks",
+                    "model.neighbors": "model.constants.initialNeighbors",
+                    "model.blocksLeft": "9",                    
+                    "model.events" : "GE.appendToArray(model.events, { type: 'started again', time: tools.makeTimestamp(services.time)})"
+                  }
+                }
+              ]
+            },
+            { 
+              "action": "if",
+              "params": {
+                "in": {
                   "value": "services.html.receive.blocksForm && services.html.receive.blocksForm.values.addShape"
                 }
               },
               "children": [
                 {
                   "send": {
-                    "model.gallery" : "GE.appendToArray(model.gallery, model.blocks)",
-                    "model.events" : "GE.appendToArray(model.events, { type: 'added shape to gallery', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(model.blocks) })"
+                    "model.blocks": "model.constants.initialBlocks",
+                    "model.neighbors": "model.constants.initialNeighbors",
+                    "model.blocksLeft": "9",           
+                    "model.gallery" : "GE.appendToArray(model.gallery, model.blocks)",                    
+                    "model.events" : "GE.appendToArray(model.events, { type: 'added shape to gallery', time: tools.makeTimestamp(services.time)})"
                   }
                 }
               ]
@@ -217,7 +238,7 @@
           "action": "doWhile",
           "params": {
             "in": {
-              "value": "!services.html.receive.selectionForm || !services.html.receive.selectionForm.values.done"
+              "value": "(!services.html.receive.selectionForm || !services.html.receive.selectionForm.values.done) && (model.gallery.length > 0)"
             }
           },
           "children": [
