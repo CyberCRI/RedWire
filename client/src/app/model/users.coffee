@@ -4,7 +4,9 @@ angular.module('gamEvolve.model.users', [])
 
     profile: null
 
-    isLogged: -> @profile?
+    isLoggedIn: -> @profile?
+
+    isNotLoggedIn: -> not @isLoggedIn()
 
 
 .factory 'users', (loggedUser, $http, $q) ->

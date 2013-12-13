@@ -13,7 +13,7 @@
  * specified, as shown below.
  */
 angular.module( 'gamEvolve.home', [
-  'ui.state',
+  'ui.router',
   'flexyLayout'
 ])
 

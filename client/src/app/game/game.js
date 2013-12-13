@@ -1,6 +1,7 @@
 angular.module('gamEvolve.game', [
         'flexyLayout',
-        'ui.bootstrap'
+        'ui.bootstrap',
+        'gamEvolve.game.select'
     ])
 
     .config(function config($stateProvider) {
@@ -18,7 +19,7 @@ angular.module('gamEvolve.game', [
         ;
     })
 
-    .controller('GameCtrl', function HomeController($scope, currentGame, games, loggedUser, users) {
+    .controller('GameCtrl', function ($scope, currentGame, games, loggedUser, users, gameSelectionDialog) {
 
         $scope.noGameMessage = "Game Name";
 
@@ -27,6 +28,7 @@ angular.module('gamEvolve.game', [
         $scope.games = games;
         $scope.user = loggedUser;
         $scope.users = users;
+        $scope.gameSelectionDialog = gameSelectionDialog;
 
     })
 
