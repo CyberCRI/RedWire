@@ -4,6 +4,7 @@ angular.module('gamEvolve.game.select', [
 ])
 
 .factory 'gameSelectionDialog', ($dialog, currentGame) ->
+
     open: ->
       options =
         backdrop: true,
@@ -11,21 +12,12 @@ angular.module('gamEvolve.game.select', [
         backdropFade: true,
         templateUrl: 'game/select/select.tpl.html',
         controller: 'GameSelectionDialogCtrl',
-        title: 'Modal !!!'
-      instance = $dialog.dialog(options)
-      console.log instance.open
-      instance.open()
-#      $dialog.dialog(options).open()
-#      modalInstance = $modal.open
-#        templateUrl: 'game/select/select.tpl.html'
-#        controller: 'GameSelectionDialogCtrl'
-#        resolve:
-#      modalInstance.result.then (selectedGame) -> currentGame.info = selectedGame
-
+      $dialog.dialog(options).open()
 
 
 .controller 'GameSelectionDialogCtrl', ($scope, games, currentGame) ->
 
     # Registering services
-    $scope.games = games
     $scope.currentGame = currentGame
+
+    $scope.games = []
