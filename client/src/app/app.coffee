@@ -9,7 +9,8 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.users',
   'gamEvolve.util.logger',
   'gamEvolve.game',
-  'gamEvolve.game.edit'
+  'gamEvolve.game.edit',
+  'gamEvolve.game.time',  
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->
