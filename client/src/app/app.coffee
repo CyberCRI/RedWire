@@ -10,6 +10,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.logger',
   'gamEvolve.game',
   'gamEvolve.game.edit',
+  'gamEvolve.game.select'
   'gamEvolve.game.time',  
   'gamEvolve.game.log',
 ])
