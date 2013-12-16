@@ -57,17 +57,17 @@ angular.module('gamEvolve.model.games', [])
       promise = deferred.promise
       propertyNames = @propertyNames
       $http.get("/assets/games/#{gameName}.json")
-      .error((error) ->
-          # TODO Where does this line go ? showMessage(MessageType.Error, "Cannot load game files")
-          deferred.reject error
-        )
-      .success((game) ->
-          for propertyName in propertyNames
-            game[propertyName] = JSON.stringify(game[propertyName], null, 2)
-          currentGame.info = game
-          currentGame.version = game
-          deferred.resolve game
-        )
+        .error((error) ->
+            # TODO Where does this line go ? showMessage(MessageType.Error, "Cannot load game files")
+            deferred.reject error
+          )
+        .success((game) ->
+            for propertyName in propertyNames
+              game[propertyName] = JSON.stringify(game[propertyName], null, 2)
+            currentGame.info = game
+            currentGame.version = game
+            deferred.resolve game
+          )
       promise
 
     saveCurrent: ->
@@ -82,3 +82,10 @@ angular.module('gamEvolve.model.games', [])
         return @saveActions.fork
       else
         return @saveActions.createFromScratch
+
+    loadAll: ->
+      allGames = []
+      $http.get('/games')
+        .success( (result) -> allGames.push game for game in result )
+        .error( (error) -> console.log error )
+      allGames

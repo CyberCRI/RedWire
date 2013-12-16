@@ -3,7 +3,9 @@ angular.module('gamEvolve.game.select', [
   'gamEvolve.model.games'
 ])
 
-.factory 'gameSelectionDialog', ($dialog, currentGame) ->
+.factory 'gameSelectionDialog', ($dialog) ->
+
+    current = null
 
     open: ->
       options =
@@ -12,12 +14,26 @@ angular.module('gamEvolve.game.select', [
         backdropFade: true,
         templateUrl: 'game/select/select.tpl.html',
         controller: 'GameSelectionDialogCtrl',
-      $dialog.dialog(options).open()
+      current = $dialog.dialog(options)
+      current.open()
+
+    close: ->
+      current.close()
 
 
-.controller 'GameSelectionDialogCtrl', ($scope, games, currentGame) ->
+.controller 'GameSelectionDialogCtrl', ($scope, games, currentGame, gameSelectionDialog) ->
+
+    # By default, games are ordered by Name
+    $scope.orderedProperty = 'name'
+    $scope.orderedDirection = false
 
     # Registering services
     $scope.currentGame = currentGame
 
-    $scope.games = []
+    $scope.games = games.loadAll()
+
+    $scope.select = (game) ->
+      currentGame.info = game
+      gameSelectionDialog.close()
+
+    $scope.cancel = gameSelectionDialog.close

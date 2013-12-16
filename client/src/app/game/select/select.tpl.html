@@ -1,15 +1,23 @@
 <div class="modal-header">
-    <h3>I'm a modal!</h3>
+    <h3>Load Game</h3>
 </div>
 <div class="modal-body">
-    <h1>Yes !!!</h1>
-    <ul>
-        <li ng-repeat="game in games">
-            <a ng-click="currentGame.info = game">{{ game.name }}</a>
-        </li>
-    </ul>
+    <table class="table">
+        <tr>
+            <th>
+                <span ng-click="orderedProperty = 'name'; orderedDirection = !orderedDirection"
+                      style="cursor: pointer;">
+                    Name
+                </span>
+            </th>
+        </tr>
+        <tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
+            <td style="cursor: pointer;">
+                <a ng-click="select(game)" style="cursor: pointer;">{{ game.name }}</a>
+            </td>
+        </tr>
+    </table>
 </div>
 <div class="modal-footer">
-    <button class="btn btn-primary" ng-click="ok()">OK</button>
     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
 </div>
