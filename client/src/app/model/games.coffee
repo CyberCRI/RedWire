@@ -74,7 +74,7 @@ angular.module('gamEvolve.model.games', [])
       @getSaveAction().execute()
 
     getSaveAction: ->
-      unless currentGame.info and currentGame.version
+      unless currentGame.info and currentGame.version and loggedUser.isLoggedIn()
         return @saveActions.none
       if currentGame.info.id and currentGame.info.ownerId is loggedUser.profile.id
         return @saveActions.saveNewVersion
@@ -86,6 +86,14 @@ angular.module('gamEvolve.model.games', [])
     loadAll: ->
       allGames = []
       $http.get('/games')
-        .success( (result) -> allGames.push game for game in result )
         .error( (error) -> console.log error )
+        .success( (result) -> allGames.push game for game in result )
       allGames
+
+    load: (game) ->
+      $http.get('/game-versions?gameId=' + game.id)
+        .error( (error) -> console.log error )
+        .success( (result) ->
+          currentGame.info = game
+          currentGame.version = result[0]
+        )

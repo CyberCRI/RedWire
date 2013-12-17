@@ -27,13 +27,10 @@ angular.module('gamEvolve.game.select', [
     $scope.orderedProperty = 'name'
     $scope.orderedDirection = false
 
-    # Registering services
-    $scope.currentGame = currentGame
-
     $scope.games = games.loadAll()
 
     $scope.select = (game) ->
-      currentGame.info = game
+      games.load(game)
       gameSelectionDialog.close()
 
     $scope.cancel = gameSelectionDialog.close
