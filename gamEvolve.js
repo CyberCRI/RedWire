@@ -310,7 +310,7 @@
   };
 
   GE.sandboxActionCall = function(node, constants, bindings, methodName, signals, activeChildren) {
-    var action, child, childNames, e, error, evaluatedParams, evaluationContext, index, key, locals, methodResult, outParams, outputValue, paramName, paramOptions, paramValue, parent, result, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
+    var action, child, childNames, e, error, evaluatedParams, evaluationContext, index, key, locals, methodResult, outParams, outputValue, paramName, paramOptions, paramValue, parent, result, _ref, _ref1, _ref10, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
     if (signals == null) {
       signals = [];
     }
@@ -389,16 +389,16 @@
       }
       return _results;
     })());
-    _ref8 = node.params.out;
-    for (paramName in _ref8) {
-      paramValue = _ref8[paramName];
+    _ref9 = (_ref8 = node.params) != null ? _ref8.out : void 0;
+    for (paramName in _ref9) {
+      paramValue = _ref9[paramName];
       try {
         outputValue = evaluationContext.evaluateExpression(paramValue, outParams);
       } catch (_error) {
         error = _error;
         throw new Error("Error evaluating the output parameter value expression '" + paramValue + "' for node '" + node.action + "':\n" + error.stack + "\nOutput params were " + (JSON.stringify(outputParams)) + ".");
       }
-      _ref9 = GE.getParentAndKey(evaluationContext, paramName.split(".")), parent = _ref9[0], key = _ref9[1];
+      _ref10 = GE.getParentAndKey(evaluationContext, paramName.split(".")), parent = _ref10[0], key = _ref10[1];
       parent[key] = outputValue;
     }
     result.modelPatches = GE.makePatches(constants.modelData, evaluationContext.model);

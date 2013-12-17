@@ -1,0 +1,23 @@
+{
+  "keyboard": {
+    "type": "Keyboard"
+  },
+  "mouse": {
+    "type": "Mouse"
+  },
+  "graphics": {
+    "type": "Canvas",
+    "options": {
+      "layers": [ "bg", "gallery", "blocks", "drag" ]
+    }
+  },
+  "html": {
+    "type": "HTML"
+  },
+  "time": {
+    "type": "Time"
+  },
+  "http": {
+    "type": "Http"
+  }
+}
