@@ -61,9 +61,14 @@ module.exports = {
       'vendor/angular-ui-ace/ui-ace.js',
       'vendor/underscore/underscore.js',
       'vendor/flexy-layout/flexy-layout.debug.js',
+      'vendor/JSONedit/js/directives.js',
+      'vendor/JSONedit/lib/angular-ui/angular-ui.js',
+      'vendor/jquery-ui/ui/jquery-ui.custom.js',
+      'vendor/angular-ui-multi-sortable/multiSortable.js',
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
+      'vendor/JSONedit/css/styles.css',
     ],
     images: [
       'vendor/bootstrap/img/*.png',

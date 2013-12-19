@@ -12,7 +12,7 @@
                             <a class="btn btn-primary" href="#" ng-click="triggerPlay()"><i class="icon-white" ng-class="{'icon-play': !isPlaying, 'icon-pause': isPlaying}"></i></a>
                         </div>
                         <div id="sliderContainer">
-                            <input type="range" ng-model="currentFrame" min="0" max="{{totalFrames - 1}}"></input>
+                            <input type="range" ng-model="currentFrame" min="0" max="{{totalFrames - 1}}" />
                         </div>
                         <div id="frameNumberContainer">
                             <span>{{currentFrame}}</span>
@@ -33,8 +33,10 @@
             <block-container init="200">
                 <div ng-show="user.isLoggedIn()">
                     Welcome, {{user.profile.username}}
+                </div>
+                <div ng-show="user.isLoggedIn() && currentGame.version">
                     <button ng-click="games.saveCurrent()" class="btn btn-primary">
-                        {{games.getSaveAction().name}}
+                        {{games.getSaveAction().name}} Game
                     </button>
                 </div>
                 <div ng-show="user.isNotLoggedIn()">
@@ -43,7 +45,7 @@
                     </button>
                 </div>
                 <button ng-click="gameSelectionDialog.open()" class="btn btn-primary">
-                    Load Game
+                    Select a Game
                 </button>
             </block-container>
         </flexy-layout>

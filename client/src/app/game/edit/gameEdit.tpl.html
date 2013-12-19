@@ -1,15 +1,15 @@
 <!-- West Column-->
 <block-container init="300">
     <flexy-layout orientation="vertical">
-        <block-container>
-            <div>
-                <p>Something</p>
+        <block-container style="overflow:scroll; font-size:13px;">
+            <div class="jsonView" defocus ng-show="currentGame.version.model">
+                <json child="model" type="'object'"></json>
             </div>
         </block-container>
         <block-splitter></block-splitter>
-        <block-container>
+        <block-container style="overflow:scroll;">
             <div>
-                <p>Something Else</p>
+                <p>Assets</p>
             </div>
         </block-container>
     </flexy-layout>
@@ -20,15 +20,15 @@
 <!-- Center Column-->
 <block-container>
     <flexy-layout orientation="vertical">
-        <block-container>
+        <block-container style="overflow:scroll;">
             <div>
                 <h1>Game</h1>
             </div>
         </block-container>
         <block-splitter></block-splitter>
-        <block-container init="200">
+        <block-container init="200" style="overflow:scroll;">
             <div>
-                <p>Something Else</p>
+                <p>Layout (Tree)</p>
             </div>
         </block-container>
     </flexy-layout>
@@ -39,15 +39,15 @@
 <!-- East Column-->
 <block-container init="300">
     <flexy-layout orientation="vertical">
-        <block-container>
+        <block-container style="overflow:scroll;">
             <div>
-                <p>Something Else</p>
+                <p>Lib</p>
             </div>
         </block-container>
         <block-splitter></block-splitter>
-        <block-container>
+        <block-container style="overflow:scroll;">
             <div>
-                <p>Something Else</p>
+                <p>Services</p>
             </div>
         </block-container>
     </flexy-layout>
