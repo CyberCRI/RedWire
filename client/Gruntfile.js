@@ -161,9 +161,9 @@ module.exports = function ( grunt ) {
       build_tests_vendor: {
         files: [
           {
-            src: [ '*' ],
+            src: [ 'jasmine.js', 'jasmine-html.js', 'jasmine.css' ],
             dest: '<%= build_dir %>/tests/',
-            cwd: 'vendor/jasmine/',
+            cwd: 'vendor/jasmine/lib/jasmine-core',
             expand: true
           }
         ]
