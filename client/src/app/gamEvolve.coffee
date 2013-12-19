@@ -66,6 +66,7 @@ GE.NodeVisitorConstants = class
       serviceData: {}
       assets: {}
       actions: {}
+      processes: {}
       tools: {}
       evaluator: null
       log: GE.logToConsole
@@ -208,72 +209,52 @@ GE.doPatchesConflict = (patches) ->
 
   return false
 
-# Catches all errors in the function 
-# The signals parameter is only used in the "handleSignals" call
-GE.sandboxActionCall = (node, constants, bindings, methodName, signals = [], activeChildren = []) ->
-  action = constants.actions[node.action]
-  childNames = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
-
-  # TODO: compile expressions ahead of time
-  evaluationContext = new GE.EvaluationContext(constants, bindings)
-
-  # Set default paramOptions
+# Set default values in paramDefs
+GE.fillParamDefDefaults = (paramDefs) ->
   # Cannot use normal "for key, value of" loop because cannot handle replace null values
-  for paramName of action.paramDefs
-    if not action.paramDefs[paramName]? then action.paramDefs[paramName] = {}
-    _.defaults action.paramDefs[paramName], 
+  for paramName of paramDefs
+    if not paramDefs[paramName]? then paramDefs[paramName] = {}
+    _.defaults paramDefs[paramName], 
       direction: "in"
+  return paramDefs
 
+# Returns an object mapping parameter namaes to their values 
+# Param expressions is an object that contains 'in' and 'out' attributes
+GE.evaluateInputParameters = (evaluationContext, paramDefs, paramExpressions) ->
   evaluatedParams = {}
 
-  for paramName, paramOptions of action.paramDefs
+  # TODO: don't evaluate output parameters here!
+  for paramName, paramOptions of paramDefs
     # Resolve parameter value. If the layout doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
-    if paramOptions.direction in ["in", "inout"] and node.params?.in?[paramName] 
-      paramValue = node.params.in[paramName]
-    else if paramOptions.direction in ["out", "inout"] and node.params?.out?[paramName] 
-      paramValue = node.params.out[paramName]
+    if paramOptions.direction in ["in", "inout"] and paramExpressions.in?[paramName] 
+      paramValue = paramExpressions.in[paramName]
+    else if paramOptions.direction in ["out", "inout"] and paramExpressions.out?[paramName] 
+      paramValue = paramExpressions.out[paramName]
     else if paramOptions.default? 
       paramValue = paramOptions.default
     else if paramOptions.direction in ["in", "inout"]
-      throw new Error("Missing input parameter value for action: #{node.action}")
+      throw new Error("Missing input parameter value for parameter '#{paramName}'")
 
     try
       evaluatedParams[paramName] = evaluationContext.evaluateExpression(paramValue)
     catch error
-      throw new Error("Error evaluating the input parameter expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}")
+      throw new Error("Error evaluating the input parameter expression '#{paramValue}' for parameter '#{paramName}':\n#{error.stack}")
+  return evaluatedParams
 
-  locals = 
-    params: evaluatedParams
-    children: childNames
-    signals: signals
-    activeChildren: activeChildren
-    assets: constants.assets
-    tools: constants.tools
-    log: constants.log
-  try
-    methodResult = action[methodName].apply(locals)
-  catch e
-    # TODO: convert exceptions to error sigals that do not create patches
-    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.#{methodName} raised an exception #{e}. Input params were #{JSON.stringify(locals.params)}. Children are #{JSON.stringify(locals.children)}.\n#{e.stack}")
-
-  result = new GE.NodeVisitorResult(methodResult)
-
+# Updates the evaluation context by evaluating the output parameter expressions
+# Param expressions is an object that contains 'in' and 'out' attributes
+GE.evaluateOutputParameters = (evaluationContext, paramDefs, paramExpressions, evaluatedParams) ->
   # Only output parameters should be accessible
-  outParams = _.pick(evaluatedParams, (paramName for paramName, paramOptions of action.paramDefs when paramOptions.direction in ["out", "inout"]))
+  outParams = _.pick(evaluatedParams, (paramName for paramName, paramOptions of paramDefs when paramOptions.direction in ["out", "inout"]))
 
-  for paramName, paramValue of node.params.out
+  for paramName, paramValue of paramExpressions.out
     try
       outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for node '#{node.action}':\n#{error.stack}\nOutput params were #{JSON.stringify(outputParams)}.")
+      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for parameter '#{paramName}':\n#{error.stack}\nOutput params were #{JSON.stringify(outParams)}.")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
     parent[key] = outputValue
-
-  result.modelPatches = GE.makePatches(constants.modelData, evaluationContext.model)
-  result.servicePatches = GE.makePatches(constants.serviceData, evaluationContext.services)
-
-  return result
 
 GE.calculateBindingSet = (node, constants, oldBindings) ->
   bindingSet = []
@@ -328,34 +309,75 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
 GE.visitActionNode = (node, constants, bindings) ->
   if node.action not of constants.actions then throw new Error("Cannot find action '#{node.action}'")
 
-  if "update" of constants.actions[node.action]
-    result = GE.sandboxActionCall(node, constants, bindings, "update")
+  action = constants.actions[node.action]
+
+  # TODO: compile expressions ahead of time
+  evaluationContext = new GE.EvaluationContext(constants, bindings)
+  GE.fillParamDefDefaults(action.paramDefs)
+  evaluatedParams = GE.evaluateInputParameters(evaluationContext, action.paramDefs, node.params)
+
+  try
+    methodResult = action.update(evaluatedParams, constants.tools, constants.log)
+  catch e
+    # TODO: convert exceptions to error sigals that do not create patches
+    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.update raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+
+  result = new GE.NodeVisitorResult(methodResult)
+
+  GE.evaluateOutputParameters(evaluationContext, action.paramDefs, node.params, evaluatedParams)
+
+  result.modelPatches = GE.makePatches(constants.modelData, evaluationContext.model)
+  result.servicePatches = GE.makePatches(constants.serviceData, evaluationContext.services)
+
+  return result
+
+GE.visitProcessNode = (node, constants, bindings) ->
+  if node.process not of constants.processes then throw new Error("Cannot find process '#{node.process}'")
+
+  process = constants.processes[node.process]
+  childNames = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
+
+  # TODO: compile expressions ahead of time
+  evaluationContext = new GE.EvaluationContext(constants, bindings)
+  GE.fillParamDefDefaults(process.paramDefs)
+  evaluatedParams = GE.evaluateInputParameters(evaluationContext, process.paramDefs, node.params)
+
+  # check which children should be activated
+  if "listActiveChildren" of process
+    try
+      activeChildren = process.listActiveChildren(evaluatedParams, childNames, constants.tools, constants.log)
+      if not _.isArray(activeChildren) then throw new Error("Calling listActiveChildren() on node '#{node.process}' did not return an array")
+    catch e
+      # TODO: convert exceptions to error sigals that do not create patches
+      constants.log(GE.logLevels.ERROR, "Calling process #{node.process}.listActiveChildren raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
   else
-    result = new GE.NodeVisitorResult()
+    # By default, all children are considered active
+    activeChildren = childNames
 
-  if node.children?
-    # check which children should be activated
-    if "listActiveChildren" of constants.actions[node.action]
-      activeChildrenResult = GE.sandboxActionCall(node, constants, bindings, "listActiveChildren")
-      activeChildren = activeChildrenResult.result
-      if not _.isArray(activeChildren) then throw new Error("Calling listActiveChildren() on node '#{node.action}' did not return an array")
-    else
-      # By default, all children are considered active
-      activeChildren = _.range(node.children.length)
-    
-    # Continue with children
-    childSignals = new Array(node.children.length)
-    for childIndex in activeChildren
-      childResult = GE.visitNode(node.children[childIndex], constants, bindings)
-      childSignals[childIndex] = childResult.result
-      result = result.appendWith(childResult)
+  result = new GE.NodeVisitorResult()
 
-    # Handle signals
-    # TODO: if handler not defined, propogate error signals upwards? How to merge them?
-    if "handleSignals" of constants.actions[node.action]
-      errorResult = GE.sandboxActionCall(node, constants, bindings, "handleSignals", childSignals, activeChildren)
-      result = result.appendWith(errorResult)
-      result.result = errorResult # appendWith() does not affect result
+  # Continue with children
+  childSignals = new Array(node.children.length)
+  for childIndex in activeChildren
+    childResult = GE.visitNode(node.children[childIndex], constants, bindings)
+    childSignals[childIndex] = childResult.result
+    result = result.appendWith(childResult)
+
+  # Handle signals
+  # TODO: if handler not defined, propogate error signals upwards? How to merge them?
+  if "handleSignals" of process
+    try
+      signalsResult = process.handleSignals(evaluatedParams, childNames, activeChildren, childSignals, constants.tools, constants.log)
+
+      GE.evaluateOutputParameters(evaluationContext, process.paramDefs, node.params, evaluatedParams)
+      modelPatches = GE.makePatches(constants.modelData, evaluationContext.model)
+      servicePatches = GE.makePatches(constants.serviceData, evaluationContext.services)
+
+      result = result.appendWith(new GE.NodeVisitorResult(signalsResult, modelPatches, servicePatches))
+      result.result = signalsResult # appendWith() does not affect result
+    catch e
+      # TODO: convert exceptions to error sigals that do not create patches
+      constants.log(GE.logLevels.ERROR, "Calling process #{node.process}.handleSignals raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
 
   return result
 
@@ -392,14 +414,14 @@ GE.visitSendNode = (node, constants, bindings) ->
 
 GE.nodeVisitors =
   "action": GE.visitActionNode
+  "process": GE.visitProcessNode
   "foreach": GE.visitForeachNode
   "send": GE.visitSendNode
 
-# Constants are modelData, assets, actions, and serviceData
+# Constants are modelData, assets, actions, processes and serviceData
 GE.visitNode = (node, constants, bindings = {}) ->
   # TODO: defer action and call execution until whole tree is evaluated?
   # TODO: handle children as object in addition to array
-
   for nodeType, visitor of GE.nodeVisitors
     if nodeType of node
       return visitor(node, constants, bindings)
@@ -408,7 +430,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
 
   return new GE.NodeVisitorResult()
 
-# The argument "options" can values for "node", modelData", "assets", "actions", "tools", "services", "serviceConfig", and "evaluator".
+# The argument "options" can values for "node", modelData", "assets", "actions", "processes", "tools", "services", "serviceConfig", and "evaluator".
 # By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
 # If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
@@ -419,6 +441,7 @@ GE.stepLoop = (options) ->
     modelData: {}
     assets: {}
     actions: {}
+    processes: {}
     services: {}
     serviceConfig: {}
     log: null
@@ -438,6 +461,7 @@ GE.stepLoop = (options) ->
       serviceData: options.inputServiceData
       assets: options.assets
       actions: options.actions
+      processes: options.processes
       tools: options.tools
       evaluator: options.evaluator
       log: options.log
@@ -456,13 +480,36 @@ GE.stepLoop = (options) ->
 
   return modelPatches
 
-# Compile expression into sanboxed function that will produces an input value
-GE.compileExpression = (expressionText, evaluator) ->
+# Compile expression source into sandboxed function of (model, services, assets, tools, bindings, params) 
+GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "params"])
+
+# Compile tool source into sandboxed function of args..., "baking in" the "tools" and "log" parameters of "context" 
+GE.compileTool = (expressionText, context, args, evaluator) -> 
+  source = """
+    return function(#{args.join(', ')}) { 
+      var tools = context.tools; 
+      var log = context.log; 
+      #{expressionText} 
+    };
+  """
+  return GE.compileSource(source, evaluator, ["context"])
+
+# Compile action.update() source into sandboxed function of (params, tools, log) 
+GE.compileUpdate = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "tools", "log"])
+
+# Compile action listActiveChildren source into sandboxed function of (params, children, tools, log) 
+GE.compileListActiveChildren = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "tools", "log"])
+
+# Compile action handleSignals source into sandboxed function of (params, children, activeChildren, signals, tools, log) 
+GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "activeChildren", "signals", "tools", "log"])
+
+# Compile source into sandboxed function of params
+GE.compileSource = (expressionText, evaluator, params) ->
   # Parentheses are needed around function because of strange JavaScript syntax rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
   # TODO: detect errors
-  functionText = "(function(model, services, assets, tools, bindings, params) { return #{expressionText}; })"
+  functionText = "(function(#{params.join(', ')}) {\n#{expressionText}\n})"
   expressionFunc = evaluator(functionText)
   if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
   return expressionFunc
@@ -477,6 +524,7 @@ GE.determineAssetType = (url) ->
 
 # Load all the assets in the given object (name: url) and then call callback with the results, or error
 # TODO: have cache-busting be configurable
+# TODO: use promises rather than a counter
 GE.loadAssets = (assets, callback) ->
   if _.size(assets) == 0 then return callback(null, {})
 
