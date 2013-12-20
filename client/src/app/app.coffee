@@ -13,6 +13,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.select'
   'gamEvolve.game.time',  
   'gamEvolve.game.log',
+  'gamEvolve.game.player',
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->
