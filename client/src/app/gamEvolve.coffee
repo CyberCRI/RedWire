@@ -1,28 +1,3 @@
-### 
-  The algorithm is as follows:
-    1. Get a static view of the model at the current time, and keep track of it
-    2. Go though the layout from the top-down, recursively. For each:
-      1. Check validity and error out otherwise
-      2. Switch on block type:
-        * If bind, execute query and store param bindings for lower items
-        * If set, package with model bindings and add to execution list
-        * If call, package with model bindings and add to execution list
-        * If action: 
-          1. Package with model bindings and add to execution list
-          2. Run calculateActiveChildren() and continue with those recursively 
-    3. For each active bound block:
-      1. Run and gather output and error/success status
-        * In case of error: Store error signal
-        * In case of success: 
-          1. Merge model changes with others. If conflict, nothing passes
-          2. If DONE is signaled, store it
-    4. Starting at parents of active leaf blocks:
-      1. If signals are stored for children, call handleSignals() with them
-      2. If more signals are created, store them for parents
-###
-
-# Requires underscore
-
 # Get alias for the global scope
 globals = @
 
@@ -574,40 +549,3 @@ GE.loadAssets = (assets, callback) ->
               onLoad()
         else 
           return callback(new Error("Do not know how to load #{url} for asset #{name}"))
-
-# Shortcut for timeout function, to avoid trailing the time at the end 
-GE.doLater = (f) -> setTimeout(f, 0)
-
-# Freeze an object recursively
-# Based on https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/freeze
-GE.deepFreeze = (o) -> 
-  # First freeze the object
-  Object.freeze(o)
-
-  # Recursively freeze all the object properties
-  for own key, prop of o
-    if _.isObject(prop) and not Object.isFrozen(prop) then GE.deepFreeze(prop)
-
-  return o
-
-# Shortcut to clone and then freeze result
-GE.cloneFrozen = (o) -> return GE.deepFreeze(GE.cloneData(o))
-
-# Adds value to the given object, associating it with an unique (and meaningless) key
-GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value
-
-# Creates and returns an eval function that runs within an iFrame sandbox
-# Automatically runs all the scripts provided before returning the evaluator
-# Based on https://github.com/josscrowcroft/javascript-sandbox-console/blob/master/src/sandbox-console.js
-# This is not secure, given that the iframe still has access to the parent
-# TODO: Improve security using the sandbox attribute and postMessage() as described at http://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/
-GE.makeEvaluator = (scriptsToRun...) ->
-  sandboxFrame = $("<iframe width='0' height='0' />").css({visibility : 'hidden'}).appendTo("body")
-  evaluator = sandboxFrame[0].contentWindow.eval 
-  sandboxFrame.remove()
-
-  for script in scriptsToRun then evaluator(script)
-  return evaluator
-
-# Install the GE namespace in the global scope
-globals.GE = GE

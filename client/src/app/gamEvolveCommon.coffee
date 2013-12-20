@@ -67,3 +67,24 @@ GE.difference = (array) ->
   rest = Array.prototype.concat.apply(Array.prototype, Array.prototype.slice.call(arguments, 1))
   return _.filter array, (value) -> 
     return not GE.contains(rest, value)
+
+# Shortcut for timeout function, to avoid trailing the time at the end 
+GE.doLater = (f) -> setTimeout(f, 0)
+
+# Freeze an object recursively
+# Based on https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/freeze
+GE.deepFreeze = (o) -> 
+  # First freeze the object
+  Object.freeze(o)
+
+  # Recursively freeze all the object properties
+  for own key, prop of o
+    if _.isObject(prop) and not Object.isFrozen(prop) then GE.deepFreeze(prop)
+
+  return o
+
+# Shortcut to clone and then freeze result
+GE.cloneFrozen = (o) -> return GE.deepFreeze(GE.cloneData(o))
+
+# Adds value to the given object, associating it with an unique (and meaningless) key
+GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value

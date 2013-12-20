@@ -1,9 +1,9 @@
 angular.module('gamEvolve.game.player', [])
 .run( ->
   window.addEventListener 'message', (e) -> 
-      # Sandboxed iframes which lack the 'allow-same-origin' header have "null" rather than a valid origin. 
-      if e.origin is "null" && e.source is $("#gamePlayer")[0].contentWindow
-        console.log("master received message", e)
+    # Sandboxed iframes which lack the 'allow-same-origin' header have "null" rather than a valid origin. 
+    if e.origin is "null" && e.source is $("#gamePlayer")[0].contentWindow
+      console.log("master received message", e)
 
   sendMessage = (value) ->  
     # Note that we're sending the message to "*", rather than some specific origin. 
