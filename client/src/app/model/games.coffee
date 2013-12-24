@@ -1,14 +1,10 @@
 angular.module('gamEvolve.model.games', [])
 
 .factory 'currentGame', ->
-
     info: null
-
     version: null
 
-
 .factory 'games', ($http, $q, loggedUser, currentGame) ->
-
     saveInfo = ->
       $http.post('/games', currentGame.info)
         .then (savedGame) ->
@@ -20,27 +16,21 @@ angular.module('gamEvolve.model.games', [])
       $http.post('/game-versions', currentGame.version)
         .then (savedGameVersion) -> currentGame.version = savedGameVersion.data
 
-
     saveActions:
-
       none:
         name: 'No Action'
         execute: -> console.log 'games.saveActions.none executed'
-
       createFromScratch:
         name: 'Create'
         execute: -> saveInfo().then(saveVersion)
-
       saveNewVersion:
         name: 'Save'
         execute: -> saveVersion()
-
       fork:
         name: 'Fork'
         execute: ->
           delete currentGame.info.id
           saveInfo().then(saveVersion)
-
 
     propertyNames: [
       'actions'

@@ -88,3 +88,20 @@ GE.cloneFrozen = (o) -> return GE.deepFreeze(GE.cloneData(o))
 
 # Adds value to the given object, associating it with an unique (and meaningless) key
 GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value
+
+# Creates a new object based on the keys and values of the given one.
+# Calls f(value, key) for each key
+GE.mapObject = (obj, f) -> 
+  mapped = {}
+  for key, value of obj
+    mapped[key] = f(value, key)
+  return mapped
+
+# Returns an object { mimeType: String, base64: Bool, data: String}
+GE.splitDataUrl = (url) -> 
+  matches = url.match(/data:([^;]+);([^,]*),(.*)/)
+  return {
+    mimeType: matches[1]
+    base64: matches[2] == "base64"
+    data: matches[3]
+  }
