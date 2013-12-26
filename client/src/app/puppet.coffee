@@ -70,17 +70,17 @@ initializeServices = (serviceDefs) ->
   return currentServices
 
 destroyAssets = (oldAssets) ->
-  for name, dataUrl of oldAssets
+  for name, dataUrl of oldAssets.urls
     splitUrl = GE.splitDataUrl(dataUrl)
     if splitUrl.mimeType == "application/javascript"
       # Nothing to do, cannot unload JS!
     else if splitUrl.mimeType == "text/css"
-      assetNamesToData[name].remove()
+      oldAssets.data[name].remove()
     else if splitUrl.mimeType.indexOf("image/") == 0
-      URL.revokeObjectURL(assetNamesToObjectUrls[name])
+      URL.revokeObjectURL(oldAssets.objectUrls[name])
 
 # The evaluator is initialized with any JS assets.
-# Returns object containing { data: , objectUrls: }
+# Returns object containing three maps: { urls: , data: , objectUrls: }
 # TODO: move asset handling into gamEvolve.coffee. CSS could be handled by the HTML service. JS is harder.
 createAssets = (inputAssets, evaluator) ->
   assetNamesToData = {}
@@ -108,7 +108,7 @@ createAssets = (inputAssets, evaluator) ->
     else
       assetNamesToData[name] = atob(splitUrl.data)
 
-  return { data: assetNamesToData, objectUrls: assetNamesToObjectUrls }
+  return { urls: inputAssets, data: assetNamesToData, objectUrls: assetNamesToObjectUrls }
 
 loadGameCode = (gameCode, logFunction) ->
   evaluator = eval

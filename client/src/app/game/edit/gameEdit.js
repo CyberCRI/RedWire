@@ -19,16 +19,16 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
 
         $scope.model = {};
         if (currentGame.version) {
-            $scope.model = JSON.parse(currentGame.version.model);
+            $scope.model = currentGame.version.model;
         }
 
-        $scope.$watch('model', function(jso) {
+        $scope.$watch('model', function(json) {
             if (currentGame.version)
-                currentGame.version.model = $filter('json')(jso);
+                currentGame.version.model = json;
         }, true);
         $scope.$watch('currentGame.version.model', function(json) {
             if (json)
-                $scope.model = JSON.parse(json);
+                $scope.model = json;
         }, false);
 
     })

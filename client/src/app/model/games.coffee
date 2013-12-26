@@ -1,3 +1,24 @@
+# These properties need to be converted from JSON strings to objects upon loading, and back to JSON for saving
+JSON_PROPERTIES = [
+  'actions'
+  'assets'
+  'layout'
+  'model'
+  'processes'
+  'services'
+  'tools'
+]
+
+convertGameVersionFromJson = (gameVersionJson) ->
+  gameVersion = 
+    id: gameVersionJson.id
+    gameId: gameVersionJson.gameId
+    versionNumber: gameVersionJson.versionNumber
+  for propertyName in JSON_PROPERTIES
+    gameVersion[propertyName] = JSON.parse(gameVersionJson[propertyName])
+  return gameVersion
+
+
 angular.module('gamEvolve.model.games', [])
 
 .factory 'currentGame', ->
@@ -31,16 +52,6 @@ angular.module('gamEvolve.model.games', [])
         execute: ->
           delete currentGame.info.id
           saveInfo().then(saveVersion)
-
-    propertyNames: [
-      'actions'
-      'assets'
-      'layout'
-      'model'
-      'processes'
-      'services'
-      'tools'
-    ]
 
     loadJson: (gameName) ->
       deferred = $q.defer()
@@ -85,5 +96,6 @@ angular.module('gamEvolve.model.games', [])
         .error( (error) -> console.log error )
         .success( (result) ->
           currentGame.info = game
-          currentGame.version = result[0]
+          currentGame.version = convertGameVersionFromJson(result[0])
+          console.log("loaded game", currentGame)
         )

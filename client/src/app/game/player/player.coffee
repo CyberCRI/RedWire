@@ -1,13 +1,3 @@
-PROPERTY_NAMES =   [
-  'actions'
-  'assets'
-  'layout'
-  'model'
-  'processes'
-  'services'
-  'tools'
-]
-
 angular.module('gamEvolve.game.player', [])
 .controller "PlayerCtrl", ($scope, games, currentGame, gameTime) -> 
   # Bring services into the scope
@@ -37,18 +27,36 @@ angular.module('gamEvolve.game.player', [])
   gameCode = null
   $scope.$watch 'currentGame.version', (code) ->
     gameCode = code
-    if gameCode
-      # TODO: have the game model be already parsed, rather than doing it here
-      for propertyName in PROPERTY_NAMES
-        gameCode[propertyName] = JSON.parse(gameCode[propertyName])
-
-      console.log("Game code changed to", gameCode)
-      sendMessage("loadGameCode", gameCode)
+    console.log("Game code changed to", gameCode)
+    sendMessage("loadGameCode", gameCode)
 
   onUpdateFrame = (frame) ->
+    if not gameCode? then return
     console.log("Changed frame to", frame)
     sendMessage("stepLoop", { model: gameCode.model })
 
+  onResize = -> 
+    screenElement = $('#gamePlayer')
+    scale = Math.min(screenElement.parent().outerWidth() / GAME_DIMENSIONS[0], screenElement.parent().outerHeight() / GAME_DIMENSIONS[1])
+    roundedScale = scale.toFixed(2)
+    newSize = [
+      roundedScale * GAME_DIMENSIONS[0]
+      roundedScale * GAME_DIMENSIONS[1]
+    ]
+    remainingSpace = [
+      screenElement.parent().outerWidth() - newSize[0]
+      screenElement.parent().outerHeight() - newSize[1]
+    ]
+    screenElement.css 
+      "width": "#{newSize[0]}px"
+      "height": "#{newSize[1]}px"
+      "left": "#{remainingSpace[0] / 2}px"
+      "top": "#{remainingSpace[1] / 2}px"
+    console.log("Changed scale to", roundedScale)
+
   $scope.$watch('gameTime.currentFrame', onUpdateFrame, true)
+
+  onResize()
+  window.updateResize = onResize
 
 
