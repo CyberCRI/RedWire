@@ -105,3 +105,26 @@ GE.splitDataUrl = (url) ->
     base64: matches[2] == "base64"
     data: matches[3]
   }
+
+# Creates and returns a blob from a data URL (either base64 encoded or not).
+# Adopted from filer.js by Eric Bidelman (ebidel@gmail.com)
+GE.dataURLToBlob = (dataURL) ->
+  BASE64_MARKER = 'base64,'
+  if dataURL.indexOf(BASE64_MARKER) == -1
+    parts = dataURL.split(',')
+    contentType = parts[0].split(':')[1]
+    raw = parts[1]
+
+    return new Blob([raw], {type: contentType})
+
+  parts = dataURL.split(BASE64_MARKER)
+  contentType = parts[0].split(':')[1]
+  raw = window.atob(parts[1])
+  rawLength = raw.length
+
+  uInt8Array = new Uint8Array(rawLength)
+
+  for i in [0..rawLength - 1] 
+    uInt8Array[i] = raw.charCodeAt(i)
+
+  return new Blob([uInt8Array], {type: contentType})

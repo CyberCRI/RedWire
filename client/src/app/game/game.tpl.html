@@ -9,10 +9,10 @@
                     <h4>{{currentGame.info.name || noGameMessage}}</h4>
                     <div ng-controller="TimeCtrl" id="timeController">
                         <div id="playContainer">
-                            <a class="btn btn-primary" href="#" ng-click="triggerPlay()"><i class="icon-white" ng-class="{'icon-play': !isPlaying, 'icon-pause': isPlaying}"></i></a>
+                            <a class="btn btn-primary" href="#" ng-click="triggerPlay()"><i class="icon-white" ng-class="{'icon-play': !gameTime.isPlaying, 'icon-pause': gameTime.isPlaying}"></i></a>
                         </div>
                         <div id="sliderContainer">
-                            <input type="range" ng-model="currentFrame" min="0" max="{{totalFrames - 1}}" />
+                            <input type="range" ng-model="gameTime.currentFrame" min="0" max="{{gameTime.totalFrames - 1}}" />
                         </div>
                         <div id="frameNumberContainer">
                             <span>{{currentFrame}}</span>

@@ -419,6 +419,7 @@ GE.stepLoop = (options) ->
     processes: {}
     services: {}
     serviceConfig: {}
+    evaluator: eval
     log: null
     inputServiceData: null
     outputServiceData: null 

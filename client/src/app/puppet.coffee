@@ -50,6 +50,7 @@ compileTools = (inputTools, evaluator, logFunction) ->
       throw new Error("Error compiling tool '#{key}'. #{compilationError}")
   toolsContext.tools = compiledTools
   toolsContext.log = logFunction
+  return compiledTools
 
 destroyServices = (currentServices) ->
   for serviceName, service of currentServices
@@ -95,7 +96,7 @@ createAssets = (inputAssets, evaluator) ->
       css = atob(splitUrl.data)
       assetNamesToData[name] = $('<style type="text/css"></style>').html(css).appendTo("head")
     else if splitUrl.mimeType.indexOf("image/") == 0
-      blob = Util.dataURLToBlob(dataUrl)
+      blob = GE.dataURLToBlob(dataUrl)
       objectUrl = URL.createObjectURL(blob)
 
       image = new Image()
@@ -126,7 +127,7 @@ unloadGame = (loadedGame) ->
   destroyServices(loadedGame.services)
 
 makeReporter = (destinationWindow, destinationOrigin) ->
-  return (err, operation) ->
+  return (err, operation, value) ->
     if err 
       destinationWindow.postMessage({ type: "error", operation: operation, error: err.stack }, destinationOrigin)
     else
@@ -149,8 +150,24 @@ window.addEventListener 'message', (e) ->
     switch message.operation
       when "loadGameCode"
         if loadedGame? then unloadGame(loadedGame)
-        loadGameCode(message.value)
+        loadedGame = loadGameCode(message.value)
         reporter(null, "loadGameCode")
+      when "stepLoop"
+        modelPatches = GE.stepLoop
+          node: loadedGame.layout
+          modelData: message.value.model
+          assets: loadedGame.assets.data
+          actions: loadedGame.actions
+          processes: loadedGame.processes
+          services: loadedGame.services
+          tools: loadedGame.tools
+          evaluator: eval
+          serviceConfig: {}
+          log: null
+          inputServiceData: null
+          outputServiceData: null 
+        # TODO: return service patches as well
+        reporter(null, "stepLoop", modelPatches)
       else
         throw new Error("Unknown type for message #{message}")
   catch error

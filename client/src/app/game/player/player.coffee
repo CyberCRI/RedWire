@@ -9,7 +9,11 @@ PROPERTY_NAMES =   [
 ]
 
 angular.module('gamEvolve.game.player', [])
-.controller("PlayerCtrl", ($scope, games, currentGame) -> 
+.controller "PlayerCtrl", ($scope, games, currentGame, gameTime) -> 
+  # Bring services into the scope
+  $scope.currentGame = currentGame
+  $scope.gameTime = gameTime
+
   # TODO: take out this "global" message handler?
   window.addEventListener 'message', (e) -> 
     # Sandboxed iframes which lack the 'allow-same-origin' header have "null" rather than a valid origin. 
@@ -30,14 +34,21 @@ angular.module('gamEvolve.game.player', [])
   # TODO: remove this
   window.sendMessage = sendMessage
 
-  gameCode = {}
+  gameCode = null
   $scope.$watch 'currentGame.version', (code) ->
-    if code
+    gameCode = code
+    if gameCode
       # TODO: have the game model be already parsed, rather than doing it here
       for propertyName in PROPERTY_NAMES
-        code[propertyName] = JSON.parse(code[propertyName])
+        gameCode[propertyName] = JSON.parse(gameCode[propertyName])
 
-      console.log("Game code changed to", code)
-      sendMessage("loadGameCode", code)
-)
+      console.log("Game code changed to", gameCode)
+      sendMessage("loadGameCode", gameCode)
+
+  onUpdateFrame = (frame) ->
+    console.log("Changed frame to", frame)
+    sendMessage("stepLoop", { model: gameCode.model })
+
+  $scope.$watch('gameTime.currentFrame', onUpdateFrame, true)
+
 
