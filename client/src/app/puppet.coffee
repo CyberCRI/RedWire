@@ -148,6 +148,11 @@ window.addEventListener 'message', (e) ->
   message = e.data
   try 
     switch message.operation
+      when "changeScale"
+        $("#gameContent").css 
+          "-webkit-transform": "scale(#{message.value})"
+          "transform": "scale(#{message.value})"
+        reporter(null, "changeScale")
       when "loadGameCode"
         if loadedGame? then unloadGame(loadedGame)
         loadedGame = loadGameCode(message.value)

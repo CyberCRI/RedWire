@@ -52,11 +52,14 @@ angular.module('gamEvolve.game.player', [])
       "height": "#{newSize[1]}px"
       "left": "#{remainingSpace[0] / 2}px"
       "top": "#{remainingSpace[1] / 2}px"
+    sendMessage("changeScale", roundedScale)
     console.log("Changed scale to", roundedScale)
 
   $scope.$watch('gameTime.currentFrame', onUpdateFrame, true)
 
-  onResize()
   window.updateResize = onResize
+
+  # TODO: make resize automatic rather than a manual operation
+  onResize()
 
 
