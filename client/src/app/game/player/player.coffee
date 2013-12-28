@@ -53,13 +53,12 @@ angular.module('gamEvolve.game.player', [])
       "left": "#{remainingSpace[0] / 2}px"
       "top": "#{remainingSpace[1] / 2}px"
     sendMessage("changeScale", roundedScale)
-    console.log("Changed scale to", roundedScale)
 
   $scope.$watch('gameTime.currentFrame', onUpdateFrame, true)
 
   window.updateResize = onResize
 
-  # TODO: make resize automatic rather than a manual operation
-  onResize()
-
-
+  # TODO: need some kind of notification from flexy-layout when a block changes size!
+  # Until then automatically resize after the user moves the mouse. Leave some time for flexy layout to adjust.
+  $(window).on "mouseup", -> setTimeout(onResize, 300)
+  $(window).on "resize", -> setTimeout(onResize, 5000)
