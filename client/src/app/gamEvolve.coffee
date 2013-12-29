@@ -409,7 +409,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
 # By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
 # If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
-# Returns a list of model patches.
+# Returns { modelPatches: [], servicePatches: [] }
 GE.stepLoop = (options) ->
   _.defaults options, 
     node: null
@@ -426,6 +426,7 @@ GE.stepLoop = (options) ->
 
   if options.outputServiceData != null
     modelPatches = []
+    servicePatches = []
   else
     if options.inputServiceData == null
       options.inputServiceData = {}
@@ -446,15 +447,13 @@ GE.stepLoop = (options) ->
     modelPatches = result.modelPatches
 
     if GE.doPatchesConflict(result.servicePatches) then throw new Error("Service patches conflict: #{JSON.stringify(result.servicePatches)}")
+    servicePatches = result.servicePatches
     options.outputServiceData = GE.applyPatches(result.servicePatches, options.inputServiceData)
-
-  # TODO: return the service data rather than logging it here
-  # options?.log?(GE.logLevels.LOG, "Output service data", options.outputServiceData)
 
   for serviceName, service of options.services
     service.establishData(options.outputServiceData[serviceName], options.serviceConfig, options.assets)
 
-  return modelPatches
+  return { modelPatches: modelPatches, servicePatches: servicePatches }
 
 # Compile expression source into sandboxed function of (model, services, assets, tools, bindings, params) 
 GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "params"])
