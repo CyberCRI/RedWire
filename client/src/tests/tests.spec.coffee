@@ -1,6 +1,8 @@
 # Get alias for the global scope
 globals = @
 
+makeEvaluator = -> eval
+
 describe "gamEvolve", ->
   beforeEach ->
     @addMatchers 
@@ -117,7 +119,7 @@ describe "gamEvolve", ->
 
       constants = new GE.NodeVisitorConstants
         actions: actions
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       GE.visitNode(layout, constants, {})
       expect(isCalled).toBeTruthy()
 
@@ -197,7 +199,7 @@ describe "gamEvolve", ->
         modelData: oldModel, 
         assets: assets
         actions: actions
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       newModel = GE.applyPatches(results.modelPatches, oldModel)
 
@@ -229,7 +231,7 @@ describe "gamEvolve", ->
       constants = new GE.NodeVisitorConstants
         modelData: oldModel
         serviceData: oldServiceData
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       newModel = GE.applyPatches(results.modelPatches, oldModel)
       newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
@@ -308,7 +310,7 @@ describe "gamEvolve", ->
         modelData: models[0]
         actions: actions
         processes: processes
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       models[1] = GE.applyPatches(results.modelPatches, models[0])
 
@@ -320,7 +322,7 @@ describe "gamEvolve", ->
         modelData: models[1]
         actions: actions
         processes: processes
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       models[2] = GE.applyPatches(results.modelPatches, models[1])
 
@@ -363,7 +365,7 @@ describe "gamEvolve", ->
 
       constants = new GE.NodeVisitorConstants
         actions: actions
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       GE.visitNode(layout, constants, {})
 
       expect(actions.getName.update).toHaveBeenCalled()
@@ -408,7 +410,7 @@ describe "gamEvolve", ->
       constants = new GE.NodeVisitorConstants
         modelData: oldModel
         actions: actions
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       newModel = GE.applyPatches(results.modelPatches, oldModel)
 
@@ -440,7 +442,7 @@ describe "gamEvolve", ->
       constants = new GE.NodeVisitorConstants
         serviceData: oldServiceData
         actions: actions
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       results = GE.visitNode(layout, constants, {})
       newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
 
@@ -494,7 +496,7 @@ describe "gamEvolve", ->
         actions: actions 
         services: services
         inputServiceData: inputServiceData
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
 
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {}, {})
       expect(modelPatches).toBeEmpty()
@@ -536,7 +538,7 @@ describe "gamEvolve", ->
         tools: tools
         services: services
         serviceConfig: serviceConfig
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
 
       expect(services.myService.provideData).toHaveBeenCalledWith(serviceConfig, {})
       expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, serviceConfig, {})
@@ -589,7 +591,7 @@ describe "gamEvolve", ->
         node: layoutA
         modelData: oldData
         actions: actions 
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       ).toThrow()
       
       layoutB = 
@@ -617,19 +619,5 @@ describe "gamEvolve", ->
         node: layoutB 
         actions: actions 
         services: services
-        evaluator: GE.makeEvaluator()
+        evaluator: makeEvaluator()
       ).toThrow()
-
-  describe "sandbox", ->
-    it "evaluates expressions", ->
-      evaluator = GE.makeEvaluator()
-      expect(evaluator("a = 1")).toEqual(1)
-      expect(evaluator("a + 1")).toEqual(2)
-
-    it "does not pollute", ->
-      evaluator = GE.makeEvaluator()
-      expect(evaluator("typeof(GE)")).toEqual("undefined")
-      expect(evaluator("a = 1")).toEqual(1)
-
-      evaluator2 = GE.makeEvaluator()
-      expect(evaluator2("typeof(a)")).toEqual("undefined")
