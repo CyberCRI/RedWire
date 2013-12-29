@@ -59,6 +59,5 @@ angular.module('gamEvolve.game.player', [])
   window.updateResize = onResize
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!
-  # Until then automatically resize after the user moves the mouse. Leave some time for flexy layout to adjust.
-  $(window).on "mouseup", -> setTimeout(onResize, 300)
-  $(window).on "resize", -> setTimeout(onResize, 5000)
+  # Until then automatically resize once in a while.
+  setInterval(onResize, 1000)
