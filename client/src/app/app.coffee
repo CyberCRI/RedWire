@@ -14,6 +14,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.time',  
   'gamEvolve.game.log',
   'gamEvolve.game.player',
+  'gamEvolve.model.history',
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->

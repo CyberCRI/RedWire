@@ -1,8 +1,8 @@
 angular.module('gamEvolve.game.player', [])
-.controller "PlayerCtrl", ($scope, games, currentGame, gameTime) -> 
+.controller "PlayerCtrl", ($scope, games, currentGame, gameHistory) -> 
   # Bring services into the scope
   $scope.currentGame = currentGame
-  $scope.gameTime = gameTime
+  $scope.gameHistory = gameHistory
 
   # TODO: take out this "global" message handler?
   window.addEventListener 'message', (e) -> 
@@ -54,9 +54,7 @@ angular.module('gamEvolve.game.player', [])
       "top": "#{remainingSpace[1] / 2}px"
     sendMessage("changeScale", roundedScale)
 
-  $scope.$watch('gameTime.currentFrame', onUpdateFrame, true)
-
-  window.updateResize = onResize
+  $scope.$watch('gameHistory.currentFrame', onUpdateFrame, true)
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!
   # Until then automatically resize once in a while.
