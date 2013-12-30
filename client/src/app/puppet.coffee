@@ -4,7 +4,20 @@
 GAME_DIMENSIONS = [960, 540]
 
 
+# GLOBALS
+
+loadedGame = null
+isRecording = false
+lastModel = null
+recordedFrames = [] # Contains objects like {modelPatches: [], inputServiceData: {}, servicePatches: []}
+recordFrameReporter = null # Callback function for onRecordFrame
+
+
 # FUNCTIONS
+
+# Find the correct function across browsers
+requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+  window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 
 # Converts input actions (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were
@@ -126,39 +139,65 @@ unloadGame = (loadedGame) ->
   destroyAssets(loadedGame.assets)
   destroyServices(loadedGame.services)
 
-makeReporter = (destinationWindow, destinationOrigin) ->
-  return (err, operation, value) ->
+makeReporter = (destinationWindow, destinationOrigin, operation) ->
+  return (err, value) ->
     if err 
       destinationWindow.postMessage({ type: "error", operation: operation, error: err.stack }, destinationOrigin)
     else
-      destinationWindow.postMessage({ type: "success", operation: operation }, destinationOrigin)
+      destinationWindow.postMessage({ type: "success", operation: operation, value: value }, destinationOrigin)
+
+onRecordFrame = ->
+  if !isRecording then return  # Stop when requested
+
+  try
+    result = GE.stepLoop
+      node: loadedGame.layout
+      modelData: lastModel
+      assets: loadedGame.assets.data
+      actions: loadedGame.actions
+      processes: loadedGame.processes
+      services: loadedGame.services
+      tools: loadedGame.tools
+      evaluator: eval
+      serviceConfig: {}
+      log: null
+      inputServiceData: null
+      outputServiceData: null 
+
+    # Log result to send back in onStopRecording()
+    recordedFrames.push(result)
+    lastModel = GE.applyPatches(result.modelPatches, lastModel)
+
+    requestAnimationFrame(onRecordFrame) # Loop!
+  catch e
+    # TODO: send back current frame results, even if they conflict or other error arises
+    isRecording = false
+    recordFrameReporter(e)
 
 
 # MAIN
-
-loadedGame = null
 
 # Dispatch incoming messages
 window.addEventListener 'message', (e) ->
   # Ignore messages from self
   if e.origin == "null" then return 
 
-  reporter = makeReporter(e.source, e.origin)
-
   message = e.data
+  reporter = makeReporter(e.source, e.origin, message.operation)
+
   try 
     switch message.operation
       when "changeScale"
         $("#gameContent").css 
           "-webkit-transform": "scale(#{message.value})"
           "transform": "scale(#{message.value})"
-        reporter(null, "changeScale")
+        reporter(null)
       when "loadGameCode"
         if loadedGame? then unloadGame(loadedGame)
         loadedGame = loadGameCode(message.value)
-        reporter(null, "loadGameCode")
+        reporter(null)
       when "stepLoop"
-        modelPatches = GE.stepLoop
+        result = GE.stepLoop
           node: loadedGame.layout
           modelData: message.value.model
           assets: loadedGame.assets.data
@@ -171,8 +210,17 @@ window.addEventListener 'message', (e) ->
           log: null
           inputServiceData: null
           outputServiceData: null 
-        # TODO: return service patches as well
-        reporter(null, "stepLoop", modelPatches)
+        reporter(null, result)
+      when "startRecording"
+        lastModel = message.value.model
+        recordedFrames = []
+        recordFrameReporter = makeReporter(e.source, e.origin, "recording")
+        isRecording = true
+        requestAnimationFrame(onRecordFrame)
+        reporter(null, result)
+      when "stopRecording"
+        isRecording = false
+        reporter(null, recordedFrames)
       else
         throw new Error("Unknown type for message #{message}")
   catch error

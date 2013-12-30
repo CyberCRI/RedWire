@@ -409,7 +409,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
 # By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
 # If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
-# Returns { modelPatches: [], servicePatches: [] }
+# Returns { modelPatches: [...], inputServiceData: {...}, servicePatches: [...] }
 GE.stepLoop = (options) ->
   _.defaults options, 
     node: null
@@ -453,7 +453,7 @@ GE.stepLoop = (options) ->
   for serviceName, service of options.services
     service.establishData(options.outputServiceData[serviceName], options.serviceConfig, options.assets)
 
-  return { modelPatches: modelPatches, servicePatches: servicePatches }
+  return { modelPatches: modelPatches, inputServiceData: options.inputServiceData, servicePatches: servicePatches }
 
 # Compile expression source into sandboxed function of (model, services, assets, tools, bindings, params) 
 GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "params"])

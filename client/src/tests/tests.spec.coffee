@@ -463,7 +463,8 @@ describe "gamEvolve", ->
         outputServiceData: outputServiceData
 
       expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {}, {})
-      expect(result).toDeeplyEqual({ modelPatches: [], servicePatches: [] })
+      expect(result.modelPatches).toBeEmpty()
+      expect(result.servicePatches).toBeEmpty()
 
     it "sends service input data to visitNode()", ->
       services = 
