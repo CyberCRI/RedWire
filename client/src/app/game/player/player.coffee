@@ -10,19 +10,19 @@ angular.module('gamEvolve.game.player', [])
     if e.origin isnt "null" or e.source isnt $("#gamePlayer")[0].contentWindow then return
 
     if e.data.type is "error"
-      return console.error("Puppet reported error", e.data.error)
+      console.error("Puppet reported error", e.data.error)
+    else
+      console.log("Puppet reported success", e.data)
 
-    console.log("Puppet reported success", e.data)
+    # TODO: handle errors in recording
 
     switch e.data.operation
-      when "stepLoop" 
-        # If we are on the last frame...
-        if gameHistory.currentFrameNumber is gameHistory.frames.length - 1
-          # ... add a new frame to the list
-          { modelPatches: modelPatches, servicePatches: servicePatches } = e.data.value
-          model = GE.applyPatches(gameHistory.frames[gameHistory.frames.length - 1], modelPatches)
-          $scope.$apply ->
-            $scope.gameHistory.frames.push({ model: model })
+      when "stopRecording" 
+        $scope.$apply ->
+          # Remove frames after the current one
+          gameHistory.frames.length = gameHistory.currentFrameNumber + 1
+          # Add in the new results
+          gameHistory.frames.push(e.data.value...)
 
   sendMessage = (operation, value) ->  
     # Note that we're sending the message to "*", rather than some specific origin. 
@@ -62,18 +62,21 @@ angular.module('gamEvolve.game.player', [])
       "top": "#{remainingSpace[1] / 2}px"
     sendMessage("changeScale", roundedScale)
 
-  # onUpdateFrame = (frameNumber) ->
-  #   if not gameCode? then return
-  #   console.log("Changed frame to", frameNumber)
-  #   sendMessage("stepLoop", { model: gameHistory.frames[frameNumber - 1].model })
+  onUpdateFrame = (frameNumber) ->
+    if not gameCode? then return
+    console.log("Changed frame to", frameNumber)
+    frameResult = gameHistory.frames[frameNumber]
+    outputServiceData = GE.applyPatches(frameResult.servicePatches, frameResult.inputServiceData)
+    sendMessage("playFrame", { outputServiceData: outputServiceData })
 
   onUpdateRecording = (isRecording) ->
+    if not gameCode? then return
     if isRecording 
       sendMessage("startRecording", { model: gameHistory.frames[gameHistory.currentFrameNumber].model })
     else
       sendMessage("stopRecording")
 
-  # $scope.$watch('gameHistory.currentFrameNumber', onUpdateFrame, true)
+  $scope.$watch('gameHistory.currentFrameNumber', onUpdateFrame, true)
   $scope.$watch('gameHistory.isRecording', onUpdateRecording, true)
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!

@@ -175,6 +175,18 @@ onRecordFrame = ->
     recordFrameReporter(e)
 
 
+onPlayFrame = (outputServiceData) ->
+  GE.stepLoop
+    node: loadedGame.layout
+    assets: loadedGame.assets.data
+    actions: loadedGame.actions
+    processes: loadedGame.processes
+    services: loadedGame.services
+    tools: loadedGame.tools
+    serviceConfig: {}
+    outputServiceData: outputServiceData 
+
+
 # MAIN
 
 # Dispatch incoming messages
@@ -196,31 +208,19 @@ window.addEventListener 'message', (e) ->
         if loadedGame? then unloadGame(loadedGame)
         loadedGame = loadGameCode(message.value)
         reporter(null)
-      when "stepLoop"
-        result = GE.stepLoop
-          node: loadedGame.layout
-          modelData: message.value.model
-          assets: loadedGame.assets.data
-          actions: loadedGame.actions
-          processes: loadedGame.processes
-          services: loadedGame.services
-          tools: loadedGame.tools
-          evaluator: eval
-          serviceConfig: {}
-          log: null
-          inputServiceData: null
-          outputServiceData: null 
-        reporter(null, result)
       when "startRecording"
         lastModel = message.value.model
         recordedFrames = []
         recordFrameReporter = makeReporter(e.source, e.origin, "recording")
         isRecording = true
         requestAnimationFrame(onRecordFrame)
-        reporter(null, result)
+        reporter(null)
       when "stopRecording"
         isRecording = false
         reporter(null, recordedFrames)
+      when "playFrame"
+        onPlayFrame(message.value.outputServiceData)
+        reporter(null)
       else
         throw new Error("Unknown type for message #{message}")
   catch error

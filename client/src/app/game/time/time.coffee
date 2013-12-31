@@ -24,3 +24,4 @@ angular.module('gamEvolve.game.time', [])
   # Copy certain attributes back to the service
   $scope.$watch("isPlaying", (isPlaying) -> gameHistory.isPlaying = isPlaying)
   $scope.$watch("isRecording", (isRecording) -> gameHistory.isRecording = isRecording)
+  $scope.$watch("currentFrame", (currentFrame) -> gameHistory.currentFrameNumber = currentFrame)
