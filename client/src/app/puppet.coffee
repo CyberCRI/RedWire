@@ -146,34 +146,36 @@ makeReporter = (destinationWindow, destinationOrigin, operation) ->
     else
       destinationWindow.postMessage({ type: "success", operation: operation, value: value }, destinationOrigin)
 
-onRecordFrame = ->
+onRecordFrame = (model, inputServiceData = null) ->
+  return GE.stepLoop
+    node: loadedGame.layout
+    modelData: model
+    assets: loadedGame.assets.data
+    actions: loadedGame.actions
+    processes: loadedGame.processes
+    services: loadedGame.services
+    tools: loadedGame.tools
+    evaluator: eval
+    serviceConfig: {}
+    log: null
+    inputServiceData: inputServiceData
+    outputServiceData: null 
+
+onRepeatRecordFrame = ->
   if !isRecording then return  # Stop when requested
 
   try
-    result = GE.stepLoop
-      node: loadedGame.layout
-      modelData: lastModel
-      assets: loadedGame.assets.data
-      actions: loadedGame.actions
-      processes: loadedGame.processes
-      services: loadedGame.services
-      tools: loadedGame.tools
-      evaluator: eval
-      serviceConfig: {}
-      log: null
-      inputServiceData: null
-      outputServiceData: null 
+    result = onRecordFrame(lastModel)
 
     # Log result to send back in onStopRecording()
     recordedFrames.push(result)
     lastModel = GE.applyPatches(result.modelPatches, lastModel)
 
-    requestAnimationFrame(onRecordFrame) # Loop!
+    requestAnimationFrame(onRepeatRecordFrame) # Loop!
   catch e
     # TODO: send back current frame results, even if they conflict or other error arises
     isRecording = false
     recordFrameReporter(e)
-
 
 onPlayFrame = (outputServiceData) ->
   GE.stepLoop
@@ -186,6 +188,20 @@ onPlayFrame = (outputServiceData) ->
     serviceConfig: {}
     outputServiceData: outputServiceData 
 
+# Recalculate frames with different code but the same inputServiceData
+onUpdateFrames = (model, inputServiceDataFrames) ->
+  results = []
+  lastModel = model
+  for inputServiceData in inputServiceDataFrames
+    try
+      result = onRecordFrame(lastModel, inputServiceData)
+      lastModel = GE.applyPatches(result.modelPatches, lastModel)
+      results.push(result)
+    catch e
+      results.push({ error: e })
+      return results # Return right away
+
+  return results
 
 # MAIN
 
@@ -213,14 +229,21 @@ window.addEventListener 'message', (e) ->
         recordedFrames = []
         recordFrameReporter = makeReporter(e.source, e.origin, "recording")
         isRecording = true
-        requestAnimationFrame(onRecordFrame)
+        requestAnimationFrame(onRepeatRecordFrame)
         reporter(null)
       when "stopRecording"
         isRecording = false
         reporter(null, recordedFrames)
+      when "recordFrame"
+        results = onRecordFrame(message.value.model)
+        reporter(null, results)
       when "playFrame"
         onPlayFrame(message.value.outputServiceData)
         reporter(null)
+      when "updateFrames"
+        results = onUpdateFrames(message.value.model, message.value.inputServiceDataFrames)
+        # TODO: check for errors and return them along with other data
+        reporter(null, results)
       else
         throw new Error("Unknown type for message #{message}")
   catch error

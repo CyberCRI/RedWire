@@ -9,14 +9,34 @@ angular.module('gamEvolve.game.player', [])
     # Sandboxed iframes which lack the 'allow-same-origin' header have "null" rather than a valid origin. 
     if e.origin isnt "null" or e.source isnt $("#gamePlayer")[0].contentWindow then return
 
-    if e.data.type is "error"
-      console.error("Puppet reported error", e.data.error)
+    message = e.data
+
+    if message.type is "error"
+      console.error("Puppet reported error", message.error)
     else
-      console.log("Puppet reported success", e.data)
+      console.log("Puppet reported success", message)
 
     # TODO: handle errors in recording
 
-    switch e.data.operation
+    switch message.operation
+      when "loadGameCode"
+        # Once the game is loaded
+        if gameHistory.frames.length > 0
+          # If there are already frames, then update them 
+          inputServiceDataFrames = _.pluck(gameHistory.frames, "inputServiceData")
+          sendMessage("updateFrames", { model: gameHistory.frames[0].model, inputServiceDataFrames })
+        else
+          # Else just record the first frame
+          sendMessage("recordFrame", { model: gameCode.model })
+      when "recordFrame"
+        # Set the first frame
+        $scope.$apply ->
+          newFrame = 
+            model: gameCode.model # Initial model
+            inputServiceData: message.value.inputServiceData 
+            servicePatches: message.value.servicePatches 
+          gameHistory.frames = [newFrame]
+          gameHistory.currentFrameNumber = 0
       when "stopRecording" 
         $scope.$apply ->
           # Remove frames after the current one
@@ -24,7 +44,7 @@ angular.module('gamEvolve.game.player', [])
 
           # Add in the new results
           lastModel = gameHistory.frames[gameHistory.currentFrameNumber].model
-          for results in e.data.value
+          for results in message.value
             lastModel = GE.applyPatches(results.modelPatches, lastModel)
             gameHistory.frames.push
               model: lastModel
@@ -33,7 +53,6 @@ angular.module('gamEvolve.game.player', [])
 
           # Go the the last frame
           gameHistory.currentFrameNumber = gameHistory.frames.length - 1
-
 
   sendMessage = (operation, value) ->  
     # Note that we're sending the message to "*", rather than some specific origin. 
@@ -46,7 +65,6 @@ angular.module('gamEvolve.game.player', [])
 
     gameCode = code
     console.log("Game code changed to", gameCode)
-    $scope.gameHistory.frames = [model: code.model]
     sendMessage("loadGameCode", gameCode)
 
   oldRoundedScale = null
@@ -79,6 +97,7 @@ angular.module('gamEvolve.game.player', [])
     frameResult = gameHistory.frames[frameNumber]
     outputServiceData = GE.applyPatches(frameResult.servicePatches, frameResult.inputServiceData)
     sendMessage("playFrame", { outputServiceData: outputServiceData })
+  $scope.$watch('gameHistory.currentFrameNumber', onUpdateFrame, true)
 
   onUpdateRecording = (isRecording) ->
     if not gameCode? then return
@@ -86,8 +105,6 @@ angular.module('gamEvolve.game.player', [])
       sendMessage("startRecording", { model: gameHistory.frames[gameHistory.currentFrameNumber].model })
     else
       sendMessage("stopRecording")
-
-  $scope.$watch('gameHistory.currentFrameNumber', onUpdateFrame, true)
   $scope.$watch('gameHistory.isRecording', onUpdateRecording, true)
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!
