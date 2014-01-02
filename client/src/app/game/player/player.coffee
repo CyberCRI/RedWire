@@ -21,8 +21,19 @@ angular.module('gamEvolve.game.player', [])
         $scope.$apply ->
           # Remove frames after the current one
           gameHistory.frames.length = gameHistory.currentFrameNumber + 1
+
           # Add in the new results
-          gameHistory.frames.push(e.data.value...)
+          lastModel = gameHistory.frames[gameHistory.currentFrameNumber].model
+          for results in e.data.value
+            lastModel = GE.applyPatches(results.modelPatches, lastModel)
+            gameHistory.frames.push
+              model: lastModel
+              servicePatches: results.servicePatches
+              inputServiceData: results.inputServiceData
+
+          # Go the the last frame
+          gameHistory.currentFrameNumber = gameHistory.frames.length - 1
+
 
   sendMessage = (operation, value) ->  
     # Note that we're sending the message to "*", rather than some specific origin. 
