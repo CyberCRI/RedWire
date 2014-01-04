@@ -1,5 +1,9 @@
 angular.module('gamEvolve.game.player', [])
 .controller "PlayerCtrl", ($scope, games, currentGame, gameHistory) -> 
+  # Globals
+  gameCode = null
+  oldRoundedScale = null
+
   # Bring services into the scope
   $scope.currentGame = currentGame
   $scope.gameHistory = gameHistory
@@ -53,21 +57,33 @@ angular.module('gamEvolve.game.player', [])
 
           # Go the the last frame
           gameHistory.currentFrameNumber = gameHistory.frames.length - 1
+      when "updateFrames" 
+        $scope.$apply ->
+          # Replace existing frames by the new results
+          lastModel = gameHistory.frames[0].model
+          for index, results of message.value
+            lastModel = GE.applyPatches(results.modelPatches, lastModel)
+            gameHistory.frames[index] = 
+              model: lastModel
+              servicePatches: results.servicePatches
+              inputServiceData: results.inputServiceData
+
+          # Display the current frame
+          onUpdateFrame(gameHistory.currentFrameNumber)
 
   sendMessage = (operation, value) ->  
     # Note that we're sending the message to "*", rather than some specific origin. 
     # Sandboxed iframes which lack the 'allow-same-origin' header don't have an origin which you can target: you'll have to send to any origin, which might alow some esoteric attacks. 
     $('#gamePlayer')[0].contentWindow.postMessage({operation: operation, value: value}, '*')
 
-  gameCode = null
-  $scope.$watch 'currentGame.version', (code) ->
+  onUpdateCode = (code) ->
     if not code? then return
 
     gameCode = code
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
+  $scope.$watch('currentGame.version', onUpdateCode, true)
 
-  oldRoundedScale = null
   onResize = -> 
     screenElement = $('#gamePlayer')
     scale = Math.min(screenElement.parent().outerWidth() / GAME_DIMENSIONS[0], screenElement.parent().outerHeight() / GAME_DIMENSIONS[1])
