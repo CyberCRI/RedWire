@@ -184,6 +184,12 @@ GE.doPatchesConflict = (patches) ->
 
   return false
 
+# Modifies patches by adding the given path to them
+GE.addPathToPatches = (path, patches) -> 
+  for patch in patches 
+    patch.path = path
+  return patches
+
 # Set default values in paramDefs
 GE.fillParamDefDefaults = (paramDefs) ->
   # Cannot use normal "for key, value of" loop because cannot handle replace null values
@@ -281,7 +287,7 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
 
   return bindingSet
 
-GE.visitActionNode = (node, constants, bindings) ->
+GE.visitActionNode = (path, node, constants, bindings) ->
   if node.action not of constants.actions then throw new Error("Cannot find action '#{node.action}'")
 
   action = constants.actions[node.action]
@@ -301,12 +307,12 @@ GE.visitActionNode = (node, constants, bindings) ->
 
   GE.evaluateOutputParameters(evaluationContext, action.paramDefs, node.params, evaluatedParams)
 
-  result.modelPatches = GE.makePatches(constants.modelData, evaluationContext.model)
-  result.servicePatches = GE.makePatches(constants.serviceData, evaluationContext.services)
+  result.modelPatches = GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model))
+  result.servicePatches = GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services))
 
   return result
 
-GE.visitProcessNode = (node, constants, bindings) ->
+GE.visitProcessNode = (path, node, constants, bindings) ->
   if node.process not of constants.processes then throw new Error("Cannot find process '#{node.process}'")
 
   process = constants.processes[node.process]
@@ -334,7 +340,7 @@ GE.visitProcessNode = (node, constants, bindings) ->
   # Continue with children
   childSignals = new Array(node.children.length)
   for childIndex in activeChildren
-    childResult = GE.visitNode(node.children[childIndex], constants, bindings)
+    childResult = GE.visitNode(GE.appendToArray(path, childIndex), node.children[childIndex], constants, bindings)
     childSignals[childIndex] = childResult.result
     result = result.appendWith(childResult)
 
@@ -345,8 +351,8 @@ GE.visitProcessNode = (node, constants, bindings) ->
       signalsResult = process.handleSignals(evaluatedParams, childNames, activeChildren, childSignals, constants.tools, constants.log)
 
       GE.evaluateOutputParameters(evaluationContext, process.paramDefs, node.params, evaluatedParams)
-      modelPatches = GE.makePatches(constants.modelData, evaluationContext.model)
-      servicePatches = GE.makePatches(constants.serviceData, evaluationContext.services)
+      modelPatches = GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model))
+      servicePatches = GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services))
 
       result = result.appendWith(new GE.NodeVisitorResult(signalsResult, modelPatches, servicePatches))
       result.result = signalsResult # appendWith() does not affect result
@@ -356,17 +362,17 @@ GE.visitProcessNode = (node, constants, bindings) ->
 
   return result
 
-GE.visitForeachNode = (node, constants, oldBindings) ->
+GE.visitForeachNode = (path, node, constants, oldBindings) ->
   bindingSet = GE.calculateBindingSet(node, constants, oldBindings)
   result = new GE.NodeVisitorResult()
   for newBindings in bindingSet
     # Continue with children
-    for child in (node.children or [])
-      childResult = GE.visitNode(child, constants, newBindings)
+    for childIndex, child of (node.children or [])
+      childResult = GE.visitNode(GE.appendToArray(path, childIndex), child, constants, newBindings)
       result = result.appendWith(childResult)
   return result
 
-GE.visitSendNode = (node, constants, bindings) ->
+GE.visitSendNode = (path, node, constants, bindings) ->
   modelPatches = []
   servicePatches = []
 
@@ -381,8 +387,8 @@ GE.visitSendNode = (node, constants, bindings) ->
     [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
     parent[key] = outputValue
 
-    modelPatches = GE.concatenate(modelPatches, GE.makePatches(constants.modelData, evaluationContext.model))
-    servicePatches = GE.concatenate(servicePatches, GE.makePatches(constants.serviceData, evaluationContext.services))
+    modelPatches = GE.concatenate(modelPatches, GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model)))
+    servicePatches = GE.concatenate(servicePatches, GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services)))
   
   # Return "DONE" signal, so it can be put in sequences
   return new GE.NodeVisitorResult(GE.signals.DONE, modelPatches, servicePatches)
@@ -394,12 +400,13 @@ GE.nodeVisitors =
   "send": GE.visitSendNode
 
 # Constants are modelData, assets, actions, processes and serviceData
-GE.visitNode = (node, constants, bindings = {}) ->
+# The path is an array of the indices necessary to access the children
+GE.visitNode = (path, node, constants, bindings = {}) ->
   # TODO: defer action and call execution until whole tree is evaluated?
   # TODO: handle children as object in addition to array
   for nodeType, visitor of GE.nodeVisitors
     if nodeType of node
-      return visitor(node, constants, bindings)
+      return visitor(path, node, constants, bindings)
 
   constants.log(GE.logLevels.ERROR, "Layout item '#{JSON.stringify(node)}' is not understood")
 
@@ -433,7 +440,7 @@ GE.stepLoop = (options) ->
       for serviceName, service of options.services
         options.inputServiceData[serviceName] = service.provideData(options.serviceConfig, options.assets)
 
-    result = GE.visitNode options.node, new GE.NodeVisitorConstants
+    result = GE.visitNode [], options.node, new GE.NodeVisitorConstants
       modelData: options.modelData
       serviceData: options.inputServiceData
       assets: options.assets
