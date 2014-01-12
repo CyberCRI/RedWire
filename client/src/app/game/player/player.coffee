@@ -20,7 +20,7 @@ angular.module('gamEvolve.game.player', [])
     else
       console.log("Puppet reported success", message)
 
-    # TODO: handle errors in recording
+    # TODO: handle errors in recording and update
 
     switch message.operation
       when "loadGameCode"
@@ -46,14 +46,20 @@ angular.module('gamEvolve.game.player', [])
           # Remove frames after the current one
           gameHistory.frames.length = gameHistory.currentFrameNumber + 1
 
+           # Replace the service data on the last frame
+          results = message.value[0]
+          gameHistory.frames[gameHistory.currentFrameNumber].inputServiceData = results.inputServiceData
+          gameHistory.frames[gameHistory.currentFrameNumber].servicePatches = results.servicePatches
+
           # Add in the new results
           lastModel = gameHistory.frames[gameHistory.currentFrameNumber].model
-          for results in message.value
-            lastModel = GE.applyPatches(results.modelPatches, lastModel)
+          for results in message.value[1..]
             gameHistory.frames.push
               model: lastModel
               servicePatches: results.servicePatches
               inputServiceData: results.inputServiceData
+            # Calcuate the next model to be used
+            lastModel = GE.applyPatches(results.modelPatches, lastModel)
 
           # Go the the last frame
           gameHistory.currentFrameNumber = gameHistory.frames.length - 1
@@ -62,11 +68,12 @@ angular.module('gamEvolve.game.player', [])
           # Replace existing frames by the new results
           lastModel = gameHistory.frames[0].model
           for index, results of message.value
-            lastModel = GE.applyPatches(results.modelPatches, lastModel)
             gameHistory.frames[index] = 
               model: lastModel
               servicePatches: results.servicePatches
               inputServiceData: results.inputServiceData
+            # Calcuate the next model to be used
+            lastModel = GE.applyPatches(results.modelPatches, lastModel)
 
           # Display the current frame
           onUpdateFrame(gameHistory.currentFrameNumber)

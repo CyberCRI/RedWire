@@ -18,7 +18,9 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
   onUpdateGameHistory = ->
     if not gameHistory.frames[gameHistory.currentFrameNumber]? then return 
 
-    $scope.model = gameHistory.frames[gameHistory.currentFrameNumber].model
+    newModel = gameHistory.frames[gameHistory.currentFrameNumber].model
+    if not _.isEqual($scope.model, newModel) 
+      $scope.model = newModel
   $scope.$watch('gameHistory', onUpdateGameHistory, true)
 
   # Write back to gameHistory
@@ -27,6 +29,7 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
 
     # If we are on the first frame, update the game model
     if gameHistory.currentFrameNumber == 0 
-      currentGame.version.model = $scope.model
+      if not _.isEqual($scope.model, currentGame.version.model) 
+        currentGame.version.model = $scope.model
   $scope.$watch('model', onUpdateModel, true)
 
