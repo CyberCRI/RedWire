@@ -67,3 +67,64 @@ GE.difference = (array) ->
   rest = Array.prototype.concat.apply(Array.prototype, Array.prototype.slice.call(arguments, 1))
   return _.filter array, (value) -> 
     return not GE.contains(rest, value)
+
+# Shortcut for timeout function, to avoid trailing the time at the end 
+GE.doLater = (f) -> setTimeout(f, 0)
+
+# Freeze an object recursively
+# Based on https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/freeze
+GE.deepFreeze = (o) -> 
+  # First freeze the object
+  Object.freeze(o)
+
+  # Recursively freeze all the object properties
+  for own key, prop of o
+    if _.isObject(prop) and not Object.isFrozen(prop) then GE.deepFreeze(prop)
+
+  return o
+
+# Shortcut to clone and then freeze result
+GE.cloneFrozen = (o) -> return GE.deepFreeze(GE.cloneData(o))
+
+# Adds value to the given object, associating it with an unique (and meaningless) key
+GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value
+
+# Creates a new object based on the keys and values of the given one.
+# Calls f(value, key) for each key
+GE.mapObject = (obj, f) -> 
+  mapped = {}
+  for key, value of obj
+    mapped[key] = f(value, key)
+  return mapped
+
+# Returns an object { mimeType: String, base64: Bool, data: String}
+GE.splitDataUrl = (url) -> 
+  matches = url.match(/data:([^;]+);([^,]*),(.*)/)
+  return {
+    mimeType: matches[1]
+    base64: matches[2] == "base64"
+    data: matches[3]
+  }
+
+# Creates and returns a blob from a data URL (either base64 encoded or not).
+# Adopted from filer.js by Eric Bidelman (ebidel@gmail.com)
+GE.dataURLToBlob = (dataURL) ->
+  BASE64_MARKER = 'base64,'
+  if dataURL.indexOf(BASE64_MARKER) == -1
+    parts = dataURL.split(',')
+    contentType = parts[0].split(':')[1]
+    raw = parts[1]
+
+    return new Blob([raw], {type: contentType})
+
+  parts = dataURL.split(BASE64_MARKER)
+  contentType = parts[0].split(':')[1]
+  raw = window.atob(parts[1])
+  rawLength = raw.length
+
+  uInt8Array = new Uint8Array(rawLength)
+
+  for i in [0..rawLength - 1] 
+    uInt8Array[i] = raw.charCodeAt(i)
+
+  return new Blob([uInt8Array], {type: contentType})

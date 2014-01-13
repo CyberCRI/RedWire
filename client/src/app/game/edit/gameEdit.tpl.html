@@ -2,7 +2,7 @@
 <block-container init="300">
     <flexy-layout orientation="vertical">
         <block-container style="overflow:scroll; font-size:13px;">
-            <div class="jsonView" defocus ng-show="currentGame.version.model">
+            <div class="jsonView" defocus>
                 <json child="model" type="'object'"></json>
             </div>
         </block-container>
@@ -20,10 +20,8 @@
 <!-- Center Column-->
 <block-container>
     <flexy-layout orientation="vertical">
-        <block-container style="overflow:scroll;">
-            <div>
-                <h1>Game</h1>
-            </div>
+        <block-container id="gamePlayerContainer">
+            <iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
         </block-container>
         <block-splitter></block-splitter>
         <block-container init="200" style="overflow:scroll;">

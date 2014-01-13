@@ -177,6 +177,16 @@ module.exports = function ( grunt ) {
             expand: true
           }
         ]
+      },
+      build_sandbox: {
+        files: [
+          {
+            src: [ 'sandbox.html' ],
+            dest: '<%= build_dir %>',
+            cwd: 'src',
+            expand: true
+          }
+        ]
       }
     },
 
@@ -477,7 +487,17 @@ module.exports = function ( grunt ) {
       less: {
         files: [ 'src/**/*.less' ],
         tasks: [ 'recess:build' ]
-      }
+      },
+
+      /**
+       * When sandbox.html changes, we need to copy it.
+       */
+      html: {
+        files: [ 'src/sandbox.html' ],
+        tasks: [ 'copy:build_sandbox' ]
+      },
+
+
     }
   };
 
@@ -505,7 +525,7 @@ module.exports = function ( grunt ) {
     'clean', 'html2js', 'coffee', 'recess:build',
     'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_images',
     'copy:build_appjs', 'copy:build_vendorjs', 'copy:build_vendorcss', 
-    'index:build', 'copy:build_tests_runner', 'copy:build_tests_vendor'
+    'index:build', 'copy:build_tests_runner', 'copy:build_tests_vendor', 'copy:build_sandbox'
   ]);
 
   /**

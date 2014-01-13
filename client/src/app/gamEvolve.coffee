@@ -1,28 +1,3 @@
-### 
-  The algorithm is as follows:
-    1. Get a static view of the model at the current time, and keep track of it
-    2. Go though the layout from the top-down, recursively. For each:
-      1. Check validity and error out otherwise
-      2. Switch on block type:
-        * If bind, execute query and store param bindings for lower items
-        * If set, package with model bindings and add to execution list
-        * If call, package with model bindings and add to execution list
-        * If action: 
-          1. Package with model bindings and add to execution list
-          2. Run calculateActiveChildren() and continue with those recursively 
-    3. For each active bound block:
-      1. Run and gather output and error/success status
-        * In case of error: Store error signal
-        * In case of success: 
-          1. Merge model changes with others. If conflict, nothing passes
-          2. If DONE is signaled, store it
-    4. Starting at parents of active leaf blocks:
-      1. If signals are stored for children, call handleSignals() with them
-      2. If more signals are created, store them for parents
-###
-
-# Requires underscore
-
 # Get alias for the global scope
 globals = @
 
@@ -209,6 +184,12 @@ GE.doPatchesConflict = (patches) ->
 
   return false
 
+# Modifies patches by adding the given path to them
+GE.addPathToPatches = (path, patches) -> 
+  for patch in patches 
+    patch.path = path
+  return patches
+
 # Set default values in paramDefs
 GE.fillParamDefDefaults = (paramDefs) ->
   # Cannot use normal "for key, value of" loop because cannot handle replace null values
@@ -306,7 +287,7 @@ GE.calculateBindingSet = (node, constants, oldBindings) ->
 
   return bindingSet
 
-GE.visitActionNode = (node, constants, bindings) ->
+GE.visitActionNode = (path, node, constants, bindings) ->
   if node.action not of constants.actions then throw new Error("Cannot find action '#{node.action}'")
 
   action = constants.actions[node.action]
@@ -326,12 +307,12 @@ GE.visitActionNode = (node, constants, bindings) ->
 
   GE.evaluateOutputParameters(evaluationContext, action.paramDefs, node.params, evaluatedParams)
 
-  result.modelPatches = GE.makePatches(constants.modelData, evaluationContext.model)
-  result.servicePatches = GE.makePatches(constants.serviceData, evaluationContext.services)
+  result.modelPatches = GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model))
+  result.servicePatches = GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services))
 
   return result
 
-GE.visitProcessNode = (node, constants, bindings) ->
+GE.visitProcessNode = (path, node, constants, bindings) ->
   if node.process not of constants.processes then throw new Error("Cannot find process '#{node.process}'")
 
   process = constants.processes[node.process]
@@ -359,7 +340,7 @@ GE.visitProcessNode = (node, constants, bindings) ->
   # Continue with children
   childSignals = new Array(node.children.length)
   for childIndex in activeChildren
-    childResult = GE.visitNode(node.children[childIndex], constants, bindings)
+    childResult = GE.visitNode(GE.appendToArray(path, childIndex), node.children[childIndex], constants, bindings)
     childSignals[childIndex] = childResult.result
     result = result.appendWith(childResult)
 
@@ -370,8 +351,8 @@ GE.visitProcessNode = (node, constants, bindings) ->
       signalsResult = process.handleSignals(evaluatedParams, childNames, activeChildren, childSignals, constants.tools, constants.log)
 
       GE.evaluateOutputParameters(evaluationContext, process.paramDefs, node.params, evaluatedParams)
-      modelPatches = GE.makePatches(constants.modelData, evaluationContext.model)
-      servicePatches = GE.makePatches(constants.serviceData, evaluationContext.services)
+      modelPatches = GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model))
+      servicePatches = GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services))
 
       result = result.appendWith(new GE.NodeVisitorResult(signalsResult, modelPatches, servicePatches))
       result.result = signalsResult # appendWith() does not affect result
@@ -381,17 +362,17 @@ GE.visitProcessNode = (node, constants, bindings) ->
 
   return result
 
-GE.visitForeachNode = (node, constants, oldBindings) ->
+GE.visitForeachNode = (path, node, constants, oldBindings) ->
   bindingSet = GE.calculateBindingSet(node, constants, oldBindings)
   result = new GE.NodeVisitorResult()
   for newBindings in bindingSet
     # Continue with children
-    for child in (node.children or [])
-      childResult = GE.visitNode(child, constants, newBindings)
+    for childIndex, child of (node.children or [])
+      childResult = GE.visitNode(GE.appendToArray(path, childIndex), child, constants, newBindings)
       result = result.appendWith(childResult)
   return result
 
-GE.visitSendNode = (node, constants, bindings) ->
+GE.visitSendNode = (path, node, constants, bindings) ->
   modelPatches = []
   servicePatches = []
 
@@ -406,8 +387,8 @@ GE.visitSendNode = (node, constants, bindings) ->
     [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
     parent[key] = outputValue
 
-    modelPatches = GE.concatenate(modelPatches, GE.makePatches(constants.modelData, evaluationContext.model))
-    servicePatches = GE.concatenate(servicePatches, GE.makePatches(constants.serviceData, evaluationContext.services))
+    modelPatches = GE.concatenate(modelPatches, GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model)))
+    servicePatches = GE.concatenate(servicePatches, GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services)))
   
   # Return "DONE" signal, so it can be put in sequences
   return new GE.NodeVisitorResult(GE.signals.DONE, modelPatches, servicePatches)
@@ -419,12 +400,13 @@ GE.nodeVisitors =
   "send": GE.visitSendNode
 
 # Constants are modelData, assets, actions, processes and serviceData
-GE.visitNode = (node, constants, bindings = {}) ->
+# The path is an array of the indices necessary to access the children
+GE.visitNode = (path, node, constants, bindings = {}) ->
   # TODO: defer action and call execution until whole tree is evaluated?
   # TODO: handle children as object in addition to array
   for nodeType, visitor of GE.nodeVisitors
     if nodeType of node
-      return visitor(node, constants, bindings)
+      return visitor(path, node, constants, bindings)
 
   constants.log(GE.logLevels.ERROR, "Layout item '#{JSON.stringify(node)}' is not understood")
 
@@ -434,7 +416,7 @@ GE.visitNode = (node, constants, bindings = {}) ->
 # By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
 # If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
-# Returns a list of model patches.
+# Returns { modelPatches: [...], inputServiceData: {...}, servicePatches: [...] }
 GE.stepLoop = (options) ->
   _.defaults options, 
     node: null
@@ -444,19 +426,21 @@ GE.stepLoop = (options) ->
     processes: {}
     services: {}
     serviceConfig: {}
+    evaluator: eval
     log: null
     inputServiceData: null
     outputServiceData: null 
 
   if options.outputServiceData != null
     modelPatches = []
+    servicePatches = []
   else
     if options.inputServiceData == null
       options.inputServiceData = {}
       for serviceName, service of options.services
         options.inputServiceData[serviceName] = service.provideData(options.serviceConfig, options.assets)
 
-    result = GE.visitNode options.node, new GE.NodeVisitorConstants
+    result = GE.visitNode [], options.node, new GE.NodeVisitorConstants
       modelData: options.modelData
       serviceData: options.inputServiceData
       assets: options.assets
@@ -470,15 +454,13 @@ GE.stepLoop = (options) ->
     modelPatches = result.modelPatches
 
     if GE.doPatchesConflict(result.servicePatches) then throw new Error("Service patches conflict: #{JSON.stringify(result.servicePatches)}")
+    servicePatches = result.servicePatches
     options.outputServiceData = GE.applyPatches(result.servicePatches, options.inputServiceData)
-
-  # TODO: return the service data rather than logging it here
-  # options?.log?(GE.logLevels.LOG, "Output service data", options.outputServiceData)
 
   for serviceName, service of options.services
     service.establishData(options.outputServiceData[serviceName], options.serviceConfig, options.assets)
 
-  return modelPatches
+  return { modelPatches: modelPatches, inputServiceData: options.inputServiceData, servicePatches: servicePatches }
 
 # Compile expression source into sandboxed function of (model, services, assets, tools, bindings, params) 
 GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "params"])
@@ -574,40 +556,3 @@ GE.loadAssets = (assets, callback) ->
               onLoad()
         else 
           return callback(new Error("Do not know how to load #{url} for asset #{name}"))
-
-# Shortcut for timeout function, to avoid trailing the time at the end 
-GE.doLater = (f) -> setTimeout(f, 0)
-
-# Freeze an object recursively
-# Based on https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Object/freeze
-GE.deepFreeze = (o) -> 
-  # First freeze the object
-  Object.freeze(o)
-
-  # Recursively freeze all the object properties
-  for own key, prop of o
-    if _.isObject(prop) and not Object.isFrozen(prop) then GE.deepFreeze(prop)
-
-  return o
-
-# Shortcut to clone and then freeze result
-GE.cloneFrozen = (o) -> return GE.deepFreeze(GE.cloneData(o))
-
-# Adds value to the given object, associating it with an unique (and meaningless) key
-GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value
-
-# Creates and returns an eval function that runs within an iFrame sandbox
-# Automatically runs all the scripts provided before returning the evaluator
-# Based on https://github.com/josscrowcroft/javascript-sandbox-console/blob/master/src/sandbox-console.js
-# This is not secure, given that the iframe still has access to the parent
-# TODO: Improve security using the sandbox attribute and postMessage() as described at http://www.html5rocks.com/en/tutorials/security/sandboxed-iframes/
-GE.makeEvaluator = (scriptsToRun...) ->
-  sandboxFrame = $("<iframe width='0' height='0' />").css({visibility : 'hidden'}).appendTo("body")
-  evaluator = sandboxFrame[0].contentWindow.eval 
-  sandboxFrame.remove()
-
-  for script in scriptsToRun then evaluator(script)
-  return evaluator
-
-# Install the GE namespace in the global scope
-globals.GE = GE

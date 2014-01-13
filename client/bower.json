@@ -14,7 +14,8 @@
     "angular-ui-ace": "~0.0.4",
     "JSONedit": "https://github.com/mb21/JSONedit.git#gh-pages",
     "jquery-ui": "1.10.0",
-    "angular-ui-multi-sortable": "0.0.2"
+    "angular-ui-multi-sortable": "0.0.2",
+    "rivets": "~0.6.5"
   },
   "dependencies": {}
 }
