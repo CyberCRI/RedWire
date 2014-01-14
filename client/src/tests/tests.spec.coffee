@@ -170,6 +170,10 @@ describe "gamEvolve", ->
             value: 
               direction: "inout"
           update: (params, tools, log) -> params.value++
+        log: 
+          paramDefs: 
+            message: null
+          update: (params, tools, log) -> log(GE.logLevels.INFO, params.message)
 
       processes = 
         doAll: 
@@ -202,6 +206,12 @@ describe "gamEvolve", ->
                 "value": "services.c"
               out:
                 "services.c": "params.value"
+          },
+          {
+            action: "log"
+            params: 
+              in:
+                "message": "'hi'"
           }
         ]
 
@@ -224,6 +234,9 @@ describe "gamEvolve", ->
 
       expect(results.servicePatches.length).toBe(1)
       expect(results.servicePatches[0].path).toDeeplyEqual(["2"])
+
+      expect(results.logMessages.length).toBe(1)
+      expect(results.logMessages[0].path).toDeeplyEqual(["3"])
 
     it "evaluates parameters for actions", ->
       oldModel = 
