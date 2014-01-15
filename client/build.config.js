@@ -6,7 +6,7 @@ module.exports = {
    * The `build_dir` folder is where our projects are compiled during
    * development and the `compile_dir` folder is where our app resides once it's
    * completely built.
-   */  
+   */
   build_dir: '../server/public-dev',
   compile_dir: '../server/public-prod',
 
@@ -22,7 +22,7 @@ module.exports = {
   app_files: {
     js: [ 'src/**/*.js', '!src/**/*.spec.js', '!src/assets/**/*.js' ],
     jsunit: [ 'src/**/*.spec.js' ],
-    
+
     coffee: [ 'src/**/*.coffee', '!src/**/*.spec.coffee' ],
 
     atpl: [ 'src/app/**/*.tpl.html' ],
@@ -54,6 +54,7 @@ module.exports = {
     js: [
       'vendor/jquery/jquery.js',
       'vendor/angular/angular.js',
+      'vendor/angular-mocks/angular-mocks.js',
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
       'vendor/angular-ui-utils/modules/route/route.js',
@@ -65,10 +66,12 @@ module.exports = {
       'vendor/JSONedit/lib/angular-ui/angular-ui.js',
       'vendor/jquery-ui/ui/jquery-ui.custom.js',
       'vendor/angular-ui-multi-sortable/multiSortable.js',
+      'vendor/jstree/dist/jstree.js',
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
       'vendor/JSONedit/css/styles.css',
+      'vendor/jstree/dist/themes/default/style.css',
     ],
     images: [
       'vendor/bootstrap/img/*.png',

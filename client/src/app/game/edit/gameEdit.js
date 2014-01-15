@@ -13,7 +13,7 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
         });
     })
 
-    .controller('GameEditCtrl', function HomeController($scope, $filter, currentGame) {
+    .controller('GameEditCtrl', function HomeController($scope, $filter, currentGame, boardConverter) {
 
         $scope.currentGame = currentGame;
 
@@ -21,14 +21,21 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
         if (currentGame.version) {
             $scope.model = JSON.parse(currentGame.version.model);
         }
-
-        $scope.$watch('model', function(jso) {
+        $scope.$watch('model', function (jso) {
             if (currentGame.version)
                 currentGame.version.model = $filter('json')(jso);
         }, true);
-        $scope.$watch('currentGame.version.model', function(json) {
+        $scope.$watch('currentGame.version.model', function (json) {
             if (json)
                 $scope.model = JSON.parse(json);
+        }, false);
+
+        $scope.board = {};
+        $scope.$watch('currentGame.version.layout', function (json) {
+            if (json) {
+                var converted = boardConverter.convert(JSON.parse(json));
+                $scope.board = converted;
+            }
         }, false);
 
     })

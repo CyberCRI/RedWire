@@ -8,6 +8,8 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.games',
   'gamEvolve.model.users',
   'gamEvolve.util.logger',
+  'gamEvolve.util.tree',
+  'gamEvolve.util.boardConverter',
   'gamEvolve.game',
   'gamEvolve.game.edit',
   'gamEvolve.game.select'
