@@ -5,19 +5,25 @@
   <title>gamEvolve Tests</title>
 
   <link rel="stylesheet" type="text/css" href="jasmine.css">
-  <script type="text/javascript" src="jasmine.js"></script>
-  <script type="text/javascript" src="jasmine-html.js"></script>
-  <script type="text/javascript" src="../vendor/underscore/underscore.js"></script>
-  <script type="text/javascript" src="../vendor/jquery/jquery.js"></script>
+
+  <script src="jasmine.js"></script>
+  <script src="jasmine-html.js"></script>
+  <script src="../vendor/underscore/underscore.js"></script>
+  <script src="../vendor/jquery/jquery.js"></script>
+  <script src="../vendor/angular/angular.js"></script>
+  <script src="../vendor/angular-mocks/angular-mocks.js"></script>
 
   <!-- include source files here... -->
-  <script type="text/javascript" src="../src/app/gamEvolveCommon.js"></script>
-  <script type="text/javascript" src="../src/app/gamEvolve.js"></script>
+  <script src="../src/app/util/boardConverter.js"></script>
+  <script src="../src/app/gamEvolveCommon.js"></script>
+  <script src="../src/app/gamEvolve.js"></script>
 
   <!-- include spec files here... -->
-  <script type="text/javascript" src="tests.js"></script>
+  <script src="tests.js"></script>
+  <script src="referenceBoards.js"></script>
+  <script src="boardConverter.js"></script>
 
-  <script type="text/javascript">
+  <script>
     (function() {
       var jasmineEnv = jasmine.getEnv();
       jasmineEnv.updateInterval = 1000;
