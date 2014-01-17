@@ -38,7 +38,8 @@ angular.module('gamEvolve.game.player', [])
           newFrame = 
             model: gameCode.model # Initial model
             inputServiceData: message.value.inputServiceData 
-            servicePatches: message.value.servicePatches 
+            servicePatches: message.value.servicePatches
+            logMessages: message.value.logMessages 
           gameHistory.frames = [newFrame]
           gameHistory.currentFrameNumber = 0
       when "stopRecording" 
@@ -50,6 +51,7 @@ angular.module('gamEvolve.game.player', [])
           results = message.value[0]
           gameHistory.frames[gameHistory.currentFrameNumber].inputServiceData = results.inputServiceData
           gameHistory.frames[gameHistory.currentFrameNumber].servicePatches = results.servicePatches
+          gameHistory.frames[gameHistory.currentFrameNumber].logMessages = results.logMessages
 
           # Add in the new results
           lastModel = gameHistory.frames[gameHistory.currentFrameNumber].model
@@ -58,6 +60,7 @@ angular.module('gamEvolve.game.player', [])
               model: lastModel
               servicePatches: results.servicePatches
               inputServiceData: results.inputServiceData
+              logMessages: results.logMessages
             # Calcuate the next model to be used
             lastModel = GE.applyPatches(results.modelPatches, lastModel)
 

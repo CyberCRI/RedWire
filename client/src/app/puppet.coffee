@@ -12,7 +12,6 @@ lastModel = null
 recordedFrames = [] # Contains objects like {modelPatches: [], inputServiceData: {}, servicePatches: []}
 recordFrameReporter = null # Callback function for onRecordFrame
 
-
 # FUNCTIONS
 
 # Find the correct function across browsers
@@ -49,20 +48,17 @@ compileProcesses = (inputProcesses, evaluator) ->
       throw new Error("Error compiling process '#{key}'. #{compilationError}")
 
 # Converts input tools (with code as strings) to compiled form with code as functions.
-# The logFunction will be provided to all tools
 # Leaves non-code values as they were.
-compileTools = (inputTools, evaluator, logFunction) ->
+compileTools = (inputTools, evaluator) ->
   toolsContext = 
     tools: null
-    log: null
   compiledTools = GE.mapObject inputTools, (value, key) -> 
     try
-      toolFactory = GE.compileTool(value.body, toolsContext, value.args, evaluator)
+      toolFactory = GE.compileTool(value.body, value.args, evaluator)
       return toolFactory(toolsContext)
     catch compilationError
       throw new Error("Error compiling tool '#{key}'. #{compilationError}")
   toolsContext.tools = compiledTools
-  toolsContext.log = logFunction
   return compiledTools
 
 destroyServices = (currentServices) ->
