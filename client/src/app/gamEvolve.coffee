@@ -379,6 +379,10 @@ GE.visitSendNode = (path, node, constants, bindings) ->
   modelPatches = []
   servicePatches = []
 
+  # Return "DONE" signal, so it can be put in sequences
+  result = new GE.NodeVisitorResult(GE.signals.DONE)
+  GE.toolsLogger = GE.makeLogFunction(path, result.logMessages)
+
   for dest, src of node.send  
     evaluationContext = new GE.EvaluationContext(constants, bindings)
 
@@ -393,8 +397,9 @@ GE.visitSendNode = (path, node, constants, bindings) ->
     modelPatches = GE.concatenate(modelPatches, GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model)))
     servicePatches = GE.concatenate(servicePatches, GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services)))
   
-  # Return "DONE" signal, so it can be put in sequences
-  return new GE.NodeVisitorResult(GE.signals.DONE, modelPatches, servicePatches)
+  result.modelPatches = modelPatches
+  result.servicePatches = servicePatches
+  return result
 
 GE.nodeVisitors =
   "action": GE.visitActionNode

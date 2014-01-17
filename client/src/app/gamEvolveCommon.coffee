@@ -40,7 +40,11 @@ GE.uniq = (array) ->
   return results
 
 # There is probably a faster way to do this 
-GE.cloneData = (o) -> JSON.parse(JSON.stringify(o))
+GE.cloneData = (o) -> 
+  try
+    JSON.parse(JSON.stringify(o))
+  catch e
+    throw new Error("Unable to clone, perhaps it is not plain old data: #{e}")
 
 # Create new array with the value of these arrays
 GE.concatenate = (rest...) -> _.flatten(rest, true)

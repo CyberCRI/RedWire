@@ -160,6 +160,7 @@ describe "gamEvolve", ->
       modelData =
         a: 0
         b: 1
+        message: null
 
       serviceData = 
         c: 2
@@ -178,6 +179,11 @@ describe "gamEvolve", ->
       processes = 
         doAll: 
           paramDefs: {}
+
+      # Tools must be compiled this way
+      # TODO: create function that does this work for us
+      tools = {}
+      tools.logIt = GE.compileTool("log(GE.logLevels.INFO, msg); return msg;", ["msg"], eval)(tools)
 
       layout = 
         process: "doAll"
@@ -212,6 +218,10 @@ describe "gamEvolve", ->
             params: 
               in:
                 "message": "'hi'"
+          },
+          { 
+            send: 
+              "model.message": "tools.logIt('hi')"
           }
         ]
 
@@ -221,22 +231,26 @@ describe "gamEvolve", ->
         actions: actions
         processes: processes
         evaluator: eval
+        tools: tools
       results = GE.visitNode([], layout, constants, {})
 
-      expect(results.modelPatches.length).toBe(2)
+      expect(results.modelPatches.length).toBe(3)
       for modelPatch in results.modelPatches
         if modelPatch.replace is "/a"
           expect(modelPatch.path).toDeeplyEqual(["0"])
         else if modelPatch.replace is "/b"
           expect(modelPatch.path).toDeeplyEqual(["1"])
+        else if modelPatch.replace is "/message"
+          expect(modelPatch.path).toDeeplyEqual(["4"])
         else 
           throw new Error("Model patch affects wrong attribute")
 
       expect(results.servicePatches.length).toBe(1)
       expect(results.servicePatches[0].path).toDeeplyEqual(["2"])
 
-      expect(results.logMessages.length).toBe(1)
+      expect(results.logMessages.length).toBe(2)
       expect(results.logMessages[0].path).toDeeplyEqual(["3"])
+      expect(results.logMessages[1].path).toDeeplyEqual(["4"])
 
     it "evaluates parameters for actions", ->
       oldModel = 
