@@ -11,6 +11,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.player',
   'gamEvolve.game.select'
   'gamEvolve.game.time',  
+  'gamEvolve.game.tools',
   'gamEvolve.model.games',
   'gamEvolve.model.history',
   'gamEvolve.model.time',

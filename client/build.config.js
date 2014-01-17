@@ -53,6 +53,7 @@ module.exports = {
   vendor_files: {
     js: [
       'vendor/jquery/jquery.js',
+      'vendor/bootstrap/js/bootstrap-tab.js',
       'vendor/angular/angular.js',
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
