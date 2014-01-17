@@ -5,16 +5,17 @@ angular.module( 'gamEvolve', [
   'ui.router',
   'ui.state',
   'ui.ace',
-  'gamEvolve.model.games',
-  'gamEvolve.model.users',
-  'gamEvolve.util.logger',
   'gamEvolve.game',
   'gamEvolve.game.edit',
-  'gamEvolve.game.select'
-  'gamEvolve.game.time',  
   'gamEvolve.game.log',
   'gamEvolve.game.player',
+  'gamEvolve.game.select'
+  'gamEvolve.game.time',  
+  'gamEvolve.model.games',
   'gamEvolve.model.history',
+  'gamEvolve.model.time',
+  'gamEvolve.model.users',
+  'gamEvolve.util.logger',
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->

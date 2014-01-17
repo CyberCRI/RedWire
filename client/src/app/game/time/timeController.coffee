@@ -1,5 +1,5 @@
 angular.module('gamEvolve.game.time', [])
-.controller 'TimeCtrl', ($scope, $timeout, gameHistory) ->
+.controller 'TimeCtrl', ($scope, $timeout, gameHistory, gameTime) ->
   $scope.currentFrame = 0
   $scope.lastFrame = 100
   $scope.isPlaying = false
@@ -12,9 +12,9 @@ angular.module('gamEvolve.game.time', [])
   $scope.triggerPlay = -> $scope.isPlaying = !$scope.isPlaying
   $scope.triggerRecord = -> $scope.isRecording = !$scope.isRecording
 
-  onUpdateGameHistory = (newGameHistory) ->
-    $scope.currentFrame = newGameHistory.currentFrameNumber
-    $scope.lastFrame = Math.max(0, newGameHistory.frames.length - 1)
+  onUpdateModel = ->
+    $scope.currentFrame = gameTime.currentFrameNumber
+    $scope.lastFrame = Math.max(0, gameHistory.data.frames.length - 1)
 
   onPlayFrame = ->
     if not $scope.isPlaying then return
@@ -27,12 +27,16 @@ angular.module('gamEvolve.game.time', [])
 
   $scope.$watch("isPlaying", (isPlaying) -> if isPlaying then onPlayFrame())
 
+  # Bring gameTime into the scope in order to watch it
+  $scope.gameTime = gameTime
+  $scope.$watch("gameTime", onUpdateModel, true)
+
   # Bring gameHistory into the scope in order to watch it
-  $scope.gameHistory = gameHistory
-  $scope.$watch("gameHistory", onUpdateGameHistory, true)
-  onUpdateGameHistory(gameHistory)
+  $scope.gameHistoryMeta = gameHistory.meta
+  $scope.$watch("gameHistoryMeta", onUpdateModel, true)
+  onUpdateModel()
 
   # Copy certain attributes back to the service
-  $scope.$watch("isRecording", (isRecording) -> gameHistory.isRecording = isRecording)
-  $scope.$watch("currentFrame", (currentFrame) -> gameHistory.currentFrameNumber = currentFrame)
+  $scope.$watch "isRecording", (isRecording) -> gameTime.isRecording = isRecording
+  $scope.$watch("currentFrame", (currentFrame) -> gameTime.currentFrameNumber = currentFrame)
 
