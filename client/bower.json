@@ -15,7 +15,8 @@
     "JSONedit": "https://github.com/mb21/JSONedit.git#gh-pages",
     "jquery-ui": "1.10.0",
     "angular-ui-multi-sortable": "0.0.2",
-    "rivets": "~0.6.5"
+    "rivets": "0.5.12",
+    "sylvester": "~0.1.3"
   },
   "dependencies": {}
 }

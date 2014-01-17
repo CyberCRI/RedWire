@@ -304,7 +304,7 @@ GE.visitActionNode = (path, node, constants, bindings) ->
     methodResult = action.update(evaluatedParams, constants.tools, GE.toolsLogger)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    GE.toolsLogger(GE.logLevels.ERROR, "Calling action #{node.action}.update raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+    GE.toolsLogger(GE.logLevels.ERROR, "Calling action #{node.action}.update raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}.\n#{e.stack}")
 
   GE.evaluateOutputParameters(evaluationContext, action.paramDefs, node.params, evaluatedParams)
 
