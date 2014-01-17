@@ -10,9 +10,15 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
     data: 
       pageTitle: 'Edit Game'
 
-.controller 'GameEditCtrl', ($scope, $filter, gameHistory, currentGame) -> 
+.controller 'GameEditCtrl', ($scope, $filter, gameHistory, currentGame, boardConverter) ->
+  $scope.currentGame = currentGame;
   $scope.model = {}
   $scope.gameHistory = gameHistory # In order to watch it
+  $scope.board = {}
+  $scope.$watch('currentGame.version.layout',
+    ((json) -> if json
+      $scope.board = boardConverter.convert(json)),
+    false)
 
   # Update from gameHistory
   onUpdateGameHistory = ->
