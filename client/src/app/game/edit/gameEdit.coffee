@@ -10,25 +10,25 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
     data: 
       pageTitle: 'Edit Game'
 
-.controller 'GameEditCtrl', ($scope, $filter, gameHistory, currentGame) -> 
+.controller 'GameEditCtrl', ($scope, $filter, gameHistory, currentGame, gameTime) -> 
   $scope.model = {}
-  $scope.gameHistory = gameHistory # In order to watch it
+  $scope.gameHistoryMeta = gameHistory.meta # In order to watch it
 
   # Update from gameHistory
   onUpdateGameHistory = ->
-    if not gameHistory.frames[gameHistory.currentFrameNumber]? then return 
+    if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
 
-    newModel = gameHistory.frames[gameHistory.currentFrameNumber].model
+    newModel = gameHistory.data.frames[gameTime.currentFrameNumber].model
     if not _.isEqual($scope.model, newModel) 
       $scope.model = newModel
-  $scope.$watch('gameHistory', onUpdateGameHistory, true)
+  $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)
 
   # Write back to gameHistory
   onUpdateModel = ->
-    if not gameHistory.frames[gameHistory.currentFrameNumber]? then return 
+    if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
 
     # If we are on the first frame, update the game model
-    if gameHistory.currentFrameNumber == 0 
+    if gameTime.currentFrameNumber == 0 
       if not _.isEqual($scope.model, currentGame.version.model) 
         currentGame.version.model = $scope.model
   $scope.$watch('model', onUpdateModel, true)
