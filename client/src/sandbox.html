@@ -3,19 +3,37 @@
 <head>
 	<title>Sandbox</title>
 
+	<!-- TODO: have these be an automatic import via Grunt, similar to how index.html works -->
 	<script type="text/javascript" src="vendor/underscore/underscore.js"></script>
 	<script type="text/javascript" src="vendor/jquery/jquery.js"></script>
 	<script type="text/javascript" src="vendor/rivets/dist/rivets.js"></script>
+	<script type="text/javascript" src="vendor/sylvester/sylvester.src.js"></script>
 
 	<script type="text/javascript" src="src/app/gamEvolveCommon.js"></script>
 	<script type="text/javascript" src="src/app/gamEvolve.js"></script>
 	<script type="text/javascript" src="src/app/services.js"></script>
 	<script type="text/javascript" src="src/app/puppet.js"></script>
-</head>
 
 	<!-- TODO: move styles to CSS file -->
-<body style="overflow: hidden; margin: 0px;">
-	<div id="gameContent" style="-webkit-transform-origin: 0% 0%; transform-origin: 0% 0%;"></div>
+	<style type="text/css">
+		body {
+			overflow: hidden; 
+			margin: 0px;
+		}
+
+		#gameContent {
+			-webkit-transform-origin: 0% 0%; 
+			transform-origin: 0% 0%;
+		}
+
+		#gameContent input, button, label {
+			pointer-events: auto;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="gameContent"></div>
 </body>
 
 </html>

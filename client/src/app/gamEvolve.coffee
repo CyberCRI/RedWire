@@ -5,6 +5,9 @@ globals = @
 GE = globals.GE ? {}
 globals.GE = GE
 
+# The logFunction can be reset before visiting each node that calls tools
+GE.toolsLogger = null
+
 GE.Model = class 
   constructor: (data = {}, @previous = null) -> 
     @data = GE.cloneFrozen(data)
@@ -30,11 +33,8 @@ GE.Model = class
     newData = GE.applyPatches(patches, @data)
     return new GE.Model(newData, @)
 
-GE.logToConsole = (type, message) -> window.console[type.toLowerCase()](message)
-
 GE.NodeVisitorConstants = class 
-  # Accepts options for "modelData", "serviceData", "assets", "actions", "tools", "evaluator", and "log"
-  # The "log" function defaults to the console
+  # Accepts options for "modelData", "serviceData", "assets", "actions", "tools", and "evaluator"
   constructor: (options) -> 
     _.defaults this, options,
       modelData: {}
@@ -44,17 +44,17 @@ GE.NodeVisitorConstants = class
       processes: {}
       tools: {}
       evaluator: null
-      log: GE.logToConsole
 
 GE.NodeVisitorResult = class 
-  constructor: (@result = null, @modelPatches = [], @servicePatches = []) ->
+  constructor: (@result = null, @modelPatches = [], @servicePatches = [], @logMessages = []) ->
 
   # Return new results with combination of this and other
   appendWith: (other) ->
     # Don't touch @result
     newModelPatches = GE.concatenate(@modelPatches, other.modelPatches)
     newServicePatches = GE.concatenate(@servicePatches, other.servicePatches)
-    return new GE.NodeVisitorResult(@result, newModelPatches, newServicePatches)
+    newLogMessages = GE.concatenate(@logMessages, other.logMessages)
+    return new GE.NodeVisitorResult(@result, newModelPatches, newServicePatches, newLogMessages)
 
 # Class used just to "tag" a string as being a reference rather than a JSON value
 GE.BindingReference = class 
@@ -297,16 +297,18 @@ GE.visitActionNode = (path, node, constants, bindings) ->
   GE.fillParamDefDefaults(action.paramDefs)
   evaluatedParams = GE.evaluateInputParameters(evaluationContext, action.paramDefs, node.params)
 
+  result = new GE.NodeVisitorResult()
+  GE.toolsLogger = GE.makeLogFunction(path, result.logMessages)
+
   try
-    methodResult = action.update(evaluatedParams, constants.tools, constants.log)
+    methodResult = action.update(evaluatedParams, constants.tools, GE.toolsLogger)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    constants.log(GE.logLevels.ERROR, "Calling action #{node.action}.update raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
-
-  result = new GE.NodeVisitorResult(methodResult)
+    GE.toolsLogger(GE.logLevels.ERROR, "Calling action #{node.action}.update raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}.\n#{e.stack}")
 
   GE.evaluateOutputParameters(evaluationContext, action.paramDefs, node.params, evaluatedParams)
 
+  result.result = methodResult
   result.modelPatches = GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model))
   result.servicePatches = GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services))
 
@@ -323,19 +325,20 @@ GE.visitProcessNode = (path, node, constants, bindings) ->
   GE.fillParamDefDefaults(process.paramDefs)
   evaluatedParams = GE.evaluateInputParameters(evaluationContext, process.paramDefs, node.params)
 
+  result = new GE.NodeVisitorResult()
+  GE.toolsLogger = GE.makeLogFunction(path, result.logMessages)
+
   # check which children should be activated
   if "listActiveChildren" of process
     try
-      activeChildren = process.listActiveChildren(evaluatedParams, childNames, constants.tools, constants.log)
+      activeChildren = process.listActiveChildren(evaluatedParams, childNames, constants.tools, GE.toolsLogger)
       if not _.isArray(activeChildren) then throw new Error("Calling listActiveChildren() on node '#{node.process}' did not return an array")
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      constants.log(GE.logLevels.ERROR, "Calling process #{node.process}.listActiveChildren raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+      GE.toolsLogger(GE.logLevels.ERROR, "Calling process #{node.process}.listActiveChildren raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
   else
     # By default, all children are considered active
     activeChildren = childNames
-
-  result = new GE.NodeVisitorResult()
 
   # Continue with children
   childSignals = new Array(node.children.length)
@@ -348,7 +351,7 @@ GE.visitProcessNode = (path, node, constants, bindings) ->
   # TODO: if handler not defined, propogate error signals upwards? How to merge them?
   if "handleSignals" of process
     try
-      signalsResult = process.handleSignals(evaluatedParams, childNames, activeChildren, childSignals, constants.tools, constants.log)
+      signalsResult = process.handleSignals(evaluatedParams, childNames, activeChildren, childSignals, constants.tools, GE.toolsLogger)
 
       GE.evaluateOutputParameters(evaluationContext, process.paramDefs, node.params, evaluatedParams)
       modelPatches = GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model))
@@ -358,7 +361,7 @@ GE.visitProcessNode = (path, node, constants, bindings) ->
       result.result = signalsResult # appendWith() does not affect result
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      constants.log(GE.logLevels.ERROR, "Calling process #{node.process}.handleSignals raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+      GE.toolsLogger(GE.logLevels.ERROR, "Calling process #{node.process}.handleSignals raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
 
   return result
 
@@ -376,6 +379,10 @@ GE.visitSendNode = (path, node, constants, bindings) ->
   modelPatches = []
   servicePatches = []
 
+  # Return "DONE" signal, so it can be put in sequences
+  result = new GE.NodeVisitorResult(GE.signals.DONE)
+  GE.toolsLogger = GE.makeLogFunction(path, result.logMessages)
+
   for dest, src of node.send  
     evaluationContext = new GE.EvaluationContext(constants, bindings)
 
@@ -390,8 +397,9 @@ GE.visitSendNode = (path, node, constants, bindings) ->
     modelPatches = GE.concatenate(modelPatches, GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model)))
     servicePatches = GE.concatenate(servicePatches, GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services)))
   
-  # Return "DONE" signal, so it can be put in sequences
-  return new GE.NodeVisitorResult(GE.signals.DONE, modelPatches, servicePatches)
+  result.modelPatches = modelPatches
+  result.servicePatches = servicePatches
+  return result
 
 GE.nodeVisitors =
   "action": GE.visitActionNode
@@ -408,7 +416,10 @@ GE.visitNode = (path, node, constants, bindings = {}) ->
     if nodeType of node
       return visitor(path, node, constants, bindings)
 
-  constants.log(GE.logLevels.ERROR, "Layout item '#{JSON.stringify(node)}' is not understood")
+  result.logMessages.push
+    path: path
+    level: GE.logLevels.ERROR
+    message: ["Layout item '#{JSON.stringify(node)}' is not understood"]
 
   return new GE.NodeVisitorResult()
 
@@ -416,7 +427,7 @@ GE.visitNode = (path, node, constants, bindings = {}) ->
 # By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
 # If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
 # Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
-# Returns { modelPatches: [...], inputServiceData: {...}, servicePatches: [...] }
+# Returns { modelPatches: [...], inputServiceData: {...}, servicePatches: [...], logMessages: [...] }
 GE.stepLoop = (options) ->
   _.defaults options, 
     node: null
@@ -427,13 +438,13 @@ GE.stepLoop = (options) ->
     services: {}
     serviceConfig: {}
     evaluator: eval
-    log: null
     inputServiceData: null
     outputServiceData: null 
 
   if options.outputServiceData != null
     modelPatches = []
     servicePatches = []
+    logMessages = []
   else
     if options.inputServiceData == null
       options.inputServiceData = {}
@@ -448,7 +459,6 @@ GE.stepLoop = (options) ->
       processes: options.processes
       tools: options.tools
       evaluator: options.evaluator
-      log: options.log
     
     if GE.doPatchesConflict(result.modelPatches) then throw new Error("Model patches conflict: #{JSON.stringify(result.modelPatches)}")
     modelPatches = result.modelPatches
@@ -457,20 +467,23 @@ GE.stepLoop = (options) ->
     servicePatches = result.servicePatches
     options.outputServiceData = GE.applyPatches(result.servicePatches, options.inputServiceData)
 
+    logMessages = result.logMessages
+
   for serviceName, service of options.services
     service.establishData(options.outputServiceData[serviceName], options.serviceConfig, options.assets)
 
-  return { modelPatches: modelPatches, inputServiceData: options.inputServiceData, servicePatches: servicePatches }
+  return { modelPatches: modelPatches, inputServiceData: options.inputServiceData, servicePatches: servicePatches, logMessages: logMessages }
 
 # Compile expression source into sandboxed function of (model, services, assets, tools, bindings, params) 
 GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "params"])
 
-# Compile tool source into sandboxed function of args..., "baking in" the "tools" and "log" parameters of "context" 
-GE.compileTool = (expressionText, context, args, evaluator) -> 
+# Compile tool source into a function of an "context" object that generates the tools function,
+# baking in the "tools" parameter of "context".
+GE.compileTool = (expressionText, args, evaluator) -> 
   source = """
     return function(#{args.join(', ')}) { 
       var tools = context.tools; 
-      var log = context.log; 
+      var log = GE.toolsLogger; 
       #{expressionText} 
     };
   """
@@ -503,6 +516,16 @@ GE.determineAssetType = (url) ->
   for type, extensions of GE.extensions
     if extension in extensions then return type
   return null
+
+# Returns a function that adds to logMessages with the given path
+GE.makeLogFunction = (path, logMessages) ->
+  return (args...) ->
+    if args.length == 0 then throw new Error("Log function requires one or more arguments")
+ 
+    logMessages.push
+      path: path
+      level: args[0]
+      message: args[1..]
 
 # Load all the assets in the given object (name: url) and then call callback with the results, or error
 # TODO: have cache-busting be configurable

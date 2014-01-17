@@ -12,11 +12,15 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.boardConverter',
   'gamEvolve.game',
   'gamEvolve.game.edit',
-  'gamEvolve.game.select'
-  'gamEvolve.game.time',  
   'gamEvolve.game.log',
   'gamEvolve.game.player',
+  'gamEvolve.game.select'
+  'gamEvolve.game.time',  
+  'gamEvolve.model.games',
   'gamEvolve.model.history',
+  'gamEvolve.model.time',
+  'gamEvolve.model.users',
+  'gamEvolve.util.logger',
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->

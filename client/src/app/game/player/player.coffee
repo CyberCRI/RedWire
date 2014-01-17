@@ -1,12 +1,12 @@
 angular.module('gamEvolve.game.player', [])
-.controller "PlayerCtrl", ($scope, games, currentGame, gameHistory) -> 
+.controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime) -> 
   # Globals
   gameCode = null
   oldRoundedScale = null
 
   # Bring services into the scope
   $scope.currentGame = currentGame
-  $scope.gameHistory = gameHistory
+  $scope.gameTime = gameTime
 
   # TODO: take out this "global" message handler?
   window.addEventListener 'message', (e) -> 
@@ -25,10 +25,10 @@ angular.module('gamEvolve.game.player', [])
     switch message.operation
       when "loadGameCode"
         # Once the game is loaded
-        if gameHistory.frames.length > 0
+        if gameHistory.data.frames.length > 0
           # If there are already frames, then update them 
-          inputServiceDataFrames = _.pluck(gameHistory.frames, "inputServiceData")
-          sendMessage("updateFrames", { model: gameHistory.frames[0].model, inputServiceDataFrames })
+          inputServiceDataFrames = _.pluck(gameHistory.data.frames, "inputServiceData")
+          sendMessage("updateFrames", { model: gameHistory.data.frames[0].model, inputServiceDataFrames })
         else
           # Else just record the first frame
           sendMessage("recordFrame", { model: gameCode.model })
@@ -38,45 +38,55 @@ angular.module('gamEvolve.game.player', [])
           newFrame = 
             model: gameCode.model # Initial model
             inputServiceData: message.value.inputServiceData 
-            servicePatches: message.value.servicePatches 
-          gameHistory.frames = [newFrame]
-          gameHistory.currentFrameNumber = 0
+            servicePatches: message.value.servicePatches
+            logMessages: message.value.logMessages 
+          gameHistory.data.frames = [newFrame]
+          gameHistory.meta.version++
+          gameTime.currentFrameNumber = 0
       when "stopRecording" 
         $scope.$apply ->
           # Remove frames after the current one
-          gameHistory.frames.length = gameHistory.currentFrameNumber + 1
+          gameHistory.data.frames.length = gameTime.currentFrameNumber + 1
 
            # Replace the service data on the last frame
           results = message.value[0]
-          gameHistory.frames[gameHistory.currentFrameNumber].inputServiceData = results.inputServiceData
-          gameHistory.frames[gameHistory.currentFrameNumber].servicePatches = results.servicePatches
+          gameHistory.data.frames[gameTime.currentFrameNumber].inputServiceData = results.inputServiceData
+          gameHistory.data.frames[gameTime.currentFrameNumber].servicePatches = results.servicePatches
+          gameHistory.data.frames[gameTime.currentFrameNumber].logMessages = results.logMessages
 
           # Add in the new results
-          lastModel = gameHistory.frames[gameHistory.currentFrameNumber].model
+          lastModel = gameHistory.data.frames[gameTime.currentFrameNumber].model
           for results in message.value[1..]
-            gameHistory.frames.push
+            gameHistory.data.frames.push
               model: lastModel
               servicePatches: results.servicePatches
               inputServiceData: results.inputServiceData
+              logMessages: results.logMessages
             # Calcuate the next model to be used
             lastModel = GE.applyPatches(results.modelPatches, lastModel)
 
           # Go the the last frame
-          gameHistory.currentFrameNumber = gameHistory.frames.length - 1
+          gameTime.currentFrameNumber = gameHistory.data.frames.length - 1
+
+          # Update the version
+          gameHistory.meta.version++
       when "updateFrames" 
         $scope.$apply ->
           # Replace existing frames by the new results
-          lastModel = gameHistory.frames[0].model
+          lastModel = gameHistory.data.frames[0].model
           for index, results of message.value
-            gameHistory.frames[index] = 
+            gameHistory.data.frames[index] = 
               model: lastModel
               servicePatches: results.servicePatches
               inputServiceData: results.inputServiceData
             # Calcuate the next model to be used
             lastModel = GE.applyPatches(results.modelPatches, lastModel)
 
+            # Update the version
+          gameHistory.meta.version++
+
           # Display the current frame
-          onUpdateFrame(gameHistory.currentFrameNumber)
+          onUpdateFrame(gameTime.currentFrameNumber)
 
   sendMessage = (operation, value) ->  
     # Note that we're sending the message to "*", rather than some specific origin. 
@@ -117,18 +127,18 @@ angular.module('gamEvolve.game.player', [])
   onUpdateFrame = (frameNumber) ->
     if not gameCode? then return
     console.log("Changed frame to", frameNumber)
-    frameResult = gameHistory.frames[frameNumber]
+    frameResult = gameHistory.data.frames[frameNumber]
     outputServiceData = GE.applyPatches(frameResult.servicePatches, frameResult.inputServiceData)
     sendMessage("playFrame", { outputServiceData: outputServiceData })
-  $scope.$watch('gameHistory.currentFrameNumber', onUpdateFrame, true)
+  $scope.$watch('gameTime.currentFrameNumber', onUpdateFrame, true)
 
   onUpdateRecording = (isRecording) ->
     if not gameCode? then return
     if isRecording 
-      sendMessage("startRecording", { model: gameHistory.frames[gameHistory.currentFrameNumber].model })
+      sendMessage("startRecording", { model: gameHistory.data.frames[gameTime.currentFrameNumber].model })
     else
       sendMessage("stopRecording")
-  $scope.$watch('gameHistory.isRecording', onUpdateRecording, true)
+  $scope.$watch('gameTime.isRecording', onUpdateRecording, true)
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!
   # Until then automatically resize once in a while.

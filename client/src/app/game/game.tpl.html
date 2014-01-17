@@ -12,7 +12,7 @@
                             <a class="btn btn-primary" href="#" ng-click="triggerRecord()"><i class="icon-white" ng-class="{'icon-play-circle': !isRecording, 'icon-stop': isRecording}"></i></a>
                         </div>
                         <div id="sliderContainer">
-                            <input type="range" ng-model="currentFrame" min="0" max="{{lastFrame}}" ng-disabled="{{lastFrame == 0}}" />
+                            <input type="range" ng-model="currentFrameString" min="0" max="{{lastFrame}}" ng-disabled="{{lastFrame == 0}}" />
                         </div>
                         <div id="frameNumberContainer">
                             <span>{{currentFrame + 1}}/{{lastFrame + 1}}</span>
@@ -59,8 +59,10 @@
         <flexy-layout ui-view="game.main"></flexy-layout>
     </block-container>
 
+    <block-splitter></block-splitter>
+
     <!-- Footer -->
-    <block-container init="40">
+    <block-container init="60">
         <div ui-ace="{ onLoad : aceLoaded }" ng-controller="LogCtrl" ng-model="text"></div>
     </block-container>
 

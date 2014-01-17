@@ -54,7 +54,6 @@ module.exports = {
     js: [
       'vendor/jquery/jquery.js',
       'vendor/angular/angular.js',
-      'vendor/angular-mocks/angular-mocks.js',
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
       'vendor/angular-ui-utils/modules/route/route.js',
@@ -67,7 +66,8 @@ module.exports = {
       'vendor/jquery-ui/ui/jquery-ui.custom.js',
       'vendor/angular-ui-multi-sortable/multiSortable.js',
       'vendor/jstree/dist/jstree.js',
-      'vendor/rivets/dist/rivets.js'
+      'vendor/rivets/dist/rivets.js',
+      'vendor/sylvester/sylvester.src.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
