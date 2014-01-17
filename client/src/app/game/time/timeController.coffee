@@ -1,6 +1,7 @@
 angular.module('gamEvolve.game.time', [])
 .controller 'TimeCtrl', ($scope, $timeout, gameHistory, gameTime) ->
   $scope.currentFrame = 0
+  $scope.currentFrameString = "0" # Needed by the input range element in the template
   $scope.lastFrame = 100
   $scope.isPlaying = false
   $scope.isRecording = false
@@ -26,6 +27,9 @@ angular.module('gamEvolve.game.time', [])
       $scope.isPlaying = false
 
   $scope.$watch("isPlaying", (isPlaying) -> if isPlaying then onPlayFrame())
+
+  $scope.$watch("currentFrame", -> $scope.currentFrameString = $scope.currentFrame.toString())
+  $scope.$watch("currentFrameString", -> $scope.currentFrame = parseInt($scope.currentFrameString))
 
   # Bring gameTime into the scope in order to watch it
   $scope.gameTime = gameTime
