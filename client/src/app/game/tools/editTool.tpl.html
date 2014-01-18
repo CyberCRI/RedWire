@@ -2,8 +2,8 @@
 	<h3>Edit Tool</h3>
 </div>
 <div class="modal-body">
-	Blah blah blah
+	<div ui-ace="{ onLoad : aceLoaded }" ng-model="functionText"></div>
 </div>
 <div class="modal-footer">
-	<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+	<button class="btn btn-primary" ng-click="done()">Done</button>
 </div>
