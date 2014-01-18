@@ -66,12 +66,14 @@ module.exports = {
       'vendor/JSONedit/lib/angular-ui/angular-ui.js',
       'vendor/jquery-ui/ui/jquery-ui.custom.js',
       'vendor/angular-ui-multi-sortable/multiSortable.js',
+      'vendor/jstree/dist/jstree.js',
       'vendor/rivets/dist/rivets.js',
       'vendor/sylvester/sylvester.src.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
       'vendor/JSONedit/css/styles.css',
+      'vendor/jstree/dist/themes/default/style.css',
     ],
     images: [
       'vendor/bootstrap/img/*.png',
