@@ -1,9 +1,21 @@
-<div class="modal-header">
-	<h3>Edit Tool</h3>
-</div>
-<div class="modal-body">
-	<div ui-ace="{ onLoad : aceLoaded }" ng-model="functionText"></div>
-</div>
-<div class="modal-footer">
-	<button class="btn btn-primary" ng-click="done()">Done</button>
+<div id="editToolDialog">
+	<div class="modal-header">
+		<h3>Edit Tool</h3>
+	</div>
+	<div class="modal-body"> 
+		<h4>Arguments</h4>
+		<ul>
+			<li ng-repeat="argument in arguments">
+				<input ng-model="argument.value"></input> <a class="btn" ng-click="removeArgument($index)"><i class="icon-remove"></i></a>
+			</li>
+		</ul>
+		<a class="btn" ng-click="addArgument()"><i class="icon-plus"></i></a>
+
+		<h4>Body</h4>
+		<div ui-ace="{ onLoad : aceLoaded }" ng-model="body"></div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+		<button class="btn btn-primary" ng-click="done()">Done</button>
+	</div>
 </div>
