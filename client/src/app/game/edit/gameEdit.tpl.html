@@ -41,16 +41,22 @@
                 <ul class="nav nav-tabs">
                     <li><a href="#tools" data-toggle="tab">Tools</a></li>
                     <li><a href="#actions" data-toggle="tab">Actions</a></li>
+                    <li><a href="#switches" data-toggle="tab">Switches</a></li>
                 </ul>
 
                 <!-- Tab panes -->
                 <div class="tab-content">
                     <div class="tab-pane active" id="tools" ng-controller="ToolsListCtrl">
                         <ul>
-                            <li ng-repeat="tool in tools"><a ng-click="editTool(tool)">Tool {{tool}}</a></li>
+                            <li ng-repeat="toolName in toolNames">
+                                <a ng-click="editTool(toolName)">{{toolName}}</a> 
+                                <a class="btn" ng-click="removeTool(toolName)"><i class="icon-trash"></i></a> 
+                            </li>
                         </ul>
+                        <a class="btn" ng-click="addTool()"><i class="icon-plus"></i></a>
                     </div>
                   <div class="tab-pane" id="actions">Actions</div>
+                  <div class="tab-pane" id="switches">Switches</div>
                 </div>
             </div>
         </block-container>
