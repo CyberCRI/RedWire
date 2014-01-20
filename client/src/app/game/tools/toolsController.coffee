@@ -14,14 +14,15 @@ angular.module('gamEvolve.game.tools', [
   $scope.currentGame = currentGame
   $scope.$watch('currentGame', updateTools, true)
 
-  $scope.removeTool = (toolName) ->
+  $scope.remove = (toolName) ->
     delete currentGame.version.tools[toolName]
 
-  $scope.addTool = () ->
+  $scope.add = () ->
     addToolDialog = $dialog.dialog
       backdrop: true
       dialogFade: true
       backdropFade: true
+      backdropClick: false
       templateUrl: 'game/tools/editTool.tpl.html'
       controller: 'EditToolDialogCtrl'
       resolve:
@@ -43,12 +44,13 @@ angular.module('gamEvolve.game.tools', [
           }
     addToolDialog.open()
 
-  $scope.editTool = (toolName) -> 
+  $scope.edit = (toolName) -> 
     tool = currentGame.version.tools[toolName]
     editToolDialog = $dialog.dialog
       backdrop: true
       dialogFade: true
       backdropFade: true
+      backdropClick: false
       templateUrl: 'game/tools/editTool.tpl.html'
       controller: 'EditToolDialogCtrl'
       resolve:

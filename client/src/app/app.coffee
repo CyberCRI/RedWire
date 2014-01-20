@@ -1,3 +1,4 @@
+# Let's keep this list in alphabetical order
 angular.module( 'gamEvolve', [
   'templates-app',
   'templates-common',
@@ -11,6 +12,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.tree',
   'gamEvolve.util.boardConverter',
   'gamEvolve.game',
+  'gamEvolve.game.actions',
   'gamEvolve.game.edit',
   'gamEvolve.game.log',
   'gamEvolve.game.player',

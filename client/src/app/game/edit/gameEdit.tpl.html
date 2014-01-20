@@ -49,13 +49,23 @@
                     <div class="tab-pane active" id="tools" ng-controller="ToolsListCtrl">
                         <ul>
                             <li ng-repeat="toolName in toolNames">
-                                <a ng-click="editTool(toolName)">{{toolName}}</a> 
-                                <a class="btn" ng-click="removeTool(toolName)"><i class="icon-trash"></i></a> 
+                                <a ng-click="edit(toolName)">{{toolName}}</a> 
+                                <a class="btn" ng-click="remove(toolName)"><i class="icon-trash"></i></a> 
                             </li>
                         </ul>
-                        <a class="btn" ng-click="addTool()"><i class="icon-plus"></i></a>
+                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
-                  <div class="tab-pane" id="actions">Actions</div>
+                  <div class="tab-pane" id="actions">
+                    <div class="tab-pane active" id="actions" ng-controller="ActionsListCtrl">
+                        <ul>
+                            <li ng-repeat="actionName in actionNames">
+                                <a ng-click="edit(actionName)">{{actionName}}</a> 
+                                <a class="btn" ng-click="remove(actionName)"><i class="icon-trash"></i></a> 
+                            </li>
+                        </ul>
+                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                    </div>
+                  </div>
                   <div class="tab-pane" id="switches">Switches</div>
                 </div>
             </div>
