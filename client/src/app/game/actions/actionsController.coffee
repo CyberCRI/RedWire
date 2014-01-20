@@ -15,7 +15,7 @@ angular.module('gamEvolve.game.actions', [
   $scope.$watch('currentGame', updateActions, true)
 
   $scope.remove = (name) ->
-    delete currentGame.version.actionNames[name]
+    delete currentGame.version.actions[name]
 
   $scope.add = () ->
     addActionDialog = $dialog.dialog

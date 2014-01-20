@@ -66,7 +66,17 @@
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
                   </div>
-                  <div class="tab-pane" id="switches">Switches</div>
+                  <div class="tab-pane" id="switches">
+                    <div class="tab-pane active" id="actions" ng-controller="SwitchesListCtrl">
+                        <ul>
+                            <li ng-repeat="switchName in switchNames">
+                                <a ng-click="edit(switchName)">{{switchName}}</a> 
+                                <a class="btn" ng-click="remove(switchName)"><i class="icon-trash"></i></a> 
+                            </li>
+                        </ul>
+                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                    </div>
+                  </div>
                 </div>
             </div>
         </block-container>
