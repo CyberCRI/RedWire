@@ -1,10 +1,13 @@
-processToText = (process) ->
-  if process is 'doInParallel'
-    'Do In Parallel'
-  else if process is 'doInSequence'
-    'Do In Sequence'
+String::capitalize = ->
+  @replace /(^|\s)([a-z])/g, (m, p1, p2) ->
+    p1 + p2.toUpperCase()
+
+generateText = (source) ->
+  process = source.process
+  if process
+    _.string.humanize(process).capitalize()
   else
-    process
+    'Effector'
 
 angular.module('gamEvolve.util.boardConverter', [])
 
@@ -12,7 +15,7 @@ angular.module('gamEvolve.util.boardConverter', [])
 
     convert: (source, isRoot=true) ->
       converted =
-        'text': processToText(source.process)
+        'text': generateText(source)
         'state':
           'opened': isRoot
         'source': JSON.parse(JSON.stringify(source));

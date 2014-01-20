@@ -61,6 +61,7 @@ module.exports = {
       'vendor/ace-builds/src-min-noconflict/ace.js',
       'vendor/angular-ui-ace/ui-ace.js',
       'vendor/underscore/underscore.js',
+      'vendor/underscore.string/lib/underscore.string.js',
       'vendor/flexy-layout/flexy-layout.debug.js',
       'vendor/JSONedit/js/directives.js',
       'vendor/JSONedit/lib/angular-ui/angular-ui.js',
