@@ -271,7 +271,8 @@ GE.services.html =
         for templateName in _.difference(newTemplates, existingTemplates) 
           # Create template
           templateHtml = assets[newTemplateData[templateName].asset]
-          outerWrapper = $("<div id='html-#{templateName}' style='position: absolute; z-index: 100; pointer-events: none; width: #{options.size[0]}px; height: #{options.size[1]}px'/>")
+          depth = options.layers[newTemplateData[templateName].layer] ? 100 # Default to 100
+          outerWrapper = $("<div id='html-#{templateName}' style='position: absolute; z-index: #{depth}; pointer-events: none; width: #{options.size[0]}px; height: #{options.size[1]}px'/>")
           outerWrapper.append(templateHtml)
           $(options.elementSelector).append(outerWrapper)
           layers[templateName] = outerWrapper

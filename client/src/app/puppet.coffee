@@ -197,6 +197,7 @@ onUpdateFrames = (model, inputServiceDataFrames) ->
       lastModel = GE.applyPatches(result.modelPatches, lastModel)
       results.push(result)
     catch e
+      console.log("Error in update frames", e)
       results.push({ error: e })
       return results # Return right away
 
