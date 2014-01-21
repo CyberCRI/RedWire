@@ -53,12 +53,16 @@ module.exports = {
   vendor_files: {
     js: [
       'vendor/jquery/jquery.js',
+      'vendor/bootstrap/js/bootstrap-tab.js',
       'vendor/angular/angular.js',
       'vendor/angular-mocks/angular-mocks.js',
       'vendor/angular-bootstrap/ui-bootstrap-tpls.min.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
       'vendor/angular-ui-utils/modules/route/route.js',
       'vendor/ace-builds/src-min-noconflict/ace.js',
+      'vendor/ace-builds/src-min-noconflict/mode-javascript.js',
+      'vendor/ace-builds/src-min-noconflict/worker-javascript.js',
+      'vendor/ace-builds/src-min-noconflict/theme-twilight.js',
       'vendor/angular-ui-ace/ui-ace.js',
       'vendor/underscore/underscore.js',
       'vendor/underscore.string/lib/underscore.string.js',
