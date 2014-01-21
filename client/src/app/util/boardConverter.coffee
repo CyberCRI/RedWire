@@ -9,6 +9,12 @@ generateText = (source) ->
   else
     'Effector'
 
+generateType = (source) ->
+  if source.process
+    'switch'
+  else
+    'action'
+
 angular.module('gamEvolve.util.boardConverter', [])
 
 .factory 'boardConverter', ->
@@ -16,6 +22,7 @@ angular.module('gamEvolve.util.boardConverter', [])
     convert: (source, isRoot=true) ->
       converted =
         'text': generateText(source)
+        'type': generateType(source)
         'state':
           'opened': isRoot
         'source': JSON.parse(JSON.stringify(source));
