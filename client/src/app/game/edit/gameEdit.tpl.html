@@ -50,7 +50,7 @@
                         <ul>
                             <li ng-repeat="toolName in toolNames">
                                 <a href="" ng-click="edit(toolName)">{{toolName}}</a> 
-                                <a class="btn" ng-click="remove(toolName)"><i class="icon-trash"></i></a> 
+                                <a class="btn btn-small" ng-click="remove(toolName)"><i class="icon-trash"></i></a> 
                             </li>
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
@@ -60,7 +60,7 @@
                         <ul>
                             <li ng-repeat="actionName in actionNames">
                                 <a href="" ng-click="edit(actionName)">{{actionName}}</a> 
-                                <a class="btn" ng-click="remove(actionName)"><i class="icon-trash"></i></a> 
+                                <a class="btn btn-small" ng-click="remove(actionName)"><i class="icon-trash"></i></a> 
                             </li>
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
@@ -71,7 +71,7 @@
                         <ul>
                             <li ng-repeat="switchName in switchNames">
                                 <a href="" ng-click="edit(switchName)">{{switchName}}</a> 
-                                <a class="btn" ng-click="remove(switchName)"><i class="icon-trash"></i></a> 
+                                <a class="btn btn-small" ng-click="remove(switchName)"><i class="icon-trash"></i></a> 
                             </li>
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
@@ -82,8 +82,20 @@
         </block-container>
         <block-splitter></block-splitter>
         <block-container style="overflow:scroll;">
-            <div>
-                <p>Services</p>
+            <div ng-controller="LayersCtrl" id="layersList">
+                <h4>Layers</h4>
+                <ul ui-multi-sortable ng-model="layers">
+                  <li ng-repeat="layer in layers">
+                    <form class="form-inline">
+                        <i class="icon-align-justify"></i> 
+                        <input ng-model="layer.name" class="input-small" required placeholder="Service name"></input>
+                        <select ng-model="layer.type" ng-options="type for type in TYPES" class="input-small"></select>
+                        <a class="btn btn-small" ng-click="removeLayer($index)"><i class="icon-trash"></i></a>
+                    </form>
+                  </li>
+                </ul>
+
+                <a class="btn" ng-click="addLayer()"><i class="icon-plus"></i></a>
             </div>
         </block-container>
     </flexy-layout>

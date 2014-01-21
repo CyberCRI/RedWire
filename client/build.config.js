@@ -73,7 +73,7 @@ module.exports = {
       'vendor/angular-ui-multi-sortable/multiSortable.js',
       'vendor/jstree/dist/jstree.js',
       'vendor/rivets/dist/rivets.js',
-      'vendor/sylvester/sylvester.src.js'
+      'vendor/sylvester/sylvester.src.js',
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
