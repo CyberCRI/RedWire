@@ -65,15 +65,18 @@ destroyServices = (currentServices) ->
   for serviceName, service of currentServices
     service.destroy()
 
-initializeServices = (serviceDefs) ->
+initializeServices = (serviceConfig) ->
   # Create new services
   currentServices = {}
-  for serviceName, serviceDef of serviceDefs
+  for serviceName, serviceData of GE.services
     try
-      options = _.defaults serviceDef.options || {},
+      options = 
         elementSelector: '#gameContent'
         size: GAME_DIMENSIONS
-      currentServices[serviceName] = GE.services[serviceDef.type](options)
+      if serviceData.meta.visual
+        options.layers = _.object(([layer.name, index] for index, layer of serviceConfig.layers when layer.type is serviceName ))
+
+      currentServices[serviceName] = serviceData.factory(options)
     catch error
       throw new Error("Error initializing service '#{serviceName}'. #{error}")
   return currentServices

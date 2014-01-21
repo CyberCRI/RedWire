@@ -64,6 +64,24 @@ correctActions = (actions, processes, layoutNode) ->
     for child in layoutNode.children
       correctActions(actions, processes, child)
 
+convertServicesToLayers = (services) ->
+  layers = []
+
+  # First come the canvas layers
+  for layer in services.graphics?.options?.layers?
+    layers.push 
+      name: layer
+      type: "Canvas"
+
+  # Next the HTML
+  if services.html
+    layers.push
+      name: "html"
+      type: "HTML"
+
+  return layers
+
+
 # MAIN
 if process.argv.length < 4
   util.error("Usage: coffee convert_from_directory.coffee <input_dir> <output_file>")
@@ -94,16 +112,22 @@ for name, value of actionsJson
   else
     outputObj.processes[name] = value
 
+# Read layout.json
+layoutJson = fs.readFileSync(path.join(inputDir, "layout.json"), { encoding: "utf8" })
+# Rename "graphics" to "canvas"
+layoutJson = layoutJson.replace(/services\.graphics/, "services.canvas")
 # Copy over layout JSON
-outputObj.layout = JSON.parse(fs.readFileSync(path.join(inputDir, "layout.json"), { encoding: "utf8" }))
+outputObj.layout = JSON.parse(layoutJson)
 # Correct between actions and processes
 correctActions(outputObj.actions, outputObj.processes, outputObj.layout)
 
 # Copy over model JSON
 outputObj.model = JSON.parse(fs.readFileSync(path.join(inputDir, "model.json"), { encoding: "utf8" }))
 
-# Copy over services JSON
-outputObj.services = JSON.parse(fs.readFileSync(path.join(inputDir, "services.json"), { encoding: "utf8" }))
+# Create layers config 
+parsedServices = JSON.parse(fs.readFileSync(path.join(inputDir, "services.json"), { encoding: "utf8" }))
+outputObj.services = 
+  layers: convertServicesToLayers(parsedServices)
 
 # Tools are a JS file that needs to be parsed
 parsedTools = esprima.parse(fs.readFileSync(path.join(inputDir, "tools.js"), { encoding: "utf8" }))

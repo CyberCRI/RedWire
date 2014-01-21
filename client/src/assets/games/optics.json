@@ -252,33 +252,22 @@
         }
     },
     "services": {
-        "keyboard": {
-            "type": "Keyboard"
-        },
-        "mouse": {
-            "type": "Mouse"
-        },
-        "graphics": {
-            "type": "Canvas",
-            "options": {
-                "layers": [
-                    "bg",
-                    "pieces",
-                    "light",
-                    "mask",
-                    "rotating",
-                    "drag",
-                    "selection",
-                    "text"
-                ]
-            }
-        }
+        "layers": [
+            { "name": "bg", "type": "canvas" },
+            { "name": "pieces", "type": "canvas" },
+            { "name": "light", "type": "canvas" },
+            { "name": "mask", "type": "canvas" },
+            { "name": "rotating", "type": "canvas" },
+            { "name": "drag", "type": "canvas" },
+            { "name": "selection", "type": "canvas" },
+            { "name": "text", "type": "canvas" }
+        ]
     },
     "layout": {
         "children": [
             {
                 "send": {
-                    "services.graphics.shapes": "tools.drawShape({ type: 'image', asset: 'background', layer: 'bg', position: [0, 0] })"
+                    "services.canvas.shapes": "tools.drawShape({ type: 'image', asset: 'background', layer: 'bg', position: [0, 0] })"
                 }
             },
             {
@@ -304,12 +293,12 @@
                         "children": [
                             {
                                 "send": {
-                                    "services.graphics.shapes": "tools.drawShape({ type: 'image', asset: 'title', layer: 'pieces', position: [100, 150] })"
+                                    "services.canvas.shapes": "tools.drawShape({ type: 'image', asset: 'title', layer: 'pieces', position: [100, 150] })"
                                 }
                             },
                             {
                                 "send": {
-                                    "services.graphics.shapes": "tools.drawShape({ type: 'text', text: 'Ready...', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '16px Rix', align: 'center' })"
+                                    "services.canvas.shapes": "tools.drawShape({ type: 'text', text: 'Ready...', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '16px Rix', align: 'center' })"
                                 }
                             },
                             {
@@ -332,7 +321,7 @@
                         "children": [
                             {
                                 "send": {
-                                    "services.graphics.shapes": "tools.drawLightPath(model.constants.boardGrid, tools.makeLightPath(model.pieces, model.constants.boardGrid.gridSize, model.constants.mirrorAttenuationFactor, model.constants.minimumAttenuation).segments)"
+                                    "services.canvas.shapes": "tools.drawLightPath(model.constants.boardGrid, tools.makeLightPath(model.pieces, model.constants.boardGrid.gridSize, model.constants.mirrorAttenuationFactor, model.constants.minimumAttenuation).segments)"
                                 }
                             },
                             {
@@ -343,7 +332,7 @@
                                 "children": [
                                     {
                                         "send": {
-                                            "services.graphics.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })"
+                                            "services.canvas.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })"
                                         }
                                     }
                                 ]
@@ -357,14 +346,14 @@
                                 "children": [
                                     {
                                         "send": {
-                                            "services.graphics.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], scale: 0.67, translation: tools.gridCellCenter(model.constants.boxGrid, tools.gridIndexToCell(bindings.pieceIndex)) })"
+                                            "services.canvas.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], scale: 0.67, translation: tools.gridCellCenter(model.constants.boxGrid, tools.gridIndexToCell(bindings.pieceIndex)) })"
                                         }
                                     }
                                 ]
                             },
                             {
                                 "send": {
-                                    "services.graphics.shapes": "tools.drawShape(_.extend(tools.gridCellRectangle(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), { layer: 'selection', strokeStyle: 'yellow', lineWidth: 4 }))"
+                                    "services.canvas.shapes": "tools.drawShape(_.extend(tools.gridCellRectangle(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), { layer: 'selection', strokeStyle: 'yellow', lineWidth: 4 }))"
                                 }
                             },
                             {
@@ -389,7 +378,7 @@
                                     },
                                     {
                                         "send": {
-                                            "services.graphics.shapes": "tools.drawShape({ layer: 'rotating', type: 'image', asset: model.rotating ? 'is-rotating' : 'can-rotate', scale: 0.5, position: [-208/2, -208/2], translation: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) })"
+                                            "services.canvas.shapes": "tools.drawShape({ layer: 'rotating', type: 'image', asset: model.rotating ? 'is-rotating' : 'can-rotate', scale: 0.5, position: [-208/2, -208/2], translation: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) })"
                                         }
                                     },
                                     {
@@ -534,7 +523,7 @@
                                     {
                                         "send": {
                                             "services.mouse.cursor": "'move'",
-                                            "services.graphics.shapes": "tools.drawShape({ type: 'image', layer: 'drag', asset: model.draggedPiece.type, alpha: 0.5, position: [-model.constants.pieceAssetCentering, -model.constants.pieceAssetCentering], translation: services.mouse.position, rotation: model.draggedPiece.rotation })"
+                                            "services.canvas.shapes": "tools.drawShape({ type: 'image', layer: 'drag', asset: model.draggedPiece.type, alpha: 0.5, position: [-model.constants.pieceAssetCentering, -model.constants.pieceAssetCentering], translation: services.mouse.position, rotation: model.draggedPiece.rotation })"
                                         }
                                     }
                                 ],
@@ -556,7 +545,7 @@
                         "children": [
                             {
                                 "send": {
-                                    "services.graphics.shapes": "tools.drawShape({ type: 'text', text: 'You win', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '18px Rix', align: 'center' })",
+                                    "services.canvas.shapes": "tools.drawShape({ type: 'text', text: 'You win', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '18px Rix', align: 'center' })",
                                     "model.mouseDetection": "{}",
                                     "model.rotating": "false"
                                 }
@@ -569,7 +558,7 @@
                                 "children": [
                                     {
                                         "send": {
-                                            "services.graphics.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })"
+                                            "services.canvas.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })"
                                         }
                                     }
                                 ]
