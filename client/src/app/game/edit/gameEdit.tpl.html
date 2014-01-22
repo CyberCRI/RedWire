@@ -8,8 +8,18 @@
         </block-container>
         <block-splitter></block-splitter>
         <block-container style="overflow:scroll;">
-            <div>
-                <p>Assets</p>
+            <div id="assetsList" ng-controller="AssetsCtrl">
+                <h4>Assets</h4>
+
+                <ul>
+                    <li ng-repeat="assetName in assetNames">
+                        {{ assetName }}
+                        <div class="assetThumbnail" style="background-image: url({{ assets[assetName] }})"></div>
+                        <a class="btn" ng-click="remove(assetName)"><i class="icon-trash"></i></a> 
+                    </li>
+                </ul>
+
+                <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
             </div>
         </block-container>
     </flexy-layout>
