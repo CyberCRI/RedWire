@@ -12,10 +12,10 @@
                 <h4>Assets</h4>
 
                 <ul>
-                    <li ng-repeat="assetName in assetNames">
-                        {{ assetName }}
-                        <div class="assetThumbnail" style="background-image: url({{ assets[assetName] }})"></div>
-                        <a class="btn" ng-click="remove(assetName)"><i class="icon-trash"></i></a> 
+                    <li ng-repeat="asset in assets">
+                        <a href="" editable-text="asset.name">{{ asset.name || "empty" }}</a>
+                        <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
+                        <a class="btn" ng-click="remove(asset.name)"><i class="icon-trash"></i></a> 
                     </li>
                 </ul>
 

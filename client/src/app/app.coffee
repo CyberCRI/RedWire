@@ -26,6 +26,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.time'
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
+  'xeditable'
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->
@@ -37,3 +38,8 @@ angular.module( 'gamEvolve', [
     if angular.isDefined( toState.data.pageTitle )
       $scope.pageTitle = toState.data.pageTitle + ' | gameEvolve'
 )
+
+# Set options for xeditable
+.run (editableOptions) ->
+  editableOptions.theme = "bs2"
+
