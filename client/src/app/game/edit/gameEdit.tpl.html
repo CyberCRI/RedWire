@@ -8,8 +8,19 @@
         </block-container>
         <block-splitter></block-splitter>
         <block-container style="overflow:scroll;">
-            <div>
-                <p>Assets</p>
+            <div id="assetsList" ng-controller="AssetsCtrl">
+                <h4>Assets</h4>
+
+                <ul>
+                    <li ng-repeat="asset in assets">
+                        <a href="" editable-text="asset.name">{{ asset.name || "empty" }}</a>
+                        <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
+                        <a class="btn" ng-click="remove(asset.name)"><i class="icon-trash"></i></a> 
+                    </li>
+                </ul>
+
+                <div file-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop files here</span></div>
+                <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
             </div>
         </block-container>
     </flexy-layout>
