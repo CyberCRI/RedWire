@@ -71,6 +71,7 @@ module.exports = {
       'vendor/JSONedit/lib/angular-ui/angular-ui.js',
       'vendor/jquery-ui/ui/jquery-ui.custom.js',
       'vendor/angular-ui-multi-sortable/multiSortable.js',
+      'vendor/angular-file-dnd/dist/angular-file-dnd.js',
       'vendor/jstree/dist/jstree.js',
       'vendor/rivets/dist/rivets.js',
       'vendor/sylvester/sylvester.src.js'
