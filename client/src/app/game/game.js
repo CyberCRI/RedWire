@@ -20,9 +20,6 @@ angular.module('gamEvolve.game', [
     })
 
     .controller('GameCtrl', function ($scope, currentGame, games, loggedUser, users, gameSelectionDialog) {
-
-        $scope.noGameMessage = "Game Name";
-
         // Binding services
         $scope.currentGame = currentGame;
         $scope.games = games;
