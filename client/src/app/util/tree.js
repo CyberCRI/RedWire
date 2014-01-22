@@ -15,9 +15,25 @@ angular.module('gamEvolve.util.tree', [])
                 scope.$watch('jstree', function () {
                     $(element).jstree();
                     $(element).jstree().destroy();
-                    $(element).jstree({ 'core': {
-                        'data': scope.jstree
-                    } });
+                    $(element).jstree({
+                        'core': {
+                            'animation': 0,
+                            'check_callback': true,
+                            'themes': { 'stripes': true },
+                            'data': scope.jstree },
+                        'types': {
+                            'root': {
+                            },
+                            'switch': {
+                            },
+                            'action': {
+                                'valid_children': []
+                            },
+                            'unknown': {
+                            }
+                        },
+                        'plugins': [ 'types', 'dnd' ]
+                    });
                 }, false);
             }
 

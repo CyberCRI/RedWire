@@ -27,7 +27,10 @@
     "grunt-ngmin": "0.0.2",
     "grunt-recess": "~0.3.0",
     "path": "*",
-    "underscore": "*"
+    "underscore": "*",
+    "escodegen": "~1.1.0",
+    "esprima": "~1.0.4",
+    "mime": "~1.2.11"
   },
   "licenses": {
     "type": "MIT",

@@ -68,16 +68,16 @@ convertServicesToLayers = (services) ->
   layers = []
 
   # First come the canvas layers
-  for layer in services.graphics?.options?.layers?
+  for layer in services.graphics?.options?.layers
     layers.push 
       name: layer
-      type: "Canvas"
+      type: "canvas"
 
   # Next the HTML
   if services.html
     layers.push
       name: "html"
-      type: "HTML"
+      type: "html"
 
   return layers
 
@@ -92,6 +92,7 @@ outputFile = process.argv[3]
 
 # This object will be written out as JSON at the end 
 outputObj = 
+  name: path.basename(inputDir)
   fileVersion: OUTPUT_VERSION
   model: {}
   services: {}
@@ -115,7 +116,7 @@ for name, value of actionsJson
 # Read layout.json
 layoutJson = fs.readFileSync(path.join(inputDir, "layout.json"), { encoding: "utf8" })
 # Rename "graphics" to "canvas"
-layoutJson = layoutJson.replace(/services\.graphics/, "services.canvas")
+layoutJson = layoutJson.replace(/services\.graphics/g, "services.canvas")
 # Copy over layout JSON
 outputObj.layout = JSON.parse(layoutJson)
 # Correct between actions and processes

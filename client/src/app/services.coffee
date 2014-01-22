@@ -360,7 +360,7 @@ GE.services.http =
     return service
 
 # Define chart output service
-GE.services.chart =  
+GE.services.charts =  
   meta:
     visual: true
   factory: (options = {}) ->
