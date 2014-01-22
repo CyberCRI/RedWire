@@ -79,6 +79,7 @@ angular.module('gamEvolve.game.player', [])
               model: lastModel
               servicePatches: results.servicePatches
               inputServiceData: results.inputServiceData
+              logMessages: results.logMessages
             # Calcuate the next model to be used
             lastModel = GE.applyPatches(results.modelPatches, lastModel)
 

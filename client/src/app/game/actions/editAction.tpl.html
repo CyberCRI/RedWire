@@ -1,5 +1,5 @@
 <div id="editActionDialog">
-	<form name="form" novalidate>
+	<form name="form" style="form-inline" novalidate>
 		<div class="modal-header">
 			<h3>Edit Action <input ng-model="name" required placeholder="Action name"></input></h3>
 		</div>
@@ -7,10 +7,10 @@
 			<h4>Pins</h4>
 			<ul>
 				<li ng-repeat="pin in pins">
-					<input required ng-model="pin.name" placeholder="Pin name"></input>
-					<select ng-model="pin.direction" ng-options="direction for direction in DIRECTIONS"></select>
-					<input ng-model="pin.default" ng-show="pin.direction == 'in'" placeholder="Default value"></input>
-					<a class="btn" ng-click="removePin($index)"><i class="icon-trash"></i></a>
+					<input required ng-model="pin.name" placeholder="Pin name" class="input-small"></input>
+					<select ng-model="pin.direction" ng-options="direction for direction in DIRECTIONS" class="input-small"></select>
+					<input ng-model="pin.default" ng-show="pin.direction == 'in'" placeholder="Default value" class="input-small"></input>
+					<a class="btn btn-small" ng-click="removePin($index)"><i class="icon-trash"></i></a>
 				</li>
 			</ul>
 			<a class="btn" ng-click="addPin()"><i class="icon-plus"></i></a>

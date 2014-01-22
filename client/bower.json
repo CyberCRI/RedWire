@@ -20,7 +20,8 @@
     "jstree": "*",
     "sylvester": "~0.1.3",
     "angular-file-dnd": "~1.0.3",
-    "angular-xeditable": "~0.1.8"
+    "angular-xeditable": "~0.1.8",
+    "Chart.js": "git://github.com/CyberCRI/Chart.js"
   },
   "dependencies": {},
   "resolutions": {

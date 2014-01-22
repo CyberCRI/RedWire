@@ -76,6 +76,7 @@ module.exports = {
       'vendor/jstree/dist/jstree.js',
       'vendor/rivets/dist/rivets.js',
       'vendor/sylvester/sylvester.src.js',
+      'vendor/Chart.js/Chart.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',

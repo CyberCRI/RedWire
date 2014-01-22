@@ -27,5 +27,5 @@ angular.module('gamEvolve.game.assets', [
   $scope.remove = (name) -> delete currentGame.version.assets[name]
 
   $scope.$watch "file", ->
-    currentGame.version.assets[$scope.fileName] = $scope.file
+    currentGame.version?.assets[$scope.fileName] = $scope.file
     console.log("added file", $scope.fileName, $scope.file)
