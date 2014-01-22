@@ -7,7 +7,7 @@ angular.module('gamEvolve.game.layers', [
   # Get the actions object from the currentGame service, and keep it updated
   $scope.layers = []
 
-  $scope.addLayer = -> $scope.layers.push({ name: "", type: $scope.TYPES[0] })
+  $scope.addLayer = -> $scope.layers.push({ name: "", type: "" })
   $scope.removeLayer = (index) -> $scope.layers.splice(index, 1)
 
   # Bring currentGame into scope so we can watch it 
