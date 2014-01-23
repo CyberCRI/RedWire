@@ -66,8 +66,7 @@
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
-                  <div class="tab-pane" id="actions">
-                    <div class="tab-pane active" id="actions" ng-controller="ActionsListCtrl">
+                    <div class="tab-pane" id="actions" ng-controller="ActionsListCtrl">
                         <ul>
                             <li ng-repeat="actionName in actionNames">
                                 <a href="" ng-click="edit(actionName)">{{actionName}}</a> 
@@ -76,9 +75,7 @@
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
-                  </div>
-                  <div class="tab-pane" id="switches">
-                    <div class="tab-pane active" id="actions" ng-controller="SwitchesListCtrl">
+                    <div class="tab-pane active" id="switches" ng-controller="SwitchesListCtrl">
                         <ul>
                             <li ng-repeat="switchName in switchNames">
                                 <a href="" ng-click="edit(switchName)">{{switchName}}</a> 
@@ -87,7 +84,6 @@
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
-                  </div>
                 </div>
             </div>
         </block-container>
