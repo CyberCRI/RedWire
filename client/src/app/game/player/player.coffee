@@ -127,7 +127,6 @@ angular.module('gamEvolve.game.player', [])
 
   onUpdateFrame = (frameNumber) ->
     if not gameCode? then return
-    console.log("Changed frame to", frameNumber)
     frameResult = gameHistory.data.frames[frameNumber]
     outputServiceData = GE.applyPatches(frameResult.servicePatches, frameResult.inputServiceData)
     sendMessage("playFrame", { outputServiceData: outputServiceData })
