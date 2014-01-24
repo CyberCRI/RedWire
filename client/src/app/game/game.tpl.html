@@ -9,7 +9,7 @@
                     <h4>
                         <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a> 
                         by 
-                        <a href="" editable-text="currentGame.info.author">{{ currentGame.info.author || "Author" }}</a> 
+                        {{ currentGame.creator }}</a> 
                     </h4>
                     <div ng-controller="TimeCtrl" id="timeController">
                         <div id="recordContainer">

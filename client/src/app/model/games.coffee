@@ -33,6 +33,7 @@ angular.module('gamEvolve.model.games', [])
 .factory 'currentGame', ->
   info: null
   version: null
+  creator: null
 
 .factory 'games', ($http, $q, loggedUser, currentGame) ->
   saveInfo = ->
@@ -102,10 +103,14 @@ angular.module('gamEvolve.model.games', [])
     allGames
 
   load: (game) ->
-    $http.get('/game-versions?gameId=' + game.id)
-      .error( (error) -> console.log error )
-      .success( (result) ->
-        currentGame.info = game
-        currentGame.version = convertGameVersionFromJson(result[0])
-        console.log("loaded game", currentGame)
-      )
+    # Load the game content and the creator info, then put it all into currentGame
+    getVersion = $http.get('/game-versions?gameId=' + game.id)
+    getCreator = $http.get("/users?id=#{game.ownerId}")
+    updateCurrentGame = ([version, creator]) ->
+      currentGame.info = game
+      currentGame.version = convertGameVersionFromJson(version.data[0])
+      currentGame.creator = creator.data.username
+      console.log("loaded game", currentGame)
+    onError = (error) -> console.log("Error loading game", error) # TODO: notify the user of the error
+
+    $q.all([getVersion, getCreator]).then(updateCurrentGame, onError)
