@@ -514,21 +514,35 @@ module.exports = function ( grunt ) {
         options: {
           config: "prod"
         }
-      }
-    },
+      },
 
-    sftp: {
-      deploy: {
-        files: {
-          "./": "../server/**"
-        },
+      start: {
+        command: deployConfig.path + "/foreverStart.sh",
         options: {
-          config: "prod",
-          showProgress: true,
-          srcBasePath: "../server/",
-          // createDirectories: true
+          config: "prod"
         }
-      }
+      },
+
+      stop: {
+        command: deployConfig.path + "/foreverStop.sh",
+        options: {
+          config: "prod"
+        }
+      },
+
+      clean: {
+        command: "rm -r " + deployConfig.path + "/*",
+        options: {
+          config: "prod"
+        }
+      },
+
+      npm_install: {
+        command: "cd " + deployConfig.path + " && npm install",
+        options: {
+          config: "prod"
+        }
+      },
     },
 
     rsync: {
@@ -578,6 +592,22 @@ module.exports = function ( grunt ) {
    */
   grunt.registerTask( 'compile', [
     'recess:compile', 'copy:compile_assets', 'ngmin', 'concat:compile_js', 'uglify', 'index:compile'
+  ]);
+
+  grunt.registerTask('deploy', [
+    'build',
+    'sshexec:stop',
+    'rsync:prod',
+    'sshexec:start'
+  ]);
+
+  grunt.registerTask('clean_deploy', [
+    'build',
+    'sshexec:stop',
+    'sshexec:clean',
+    'rsync:prod',
+    'sshexec:npm_install',
+    'sshexec:start'
   ]);
 
   /**
