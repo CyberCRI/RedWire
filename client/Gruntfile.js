@@ -234,9 +234,6 @@ module.exports = function ( grunt ) {
      */
     coffee: {
       source: {
-        options: {
-          bare: true
-        },
         expand: true,
         cwd: '.',
         src: [ '<%= app_files.coffee %>' ],
