@@ -1,1 +1,6 @@
-cancel("Game modification is not currently allowed");
+if (!me || me.id != this.ownerId) {
+    cancel('Only owner can edit game');
+}
+
+protect("ownerId");
+protect("parentId");

@@ -6,7 +6,11 @@
             <block-container init="150" class="logo"></block-container>
             <block-container>
                 <div>
-                    <h4>{{currentGame.info.name || noGameMessage}}</h4>
+                    <h4>
+                        <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a> 
+                        by 
+                        {{ currentGame.creator }}</a> 
+                    </h4>
                     <div ng-controller="TimeCtrl" id="timeController">
                         <div id="recordContainer">
                             <a class="btn btn-primary" href="#" ng-click="triggerRecord()"><i class="icon-white" ng-class="{'icon-play-circle': !isRecording, 'icon-stop': isRecording}"></i></a>
