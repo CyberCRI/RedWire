@@ -42,6 +42,9 @@ angular.module('gamEvolve.model.games', [])
         currentGame.info = savedGame.data
         currentGame.version.gameId = currentGame.info.id
 
+  updateInfo = ->
+    $http.put('/games', currentGame.info)
+    
   saveVersion = ->
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
     $http.post('/game-versions', convertGameVersionToJson(currentGame.version))
@@ -57,7 +60,7 @@ angular.module('gamEvolve.model.games', [])
       execute: -> saveInfo().then(saveVersion)
     saveNewVersion:
       name: 'Save'
-      execute: -> saveVersion()
+      execute: -> updateInfo().then(saveVersion)
     fork:
       name: 'Fork'
       execute: ->
