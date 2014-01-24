@@ -32,7 +32,8 @@
     "esprima": "~1.0.4",
     "mime": "~1.2.11",
     "grunt-ssh": "~0.10.0",
-    "grunt-rsync": "~0.2.1"
+    "grunt-rsync": "~0.2.1",
+    "request": "~2.33.0"
   },
   "licenses": {
     "type": "MIT",
