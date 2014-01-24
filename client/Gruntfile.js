@@ -15,6 +15,7 @@ module.exports = function ( grunt ) {
   grunt.loadNpmTasks('grunt-recess');
   grunt.loadNpmTasks('grunt-ngmin');
   grunt.loadNpmTasks('grunt-html2js');
+  grunt.loadNpmTasks('grunt-ssh');
 
   /**
    * Load in our build configuration file.
@@ -493,9 +494,24 @@ module.exports = function ( grunt ) {
         files: [ 'src/sandbox.html' ],
         tasks: [ 'copy:build_sandbox' ]
       },
+    },
 
+    sshconfig: {
+      // TODO: store this config elsewhere?  
+      unige: {
+        host: "cybermongo.unige.ch",
+        username: "cridev", 
+      }
+    },
 
-    }
+    sshexec: {
+      uptime: {
+        command: "uptime",
+        options: {
+          config: "unige"
+        }
+      }
+    },
   };
 
   grunt.initConfig( grunt.util._.extend( taskConfig, userConfig ) );
