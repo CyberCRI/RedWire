@@ -1,3 +1,6 @@
+# TODO: this should be configurable
+GAME_DIMENSIONS = [960, 540]
+
 angular.module('gamEvolve.game.player', [])
 .controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime) -> 
   # Globals
