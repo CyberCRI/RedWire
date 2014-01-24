@@ -16,11 +16,19 @@ module.exports = function ( grunt ) {
   grunt.loadNpmTasks('grunt-ngmin');
   grunt.loadNpmTasks('grunt-html2js');
   grunt.loadNpmTasks('grunt-ssh');
+  grunt.loadNpmTasks('grunt-rsync');
 
   /**
-   * Load in our build configuration file.
+   * Load in our build configuration files.
    */
   var userConfig = require( './build.config.js' );
+
+  var deployConfig = {};
+  try {
+    deployConfig = grunt.file.readJSON('deployConfig.json');
+  } catch(err) {
+    console.warn("*** WARNING: Cannot load deployment config ***\n");
+  } 
 
   /**
    * This is the configuration object Grunt uses to give each plugin its 
@@ -497,18 +505,41 @@ module.exports = function ( grunt ) {
     },
 
     sshconfig: {
-      // TODO: store this config elsewhere?  
-      unige: {
-        host: "cybermongo.unige.ch",
-        username: "cridev", 
-      }
+      prod: deployConfig
     },
 
     sshexec: {
       uptime: {
         command: "uptime",
         options: {
-          config: "unige"
+          config: "prod"
+        }
+      }
+    },
+
+    sftp: {
+      deploy: {
+        files: {
+          "./": "../server/**"
+        },
+        options: {
+          config: "prod",
+          showProgress: true,
+          srcBasePath: "../server/",
+          // createDirectories: true
+        }
+      }
+    },
+
+    rsync: {
+      prod: {
+        options: {
+            host: deployConfig.username + "@" + deployConfig.host,
+            src: "../server/",
+            exclude: ["node_modules", "data"],
+            dest: deployConfig.path,
+            recursive: true,
+            syncDestIgnoreExcl: true,
         }
       }
     },

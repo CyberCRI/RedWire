@@ -25,5 +25,8 @@ server/data/journal
 server/data/mongod.lock
 
 # Ignore compilation result
-server/public-development/
-server/public-production/
+server/public-dev/
+server/public-prod/
+
+# Ignore deployment config
+client/deployConfig.json
