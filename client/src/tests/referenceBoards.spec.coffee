@@ -6,7 +6,6 @@ EMPTY_DO_IN_PARALLEL_CONVERTED =
   text: "Do In Parallel"
   state:
     opened: true
-
   source: EMPTY_DO_IN_PARALLEL_SOURCE
 
 EMPTY_DO_IN_SEQUENCE_SOURCE =
@@ -17,7 +16,6 @@ EMPTY_DO_IN_SEQUENCE_CONVERTED =
   text: "Do In Sequence"
   state:
     opened: true
-
   source: EMPTY_DO_IN_SEQUENCE_SOURCE
 
 SINGLE_CHILD_SOURCE =
@@ -28,7 +26,6 @@ SINGLE_CHILD_CONVERTED =
   text: "Do In Sequence"
   state:
     opened: true
-
   source: SINGLE_CHILD_SOURCE
 
 MULTIPLE_CHILDREN_SOURCE =
@@ -39,7 +36,6 @@ MULTIPLE_CHILDREN_CONVERTED =
   text: "Do In Sequence"
   state:
     opened: true
-
   source: MULTIPLE_CHILDREN_SOURCE
 
 DEEP_SOURCE =
@@ -50,7 +46,6 @@ DEEP_CONVERTED =
   text: "Do In Sequence"
   state:
     opened: true
-
   source: DEEP_SOURCE
 
 

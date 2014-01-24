@@ -1,15 +1,18 @@
 angular.module('gamEvolve.game.actions', [
-  'ui.bootstrap',
+  'ui.bootstrap'
+  'gamEvolve.model.defaultActions'
 ])
-.controller 'ActionsListCtrl', ($scope, $dialog, currentGame) ->
-  # Get the actions object from the currentGame service, and keep it updated
-  $scope.actions = {}
+.controller 'ActionsListCtrl', ($scope, $dialog, currentGame, defaultActions) ->
+
+  $scope.actions = defaultActions.list
   $scope.actionNames = []
+
+  $scope.$watch('actions', () -> console.log $scope.actions)
 
   # Bring currentGame into scope so we can watch it 
   updateActions = ->
     if currentGame.version?.actions?
-      $scope.actions = currentGame.version.actions
+      # $scope.actions = currentGame.version.actions
       $scope.actionNames = _.keys(currentGame.version.actions)
   $scope.currentGame = currentGame
   $scope.$watch('currentGame', updateActions, true)
@@ -30,9 +33,9 @@ angular.module('gamEvolve.game.actions', [
         action: ->
           {
             model:
-              name: ""
+              name: ''
               paramDefs: {}
-              update: ""
+              update: ''
             done: (model) ->
               currentGame.version.actions[model.name] = 
                 paramDefs: model.paramDefs
@@ -77,26 +80,26 @@ angular.module('gamEvolve.game.actions', [
     editActionDialog.open()
 
 .controller 'EditActionDialogCtrl', ($scope, action) ->
-  # Convert between "paramDef form" used in game serialization and "pin form" used in GUI
+  # Convert between 'paramDef form' used in game serialization and 'pin form' used in GUI
   toPins = (paramDefs) ->
     for paramName, paramDef of paramDefs
       name: paramName
-      direction: paramDef?.direction || "in"
-      default: paramDef?.default || "" 
+      direction: paramDef?.direction || 'in'
+      default: paramDef?.default || '' 
   toParamDefs = (pins) ->
     paramDefs = {}
     for pin in pins
       paramDefs[pin.name] = 
         direction: pin.direction 
-        default: if pin.direction is "in" then pin.default else null
+        default: if pin.direction is 'in' then pin.default else null
     return paramDefs
 
-  $scope.DIRECTIONS = ["in", "inout", "out"]
+  $scope.DIRECTIONS = ['in', 'inout', 'out']
   $scope.name = action.model.name
   $scope.pins = toPins(action.model.paramDefs)
   $scope.updateText = action.model.update
 
-  $scope.addPin = -> $scope.pins.push({ name: "", direction: "in" })
+  $scope.addPin = -> $scope.pins.push({ name: '', direction: 'in' })
   $scope.removePin = (index) -> $scope.arguments.splice(index, 1)
 
   # Reply with the new data

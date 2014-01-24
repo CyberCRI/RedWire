@@ -107,5 +107,4 @@ angular.module('gamEvolve.model.games', [])
       .success( (result) ->
         currentGame.info = game
         currentGame.version = convertGameVersionFromJson(result[0])
-        console.log("loaded game", currentGame)
       )
