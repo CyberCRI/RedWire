@@ -14,6 +14,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game'
   'gamEvolve.game.actions'
   'gamEvolve.game.assets'
+  'gamEvolve.game.board'
   'gamEvolve.game.edit'
   'gamEvolve.game.layers'
   'gamEvolve.game.log'

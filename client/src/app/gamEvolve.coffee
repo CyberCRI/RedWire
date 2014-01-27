@@ -93,15 +93,6 @@ GE.extensions =
 # Reject arrays as objects
 GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
 
-# For accessing a value within an embedded object or array
-# Takes a parent object/array and the "path" as an array
-# Returns [parent, key] where parent is the array/object and key w
-GE.getParentAndKey = (parent, pathParts) ->
-  if pathParts.length is 0 then return [parent, null]
-  if pathParts.length is 1 then return [parent, pathParts[0]]
-  if pathParts[0] of parent then return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
-  throw new Error("Cannot find intermediate key '#{pathParts[0]}'")
-
 # Sets a value within an embedded object or array, creating intermediate objects if necessary
 # Takes a root object/array and the "path" as an array of keys
 # Returns the root

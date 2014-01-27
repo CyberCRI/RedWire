@@ -15,20 +15,26 @@ generateType = (source) ->
   else
     'action'
 
+pathToString = (path) -> "[#{path.join(",")}]" 
+
+makeChipButtons = (path) -> """
+  <a href="" class="btn btn-small" editChip="#{pathToString(path)}"><i class="icon-edit"></i></a>
+  <a href="" class="btn btn-small" removeChip="#{pathToString(path)}"><i class="icon-trash"></i></a>
+  """
+
 angular.module('gamEvolve.util.boardConverter', [])
 
 .factory 'boardConverter', ->
-
-    convert: (source, isRoot=true) ->
+    convert: (source, path = []) ->
       converted =
-        'text': generateText(source)
+        'text': generateText(source) + makeChipButtons(path)
         'type': generateType(source)
         'state':
-          'opened': isRoot
+          'opened': path.length is 0 # Only the root node is opened by default
         'source': JSON.parse(JSON.stringify(source));
       delete converted.source.children
       converted.children = []
       if source.children?
-        for child in source.children
-          converted.children.push(@convert(child, false))
+        for childIndex, child of source.children
+          converted.children.push(@convert(child, GE.appendToArray(path, childIndex)))
       converted
