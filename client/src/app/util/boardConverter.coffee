@@ -25,7 +25,7 @@ angular.module('gamEvolve.util.boardConverter', [])
         state = 'open'
       converted =
         data: generateText(source)
-        type: generateType(source)
+        attr : { rel : generateType(source) },
         state: state
         metadata:
           source: JSON.parse(JSON.stringify(source));

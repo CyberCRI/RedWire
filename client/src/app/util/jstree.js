@@ -30,7 +30,24 @@ angular.module('gamEvolve.util.jstree', [])
                                 alert(data.o.attributes['actionId'].nodeValue);
                             }
                         },
-                        "plugins" : [ "themes", "json_data", "ui", "dnd" ]
+                        "types" : {
+                            "valid_children" : [ "switch" ],
+                            "types" : {
+                                "switch" : {
+                                    "icon" : {
+                                        "image" : "http://localhost:2403/assets/images/switch.png"
+                                    },
+                                    "valid_children" : [ "default" ],
+                                    "max_depth" : 2,
+                                    "hover_node" : false,
+                                    "select_node" : function () {return false;}
+                                },
+                                "default" : {
+                                    "valid_children" : [ "default" ]
+                                }
+                            }
+                        },
+                        "plugins" : [ "themes", "json_data", "ui", "dnd", "types" ]
                     });
                 });
             }
