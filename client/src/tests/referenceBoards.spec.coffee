@@ -3,50 +3,50 @@ EMPTY_DO_IN_PARALLEL_SOURCE =
   process: "doInParallel"
 
 EMPTY_DO_IN_PARALLEL_CONVERTED =
-  text: "Do In Parallel"
-  state:
-    opened: true
-  source: EMPTY_DO_IN_PARALLEL_SOURCE
+  data: "Do In Parallel"
+  state: "open"
+  metadata:
+    source : EMPTY_DO_IN_PARALLEL_SOURCE
 
 EMPTY_DO_IN_SEQUENCE_SOURCE =
   children: []
   process: "doInSequence"
 
 EMPTY_DO_IN_SEQUENCE_CONVERTED =
-  text: "Do In Sequence"
-  state:
-    opened: true
-  source: EMPTY_DO_IN_SEQUENCE_SOURCE
+  data: "Do In Sequence"
+  state: "open"
+  metadata:
+    source: EMPTY_DO_IN_SEQUENCE_SOURCE
 
 SINGLE_CHILD_SOURCE =
   children: [EMPTY_DO_IN_PARALLEL_SOURCE]
   process: "doInSequence"
 
 SINGLE_CHILD_CONVERTED =
-  text: "Do In Sequence"
-  state:
-    opened: true
-  source: SINGLE_CHILD_SOURCE
+  data: "Do In Sequence"
+  state: "open"
+  metadata:
+    source: SINGLE_CHILD_SOURCE
 
 MULTIPLE_CHILDREN_SOURCE =
   children: [EMPTY_DO_IN_PARALLEL_SOURCE, EMPTY_DO_IN_SEQUENCE_SOURCE]
   process: "doInSequence"
 
 MULTIPLE_CHILDREN_CONVERTED =
-  text: "Do In Sequence"
-  state:
-    opened: true
-  source: MULTIPLE_CHILDREN_SOURCE
+  data: "Do In Sequence"
+  state: "open"
+  metadata:
+    source: MULTIPLE_CHILDREN_SOURCE
 
 DEEP_SOURCE =
   children: [MULTIPLE_CHILDREN_SOURCE]
   process: "doInParallel"
 
 DEEP_CONVERTED =
-  text: "Do In Sequence"
-  state:
-    opened: true
-  source: DEEP_SOURCE
+  data: "Do In Sequence"
+  state: "open"
+  metadata:
+    source: DEEP_SOURCE
 
 
 @.referenceBoards =

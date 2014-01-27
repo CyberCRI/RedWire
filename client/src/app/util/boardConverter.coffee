@@ -20,13 +20,16 @@ angular.module('gamEvolve.util.boardConverter', [])
 .factory 'boardConverter', ->
 
     convert: (source, isRoot=true) ->
+      state = 'closed'
+      if isRoot
+        state = 'open'
       converted =
-        'text': generateText(source)
-        'type': generateType(source)
-        'state':
-          'opened': isRoot
-        'source': JSON.parse(JSON.stringify(source));
-      delete converted.source.children
+        data: generateText(source)
+        type: generateType(source)
+        state: state
+        metadata:
+          source: JSON.parse(JSON.stringify(source));
+      delete converted.metadata.source.children
       converted.children = []
       if source.children?
         for child in source.children

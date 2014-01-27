@@ -2,17 +2,14 @@ angular.module('gamEvolve.game.actions', [
   'ui.bootstrap'
   'gamEvolve.model.defaultActions'
 ])
-.controller 'ActionsListCtrl', ($scope, $dialog, currentGame, defaultActions) ->
+.controller 'ActionsListCtrl', ($scope, $dialog, currentGame) ->
 
-  $scope.actions = defaultActions.list
   $scope.actionNames = []
 
-  $scope.$watch('actions', () -> console.log $scope.actions)
-
-  # Bring currentGame into scope so we can watch it 
+  # Bring currentGame into scope so we can watch it
   updateActions = ->
     if currentGame.version?.actions?
-      # $scope.actions = currentGame.version.actions
+      $scope.actions = currentGame.version.actions
       $scope.actionNames = _.keys(currentGame.version.actions)
   $scope.currentGame = currentGame
   $scope.$watch('currentGame', updateActions, true)

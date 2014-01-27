@@ -1,6 +1,8 @@
+// TODO Delete old version of jstree directive which works only with jsTree 3.0
+
 angular.module('gamEvolve.util.tree', [])
 
-    .directive('jstree', function () {
+    .directive('tree', function () {
 
         return {
             restrict: 'A',
@@ -35,10 +37,10 @@ angular.module('gamEvolve.util.tree', [])
                             },
                             'plugins': [ 'types', 'dnd' ]
                             }).on('model.jstree', function (e, data) {
-                                console.log('jsTree DnD');
+//                                console.log(data);
 //                                console.log($(element).jstree().get_json());
                             }).on('delete_node.jstree', function (e, data) {
-                                console.log('Deleted node');
+                                console.log(data);
                                 try {createTree();} catch(e) {}
                             });
                     };
