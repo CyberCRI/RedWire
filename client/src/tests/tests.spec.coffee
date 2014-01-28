@@ -98,22 +98,22 @@ describe "gamEvolve", ->
 
       processors = 
         doNothing: 
-          paramDefs:
+          pinDefs:
             x: 
               direction: "in" 
               default: "1"
             y: 
               direction: "in"
               default: "'z'"
-          update: (params, transformers, log) ->
+          update: (pins, transformers, log) ->
             isCalled = true
-            expect(params).toDeeplyEqual
+            expect(pins).toDeeplyEqual
               x: 2
               y: "z"
 
       board = 
         processor: "doNothing"
-        params: 
+        pins: 
           in: 
             x: "1 + 1"
 
@@ -128,25 +128,25 @@ describe "gamEvolve", ->
 
       processors = 
         doNothing: 
-          paramDefs: {}
+          pinDefs: {}
           update: -> timesCalled++
 
       switches = 
         doAll: 
-          paramDefs: {}
+          pinDefs: {}
           handleSignals: -> timesCalled++
 
       board = 
         switch: "doAll"
-        params: {}
+        pins: {}
         children: [
           {
             processor: "doNothing"
-            params: {}
+            pins: {}
           },
           {
             processor: "doNothing"
-            params: {}
+            pins: {}
           }
         ]
 
@@ -167,18 +167,18 @@ describe "gamEvolve", ->
 
       processors = 
         increment: 
-          paramDefs: 
+          pinDefs: 
             value: 
               direction: "inout"
-          update: (params, transformers, log) -> params.value++
+          update: (pins, transformers, log) -> pins.value++
         log: 
-          paramDefs: 
+          pinDefs: 
             message: null
-          update: (params, transformers, log) -> log(GE.logLevels.INFO, params.message)
+          update: (pins, transformers, log) -> log(GE.logLevels.INFO, pins.message)
 
       switches = 
         doAll: 
-          paramDefs: {}
+          pinDefs: {}
 
       # Transformers must be compiled this way
       # TODO: create function that does this work for us
@@ -187,35 +187,35 @@ describe "gamEvolve", ->
 
       board = 
         switch: "doAll"
-        params: {}
+        pins: {}
         children: [
           {
             processor: "increment"
-            params: 
+            pins: 
               in:
                 "value": "memory.a"
               out:
-                "memory.a": "params.value"
+                "memory.a": "pins.value"
           },
           {
             processor: "increment"
-            params: 
+            pins: 
               in:
                 "value": "memory.b"
               out:
-                "memory.b": "params.value"
+                "memory.b": "pins.value"
           },
           {
             processor: "increment"
-            params: 
+            pins: 
               in:
                 "value": "io.c"
               out:
-                "io.c": "params.value"
+                "io.c": "pins.value"
           },
           {
             processor: "log"
-            params: 
+            pins: 
               in:
                 "message": "'hi'"
           },
@@ -252,7 +252,7 @@ describe "gamEvolve", ->
       expect(results.logMessages[0].path).toDeeplyEqual(["3"])
       expect(results.logMessages[1].path).toDeeplyEqual(["4"])
 
-    it "evaluates parameters for processors", ->
+    it "evaluates pineters for processors", ->
       oldMemory = 
         a: 1
         b: 10
@@ -262,7 +262,7 @@ describe "gamEvolve", ->
 
       processors = 
         adjustMemory: 
-          paramDefs:
+          pinDefs:
             x: 
               direction: "inout"
             y: 
@@ -272,24 +272,24 @@ describe "gamEvolve", ->
             d: 
               default: "2"
             e: {}
-          update: (params, transformers, log) ->
-            params.x++
-            params.y--
-            params.z = 30
-            expect(params.d).toBe(2)
-            expect(params.e).toBe(assets.image)
+          update: (pins, transformers, log) ->
+            pins.x++
+            pins.y--
+            pins.z = 30
+            expect(pins.d).toBe(2)
+            expect(pins.e).toBe(assets.image)
 
       board = 
         processor: "adjustMemory"
-        params:
+        pins:
           in:  
             x: "memory.a"
             y: "memory.b"
             e: "assets.image"
           out:
-            "memory.a": "params.x"
-            "memory.b": "params.y"
-            "memory.c": "params.z"
+            "memory.a": "pins.x"
+            "memory.b": "pins.y"
+            "memory.c": "pins.z"
 
       constants = new GE.ChipVisitorConstants 
         memoryData: oldMemory, 
@@ -352,53 +352,53 @@ describe "gamEvolve", ->
 
       switches = 
         nextOnDone: 
-          paramDefs: 
+          pinDefs: 
             activeChild: 
               direction: "inout"
               default: 0
-          listActiveChildren: (params, children, transformers, log) -> 
+          listActiveChildren: (pins, children, transformers, log) -> 
             expect(children).toDeeplyEqual(["0", "2nd"])
-            return [params.activeChild]
-          handleSignals: (params, children, activeChildren, signals, transformers, log) ->
+            return [pins.activeChild]
+          handleSignals: (pins, children, activeChildren, signals, transformers, log) ->
             expect(children).toDeeplyEqual(["0", "2nd"])
-            if signals[params.activeChild] == GE.signals.DONE 
-              params.activeChild++
-            if params.activeChild >= children.length - 1
+            if signals[pins.activeChild] == GE.signals.DONE 
+              pins.activeChild++
+            if pins.activeChild >= children.length - 1
               return GE.signals.DONE
 
       processors =
         reportDone:
-          paramDefs:
+          pinDefs:
             timesCalled: 
               direction: "inout"
-          update: (params, transformers, log) -> 
-            params.timesCalled++
+          update: (pins, transformers, log) -> 
+            pins.timesCalled++
             return GE.signals.DONE
 
       board = 
         switch: "nextOnDone"
-        params: 
+        pins: 
           in:
             activeChild: "memory.activeChild"
           out: 
-            "memory.activeChild": "params.activeChild"
+            "memory.activeChild": "pins.activeChild"
         children: [
           {
             processor: "reportDone"
-            params: 
+            pins: 
               in:
                 timesCalled: "memory.child0TimesCalled"
               out:
-                "memory.child0TimesCalled": "params.timesCalled"
+                "memory.child0TimesCalled": "pins.timesCalled"
           },
           {
             name: "2nd"
             processor: "reportDone"
-            params: 
+            pins: 
               in:
                 timesCalled: "memory.child1TimesCalled"
               out:
-                "memory.child1TimesCalled": "params.timesCalled"
+                "memory.child1TimesCalled": "pins.timesCalled"
           }
         ]
 
@@ -434,13 +434,13 @@ describe "gamEvolve", ->
 
       processors = 
         getName: 
-          paramDefs:
+          pinDefs:
             name: 
               direction: "in" 
             index: 
               direction: "in"
-          update: (params, transformers, log) -> 
-            expect(params.index).toEqual(if params.name is "bill" then "0" else "1")
+          update: (pins, transformers, log) -> 
+            expect(pins.index).toEqual(if pins.name is "bill" then "0" else "1")
 
       spyOn(processors.getName, "update").andCallThrough()
 
@@ -452,7 +452,7 @@ describe "gamEvolve", ->
         children: [
           { 
             processor: "getName"
-            params: 
+            pins: 
               in: 
                 name: "bindings.person.first"
                 index: "bindings.personIndex"
@@ -475,16 +475,16 @@ describe "gamEvolve", ->
 
       processors = 
         changeName: 
-          paramDefs:
+          pinDefs:
             newName: 
               direction: "in" 
             toChange: 
               direction: "out"
             index: 
               direction: "in"
-          update: (params, transformers, log) -> 
-            expect(params.index).toEqual(if params.newName is "bill" then "0" else "1")
-            params.toChange = params.newName
+          update: (pins, transformers, log) -> 
+            expect(pins.index).toEqual(if pins.newName is "bill" then "0" else "1")
+            pins.toChange = pins.newName
 
       board = 
         splitter:
@@ -494,12 +494,12 @@ describe "gamEvolve", ->
         children: [
           { 
             processor: "changeName"
-            params: 
+            pins: 
               in: 
                 newName: "bindings.person.first"
                 index: "bindings.personIndex"
               out:
-                "bindings.person.last": "params.toChange"
+                "bindings.person.last": "pins.toChange"
           }
         ]
 
@@ -520,20 +520,20 @@ describe "gamEvolve", ->
 
       processors = 
         incrementIoData: 
-          paramDefs:
+          pinDefs:
             service:
               direction: "inout"
-          update: (params, transformers, log) -> 
-            expect(params.service.a).toBe(1)
-            params.service.a++
+          update: (pins, transformers, log) -> 
+            expect(pins.service.a).toBe(1)
+            pins.service.a++
 
       board = 
         processor: "incrementIoData"
-        params:
+        pins:
           in:
             service: "io.serviceA"
           out:
-            "io.serviceA": "params.service"
+            "io.serviceA": "pins.service"
 
       constants = new GE.ChipVisitorConstants
         ioData: oldIoData
@@ -573,20 +573,20 @@ describe "gamEvolve", ->
 
       processors = 
         incrementIoData: 
-          paramDefs:
+          pinDefs:
             service:
               direction: "inout"
-          update: (params, transformers, log) -> 
-            expect(params.service.a).toBe(1)
-            params.service.a++
+          update: (pins, transformers, log) -> 
+            expect(pins.service.a).toBe(1)
+            pins.service.a++
 
       board = 
         processor: "incrementIoData"
-        params:
+        pins:
           in: 
             service: "io.myService"
           out: 
-            "io.myService": "params.service" 
+            "io.myService": "pins.service" 
 
       result = GE.stepLoop 
         chip: board
@@ -613,20 +613,20 @@ describe "gamEvolve", ->
 
       processors = 
         incrementIoData: 
-          paramDefs:
+          pinDefs:
             service: 
               direction: "inout"
-          update: (params, transformers, log) -> 
-            expect(transformers.testTransformer(params.service.a, 2)._1).toBe(1)
-            params.service.a++
+          update: (pins, transformers, log) -> 
+            expect(transformers.testTransformer(pins.service.a, 2)._1).toBe(1)
+            pins.service.a++
 
       board = 
         processor: "incrementIoData"
-        params:
+        pins:
           in:
             service: "io.myService"
           out:
-            "io.myService": "params.service"
+            "io.myService": "pins.service"
 
       ioConfig = { configA: 1 }
 
@@ -654,34 +654,34 @@ describe "gamEvolve", ->
 
       processors = 
         group:
-          paramDefs: {}
+          pinDefs: {}
           update: ->
         setDataTo: 
-          paramDefs:
+          pinDefs:
             in: 
               value: null
             out:
               var: null
-          update: -> @params.var = @params.value
+          update: -> @pins.var = @pins.value
 
       boardA = 
         processor: "group"
         children: [
           {
             processor: "setDataTo"
-            params:
+            pins:
               in:
                value: 1
               out:
-                "memory.a": "params.var"
+                "memory.a": "pins.var"
           },
           {
             processor: "setDataTo"
-            params:
+            pins:
               in:
                value: 2
               out:
-                "memory.a": "params.var"
+                "memory.a": "pins.var"
           }
         ]
 
@@ -697,19 +697,19 @@ describe "gamEvolve", ->
         children: [
           {
             processor: "setDataTo"
-            params:
+            pins:
              in:
                value: 2
               out:
-                "io.myService.a": "params.var"
+                "io.myService.a": "pins.var"
           },
           {
             processor: "setDataTo"
-            params:
+            pins:
              in:
                value: 2
               out:
-                "io.myService.a": "params.var"
+                "io.myService.a": "pins.var"
           }
         ]
 

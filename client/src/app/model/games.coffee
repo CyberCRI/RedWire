@@ -1,12 +1,12 @@
 # These properties need to be converted from JSON strings to objects upon loading, and back to JSON for saving
 JSON_PROPERTIES = [
-  'actions'
+  'processors'
   'assets'
-  'layout'
-  'model'
-  'processes'
-  'services'
-  'tools'
+  'board'
+  'memory'
+  'switches'
+  'io'
+  'transformers'
 ]
 
 convertGameVersionFromJson = (gameVersionJson) ->

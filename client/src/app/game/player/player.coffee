@@ -30,18 +30,18 @@ angular.module('gamEvolve.game.player', [])
         # Once the game is loaded
         if gameHistory.data.frames.length > 0
           # If there are already frames, then update them 
-          inputServiceDataFrames = _.pluck(gameHistory.data.frames, "inputServiceData")
-          sendMessage("updateFrames", { model: gameHistory.data.frames[0].model, inputServiceDataFrames })
+          inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
+          sendMessage("updateFrames", { memory: gameHistory.data.frames[0].memory, inputIoDataFrames })
         else
           # Else just record the first frame
-          sendMessage("recordFrame", { model: gameCode.model })
+          sendMessage("recordFrame", { memory: gameCode.memory })
       when "recordFrame"
         # Set the first frame
         $scope.$apply ->
           newFrame = 
-            model: gameCode.model # Initial model
-            inputServiceData: message.value.inputServiceData 
-            servicePatches: message.value.servicePatches
+            memory: gameCode.memory # Initial memory
+            inputIoData: message.value.inputIoData 
+            ioPatches: message.value.ioPatches
             logMessages: message.value.logMessages 
           gameHistory.data.frames = [newFrame]
           gameHistory.meta.version++
@@ -51,22 +51,22 @@ angular.module('gamEvolve.game.player', [])
           # Remove frames after the current one
           gameHistory.data.frames.length = gameTime.currentFrameNumber + 1
 
-           # Replace the service data on the last frame
+           # Replace the io data on the last frame
           results = message.value[0]
-          gameHistory.data.frames[gameTime.currentFrameNumber].inputServiceData = results.inputServiceData
-          gameHistory.data.frames[gameTime.currentFrameNumber].servicePatches = results.servicePatches
+          gameHistory.data.frames[gameTime.currentFrameNumber].inputIoData = results.inputIoData
+          gameHistory.data.frames[gameTime.currentFrameNumber].ioPatches = results.ioPatches
           gameHistory.data.frames[gameTime.currentFrameNumber].logMessages = results.logMessages
 
           # Add in the new results
-          lastModel = gameHistory.data.frames[gameTime.currentFrameNumber].model
+          lastMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
           for results in message.value[1..]
             gameHistory.data.frames.push
-              model: lastModel
-              servicePatches: results.servicePatches
-              inputServiceData: results.inputServiceData
+              memory: lastMemory
+              ioPatches: results.ioPatches
+              inputIoData: results.inputIoData
               logMessages: results.logMessages
-            # Calcuate the next model to be used
-            lastModel = GE.applyPatches(results.modelPatches, lastModel)
+            # Calcuate the next memory to be used
+            lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
 
           # Go the the last frame
           gameTime.currentFrameNumber = gameHistory.data.frames.length - 1
@@ -76,15 +76,15 @@ angular.module('gamEvolve.game.player', [])
       when "updateFrames" 
         $scope.$apply ->
           # Replace existing frames by the new results
-          lastModel = gameHistory.data.frames[0].model
+          lastMemory = gameHistory.data.frames[0].memory
           for index, results of message.value
             gameHistory.data.frames[index] = 
-              model: lastModel
-              servicePatches: results.servicePatches
-              inputServiceData: results.inputServiceData
+              memory: lastMemory
+              ioPatches: results.ioPatches
+              inputIoData: results.inputIoData
               logMessages: results.logMessages
-            # Calcuate the next model to be used
-            lastModel = GE.applyPatches(results.modelPatches, lastModel)
+            # Calcuate the next memory to be used
+            lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
 
             # Update the version
           gameHistory.meta.version++
@@ -131,14 +131,14 @@ angular.module('gamEvolve.game.player', [])
   onUpdateFrame = (frameNumber) ->
     if not gameCode? then return
     frameResult = gameHistory.data.frames[frameNumber]
-    outputServiceData = GE.applyPatches(frameResult.servicePatches, frameResult.inputServiceData)
-    sendMessage("playFrame", { outputServiceData: outputServiceData })
+    outputIoData = GE.applyPatches(frameResult.ioPatches, frameResult.inputIoData)
+    sendMessage("playFrame", { outputIoData: outputIoData })
   $scope.$watch('gameTime.currentFrameNumber', onUpdateFrame, true)
 
   onUpdateRecording = (isRecording) ->
     if not gameCode? then return
     if isRecording 
-      sendMessage("startRecording", { model: gameHistory.data.frames[gameTime.currentFrameNumber].model })
+      sendMessage("startRecording", { memory: gameHistory.data.frames[gameTime.currentFrameNumber].memory })
     else
       sendMessage("stopRecording")
   $scope.$watch('gameTime.isRecording', onUpdateRecording, true)

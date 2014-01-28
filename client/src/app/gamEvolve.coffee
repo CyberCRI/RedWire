@@ -78,11 +78,11 @@ GE.EvaluationContext = class
 
   compileExpression: (expression) -> GE.compileExpression(expression, @constants.evaluator)
 
-  # Params are optional
-  evaluateFunction: (f, params) -> f(@memory, @io, @constants.assets, @constants.transformers, @bindings, params)
+  # Pins are optional
+  evaluateFunction: (f, pins) -> f(@memory, @io, @constants.assets, @constants.transformers, @bindings, pins)
 
-  # Params are optional
-  evaluateExpression: (expression, params) -> @evaluateFunction(@compileExpression(expression), params)
+  # Pins are optional
+  evaluateExpression: (expression, pins) -> @evaluateFunction(@compileExpression(expression), pins)
 
 GE.extensions =
     IMAGE: ["png", "gif", "jpeg", "jpg"]
@@ -181,51 +181,51 @@ GE.addPathToPatches = (path, patches) ->
     patch.path = path
   return patches
 
-# Set default values in paramDefs
-GE.fillParamDefDefaults = (paramDefs) ->
+# Set default values in pinDefs
+GE.fillPinDefDefaults = (pinDefs) ->
   # Cannot use normal "for key, value of" loop because cannot handle replace null values
-  for paramName of paramDefs
-    if not paramDefs[paramName]? then paramDefs[paramName] = {}
-    _.defaults paramDefs[paramName], 
+  for pinName of pinDefs
+    if not pinDefs[pinName]? then pinDefs[pinName] = {}
+    _.defaults pinDefs[pinName], 
       direction: "in"
-  return paramDefs
+  return pinDefs
 
-# Returns an object mapping parameter namaes to their values 
-# Param expressions is an object that contains 'in' and 'out' attributes
-GE.evaluateInputParameters = (evaluationContext, paramDefs, paramExpressions) ->
-  evaluatedParams = {}
+# Returns an object mapping pin expression names to their values 
+# Pin expressions is an object that contains 'in' and 'out' attributes
+GE.evaluateInputPinExpressions = (evaluationContext, pinDefs, pinExpressions) ->
+  evaluatedPins = {}
 
-  # TODO: don't evaluate output parameters here!
-  for paramName, paramOptions of paramDefs
-    # Resolve parameter value. If the board doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
-    if paramOptions.direction in ["in", "inout"] and paramExpressions.in?[paramName] 
-      paramValue = paramExpressions.in[paramName]
-    else if paramOptions.direction in ["out", "inout"] and paramExpressions.out?[paramName] 
-      paramValue = paramExpressions.out[paramName]
-    else if paramOptions.default? 
-      paramValue = paramOptions.default
-    else if paramOptions.direction in ["in", "inout"]
-      throw new Error("Missing input parameter value for parameter '#{paramName}'")
+  # TODO: don't evaluate output pinexpressions here!
+  for pinName, pinOptions of pinDefs
+    # Resolve pin expression value. If the board doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
+    if pinOptions.direction in ["in", "inout"] and pinExpressions.in?[pinName] 
+      pinValue = pinExpressions.in[pinName]
+    else if pinOptions.direction in ["out", "inout"] and pinExpressions.out?[pinName] 
+      pinValue = pinExpressions.out[pinName]
+    else if pinOptions.default? 
+      pinValue = pinOptions.default
+    else if pinOptions.direction in ["in", "inout"]
+      throw new Error("Missing input pin expression for pin '#{pinName}'")
 
     try
-      evaluatedParams[paramName] = evaluationContext.evaluateExpression(paramValue)
+      evaluatedPins[pinName] = evaluationContext.evaluateExpression(pinValue)
     catch error
-      throw new Error("Error evaluating the input parameter expression '#{paramValue}' for parameter '#{paramName}':\n#{error.stack}")
-  return evaluatedParams
+      throw new Error("Error evaluating the input pin expression expression '#{pinValue}' for pin '#{pinName}':\n#{error.stack}")
+  return evaluatedPins
 
-# Updates the evaluation context by evaluating the output parameter expressions
-# Param expressions is an object that contains 'in' and 'out' attributes
-GE.evaluateOutputParameters = (evaluationContext, paramDefs, paramExpressions, evaluatedParams) ->
-  # Only output parameters should be accessible
-  outParams = _.pick(evaluatedParams, (paramName for paramName, paramOptions of paramDefs when paramOptions.direction in ["out", "inout"]))
+# Updates the evaluation context by evaluating the output pin expressions
+# Pin expressions is an object that contains 'in' and 'out' attributes
+GE.evaluateOutputPinExpressions = (evaluationContext, pinDefs, pinExpressions, evaluatedPins) ->
+  # Only output pinexpressions should be accessible
+  outPins = _.pick(evaluatedPins, (pinName for pinName, pinOptions of pinDefs when pinOptions.direction in ["out", "inout"]))
 
-  for paramName, paramValue of paramExpressions.out
+  for pinName, pinValue of pinExpressions.out
     try
-      outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
+      outputValue = evaluationContext.evaluateExpression(pinValue, outPins)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for parameter '#{paramName}':\n#{error.stack}\nOutput params were #{JSON.stringify(outParams)}.")
+      throw new Error("Error evaluating the output pin expression '#{pinValue}' for pin '#{pinName}':\n#{error.stack}\nOutput pins were #{JSON.stringify(outPins)}.")
 
-    [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
+    [parent, key] = GE.getParentAndKey(evaluationContext, pinName.split("."))
     parent[key] = outputValue
 
 GE.calculateBindingSet = (chip, constants, oldBindings) ->
@@ -285,19 +285,19 @@ GE.visitProcessorChip = (path, chip, constants, bindings) ->
 
   # TODO: compile expressions ahead of time
   evaluationContext = new GE.EvaluationContext(constants, bindings)
-  GE.fillParamDefDefaults(processor.paramDefs)
-  evaluatedParams = GE.evaluateInputParameters(evaluationContext, processor.paramDefs, chip.params)
+  GE.fillPinDefDefaults(processor.pinDefs)
+  evaluatedPins = GE.evaluateInputPinExpressions(evaluationContext, processor.pinDefs, chip.pins)
 
   result = new GE.ChipVisitorResult()
   GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
   try
-    methodResult = processor.update(evaluatedParams, constants.transformers, GE.transformersLogger)
+    methodResult = processor.update(evaluatedPins, constants.transformers, GE.transformersLogger)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    GE.transformersLogger(GE.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}.\n#{e.stack}")
+    GE.transformersLogger(GE.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{e.stack}")
 
-  GE.evaluateOutputParameters(evaluationContext, processor.paramDefs, chip.params, evaluatedParams)
+  GE.evaluateOutputPinExpressions(evaluationContext, processor.pinDefs, chip.pins, evaluatedPins)
 
   result.result = methodResult
   result.memoryPatches = GE.addPathToPatches(path, GE.makePatches(constants.memoryData, evaluationContext.memory))
@@ -313,8 +313,8 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
 
   # TODO: compile expressions ahead of time
   evaluationContext = new GE.EvaluationContext(constants, bindings)
-  GE.fillParamDefDefaults(switchChip.paramDefs)
-  evaluatedParams = GE.evaluateInputParameters(evaluationContext, switchChip.paramDefs, chip.params)
+  GE.fillPinDefDefaults(switchChip.pinDefs)
+  evaluatedPins = GE.evaluateInputPinExpressions(evaluationContext, switchChip.pinDefs, chip.pins)
 
   result = new GE.ChipVisitorResult()
   GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
@@ -322,11 +322,11 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   # check which children should be activated
   if "listActiveChildren" of switchChip
     try
-      activeChildren = switchChip.listActiveChildren(evaluatedParams, childNames, constants.transformers, GE.transformersLogger)
+      activeChildren = switchChip.listActiveChildren(evaluatedPins, childNames, constants.transformers, GE.transformersLogger)
       if not _.isArray(activeChildren) then throw new Error("Calling listActiveChildren() on chip '#{chip.switch}' did not return an array")
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      GE.transformersLogger(GE.logLevels.ERROR, "Calling switch #{chip.switch}.listActiveChildren raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+      GE.transformersLogger(GE.logLevels.ERROR, "Calling switch #{chip.switch}.listActiveChildren raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
   else
     # By default, all children are considered active
     activeChildren = childNames
@@ -342,9 +342,9 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   # TODO: if handler not defined, propogate error signals upwards? How to merge them?
   if "handleSignals" of switchChip
     try
-      signalsResult = switchChip.handleSignals(evaluatedParams, childNames, activeChildren, childSignals, constants.transformers, GE.transformersLogger)
+      signalsResult = switchChip.handleSignals(evaluatedPins, childNames, activeChildren, childSignals, constants.transformers, GE.transformersLogger)
 
-      GE.evaluateOutputParameters(evaluationContext, switchChip.paramDefs, chip.params, evaluatedParams)
+      GE.evaluateOutputPinExpressions(evaluationContext, switchChip.pinDefs, chip.pins, evaluatedPins)
       memoryPatches = GE.addPathToPatches(path, GE.makePatches(constants.memoryData, evaluationContext.memory))
       ioPatches = GE.addPathToPatches(path, GE.makePatches(constants.ioData, evaluationContext.io))
 
@@ -352,7 +352,7 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
       result.result = signalsResult # appendWith() does not affect result
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      GE.transformersLogger(GE.logLevels.ERROR, "Calling switch #{chip.switch}.handleSignals raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+      GE.transformersLogger(GE.logLevels.ERROR, "Calling switch #{chip.switch}.handleSignals raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
 
   return result
 
@@ -380,7 +380,7 @@ GE.visitEmitterChip = (path, chip, constants, bindings) ->
     try
       outputValue = evaluationContext.evaluateExpression(src)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{src}' for emitter chip:\n#{error.stack}")
+      throw new Error("Error evaluating the output pin expression value expression '#{src}' for emitter chip:\n#{error.stack}")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
     parent[key] = outputValue
@@ -465,11 +465,11 @@ GE.stepLoop = (options) ->
 
   return { memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
 
-# Compile expression source into sandboxed function of (memory, io, assets, transformers, bindings, params) 
-GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["memory", "io", "assets", "transformers", "bindings", "params"])
+# Compile expression source into sandboxed function of (memory, io, assets, transformers, bindings, pins) 
+GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["memory", "io", "assets", "transformers", "bindings", "pins"])
 
 # Compile transformer source into a function of an "context" object that generates the transformers function,
-# baking in the "transformers" parameter of "context".
+# baking in the "transformers" pin expression of "context".
 GE.compileTransformer = (expressionText, args, evaluator) -> 
   source = """
     return function(#{args.join(', ')}) { 
@@ -480,22 +480,22 @@ GE.compileTransformer = (expressionText, args, evaluator) ->
   """
   return GE.compileSource(source, evaluator, ["context"])
 
-# Compile processor.update() source into sandboxed function of (params, transformers, log) 
-GE.compileUpdate = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "transformers", "log"])
+# Compile processor.update() source into sandboxed function of (pins, transformers, log) 
+GE.compileUpdate = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["pins", "transformers", "log"])
 
-# Compile processor listActiveChildren source into sandboxed function of (params, children, transformers, log) 
-GE.compileListActiveChildren = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "transformers", "log"])
+# Compile processor listActiveChildren source into sandboxed function of (pins, children, transformers, log) 
+GE.compileListActiveChildren = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["pins", "children", "transformers", "log"])
 
-# Compile processor handleSignals source into sandboxed function of (params, children, activeChildren, signals, transformers, log) 
-GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "activeChildren", "signals", "transformers", "log"])
+# Compile processor handleSignals source into sandboxed function of (pins, children, activeChildren, signals, transformers, log) 
+GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["pins", "children", "activeChildren", "signals", "transformers", "log"])
 
-# Compile source into sandboxed function of params
-GE.compileSource = (expressionText, evaluator, params) ->
+# Compile source into sandboxed function of pins
+GE.compileSource = (expressionText, evaluator, pins) ->
   # Parentheses are needed around function because of strange JavaScript syntax rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
   # TODO: detect errors
-  functionText = "(function(#{params.join(', ')}) {\n#{expressionText}\n})"
+  functionText = "(function(#{pins.join(', ')}) {\n#{expressionText}\n})"
   expressionFunc = evaluator(functionText)
   if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
   return expressionFunc

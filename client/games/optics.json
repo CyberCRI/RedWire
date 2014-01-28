@@ -1,7 +1,7 @@
 {
   "name": "optics",
   "fileVersion": 0.1,
-  "model": {
+  "memory": {
     "leftMouseDown": false,
     "selectedPiece": null,
     "originalRotation": null,
@@ -251,7 +251,7 @@
       }
     }
   },
-  "services": {
+  "io": {
     "layers": [
       {
         "name": "bg",
@@ -287,318 +287,318 @@
       }
     ]
   },
-  "layout": {
+  "board": {
     "children": [
       {
-        "send": {
-          "services.canvas.shapes": "tools.drawShape({ type: 'image', asset: 'background', layer: 'bg', position: [0, 0] })"
+        "emitter": {
+          "io.canvas.shapes": "transformers.drawShape({ type: 'image', asset: 'background', layer: 'bg', position: [0, 0] })"
         }
       },
       {
-        "params": {
+        "pins": {
           "in": {
-            "activeChild": "model.topLevelActiveChild"
+            "activeChild": "memory.topLevelActiveChild"
           },
           "out": {
-            "model.topLevelActiveChild": "params.activeChild"
+            "memory.topLevelActiveChild": "pins.activeChild"
           }
         },
         "children": [
           {
-            "params": {
+            "pins": {
               "in": {
-                "time": "model.constants.startingTime",
-                "timer": "model.timer"
+                "time": "memory.constants.startingTime",
+                "timer": "memory.timer"
               },
               "out": {
-                "model.timer": "params.timer"
+                "memory.timer": "pins.timer"
               }
             },
             "children": [
               {
-                "send": {
-                  "services.canvas.shapes": "tools.drawShape({ type: 'image', asset: 'title', layer: 'pieces', position: [100, 150] })"
+                "emitter": {
+                  "io.canvas.shapes": "transformers.drawShape({ type: 'image', asset: 'title', layer: 'pieces', position: [100, 150] })"
                 }
               },
               {
-                "send": {
-                  "services.canvas.shapes": "tools.drawShape({ type: 'text', text: 'Ready...', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '16px Rix', align: 'center' })"
+                "emitter": {
+                  "io.canvas.shapes": "transformers.drawShape({ type: 'text', text: 'Ready...', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '16px Rix', align: 'center' })"
                 }
               },
               {
-                "send": {
-                  "model.pieces": "model.constants.level.pieces",
-                  "model.boxedPieces": "model.constants.level.boxedPieces",
-                  "model.goalReached": false,
-                  "model.selectedPiece": "model.constants.level.selectedPiece"
+                "emitter": {
+                  "memory.pieces": "memory.constants.level.pieces",
+                  "memory.boxedPieces": "memory.constants.level.boxedPieces",
+                  "memory.goalReached": false,
+                  "memory.selectedPiece": "memory.constants.level.selectedPiece"
                 }
               }
             ],
-            "process": "doForSomeTime"
+            "switch": "doForSomeTime"
           },
           {
-            "params": {
+            "pins": {
               "in": {
-                "value": "!tools.reachedGoal(tools.makeLightPath(model.pieces, model.constants.boardGrid.gridSize, model.constants.mirrorAttenuationFactor, model.constants.minimumAttenuation).cells, model.pieces)"
+                "value": "!transformers.reachedGoal(transformers.makeLightPath(memory.pieces, memory.constants.boardGrid.gridSize, memory.constants.mirrorAttenuationFactor, memory.constants.minimumAttenuation).cells, memory.pieces)"
               }
             },
             "children": [
               {
-                "send": {
-                  "services.canvas.shapes": "tools.drawLightPath(model.constants.boardGrid, tools.makeLightPath(model.pieces, model.constants.boardGrid.gridSize, model.constants.mirrorAttenuationFactor, model.constants.minimumAttenuation).segments)"
+                "emitter": {
+                  "io.canvas.shapes": "transformers.drawLightPath(memory.constants.boardGrid, transformers.makeLightPath(memory.pieces, memory.constants.boardGrid.gridSize, memory.constants.mirrorAttenuationFactor, memory.constants.minimumAttenuation).segments)"
                 }
               },
               {
-                "foreach": {
-                  "from": "model.pieces",
+                "splitter": {
+                  "from": "memory.pieces",
                   "bindTo": "piece"
                 },
                 "children": [
                   {
-                    "send": {
-                      "services.canvas.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })"
+                    "emitter": {
+                      "io.canvas.shapes": "transformers.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: transformers.gridCellCenter(memory.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })"
                     }
                   }
                 ]
               },
               {
-                "foreach": {
-                  "from": "model.boxedPieces",
+                "splitter": {
+                  "from": "memory.boxedPieces",
                   "bindTo": "piece",
                   "index": "pieceIndex"
                 },
                 "children": [
                   {
-                    "send": {
-                      "services.canvas.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], scale: 0.67, translation: tools.gridCellCenter(model.constants.boxGrid, tools.gridIndexToCell(bindings.pieceIndex)) })"
+                    "emitter": {
+                      "io.canvas.shapes": "transformers.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], scale: 0.67, translation: transformers.gridCellCenter(memory.constants.boxGrid, transformers.gridIndexToCell(bindings.pieceIndex)) })"
                     }
                   }
                 ]
               },
               {
-                "send": {
-                  "services.canvas.shapes": "tools.drawShape(_.extend(tools.gridCellRectangle(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), { layer: 'selection', strokeStyle: 'yellow', lineWidth: 4 }))"
+                "emitter": {
+                  "io.canvas.shapes": "transformers.drawShape(_.extend(transformers.gridCellRectangle(memory.constants.boardGrid, [memory.selectedPiece.col, memory.selectedPiece.row]), { layer: 'selection', strokeStyle: 'yellow', lineWidth: 4 }))"
                 }
               },
               {
-                "foreach": {
-                  "from": "model.pieces",
+                "splitter": {
+                  "from": "memory.pieces",
                   "bindTo": "selectedPiece",
-                  "where": "model.selectedPiece && bindings.selectedPiece.col === model.selectedPiece.col && bindings.selectedPiece.row === model.selectedPiece.row && tools.pieceIsRotatable(bindings.selectedPiece, model.constants.unrotatablePieceTypes)"
+                  "where": "memory.selectedPiece && bindings.selectedPiece.col === memory.selectedPiece.col && bindings.selectedPiece.row === memory.selectedPiece.row && transformers.pieceIsRotatable(bindings.selectedPiece, memory.constants.unrotatablePieceTypes)"
                 },
                 "children": [
                   {
-                    "action": "changeParameterThroughKeyboard",
-                    "params": {
+                    "pins": {
                       "in": {
                         "parameter": "bindings.selectedPiece.rotation",
-                        "keysDown": "services.keyboard.keysDown",
-                        "keyMap": "model.constants.rotationKeyMap"
+                        "keysDown": "io.keyboard.keysDown",
+                        "keyMap": "memory.constants.rotationKeyMap"
                       },
                       "out": {
-                        "bindings.selectedPiece.rotation": "params.parameter"
+                        "bindings.selectedPiece.rotation": "pins.parameter"
                       }
+                    },
+                    "processor": "changeParameterThroughKeyboard"
+                  },
+                  {
+                    "emitter": {
+                      "io.canvas.shapes": "transformers.drawShape({ layer: 'rotating', type: 'image', asset: memory.rotating ? 'is-rotating' : 'can-rotate', scale: 0.5, position: [-208/2, -208/2], translation: transformers.gridCellCenter(memory.constants.boardGrid, [memory.selectedPiece.col, memory.selectedPiece.row]) })"
                     }
                   },
                   {
-                    "send": {
-                      "services.canvas.shapes": "tools.drawShape({ layer: 'rotating', type: 'image', asset: model.rotating ? 'is-rotating' : 'can-rotate', scale: 0.5, position: [-208/2, -208/2], translation: tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]) })"
-                    }
-                  },
-                  {
-                    "params": {
+                    "pins": {
                       "in": {
-                        "value": "model.mouseDetection.shape && model.mouseDetection.shape.meta == 'rotate'"
+                        "value": "memory.mouseDetection.shape && memory.mouseDetection.shape.meta == 'rotate'"
                       }
                     },
                     "children": [
                       {
-                        "params": {
+                        "pins": {
                           "in": {
-                            "value": "model.mouseDetection.state"
+                            "value": "memory.mouseDetection.state"
                           }
                         },
                         "children": [
                           {
                             "name": "hover",
-                            "send": {
-                              "services.mouse.cursor": "'pointer'"
+                            "emitter": {
+                              "io.mouse.cursor": "'pointer'"
                             }
                           },
                           {
                             "name": "startDrag",
-                            "send": {
-                              "model.rotationOffset": "tools.calculateRotationOffset(bindings.selectedPiece.rotation, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)",
-                              "model.rotating": "true"
+                            "emitter": {
+                              "memory.rotationOffset": "transformers.calculateRotationOffset(bindings.selectedPiece.rotation, transformers.gridCellCenter(memory.constants.boardGrid, [memory.selectedPiece.col, memory.selectedPiece.row]), io.mouse.position)",
+                              "memory.rotating": "true"
                             }
                           },
                           {
                             "name": "drag",
-                            "send": {
-                              "bindings.selectedPiece.rotation": "tools.calculateRotation(model.rotationOffset, tools.gridCellCenter(model.constants.boardGrid, [model.selectedPiece.col, model.selectedPiece.row]), services.mouse.position)",
-                              "services.mouse.cursor": "'move'"
+                            "emitter": {
+                              "bindings.selectedPiece.rotation": "transformers.calculateRotation(memory.rotationOffset, transformers.gridCellCenter(memory.constants.boardGrid, [memory.selectedPiece.col, memory.selectedPiece.row]), io.mouse.position)",
+                              "io.mouse.cursor": "'move'"
                             }
                           },
                           {
                             "name": "endDrag",
-                            "send": {
-                              "model.rotating": "false"
+                            "emitter": {
+                              "memory.rotating": "false"
                             }
                           }
                         ],
-                        "process": "when"
+                        "switch": "when"
                       }
                     ],
-                    "process": "if"
+                    "switch": "if"
                   }
                 ]
               },
               {
-                "action": "detectMouse",
-                "params": {
+                "pins": {
                   "in": {
-                    "shapes": "tools.makeDetectableShapes(model.constants.boardGrid, model.pieces, model.constants.boxGrid, model.boxedPieces, [model.selectedPiece.col, model.selectedPiece.row])",
-                    "shape": "model.mouseDetection.shape",
-                    "mousePosition": "services.mouse.position",
-                    "mouseDown": "services.mouse.down",
-                    "state": "model.mouseDetection.state",
-                    "dragStartPosition": "model.mouseDetection.dragStartPosition"
+                    "shapes": "transformers.makeDetectableShapes(memory.constants.boardGrid, memory.pieces, memory.constants.boxGrid, memory.boxedPieces, [memory.selectedPiece.col, memory.selectedPiece.row])",
+                    "shape": "memory.mouseDetection.shape",
+                    "mousePosition": "io.mouse.position",
+                    "mouseDown": "io.mouse.down",
+                    "state": "memory.mouseDetection.state",
+                    "dragStartPosition": "memory.mouseDetection.dragStartPosition"
                   },
                   "out": {
-                    "model.mouseDetection.state": "params.state",
-                    "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
-                    "model.mouseDetection.shape": "params.shape"
+                    "memory.mouseDetection.state": "pins.state",
+                    "memory.mouseDetection.dragStartPosition": "pins.dragStartPosition",
+                    "memory.mouseDetection.shape": "pins.shape"
                   }
-                }
+                },
+                "processor": "detectMouse"
               },
               {
-                "params": {
+                "pins": {
                   "in": {
-                    "value": "model.mouseDetection.shape && model.mouseDetection.shape.meta != 'rotate'"
+                    "value": "memory.mouseDetection.shape && memory.mouseDetection.shape.meta != 'rotate'"
                   }
                 },
                 "children": [
                   {
-                    "params": {
+                    "pins": {
                       "in": {
-                        "value": "model.mouseDetection.state"
+                        "value": "memory.mouseDetection.state"
                       }
                     },
                     "children": [
                       {
                         "name": "startDrag",
-                        "params": {
+                        "pins": {
                           "in": {
-                            "value": "tools.pieceIsMovable(model.mouseDetection.shape.meta, model.constants.unmovablePieceTypes)"
+                            "value": "transformers.pieceIsMovable(memory.mouseDetection.shape.meta, memory.constants.unmovablePieceTypes)"
                           }
                         },
                         "children": [
                           {
-                            "send": {
-                              "model.draggedPiece": "model.mouseDetection.shape.meta"
+                            "emitter": {
+                              "memory.draggedPiece": "memory.mouseDetection.shape.meta"
                             }
                           }
                         ],
-                        "process": "if"
+                        "switch": "if"
                       },
                       {
                         "name": "endDrag",
-                        "params": {
+                        "pins": {
                           "in": {
-                            "value": "tools.pieceIsMovable(model.mouseDetection.shape.meta, model.constants.unmovablePieceTypes)"
+                            "value": "transformers.pieceIsMovable(memory.mouseDetection.shape.meta, memory.constants.unmovablePieceTypes)"
                           }
                         },
                         "children": [
                           {
-                            "send": {
-                              "model.draggedPiece": "null",
-                              "model.pieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieceTypes).pieces",
-                              "model.boxedPieces": "tools.movePieceTo(model.draggedPiece, tools.gridCellAtPoint(model.constants.boardGrid, services.mouse.position), model.pieces, model.boxedPieces, model.constants.boardGrid.gridSize, model.constants.unmovablePieceTypes).boxedPieces"
+                            "emitter": {
+                              "memory.draggedPiece": "null",
+                              "memory.pieces": "transformers.movePieceTo(memory.draggedPiece, transformers.gridCellAtPoint(memory.constants.boardGrid, io.mouse.position), memory.pieces, memory.boxedPieces, memory.constants.boardGrid.gridSize, memory.constants.unmovablePieceTypes).pieces",
+                              "memory.boxedPieces": "transformers.movePieceTo(memory.draggedPiece, transformers.gridCellAtPoint(memory.constants.boardGrid, io.mouse.position), memory.pieces, memory.boxedPieces, memory.constants.boardGrid.gridSize, memory.constants.unmovablePieceTypes).boxedPieces"
                             }
                           }
                         ],
-                        "process": "if"
+                        "switch": "if"
                       },
                       {
                         "name": "click",
-                        "send": {
-                          "model.selectedPiece": "{ col: model.mouseDetection.shape.meta.col, row: model.mouseDetection.shape.meta.row }"
+                        "emitter": {
+                          "memory.selectedPiece": "{ col: memory.mouseDetection.shape.meta.col, row: memory.mouseDetection.shape.meta.row }"
                         }
                       },
                       {
                         "name": "hover",
-                        "send": {
-                          "services.mouse.cursor": "'pointer'"
+                        "emitter": {
+                          "io.mouse.cursor": "'pointer'"
                         }
                       }
                     ],
-                    "process": "when"
+                    "switch": "when"
                   }
                 ],
-                "process": "if"
+                "switch": "if"
               },
               {
-                "params": {
+                "pins": {
                   "in": {
-                    "value": "model.draggedPiece"
+                    "value": "memory.draggedPiece"
                   }
                 },
                 "children": [
                   {
-                    "send": {
-                      "services.mouse.cursor": "'move'",
-                      "services.canvas.shapes": "tools.drawShape({ type: 'image', layer: 'drag', asset: model.draggedPiece.type, alpha: 0.5, position: [-model.constants.pieceAssetCentering, -model.constants.pieceAssetCentering], translation: services.mouse.position, rotation: model.draggedPiece.rotation })"
+                    "emitter": {
+                      "io.mouse.cursor": "'move'",
+                      "io.canvas.shapes": "transformers.drawShape({ type: 'image', layer: 'drag', asset: memory.draggedPiece.type, alpha: 0.5, position: [-memory.constants.pieceAssetCentering, -memory.constants.pieceAssetCentering], translation: io.mouse.position, rotation: memory.draggedPiece.rotation })"
                     }
                   }
                 ],
-                "process": "if"
+                "switch": "if"
               }
             ],
-            "process": "doWhile"
+            "switch": "doWhile"
           },
           {
-            "params": {
+            "pins": {
               "in": {
-                "time": "model.constants.endingTime",
-                "timer": "model.timer"
+                "time": "memory.constants.endingTime",
+                "timer": "memory.timer"
               },
               "out": {
-                "model.timer": "params.timer"
+                "memory.timer": "pins.timer"
               }
             },
             "children": [
               {
-                "send": {
-                  "services.canvas.shapes": "tools.drawShape({ type: 'text', text: 'You win', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '18px Rix', align: 'center' })",
-                  "model.mouseDetection": "{}",
-                  "model.rotating": "false"
+                "emitter": {
+                  "io.canvas.shapes": "transformers.drawShape({ type: 'text', text: 'You win', layer: 'text', position: [885, 150], strokeStyle: 'white', fillStyle: 'white', font: '18px Rix', align: 'center' })",
+                  "memory.mouseDetection": "{}",
+                  "memory.rotating": "false"
                 }
               },
               {
-                "foreach": {
-                  "from": "model.pieces",
+                "splitter": {
+                  "from": "memory.pieces",
                   "bindTo": "piece"
                 },
                 "children": [
                   {
-                    "send": {
-                      "services.canvas.shapes": "tools.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: tools.gridCellCenter(model.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })"
+                    "emitter": {
+                      "io.canvas.shapes": "transformers.drawShape({ layer: 'pieces', type: 'image', asset: bindings.piece.type, position: [-50/2, -50/2], translation: transformers.gridCellCenter(memory.constants.boardGrid, [bindings.piece.col, bindings.piece.row]), rotation: bindings.piece.rotation })"
                     }
                   }
                 ]
               }
             ],
-            "process": "doForSomeTime"
+            "switch": "doForSomeTime"
           }
         ],
-        "process": "doInSequence"
+        "switch": "doInSequence"
       }
     ],
-    "process": "doInParallel"
+    "switch": "doInParallel"
   },
-  "actions": {
+  "processors": {
     "clickListener": {
-      "paramDefs": {
+      "pinDefs": {
         "keyboard": {
           "direction": "in"
         },
@@ -642,20 +642,20 @@
           "default": "{}"
         }
       },
-      "update": "var that = this;\nfunction selectSquare(square, params) {\n  if (that.tools.isInGrid(square, that.params.constants.gridSize)) {\n    params.selected = {\n      col: square[0],\n      row: square[1]\n    };\n  }\n}\nfunction mouseDownOnPiece(piecePressed, params) {\n  if (piecePressed) {\n    params.selectedPiece = null;\n    params.rotating = false;\n    params.originalRotation = null;\n    params.originalPieceRotation = null;\n    if (that.tools.isMovable(piecePressed, that.params.constants.unmovablePieces)) {\n      params.draggedPiece = piecePressed;\n    }\n  }\n}\nvar newLeftMouseDown = params.mouse.down && !params.leftMouseDown;\nvar newLeftMouseReleased = !params.mouse.down && params.leftMouseDown;\nvar selected = params.selected;\nif (params.rotating && params.selectedPiece && params.mouse.position) {\n  if (params.originalPieceRotation === null) {\n    params.originalPieceRotation = params.selectedPiece.rotation;\n  }\n  var objectPosition = {};\n  objectPosition.x = (params.selectedPiece.col + 0.5) * (params.constants.cellSize - 1) + params.constants.upperLeftBoardMargin;\n  objectPosition.y = (params.selectedPiece.row + 0.5) * (params.constants.cellSize - 1) + params.constants.upperLeftBoardMargin;\n  var hxPosition = params.mouse.position[0] - objectPosition.x;\n  var hyPosition = params.mouse.position[1] - objectPosition.y;\n  var omDistance = Math.sqrt(hxPosition * hxPosition + hyPosition * hyPosition);\n  var ohyDistance = -hyPosition;\n  var ratio = ohyDistance / omDistance;\n  var angle = 0;\n  if (omDistance !== 0) {\n    var absValueAngle = Math.acos(ratio) * 180 / Math.PI;\n    if (hxPosition <= 0) {\n      angle = -absValueAngle;\n    } else {\n      angle = absValueAngle;\n    }\n  }\n  if (params.originalRotation === null) {\n    params.originalRotation = angle;\n  }\n  var piece = tools.findGridElement([\n      params.selectedPiece.col,\n      params.selectedPiece.row\n    ], params.pieces);\n  var newRotation = angle - params.originalRotation + params.originalPieceRotation;\n  piece.rotation = newRotation % 360;\n}\nif (newLeftMouseDown || newLeftMouseReleased) {\n  if (that.params.mouse.position) {\n    var clickedColumn = tools.toBoardCoordinate(that.params.mouse.position[0], params.constants.upperLeftBoardMargin, params.constants.cellSize);\n    var clickedRow = tools.toBoardCoordinate(that.params.mouse.position[1], params.constants.upperLeftBoardMargin, params.constants.cellSize);\n    var boardCoordinates = [\n        clickedColumn,\n        clickedRow\n      ];\n    if (newLeftMouseDown) {\n      params.leftMouseDown = true;\n      if (!tools.isInGrid(boardCoordinates, params.constants.gridSize)) {\n        var boxIndex = tools.getIndexInBox([\n            that.params.mouse.position[0],\n            that.params.mouse.position[1]\n          ], params.constants.boxLeft, params.constants.boxTop, params.constants.boxCellSize, params.constants.boxRowsCount, params.constants.boxColumnsCount);\n        if (boxIndex !== null) {\n          var boxedPiece = params.boxedPieces[boxIndex];\n          var pieceType = null;\n          if (boxedPiece) {\n            pieceType = boxedPiece.type;\n            mouseDownOnPiece(boxedPiece, params);\n          } else if (params.selectedPiece != null) {\n            params.selectedPiece = null;\n            params.rotating = false;\n            params.originalRotation = null;\n            params.originalPieceRotation = null;\n          } else {\n          }\n        }\n      } else {\n        var pieceClickedOn = tools.findGridElement(boardCoordinates, params.pieces);\n        if (params.selectedPiece) {\n          var selectedPiecePosition = {};\n          selectedPiecePosition.x = tools.toPixelCoordinate(params.selectedPiece.col, params.constants.upperLeftBoardMargin, params.constants.cellSize);\n          selectedPiecePosition.y = tools.toPixelCoordinate(params.selectedPiece.row, params.constants.upperLeftBoardMargin, params.constants.cellSize);\n          if (tools.distance(params.mouse.position, selectedPiecePosition) < params.constants.cellSize * 1.2 && tools.distance(params.mouse.position, selectedPiecePosition) > params.constants.cellSize * 0.7) {\n            params.rotating = true;\n            var rotatedPiece = tools.findGridElement([\n                params.selectedPiece.col,\n                params.selectedPiece.row\n              ], params.pieces);\n            params.originalPieceRotation = 0;\n            if (rotatedPiece)\n              params.originalPieceRotation = rotatedPiece.rotation;\n          } else {\n            mouseDownOnPiece(pieceClickedOn, params);\n            selectSquare([\n              clickedColumn,\n              clickedRow\n            ], params);\n          }\n        } else {\n          mouseDownOnPiece(pieceClickedOn, params);\n          selectSquare([\n            clickedColumn,\n            clickedRow\n          ], params);\n        }\n      }\n    } else if (newLeftMouseReleased) {\n      params.leftMouseDown = false;\n      if (!tools.isInGrid(boardCoordinates, params.constants.gridSize)) {\n        var boxIndex = tools.getIndexInBox([\n            that.params.mouse.position[0],\n            that.params.mouse.position[1]\n          ], params.constants.boxLeft, params.constants.boxTop, params.constants.boxCellSize, params.constants.boxRowsCount, params.constants.boxColumnsCount);\n        if (boxIndex !== null) {\n          var boxedPiece = params.boxedPieces[boxIndex];\n          var pieceType = null;\n          if (boxedPiece !== undefined) {\n            params.draggedPiece = null;\n          } else {\n            if (params.selectedPiece) {\n            } else if (params.draggedPiece) {\n              var put = tools.putPieceIntoBox(that.params.draggedPiece, params.pieces, params.boxedPieces);\n              params.pieces = put.pieces;\n              params.boxedPieces = put.boxedPieces;\n              params.draggedPiece = null;\n              params.selectedPiece = null;\n              params.rotating = false;\n              params.originalRotation = null;\n              params.originalPieceRotation = null;\n            } else {\n            }\n          }\n        } else {\n          var put = tools.putPieceIntoBox(that.params.draggedPiece, params.pieces, params.boxedPieces);\n          params.pieces = put.pieces;\n          params.boxedPieces = put.boxedPieces;\n          params.draggedPiece = null;\n          params.selectedPiece = null;\n          params.rotating = false;\n          params.originalRotation = null;\n          params.originalPieceRotation = null;\n        }\n      } else {\n        var pieceReleasedOn = tools.findGridElement(boardCoordinates, params.pieces);\n        if (pieceReleasedOn) {\n          if (params.draggedPiece && params.draggedPiece.col == boardCoordinates[0] && params.draggedPiece.row == boardCoordinates[1]) {\n            params.selectedPiece = pieceReleasedOn;\n          } else if (!params.draggedPiece && !params.selectedPiece) {\n            params.selectedPiece = pieceReleasedOn;\n          } else {\n            params.selectedPiece = null;\n            params.rotating = false;\n            params.originalRotation = null;\n            params.originalPieceRotation = null;\n          }\n          params.draggedPiece = null;\n        } else {\n          if (params.selectedPiece) {\n            if (params.rotating) {\n              params.rotating = false;\n              params.originalRotation = null;\n              params.originalPieceRotation = null;\n            } else {\n              params.selectedPiece = null;\n              params.rotating = false;\n              params.originalRotation = null;\n              params.originalPieceRotation = null;\n            }\n          } else if (params.draggedPiece) {\n            selectSquare([\n              clickedColumn,\n              clickedRow\n            ], params);\n            var move = tools.movePieceTo(params.draggedPiece, [\n                clickedColumn,\n                clickedRow\n              ], params.pieces, params.boxedPieces, params.constants.gridSize, params.constants.unmovablePieces);\n            _.extend(params, move);\n          } else {\n          }\n        }\n      }\n    }\n  }\n}"
+      "update": "var that = this;\nfunction selectSquare(square, pins) {\n  if (that.transformers.isInGrid(square, that.pins.constants.gridSize)) {\n    pins.selected = {\n      col: square[0],\n      row: square[1]\n    };\n  }\n}\nfunction mouseDownOnPiece(piecePressed, pins) {\n  if (piecePressed) {\n    pins.selectedPiece = null;\n    pins.rotating = false;\n    pins.originalRotation = null;\n    pins.originalPieceRotation = null;\n    if (that.transformers.isMovable(piecePressed, that.pins.constants.unmovablePieces)) {\n      pins.draggedPiece = piecePressed;\n    }\n  }\n}\nvar newLeftMouseDown = pins.mouse.down && !pins.leftMouseDown;\nvar newLeftMouseReleased = !pins.mouse.down && pins.leftMouseDown;\nvar selected = pins.selected;\nif (pins.rotating && pins.selectedPiece && pins.mouse.position) {\n  if (pins.originalPieceRotation === null) {\n    pins.originalPieceRotation = pins.selectedPiece.rotation;\n  }\n  var objectPosition = {};\n  objectPosition.x = (pins.selectedPiece.col + 0.5) * (pins.constants.cellSize - 1) + pins.constants.upperLeftBoardMargin;\n  objectPosition.y = (pins.selectedPiece.row + 0.5) * (pins.constants.cellSize - 1) + pins.constants.upperLeftBoardMargin;\n  var hxPosition = pins.mouse.position[0] - objectPosition.x;\n  var hyPosition = pins.mouse.position[1] - objectPosition.y;\n  var omDistance = Math.sqrt(hxPosition * hxPosition + hyPosition * hyPosition);\n  var ohyDistance = -hyPosition;\n  var ratio = ohyDistance / omDistance;\n  var angle = 0;\n  if (omDistance !== 0) {\n    var absValueAngle = Math.acos(ratio) * 180 / Math.PI;\n    if (hxPosition <= 0) {\n      angle = -absValueAngle;\n    } else {\n      angle = absValueAngle;\n    }\n  }\n  if (pins.originalRotation === null) {\n    pins.originalRotation = angle;\n  }\n  var piece = transformers.findGridElement([\n      pins.selectedPiece.col,\n      pins.selectedPiece.row\n    ], pins.pieces);\n  var newRotation = angle - pins.originalRotation + pins.originalPieceRotation;\n  piece.rotation = newRotation % 360;\n}\nif (newLeftMouseDown || newLeftMouseReleased) {\n  if (that.pins.mouse.position) {\n    var clickedColumn = transformers.toBoardCoordinate(that.pins.mouse.position[0], pins.constants.upperLeftBoardMargin, pins.constants.cellSize);\n    var clickedRow = transformers.toBoardCoordinate(that.pins.mouse.position[1], pins.constants.upperLeftBoardMargin, pins.constants.cellSize);\n    var boardCoordinates = [\n        clickedColumn,\n        clickedRow\n      ];\n    if (newLeftMouseDown) {\n      pins.leftMouseDown = true;\n      if (!transformers.isInGrid(boardCoordinates, pins.constants.gridSize)) {\n        var boxIndex = transformers.getIndexInBox([\n            that.pins.mouse.position[0],\n            that.pins.mouse.position[1]\n          ], pins.constants.boxLeft, pins.constants.boxTop, pins.constants.boxCellSize, pins.constants.boxRowsCount, pins.constants.boxColumnsCount);\n        if (boxIndex !== null) {\n          var boxedPiece = pins.boxedPieces[boxIndex];\n          var pieceType = null;\n          if (boxedPiece) {\n            pieceType = boxedPiece.type;\n            mouseDownOnPiece(boxedPiece, pins);\n          } else if (pins.selectedPiece != null) {\n            pins.selectedPiece = null;\n            pins.rotating = false;\n            pins.originalRotation = null;\n            pins.originalPieceRotation = null;\n          } else {\n          }\n        }\n      } else {\n        var pieceClickedOn = transformers.findGridElement(boardCoordinates, pins.pieces);\n        if (pins.selectedPiece) {\n          var selectedPiecePosition = {};\n          selectedPiecePosition.x = transformers.toPixelCoordinate(pins.selectedPiece.col, pins.constants.upperLeftBoardMargin, pins.constants.cellSize);\n          selectedPiecePosition.y = transformers.toPixelCoordinate(pins.selectedPiece.row, pins.constants.upperLeftBoardMargin, pins.constants.cellSize);\n          if (transformers.distance(pins.mouse.position, selectedPiecePosition) < pins.constants.cellSize * 1.2 && transformers.distance(pins.mouse.position, selectedPiecePosition) > pins.constants.cellSize * 0.7) {\n            pins.rotating = true;\n            var rotatedPiece = transformers.findGridElement([\n                pins.selectedPiece.col,\n                pins.selectedPiece.row\n              ], pins.pieces);\n            pins.originalPieceRotation = 0;\n            if (rotatedPiece)\n              pins.originalPieceRotation = rotatedPiece.rotation;\n          } else {\n            mouseDownOnPiece(pieceClickedOn, pins);\n            selectSquare([\n              clickedColumn,\n              clickedRow\n            ], pins);\n          }\n        } else {\n          mouseDownOnPiece(pieceClickedOn, pins);\n          selectSquare([\n            clickedColumn,\n            clickedRow\n          ], pins);\n        }\n      }\n    } else if (newLeftMouseReleased) {\n      pins.leftMouseDown = false;\n      if (!transformers.isInGrid(boardCoordinates, pins.constants.gridSize)) {\n        var boxIndex = transformers.getIndexInBox([\n            that.pins.mouse.position[0],\n            that.pins.mouse.position[1]\n          ], pins.constants.boxLeft, pins.constants.boxTop, pins.constants.boxCellSize, pins.constants.boxRowsCount, pins.constants.boxColumnsCount);\n        if (boxIndex !== null) {\n          var boxedPiece = pins.boxedPieces[boxIndex];\n          var pieceType = null;\n          if (boxedPiece !== undefined) {\n            pins.draggedPiece = null;\n          } else {\n            if (pins.selectedPiece) {\n            } else if (pins.draggedPiece) {\n              var put = transformers.putPieceIntoBox(that.pins.draggedPiece, pins.pieces, pins.boxedPieces);\n              pins.pieces = put.pieces;\n              pins.boxedPieces = put.boxedPieces;\n              pins.draggedPiece = null;\n              pins.selectedPiece = null;\n              pins.rotating = false;\n              pins.originalRotation = null;\n              pins.originalPieceRotation = null;\n            } else {\n            }\n          }\n        } else {\n          var put = transformers.putPieceIntoBox(that.pins.draggedPiece, pins.pieces, pins.boxedPieces);\n          pins.pieces = put.pieces;\n          pins.boxedPieces = put.boxedPieces;\n          pins.draggedPiece = null;\n          pins.selectedPiece = null;\n          pins.rotating = false;\n          pins.originalRotation = null;\n          pins.originalPieceRotation = null;\n        }\n      } else {\n        var pieceReleasedOn = transformers.findGridElement(boardCoordinates, pins.pieces);\n        if (pieceReleasedOn) {\n          if (pins.draggedPiece && pins.draggedPiece.col == boardCoordinates[0] && pins.draggedPiece.row == boardCoordinates[1]) {\n            pins.selectedPiece = pieceReleasedOn;\n          } else if (!pins.draggedPiece && !pins.selectedPiece) {\n            pins.selectedPiece = pieceReleasedOn;\n          } else {\n            pins.selectedPiece = null;\n            pins.rotating = false;\n            pins.originalRotation = null;\n            pins.originalPieceRotation = null;\n          }\n          pins.draggedPiece = null;\n        } else {\n          if (pins.selectedPiece) {\n            if (pins.rotating) {\n              pins.rotating = false;\n              pins.originalRotation = null;\n              pins.originalPieceRotation = null;\n            } else {\n              pins.selectedPiece = null;\n              pins.rotating = false;\n              pins.originalRotation = null;\n              pins.originalPieceRotation = null;\n            }\n          } else if (pins.draggedPiece) {\n            selectSquare([\n              clickedColumn,\n              clickedRow\n            ], pins);\n            var move = transformers.movePieceTo(pins.draggedPiece, [\n                clickedColumn,\n                clickedRow\n              ], pins.pieces, pins.boxedPieces, pins.constants.gridSize, pins.constants.unmovablePieces);\n            _.extend(pins, move);\n          } else {\n          }\n        }\n      }\n    }\n  }\n}"
     },
     "changeParameterThroughKeyboard": {
-      "paramDefs": {
+      "pinDefs": {
         "parameter": {
           "direction": "inout"
         },
         "keysDown": null,
         "keyMap": null
       },
-      "update": "for (var keyCode in params.keyMap) {\n  if (params.keysDown[keyCode]) {\n    var value = params.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      params.parameter += Number(value);\n    } else {\n      params.parameter = value;\n    }\n    break;\n  }\n}"
+      "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
     },
     "detectMouse": {
-      "paramDefs": {
+      "pinDefs": {
         "shapes": null,
         "shape": {
           "direction": "inout"
@@ -672,63 +672,63 @@
           "default": "5"
         }
       },
-      "update": "if (!params.state)\n  params.state = 'none';\nswitch (params.state) {\ncase 'none':\n  if (params.mousePosition) {\n    for (var i in params.shapes) {\n      if (tools.pointIntersectsShape(params.mousePosition, params.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + params.state);\n        params.state = 'hover';\n        params.shape = params.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!params.mousePosition || !tools.pointIntersectsShape(params.mousePosition, params.shape)) {\n    params.state = 'none';\n    params.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (params.mouseDown) {\n    params.dragStartPosition = params.mousePosition;\n    params.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!params.mouseDown) {\n    params.state = 'click';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(params.dragStartPosition).distanceFrom(Vector.create(params.mousePosition)) >= params.minimumDragDistance) {\n    params.state = 'startDrag';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  params.state = 'hover';\n  break;\ncase 'startDrag':\n  params.state = 'drag';\n  break;\ncase 'drag':\n  if (!params.mouseDown) {\n    params.state = 'endDrag';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  params.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + params.state + '\\'');\n}"
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
     }
   },
-  "processes": {
+  "switches": {
     "doInParallel": {
       "doc": "Just to place children under it"
     },
     "doInSequence": {
-      "paramDefs": {
+      "pinDefs": {
         "activeChild": {
           "direction": "inout",
           "default": 0
         }
       },
-      "listActiveChildren": "return [params.activeChild];",
-      "handleSignals": "if (signals[params.activeChild] == GE.signals.DONE)\n  params.activeChild++;\nif (params.activeChild > children.length - 1) {\n  params.activeChild = 0;\n  return GE.signals.DONE;\n}"
+      "listActiveChildren": "return [pins.activeChild];",
+      "handleSignals": "if (signals[pins.activeChild] == GE.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return GE.signals.DONE;\n}"
     },
     "doForSomeTime": {
-      "paramDefs": {
+      "pinDefs": {
         "time": null,
         "timer": {
           "direction": "inout"
         }
       },
       "listActiveChildren": "return children;",
-      "handleSignals": "if (params.timer++ >= params.time) {\n  params.timer = 0;\n  return GE.signals.DONE;\n}"
+      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return GE.signals.DONE;\n}"
     },
     "doWhile": {
-      "paramDefs": {
+      "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "return !!params.value ? children : [];",
-      "handleSignals": "if (!params.value)\n  return GE.signals.DONE;"
+      "listActiveChildren": "return !!pins.value ? children : [];",
+      "handleSignals": "if (!pins.value)\n  return GE.signals.DONE;"
     },
     "when": {
-      "paramDefs": {
+      "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "return tools.childByName(children, params.value);"
+      "listActiveChildren": "return transformers.childByName(children, pins.value);"
     },
     "if": {
-      "paramDefs": {
+      "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "return params.value ? [0] : children.length > 1 ? [1] : [];"
+      "listActiveChildren": "return pins.value ? [0] : children.length > 1 ? [1] : [];"
     },
     "sandwich": {
-      "paramDefs": {
+      "pinDefs": {
         "condition": null,
         "started": {
           "direction": "inout"
         }
       },
-      "listActiveChildren": "if (!params.track) {\n  if (!params.condition) {\n    return [0];\n  } else {\n    params.track = true;\n    return [1];\n  }\n} else {\n  if (params.condition) {\n    return [1];\n  } else {\n    params.track = false;\n    return [2];\n  }\n}"
+      "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
     }
   },
-  "tools": {
+  "transformers": {
     "drawShape": {
       "args": [
         "shape",
@@ -797,14 +797,14 @@
         "gridSize",
         "unmovablePieces"
       ],
-      "body": "var newPiece = GE.cloneData(piece);\nvar newPieces = GE.cloneData(pieces);\nvar newBoxedPieces = GE.cloneData(boxedPieces);\nif (tools.isMovable(piece, unmovablePieces)) {\n  if (newSquare != null) {\n    if (tools.findGridElement(newSquare, pieces) == null) {\n      if (piece.col !== undefined && piece.row !== undefined) {\n        newPiece.col = newSquare[0];\n        newPiece.row = newSquare[1];\n        newPieces = tools.replace(piece, newPiece, pieces);\n      } else {\n        newBoxedPieces = tools.takePieceOutOfBox(piece.type, boxedPieces);\n        newPiece = {\n          'col': newSquare[0],\n          'row': newSquare[1],\n          'type': piece.type,\n          'rotation': 0\n        };\n        newPieces = pieces.concat([newPiece]);\n      }\n    }\n  } else {\n    var put = tools.putPieceIntoBox(piece, pieces, boxedPieces);\n    newPiece = put.piece;\n    newPieces = put.pieces;\n    newBoxedPieces = put.boxedPieces;\n  }\n} else {\n}\nvar toReturn = {};\ntoReturn.piece = newPiece;\ntoReturn.pieces = newPieces;\ntoReturn.boxedPieces = newBoxedPieces;\ntoReturn.selectedPiece = null;\ntoReturn.draggedPiece = null;\ntoReturn.rotating = false;\ntoReturn.originalRotation = null;\ntoReturn.originalPieceRotation = null;\nreturn toReturn;"
+      "body": "var newPiece = GE.cloneData(piece);\nvar newPieces = GE.cloneData(pieces);\nvar newBoxedPieces = GE.cloneData(boxedPieces);\nif (transformers.isMovable(piece, unmovablePieces)) {\n  if (newSquare != null) {\n    if (transformers.findGridElement(newSquare, pieces) == null) {\n      if (piece.col !== undefined && piece.row !== undefined) {\n        newPiece.col = newSquare[0];\n        newPiece.row = newSquare[1];\n        newPieces = transformers.replace(piece, newPiece, pieces);\n      } else {\n        newBoxedPieces = transformers.takePieceOutOfBox(piece.type, boxedPieces);\n        newPiece = {\n          'col': newSquare[0],\n          'row': newSquare[1],\n          'type': piece.type,\n          'rotation': 0\n        };\n        newPieces = pieces.concat([newPiece]);\n      }\n    }\n  } else {\n    var put = transformers.putPieceIntoBox(piece, pieces, boxedPieces);\n    newPiece = put.piece;\n    newPieces = put.pieces;\n    newBoxedPieces = put.boxedPieces;\n  }\n} else {\n}\nvar toReturn = {};\ntoReturn.piece = newPiece;\ntoReturn.pieces = newPieces;\ntoReturn.boxedPieces = newBoxedPieces;\ntoReturn.selectedPiece = null;\ntoReturn.draggedPiece = null;\ntoReturn.rotating = false;\ntoReturn.originalRotation = null;\ntoReturn.originalPieceRotation = null;\nreturn toReturn;"
     },
     "takePieceOutOfBox": {
       "args": [
         "pieceType",
         "boxedPieces"
       ],
-      "body": "for (var i in boxedPieces) {\n  var piece = boxedPieces[i];\n  if (piece.type === pieceType) {\n    return tools.removeElement(boxedPieces, i);\n  }\n}"
+      "body": "for (var i in boxedPieces) {\n  var piece = boxedPieces[i];\n  if (piece.type === pieceType) {\n    return transformers.removeElement(boxedPieces, i);\n  }\n}"
     },
     "putPieceIntoBox": {
       "args": [
@@ -812,7 +812,7 @@
         "pieces",
         "boxedPieces"
       ],
-      "body": "var res = {};\nif (piece.row !== undefined) {\n  res.boxedPiece = { 'type': piece.type };\n  res.boxedPieces = boxedPieces.concat(res.boxedPiece);\n  res.pieces = tools.removeElement(pieces, GE.indexOf(pieces, piece));\n} else {\n  res.boxedPiece = piece;\n  res.pieces = pieces;\n  res.boxedPieces = boxedPieces;\n}\nreturn res;"
+      "body": "var res = {};\nif (piece.row !== undefined) {\n  res.boxedPiece = { 'type': piece.type };\n  res.boxedPieces = boxedPieces.concat(res.boxedPiece);\n  res.pieces = transformers.removeElement(pieces, GE.indexOf(pieces, piece));\n} else {\n  res.boxedPiece = piece;\n  res.pieces = pieces;\n  res.boxedPieces = boxedPieces;\n}\nreturn res;"
     },
     "getIndexInBox": {
       "args": [
@@ -841,7 +841,7 @@
       "args": [
         "pieces"
       ],
-      "body": "var printed = '{';\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (printed !== '{') {\n    printed += ', ';\n  }\n  printed += tools.pieceToString(piece);\n}\nprinted += '}';\nreturn printed;"
+      "body": "var printed = '{';\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (printed !== '{') {\n    printed += ', ';\n  }\n  printed += transformers.pieceToString(piece);\n}\nprinted += '}';\nreturn printed;"
     },
     "distance": {
       "args": [
@@ -880,7 +880,7 @@
         "gridSize",
         "extendLinesFactor"
       ],
-      "body": "var boundaries = [\n    [\n      [\n        0,\n        0\n      ],\n      [\n        gridSize[0],\n        0\n      ]\n    ],\n    [\n      [\n        gridSize[0],\n        0\n      ],\n      [\n        gridSize[0],\n        gridSize[1]\n      ]\n    ],\n    [\n      [\n        gridSize[0],\n        gridSize[1]\n      ],\n      [\n        0,\n        gridSize[1]\n      ]\n    ],\n    [\n      [\n        0,\n        gridSize[1]\n      ],\n      [\n        0,\n        0\n      ]\n    ]\n  ];\nreturn tools.findIntersection(origin, dest, boundaries, extendLinesFactor);"
+      "body": "var boundaries = [\n    [\n      [\n        0,\n        0\n      ],\n      [\n        gridSize[0],\n        0\n      ]\n    ],\n    [\n      [\n        gridSize[0],\n        0\n      ],\n      [\n        gridSize[0],\n        gridSize[1]\n      ]\n    ],\n    [\n      [\n        gridSize[0],\n        gridSize[1]\n      ],\n      [\n        0,\n        gridSize[1]\n      ]\n    ],\n    [\n      [\n        0,\n        gridSize[1]\n      ],\n      [\n        0,\n        0\n      ]\n    ]\n  ];\nreturn transformers.findIntersection(origin, dest, boundaries, extendLinesFactor);"
     },
     "intersectsCell": {
       "args": [
@@ -889,7 +889,7 @@
         "cellPos",
         "extendLinesFactor"
       ],
-      "body": "var boundaries = [\n    [\n      [\n        cellPos[0],\n        cellPos[1]\n      ],\n      [\n        cellPos[0],\n        cellPos[1] + 1\n      ]\n    ],\n    [\n      [\n        cellPos[0],\n        cellPos[1] + 1\n      ],\n      [\n        cellPos[0] + 1,\n        cellPos[1] + 1\n      ]\n    ],\n    [\n      [\n        cellPos[0] + 1,\n        cellPos[1] + 1\n      ],\n      [\n        cellPos[0] + 1,\n        cellPos[1]\n      ]\n    ],\n    [\n      [\n        cellPos[0] + 1,\n        cellPos[1]\n      ],\n      [\n        cellPos[0],\n        cellPos[1]\n      ]\n    ]\n  ];\nreturn tools.findIntersection(origin, dest, boundaries, extendLinesFactor);"
+      "body": "var boundaries = [\n    [\n      [\n        cellPos[0],\n        cellPos[1]\n      ],\n      [\n        cellPos[0],\n        cellPos[1] + 1\n      ]\n    ],\n    [\n      [\n        cellPos[0],\n        cellPos[1] + 1\n      ],\n      [\n        cellPos[0] + 1,\n        cellPos[1] + 1\n      ]\n    ],\n    [\n      [\n        cellPos[0] + 1,\n        cellPos[1] + 1\n      ],\n      [\n        cellPos[0] + 1,\n        cellPos[1]\n      ]\n    ],\n    [\n      [\n        cellPos[0] + 1,\n        cellPos[1]\n      ],\n      [\n        cellPos[0],\n        cellPos[1]\n      ]\n    ]\n  ];\nreturn transformers.findIntersection(origin, dest, boundaries, extendLinesFactor);"
     },
     "isRotatable": {
       "args": [
@@ -938,14 +938,14 @@
         "grid",
         "cell"
       ],
-      "body": "return tools.gridCellToPoint(grid, cell, [\n  0,\n  0\n]);"
+      "body": "return transformers.gridCellToPoint(grid, cell, [\n  0,\n  0\n]);"
     },
     "gridCellCenter": {
       "args": [
         "grid",
         "cell"
       ],
-      "body": "return tools.gridCellToPoint(grid, cell, [\n  0.5,\n  0.5\n]);"
+      "body": "return transformers.gridCellToPoint(grid, cell, [\n  0.5,\n  0.5\n]);"
     },
     "gridCellRectangle": {
       "args": [
@@ -953,7 +953,7 @@
         "cell",
         "meta"
       ],
-      "body": "return {\n  type: 'rectangle',\n  position: tools.gridCellUpperLeft(grid, cell),\n  size: grid.cellSize,\n  meta: meta\n};"
+      "body": "return {\n  type: 'rectangle',\n  position: transformers.gridCellUpperLeft(grid, cell),\n  size: grid.cellSize,\n  meta: meta\n};"
     },
     "gridSizeInPixels": {
       "args": [
@@ -968,21 +968,21 @@
         "mirrorAttenuationFactor",
         "minimumAttenuation"
       ],
-      "body": "var that = tools;\nvar EXTEND_LINES_FACTOR = Sylvester.precision;\nfunction handleGridElement() {\n  if (element.type == 'wall') {\n    var wallIntersection = that.intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [\n        element.col,\n        element.row\n      ], EXTEND_LINES_FACTOR);\n    if (wallIntersection === null)\n      throw new Error('Cannot find intersection with wall');\n    lightSegments[lightSegments.length - 1].destination = wallIntersection;\n    lightIntensity = 0;\n  } else if (element.type == 'mirror') {\n    var rotation = element.rotation * Math.PI / 180;\n    var centralLineDiff = [\n        0.5 * Math.cos(rotation),\n        0.5 * Math.sin(rotation)\n      ];\n    var centralLine = [\n        [\n          element.col + 0.5 + centralLineDiff[0],\n          element.row + 0.5 + centralLineDiff[1]\n        ],\n        [\n          element.col + 0.5 - centralLineDiff[0],\n          element.row + 0.5 - centralLineDiff[1]\n        ]\n      ];\n    if (intersection = that.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine], EXTEND_LINES_FACTOR)) {\n      lightSegments[lightSegments.length - 1].destination = intersection;\n      lightIntensity *= mirrorAttenuationFactor;\n      if (lightIntensity < minimumAttenuation) {\n        lightIntensity = 0;\n      } else {\n        lightSegments.push({\n          origin: intersection,\n          intensity: lightIntensity\n        });\n        var normal = Vector.create([\n            -Math.sin(rotation),\n            Math.cos(rotation)\n          ]);\n        var oldLightDirection = Vector.create(lightDirection);\n        lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;\n        lightDirectionUpdated();\n      }\n    }\n  }\n}\nfunction lightDirectionUpdated() {\n  lightSigns = [\n    lightDirection[0] > 0 ? 1 : -1,\n    lightDirection[1] > 0 ? 1 : -1\n  ];\n  var distanceOutOfGrid = Math.sqrt(gridSize[0] * gridSize[0] + gridSize[1] * gridSize[1]);\n  var lastOrigin = lightSegments[lightSegments.length - 1].origin;\n  lightDestination = Sylvester.Vector.create(lastOrigin).add(Sylvester.Vector.create(lightDirection).multiply(distanceOutOfGrid)).elements.slice();\n}\nvar lightSource;\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (piece.type == 'laser-on') {\n    lightSource = piece;\n    break;\n  }\n}\nif (!lightSource) {\n  return [];\n}\nvar rotation = (lightSource.rotation - 90) * Math.PI / 180;\nvar lightDirection = [\n    Math.cos(rotation),\n    Math.sin(rotation)\n  ];\nvar lightIntensity = 1;\nvar currentCell = [\n    lightSource.col,\n    lightSource.row\n  ];\nvar lightSegments = [{\n      origin: [\n        currentCell[0] + 0.5,\n        currentCell[1] + 0.5\n      ],\n      intensity: lightIntensity\n    }];\nvar lightSigns;\nvar lightDestination;\nlightDirectionUpdated();\nvar element;\nvar nextCells = [];\nvar touchedCells = [currentCell];\ndo {\n  var verticalIntersection = null;\n  if (Math.abs(lightDirection[0]) > Sylvester.precision) {\n    var x = currentCell[0] + (lightDirection[0] > 0 ? 1 : 0);\n    var line = [\n        [\n          x,\n          currentCell[1]\n        ],\n        [\n          x,\n          currentCell[1] + 1\n        ]\n      ];\n    verticalIntersection = tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);\n  }\n  var horizontalIntersection = null;\n  if (Math.abs(lightDirection[1]) > Sylvester.precision) {\n    var y = currentCell[1] + (lightDirection[1] > 0 ? 1 : 0);\n    var line = [\n        [\n          currentCell[0],\n          y\n        ],\n        [\n          currentCell[0] + 1,\n          y\n        ]\n      ];\n    horizontalIntersection = tools.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);\n  }\n  if (verticalIntersection && horizontalIntersection) {\n    currentCell = [\n      currentCell[0] + lightSigns[0],\n      currentCell[1] + lightSigns[1]\n    ];\n  } else if (verticalIntersection) {\n    currentCell = [\n      currentCell[0] + lightSigns[0],\n      currentCell[1]\n    ];\n  } else if (horizontalIntersection) {\n    currentCell = [\n      currentCell[0],\n      currentCell[1] + lightSigns[1]\n    ];\n  } else {\n    throw new Error('Light vector is NULL');\n  }\n  touchedCells.push(currentCell);\n  if (!tools.isInGrid(currentCell, gridSize)) {\n    lightIntensity = 0;\n    var boundaryIntersection = tools.intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, lightDestination, gridSize, EXTEND_LINES_FACTOR);\n    if (boundaryIntersection === null)\n      throw new Error('Cannot find intersection with boundaries');\n    lightSegments[lightSegments.length - 1].destination = boundaryIntersection;\n  } else if (element = tools.findGridElement(currentCell, pieces)) {\n    handleGridElement();\n  }\n} while (lightIntensity > 0);\nreturn {\n  segments: lightSegments,\n  cells: touchedCells\n};"
+      "body": "var that = transformers;\nvar EXTEND_LINES_FACTOR = Sylvester.precision;\nfunction handleGridElement() {\n  if (element.type == 'wall') {\n    var wallIntersection = that.intersectsCell(lightSegments[lightSegments.length - 1].origin, lightDestination, [\n        element.col,\n        element.row\n      ], EXTEND_LINES_FACTOR);\n    if (wallIntersection === null)\n      throw new Error('Cannot find intersection with wall');\n    lightSegments[lightSegments.length - 1].destination = wallIntersection;\n    lightIntensity = 0;\n  } else if (element.type == 'mirror') {\n    var rotation = element.rotation * Math.PI / 180;\n    var centralLineDiff = [\n        0.5 * Math.cos(rotation),\n        0.5 * Math.sin(rotation)\n      ];\n    var centralLine = [\n        [\n          element.col + 0.5 + centralLineDiff[0],\n          element.row + 0.5 + centralLineDiff[1]\n        ],\n        [\n          element.col + 0.5 - centralLineDiff[0],\n          element.row + 0.5 - centralLineDiff[1]\n        ]\n      ];\n    if (intersection = that.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [centralLine], EXTEND_LINES_FACTOR)) {\n      lightSegments[lightSegments.length - 1].destination = intersection;\n      lightIntensity *= mirrorAttenuationFactor;\n      if (lightIntensity < minimumAttenuation) {\n        lightIntensity = 0;\n      } else {\n        lightSegments.push({\n          origin: intersection,\n          intensity: lightIntensity\n        });\n        var normal = Vector.create([\n            -Math.sin(rotation),\n            Math.cos(rotation)\n          ]);\n        var oldLightDirection = Vector.create(lightDirection);\n        lightDirection = oldLightDirection.subtract(normal.multiply(2 * oldLightDirection.dot(normal))).elements;\n        lightDirectionUpdated();\n      }\n    }\n  }\n}\nfunction lightDirectionUpdated() {\n  lightSigns = [\n    lightDirection[0] > 0 ? 1 : -1,\n    lightDirection[1] > 0 ? 1 : -1\n  ];\n  var distanceOutOfGrid = Math.sqrt(gridSize[0] * gridSize[0] + gridSize[1] * gridSize[1]);\n  var lastOrigin = lightSegments[lightSegments.length - 1].origin;\n  lightDestination = Sylvester.Vector.create(lastOrigin).add(Sylvester.Vector.create(lightDirection).multiply(distanceOutOfGrid)).elements.slice();\n}\nvar lightSource;\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (piece.type == 'laser-on') {\n    lightSource = piece;\n    break;\n  }\n}\nif (!lightSource) {\n  return [];\n}\nvar rotation = (lightSource.rotation - 90) * Math.PI / 180;\nvar lightDirection = [\n    Math.cos(rotation),\n    Math.sin(rotation)\n  ];\nvar lightIntensity = 1;\nvar currentCell = [\n    lightSource.col,\n    lightSource.row\n  ];\nvar lightSegments = [{\n      origin: [\n        currentCell[0] + 0.5,\n        currentCell[1] + 0.5\n      ],\n      intensity: lightIntensity\n    }];\nvar lightSigns;\nvar lightDestination;\nlightDirectionUpdated();\nvar element;\nvar nextCells = [];\nvar touchedCells = [currentCell];\ndo {\n  var verticalIntersection = null;\n  if (Math.abs(lightDirection[0]) > Sylvester.precision) {\n    var x = currentCell[0] + (lightDirection[0] > 0 ? 1 : 0);\n    var line = [\n        [\n          x,\n          currentCell[1]\n        ],\n        [\n          x,\n          currentCell[1] + 1\n        ]\n      ];\n    verticalIntersection = transformers.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);\n  }\n  var horizontalIntersection = null;\n  if (Math.abs(lightDirection[1]) > Sylvester.precision) {\n    var y = currentCell[1] + (lightDirection[1] > 0 ? 1 : 0);\n    var line = [\n        [\n          currentCell[0],\n          y\n        ],\n        [\n          currentCell[0] + 1,\n          y\n        ]\n      ];\n    horizontalIntersection = transformers.findIntersection(lightSegments[lightSegments.length - 1].origin, lightDestination, [line], EXTEND_LINES_FACTOR);\n  }\n  if (verticalIntersection && horizontalIntersection) {\n    currentCell = [\n      currentCell[0] + lightSigns[0],\n      currentCell[1] + lightSigns[1]\n    ];\n  } else if (verticalIntersection) {\n    currentCell = [\n      currentCell[0] + lightSigns[0],\n      currentCell[1]\n    ];\n  } else if (horizontalIntersection) {\n    currentCell = [\n      currentCell[0],\n      currentCell[1] + lightSigns[1]\n    ];\n  } else {\n    throw new Error('Light vector is NULL');\n  }\n  touchedCells.push(currentCell);\n  if (!transformers.isInGrid(currentCell, gridSize)) {\n    lightIntensity = 0;\n    var boundaryIntersection = transformers.intersectsBoundaries(lightSegments[lightSegments.length - 1].origin, lightDestination, gridSize, EXTEND_LINES_FACTOR);\n    if (boundaryIntersection === null)\n      throw new Error('Cannot find intersection with boundaries');\n    lightSegments[lightSegments.length - 1].destination = boundaryIntersection;\n  } else if (element = transformers.findGridElement(currentCell, pieces)) {\n    handleGridElement();\n  }\n} while (lightIntensity > 0);\nreturn {\n  segments: lightSegments,\n  cells: touchedCells\n};"
     },
     "drawLightPath": {
       "args": [
         "grid",
         "lightSegments"
       ],
-      "body": "var that = tools;\nfunction drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options) {\n  var marginV = Vector.create(grid.upperLeft);\n  var originV = Vector.create(origin).multiply(grid.cellSize[0]).add(marginV);\n  var destV = Vector.create(dest).multiply(grid.cellSize[0]).add(marginV);\n  var d = destV.subtract(originV);\n  var normal = Vector.create([\n      -d.elements[1],\n      d.elements[0]\n    ]).toUnitVector();\n  var strokeGradUpper = originV.add(normal.multiply(outerRadius));\n  var strokeGradLower = originV.add(normal.multiply(-outerRadius));\n  var transRgba = _.clone(colorRgba);\n  transRgba[3] = 0;\n  strokeGrad = {\n    type: 'linearGradient',\n    startPosition: strokeGradUpper.elements,\n    endPosition: strokeGradLower.elements,\n    colorStops: [\n      {\n        position: 0,\n        color: 'rgba(' + transRgba.join(',') + ')'\n      },\n      {\n        position: innerRadius / outerRadius,\n        color: 'rgba(' + colorRgba.join(',') + ')'\n      },\n      {\n        position: 1 - innerRadius / outerRadius,\n        color: 'rgba(' + colorRgba.join(',') + ')'\n      },\n      {\n        position: 1,\n        color: 'rgba(' + transRgba.join(',') + ')'\n      }\n    ]\n  };\n  shapes = that.drawShape(_.extend({\n    type: 'path',\n    layer: 'light',\n    strokeStyle: strokeGrad,\n    lineWidth: 2 * outerRadius,\n    points: [\n      originV.elements,\n      destV.elements\n    ]\n  }, options), shapes);\n  fillGrad = {\n    type: 'radialGradient',\n    start: {\n      position: originV.elements,\n      radius: 0\n    },\n    end: {\n      position: originV.elements,\n      radius: outerRadius\n    },\n    colorStops: [\n      {\n        position: innerRadius / outerRadius,\n        color: 'rgba(' + colorRgba.join(',') + ')'\n      },\n      {\n        position: 1,\n        color: 'rgba(' + transRgba.join(',') + ')'\n      }\n    ]\n  };\n  shapes = that.drawShape(_.extend({\n    type: 'circle',\n    layer: 'light',\n    fillStyle: fillGrad,\n    position: originV.elements,\n    radius: outerRadius\n  }, options), shapes);\n  fillGrad = {\n    type: 'radialGradient',\n    start: {\n      position: destV.elements,\n      radius: 0\n    },\n    end: {\n      position: destV.elements,\n      radius: outerRadius\n    },\n    colorStops: [\n      {\n        position: innerRadius / outerRadius,\n        color: 'rgba(' + colorRgba.join(',') + ')'\n      },\n      {\n        position: 1,\n        color: 'rgba(' + transRgba.join(',') + ')'\n      }\n    ]\n  };\n  shapes = that.drawShape(_.extend({\n    type: 'circle',\n    layer: 'light',\n    fillStyle: fillGrad,\n    position: destV.elements,\n    radius: outerRadius\n  }, options), shapes);\n}\nvar shapes = {};\nshapes = tools.drawShape({\n  type: 'rectangle',\n  layer: 'mask',\n  fillStyle: 'black',\n  position: grid.upperLeft,\n  size: tools.gridSizeInPixels(grid),\n  order: 0\n}, shapes);\nvar maskOptions = {\n    layer: 'mask',\n    composition: 'destination-out',\n    order: 1\n  };\nfor (var i = 0; i < lightSegments.length; i++) {\n  drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 30, 40, [\n    255,\n    255,\n    255,\n    lightSegments[i].intensity\n  ], maskOptions);\n}\nfor (var i = 0; i < lightSegments.length; i++) {\n  drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 4, 6, [\n    255,\n    0,\n    0,\n    lightSegments[i].intensity\n  ]);\n}\nreturn shapes;"
+      "body": "var that = transformers;\nfunction drawGradientLine(origin, dest, innerRadius, outerRadius, colorRgba, options) {\n  var marginV = Vector.create(grid.upperLeft);\n  var originV = Vector.create(origin).multiply(grid.cellSize[0]).add(marginV);\n  var destV = Vector.create(dest).multiply(grid.cellSize[0]).add(marginV);\n  var d = destV.subtract(originV);\n  var normal = Vector.create([\n      -d.elements[1],\n      d.elements[0]\n    ]).toUnitVector();\n  var strokeGradUpper = originV.add(normal.multiply(outerRadius));\n  var strokeGradLower = originV.add(normal.multiply(-outerRadius));\n  var transRgba = _.clone(colorRgba);\n  transRgba[3] = 0;\n  strokeGrad = {\n    type: 'linearGradient',\n    startPosition: strokeGradUpper.elements,\n    endPosition: strokeGradLower.elements,\n    colorStops: [\n      {\n        position: 0,\n        color: 'rgba(' + transRgba.join(',') + ')'\n      },\n      {\n        position: innerRadius / outerRadius,\n        color: 'rgba(' + colorRgba.join(',') + ')'\n      },\n      {\n        position: 1 - innerRadius / outerRadius,\n        color: 'rgba(' + colorRgba.join(',') + ')'\n      },\n      {\n        position: 1,\n        color: 'rgba(' + transRgba.join(',') + ')'\n      }\n    ]\n  };\n  shapes = that.drawShape(_.extend({\n    type: 'path',\n    layer: 'light',\n    strokeStyle: strokeGrad,\n    lineWidth: 2 * outerRadius,\n    points: [\n      originV.elements,\n      destV.elements\n    ]\n  }, options), shapes);\n  fillGrad = {\n    type: 'radialGradient',\n    start: {\n      position: originV.elements,\n      radius: 0\n    },\n    end: {\n      position: originV.elements,\n      radius: outerRadius\n    },\n    colorStops: [\n      {\n        position: innerRadius / outerRadius,\n        color: 'rgba(' + colorRgba.join(',') + ')'\n      },\n      {\n        position: 1,\n        color: 'rgba(' + transRgba.join(',') + ')'\n      }\n    ]\n  };\n  shapes = that.drawShape(_.extend({\n    type: 'circle',\n    layer: 'light',\n    fillStyle: fillGrad,\n    position: originV.elements,\n    radius: outerRadius\n  }, options), shapes);\n  fillGrad = {\n    type: 'radialGradient',\n    start: {\n      position: destV.elements,\n      radius: 0\n    },\n    end: {\n      position: destV.elements,\n      radius: outerRadius\n    },\n    colorStops: [\n      {\n        position: innerRadius / outerRadius,\n        color: 'rgba(' + colorRgba.join(',') + ')'\n      },\n      {\n        position: 1,\n        color: 'rgba(' + transRgba.join(',') + ')'\n      }\n    ]\n  };\n  shapes = that.drawShape(_.extend({\n    type: 'circle',\n    layer: 'light',\n    fillStyle: fillGrad,\n    position: destV.elements,\n    radius: outerRadius\n  }, options), shapes);\n}\nvar shapes = {};\nshapes = transformers.drawShape({\n  type: 'rectangle',\n  layer: 'mask',\n  fillStyle: 'black',\n  position: grid.upperLeft,\n  size: transformers.gridSizeInPixels(grid),\n  order: 0\n}, shapes);\nvar maskOptions = {\n    layer: 'mask',\n    composition: 'destination-out',\n    order: 1\n  };\nfor (var i = 0; i < lightSegments.length; i++) {\n  drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 30, 40, [\n    255,\n    255,\n    255,\n    lightSegments[i].intensity\n  ], maskOptions);\n}\nfor (var i = 0; i < lightSegments.length; i++) {\n  drawGradientLine(lightSegments[i].origin, lightSegments[i].destination, 4, 6, [\n    255,\n    0,\n    0,\n    lightSegments[i].intensity\n  ]);\n}\nreturn shapes;"
     },
     "reachedGoal": {
       "args": [
         "touchedCells",
         "pieces"
       ],
-      "body": "for (var i in touchedCells) {\n  var element = tools.findGridElement(touchedCells[i], pieces);\n  if (element && element.type === 'squarePrism')\n    return true;\n}\nreturn false;"
+      "body": "for (var i in touchedCells) {\n  var element = transformers.findGridElement(touchedCells[i], pieces);\n  if (element && element.type === 'squarePrism')\n    return true;\n}\nreturn false;"
     },
     "calculateRotationAngle": {
       "args": [
@@ -997,7 +997,7 @@
         "center",
         "mousePosition"
       ],
-      "body": "return rotation - tools.calculateRotationAngle(center, mousePosition);"
+      "body": "return rotation - transformers.calculateRotationAngle(center, mousePosition);"
     },
     "calculateRotation": {
       "args": [
@@ -1005,7 +1005,7 @@
         "center",
         "mousePosition"
       ],
-      "body": "return tools.calculateRotationAngle(center, mousePosition) + rotationOffset;"
+      "body": "return transformers.calculateRotationAngle(center, mousePosition) + rotationOffset;"
     },
     "childByName": {
       "args": [
@@ -1034,28 +1034,28 @@
         "cell",
         "meta"
       ],
-      "body": "return _.extend(tools.gridCellRectangle(grid, cell, meta), {\n  strokeStyle: 'white',\n  fillStyle: 'white'\n});"
+      "body": "return _.extend(transformers.gridCellRectangle(grid, cell, meta), {\n  strokeStyle: 'white',\n  fillStyle: 'white'\n});"
     },
     "makeBoardShapes": {
       "args": [
         "boardGrid",
         "boardPieces"
       ],
-      "body": "var that = tools;\nreturn boardShapes = _.map(boardPieces, function (piece) {\n  return that.makeFilledRectangle(boardGrid, [\n    piece.col,\n    piece.row\n  ], piece);\n});"
+      "body": "var that = transformers;\nreturn boardShapes = _.map(boardPieces, function (piece) {\n  return that.makeFilledRectangle(boardGrid, [\n    piece.col,\n    piece.row\n  ], piece);\n});"
     },
     "makeBoxShapes": {
       "args": [
         "boxGrid",
         "boxedPieces"
       ],
-      "body": "var that = tools;\nreturn boxShapes = _.map(_.range(boxedPieces.length), function (index) {\n  return that.makeFilledRectangle(boxGrid, that.gridIndexToCell(index), boxedPieces[index]);\n});"
+      "body": "var that = transformers;\nreturn boxShapes = _.map(_.range(boxedPieces.length), function (index) {\n  return that.makeFilledRectangle(boxGrid, that.gridIndexToCell(index), boxedPieces[index]);\n});"
     },
     "makeRotateShape": {
       "args": [
         "boardGrid",
         "selectedCell"
       ],
-      "body": "return {\n  type: 'circle',\n  radius: 0.8 * boardGrid.cellSize[0],\n  center: tools.gridCellCenter(boardGrid, selectedCell),\n  strokeStyle: 'white',\n  lineWidth: 15,\n  meta: 'rotate'\n};"
+      "body": "return {\n  type: 'circle',\n  radius: 0.8 * boardGrid.cellSize[0],\n  center: transformers.gridCellCenter(boardGrid, selectedCell),\n  strokeStyle: 'white',\n  lineWidth: 15,\n  meta: 'rotate'\n};"
     },
     "findPieceAtCell": {
       "args": [
@@ -1073,7 +1073,7 @@
         "selectedCell",
         "unrotatablePieceTypes"
       ],
-      "body": "var shapes = GE.concatenate(tools.makeBoardShapes(boardGrid, boardPieces), tools.makeBoxShapes(boxGrid, boxedPieces));\nif (selectedCell) {\n  var selectedPiece = tools.findPieceAtCell(boardPieces, selectedCell);\n  if (selectedPiece && tools.pieceIsRotatable(selectedPiece, unrotatablePieceTypes))\n    shapes.push(tools.makeRotateShape(boardGrid, selectedCell));\n}\nreturn shapes;"
+      "body": "var shapes = GE.concatenate(transformers.makeBoardShapes(boardGrid, boardPieces), transformers.makeBoxShapes(boxGrid, boxedPieces));\nif (selectedCell) {\n  var selectedPiece = transformers.findPieceAtCell(boardPieces, selectedCell);\n  if (selectedPiece && transformers.pieceIsRotatable(selectedPiece, unrotatablePieceTypes))\n    shapes.push(transformers.makeRotateShape(boardGrid, selectedCell));\n}\nreturn shapes;"
     }
   },
   "assets": {
