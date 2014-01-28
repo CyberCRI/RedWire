@@ -7,7 +7,7 @@
 			<h4>Pins</h4>
 			<ul>
 				<li ng-repeat="pin in pins">
-					<input required ng-model="pin.output" placeholder="Output" typeahead="output for output in OUTPUTS | filter:$viewValue | limitTo:8"></input>
+					<input required ng-model="pin.output" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
 					<div ui-ace="{ mode: 'ace/mode/javascript', theme: 'twilight' }" ng-model="pin.input"></div>
 					<a class="btn btn-small" ng-click="removePin($index)"><i class="icon-trash"></i></a>
 				</li>
