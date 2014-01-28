@@ -163,7 +163,22 @@ angular.module('gamEvolve.game.board', [
     throw new Error("Cannot find simple destination for parameter '#{name}'")
 
   findParameterReferences = (name, outValues) ->
-    return ({ drain: drain, source: source } for drain, source of outValues when expression.indexOf("params.#{name}") != -1)
+    return ({ drain: drain, source: source } for drain, source of outValues when source.indexOf("params.#{name}") != -1)
+
+  convertPinsToModel = (pins) ->
+    params = 
+      in: {}
+      out: {}
+    for pin in pins
+      if pin.direction in ["in", "inout"]
+        params.in[pin.name] = if pin.linkage is "simple" then pin.simpleDestination else pin.customDestinations.in
+      if pin.direction in ["out", "inout"]
+        if pin.linkage is "simple" 
+          params.out[pin.simpleDestination] = "params.#{pin.name}"
+        else
+          for destination in pin.customDestinations.out
+            params.out[destination.drain] = destination.source
+    return params
 
   # Convert between "param form" used in game serialization and "pin form" used in GUI
   $scope.LINKAGES = ["simple", "custom"]
@@ -184,6 +199,7 @@ angular.module('gamEvolve.game.board', [
   else
     throw new Error("Model is not an action or switch")
 
+  # TODO: refactor into function
   $scope.pins = []
   for paramName, paramDef of typeDef.paramDefs
     pin = 
@@ -212,5 +228,5 @@ angular.module('gamEvolve.game.board', [
   # Reply with the new data
   $scope.done = -> liaison.done 
     comment: $scope.name
-    send: _.object(([output, input] for {input: input, output: output} in $scope.pins))
+    params: convertPinsToModel($scope.pins)
   $scope.cancel = -> liaison.cancel() 
