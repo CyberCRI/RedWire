@@ -21,16 +21,16 @@ describe "gamEvolve", ->
 
       expect(patchResult).toDeeplyEqual(b)
 
-  describe "model", ->
+  describe "memory", ->
     it "can be created empty", ->
-      model = new GE.Model()
-      expect(model.version).toEqual(0)
-      expect(model.data).toDeeplyEqual({})
+      memory = new GE.Memory()
+      expect(memory.version).toEqual(0)
+      expect(memory.data).toDeeplyEqual({})
 
     it "can be created with data", ->
-      model = new GE.Model({a: 1, b: 2})
-      expect(model.version).toEqual(0)
-      expect(model.data).toDeeplyEqual({a: 1, b: 2})
+      memory = new GE.Memory({a: 1, b: 2})
+      expect(memory.version).toEqual(0)
+      expect(memory.data).toDeeplyEqual({a: 1, b: 2})
 
     it "can be patched", ->
       # Create old data, new data, and the patches between
@@ -47,15 +47,15 @@ describe "gamEvolve", ->
           bob: "is cool"
       patches = GE.makePatches(oldData, newData)
 
-      # Create model objects of the data
-      oldModel = new GE.Model(oldData)
-      newModel = oldModel.applyPatches(patches)
+      # Create memory objects of the data
+      oldMemory = new GE.Memory(oldData)
+      newMemory = oldMemory.applyPatches(patches)
 
-      # The new model and the old model should still both be valid and different
-      expect(oldModel.version).toEqual(0)
-      expect(oldModel.data).toDeeplyEqual(oldData)
-      expect(newModel.version).toEqual(1)
-      expect(newModel.data).toDeeplyEqual(newData)
+      # The new memory and the old memory should still both be valid and different
+      expect(oldMemory.version).toEqual(0)
+      expect(oldMemory.data).toDeeplyEqual(oldData)
+      expect(newMemory.version).toEqual(1)
+      expect(newMemory.data).toDeeplyEqual(newData)
 
     it "rejects conflicting patches", ->
       # Create old data, new data, and the patches between
@@ -68,9 +68,9 @@ describe "gamEvolve", ->
       patchesA = GE.makePatches(oldData, newDataA)
       patchesB = GE.makePatches(oldData, newDataB)
 
-      # Create model objects of the data
-      oldModel = new GE.Model(oldData)
-      expect(-> oldModel.applyPatches(_.flatten([patchesA, patchesB]))).toThrow()
+      # Create memory objects of the data
+      oldMemory = new GE.Memory(oldData)
+      expect(-> oldMemory.applyPatches(_.flatten([patchesA, patchesB]))).toThrow()
 
     it "can be retrieved at a given version", ->
       v0 = 
@@ -80,23 +80,23 @@ describe "gamEvolve", ->
       v2 = 
         a: 2
 
-      model = new GE.Model(v0).setData(v1).setData(v2)
+      memory = new GE.Memory(v0).setData(v1).setData(v2)
 
-      expect(model.clonedData()).toDeeplyEqual(v2)
-      expect(model.version).toBe(2)
+      expect(memory.clonedData()).toDeeplyEqual(v2)
+      expect(memory.version).toBe(2)
 
-      expect(model.atVersion(1).clonedData()).toDeeplyEqual(v1)
-      expect(model.atVersion(1).version).toBe(1)
+      expect(memory.atVersion(1).clonedData()).toDeeplyEqual(v1)
+      expect(memory.atVersion(1).version).toBe(1)
 
-      expect(model.atVersion(0).clonedData()).toDeeplyEqual(v0)
-      expect(model.atVersion(0).version).toBe(0)
+      expect(memory.atVersion(0).clonedData()).toDeeplyEqual(v0)
+      expect(memory.atVersion(0).version).toBe(0)
 
 
-  describe "visitNode()", ->
-    it "calls actions", ->
+  describe "visitChip()", ->
+    it "calls processors", ->
       isCalled = false
 
-      actions = 
+      processors = 
         doNothing: 
           paramDefs:
             x: 
@@ -105,163 +105,163 @@ describe "gamEvolve", ->
             y: 
               direction: "in"
               default: "'z'"
-          update: (params, tools, log) ->
+          update: (params, transformers, log) ->
             isCalled = true
             expect(params).toDeeplyEqual
               x: 2
               y: "z"
 
-      layout = 
-        action: "doNothing"
+      board = 
+        processor: "doNothing"
         params: 
           in: 
             x: "1 + 1"
 
-      constants = new GE.NodeVisitorConstants
-        actions: actions
+      constants = new GE.ChipVisitorConstants
+        processors: processors
         evaluator: makeEvaluator()
-      GE.visitNode([], layout, constants, {})
+      GE.visitChip([], board, constants, {})
       expect(isCalled).toBeTruthy()
 
-    it "calls children of processes", ->
+    it "calls children of switches", ->
       timesCalled = 0
 
-      actions = 
+      processors = 
         doNothing: 
           paramDefs: {}
           update: -> timesCalled++
 
-      processes = 
+      switches = 
         doAll: 
           paramDefs: {}
           handleSignals: -> timesCalled++
 
-      layout = 
-        process: "doAll"
+      board = 
+        switch: "doAll"
         params: {}
         children: [
           {
-            action: "doNothing"
+            processor: "doNothing"
             params: {}
           },
           {
-            action: "doNothing"
+            processor: "doNothing"
             params: {}
           }
         ]
 
-      constants = new GE.NodeVisitorConstants
-        actions: actions
-        processes: processes
-      GE.visitNode([], layout, constants, {})
+      constants = new GE.ChipVisitorConstants
+        processors: processors
+        switches: switches
+      GE.visitChip([], board, constants, {})
       expect(timesCalled).toEqual(3)
 
     it "returns the path for patches", ->
-      modelData =
+      memoryData =
         a: 0
         b: 1
         message: null
 
-      serviceData = 
+      ioData = 
         c: 2
 
-      actions = 
+      processors = 
         increment: 
           paramDefs: 
             value: 
               direction: "inout"
-          update: (params, tools, log) -> params.value++
+          update: (params, transformers, log) -> params.value++
         log: 
           paramDefs: 
             message: null
-          update: (params, tools, log) -> log(GE.logLevels.INFO, params.message)
+          update: (params, transformers, log) -> log(GE.logLevels.INFO, params.message)
 
-      processes = 
+      switches = 
         doAll: 
           paramDefs: {}
 
-      # Tools must be compiled this way
+      # Transformers must be compiled this way
       # TODO: create function that does this work for us
-      tools = {}
-      tools.logIt = GE.compileTool("log(GE.logLevels.INFO, msg); return msg;", ["msg"], eval)(tools)
+      transformers = {}
+      transformers.logIt = GE.compileTransformer("log(GE.logLevels.INFO, msg); return msg;", ["msg"], eval)(transformers)
 
-      layout = 
-        process: "doAll"
+      board = 
+        switch: "doAll"
         params: {}
         children: [
           {
-            action: "increment"
+            processor: "increment"
             params: 
               in:
-                "value": "model.a"
+                "value": "memory.a"
               out:
-                "model.a": "params.value"
+                "memory.a": "params.value"
           },
           {
-            action: "increment"
+            processor: "increment"
             params: 
               in:
-                "value": "model.b"
+                "value": "memory.b"
               out:
-                "model.b": "params.value"
+                "memory.b": "params.value"
           },
           {
-            action: "increment"
+            processor: "increment"
             params: 
               in:
-                "value": "services.c"
+                "value": "io.c"
               out:
-                "services.c": "params.value"
+                "io.c": "params.value"
           },
           {
-            action: "log"
+            processor: "log"
             params: 
               in:
                 "message": "'hi'"
           },
           { 
-            send: 
-              "model.message": "tools.logIt('hi')"
+            emitter: 
+              "memory.message": "transformers.logIt('hi')"
           }
         ]
 
-      constants = new GE.NodeVisitorConstants
-        modelData: modelData
-        serviceData: serviceData
-        actions: actions
-        processes: processes
+      constants = new GE.ChipVisitorConstants
+        memoryData: memoryData
+        ioData: ioData
+        processors: processors
+        switches: switches
         evaluator: eval
-        tools: tools
-      results = GE.visitNode([], layout, constants, {})
+        transformers: transformers
+      results = GE.visitChip([], board, constants, {})
 
-      expect(results.modelPatches.length).toBe(3)
-      for modelPatch in results.modelPatches
-        if modelPatch.replace is "/a"
-          expect(modelPatch.path).toDeeplyEqual(["0"])
-        else if modelPatch.replace is "/b"
-          expect(modelPatch.path).toDeeplyEqual(["1"])
-        else if modelPatch.replace is "/message"
-          expect(modelPatch.path).toDeeplyEqual(["4"])
+      expect(results.memoryPatches.length).toBe(3)
+      for memoryPatch in results.memoryPatches
+        if memoryPatch.replace is "/a"
+          expect(memoryPatch.path).toDeeplyEqual(["0"])
+        else if memoryPatch.replace is "/b"
+          expect(memoryPatch.path).toDeeplyEqual(["1"])
+        else if memoryPatch.replace is "/message"
+          expect(memoryPatch.path).toDeeplyEqual(["4"])
         else 
-          throw new Error("Model patch affects wrong attribute")
+          throw new Error("Memory patch affects wrong attribute")
 
-      expect(results.servicePatches.length).toBe(1)
-      expect(results.servicePatches[0].path).toDeeplyEqual(["2"])
+      expect(results.ioPatches.length).toBe(1)
+      expect(results.ioPatches[0].path).toDeeplyEqual(["2"])
 
       expect(results.logMessages.length).toBe(2)
       expect(results.logMessages[0].path).toDeeplyEqual(["3"])
       expect(results.logMessages[1].path).toDeeplyEqual(["4"])
 
-    it "evaluates parameters for actions", ->
-      oldModel = 
+    it "evaluates parameters for processors", ->
+      oldMemory = 
         a: 1
         b: 10
         c: 20
 
       assets = { image: new Image() }
 
-      actions = 
-        adjustModel: 
+      processors = 
+        adjustMemory: 
           paramDefs:
             x: 
               direction: "inout"
@@ -272,77 +272,77 @@ describe "gamEvolve", ->
             d: 
               default: "2"
             e: {}
-          update: (params, tools, log) ->
+          update: (params, transformers, log) ->
             params.x++
             params.y--
             params.z = 30
             expect(params.d).toBe(2)
             expect(params.e).toBe(assets.image)
 
-      layout = 
-        action: "adjustModel"
+      board = 
+        processor: "adjustMemory"
         params:
           in:  
-            x: "model.a"
-            y: "model.b"
+            x: "memory.a"
+            y: "memory.b"
             e: "assets.image"
           out:
-            "model.a": "params.x"
-            "model.b": "params.y"
-            "model.c": "params.z"
+            "memory.a": "params.x"
+            "memory.b": "params.y"
+            "memory.c": "params.z"
 
-      constants = new GE.NodeVisitorConstants 
-        modelData: oldModel, 
+      constants = new GE.ChipVisitorConstants 
+        memoryData: oldMemory, 
         assets: assets
-        actions: actions
+        processors: processors
         evaluator: makeEvaluator()
-      results = GE.visitNode([], layout, constants, {})
-      newModel = GE.applyPatches(results.modelPatches, oldModel)
+      results = GE.visitChip([], board, constants, {})
+      newMemory = GE.applyPatches(results.memoryPatches, oldMemory)
 
-      # The new model should be changed, but the old one shouldn't be
-      expect(oldModel.a).toBe(1)
-      expect(oldModel.b).toBe(10)
-      expect(oldModel.c).toBe(20)
-      expect(newModel.a).toBe(2)
-      expect(newModel.b).toBe(9)
-      expect(newModel.c).toBe(30)
+      # The new memory should be changed, but the old one shouldn't be
+      expect(oldMemory.a).toBe(1)
+      expect(oldMemory.b).toBe(10)
+      expect(oldMemory.c).toBe(20)
+      expect(newMemory.a).toBe(2)
+      expect(newMemory.b).toBe(9)
+      expect(newMemory.c).toBe(30)
 
-    it "sends to model and services", ->
-      oldModel = 
+    it "sends to memory and io", ->
+      oldMemory = 
         a: 
           a1: 1
         b: 10
         c: "hi"
 
-      oldServiceData = 
+      oldIoData = 
         s: 
           a: -1
 
-      layout = 
-        send: 
-          "model.a.a1": 2
-          "model.b": "model.c"
-          "services.s.a": -5
+      board = 
+        emitter: 
+          "memory.a.a1": 2
+          "memory.b": "memory.c"
+          "io.s.a": -5
 
-      constants = new GE.NodeVisitorConstants
-        modelData: oldModel
-        serviceData: oldServiceData
+      constants = new GE.ChipVisitorConstants
+        memoryData: oldMemory
+        ioData: oldIoData
         evaluator: makeEvaluator()
-      results = GE.visitNode([], layout, constants, {})
-      newModel = GE.applyPatches(results.modelPatches, oldModel)
-      newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
+      results = GE.visitChip([], board, constants, {})
+      newMemory = GE.applyPatches(results.memoryPatches, oldMemory)
+      newIoData = GE.applyPatches(results.ioPatches, oldIoData)
 
-      # The new model and services should be changed, but the old ones shouldn't be
-      expect(oldModel.a.a1).toBe(1)
-      expect(oldModel.b).toBe(10)
-      expect(oldServiceData.s.a).toBe(-1)
+      # The new memory and io should be changed, but the old ones shouldn't be
+      expect(oldMemory.a.a1).toBe(1)
+      expect(oldMemory.b).toBe(10)
+      expect(oldIoData.s.a).toBe(-1)
 
-      expect(newModel.a.a1).toBe(2)
-      expect(newModel.b).toBe("hi")
-      expect(newServiceData.s.a).toBe(-5)
+      expect(newMemory.a.a1).toBe(2)
+      expect(newMemory.b).toBe("hi")
+      expect(newIoData.s.a).toBe(-5)
 
     it "checks and adjusts activation", ->
-      models = [
+      memorys = [
         {
           activeChild: 0
           child0TimesCalled: 0
@@ -350,81 +350,81 @@ describe "gamEvolve", ->
         }
       ]
 
-      processes = 
+      switches = 
         nextOnDone: 
           paramDefs: 
             activeChild: 
               direction: "inout"
               default: 0
-          listActiveChildren: (params, children, tools, log) -> 
+          listActiveChildren: (params, children, transformers, log) -> 
             expect(children).toDeeplyEqual(["0", "2nd"])
             return [params.activeChild]
-          handleSignals: (params, children, activeChildren, signals, tools, log) ->
+          handleSignals: (params, children, activeChildren, signals, transformers, log) ->
             expect(children).toDeeplyEqual(["0", "2nd"])
             if signals[params.activeChild] == GE.signals.DONE 
               params.activeChild++
             if params.activeChild >= children.length - 1
               return GE.signals.DONE
 
-      actions =
+      processors =
         reportDone:
           paramDefs:
             timesCalled: 
               direction: "inout"
-          update: (params, tools, log) -> 
+          update: (params, transformers, log) -> 
             params.timesCalled++
             return GE.signals.DONE
 
-      layout = 
-        process: "nextOnDone"
+      board = 
+        switch: "nextOnDone"
         params: 
           in:
-            activeChild: "model.activeChild"
+            activeChild: "memory.activeChild"
           out: 
-            "model.activeChild": "params.activeChild"
+            "memory.activeChild": "params.activeChild"
         children: [
           {
-            action: "reportDone"
+            processor: "reportDone"
             params: 
               in:
-                timesCalled: "model.child0TimesCalled"
+                timesCalled: "memory.child0TimesCalled"
               out:
-                "model.child0TimesCalled": "params.timesCalled"
+                "memory.child0TimesCalled": "params.timesCalled"
           },
           {
             name: "2nd"
-            action: "reportDone"
+            processor: "reportDone"
             params: 
               in:
-                timesCalled: "model.child1TimesCalled"
+                timesCalled: "memory.child1TimesCalled"
               out:
-                "model.child1TimesCalled": "params.timesCalled"
+                "memory.child1TimesCalled": "params.timesCalled"
           }
         ]
 
-      constants = new GE.NodeVisitorConstants
-        modelData: models[0]
-        actions: actions
-        processes: processes
+      constants = new GE.ChipVisitorConstants
+        memoryData: memorys[0]
+        processors: processors
+        switches: switches
         evaluator: makeEvaluator()
-      results = GE.visitNode([], layout, constants, {})
-      models[1] = GE.applyPatches(results.modelPatches, models[0])
+      results = GE.visitChip([], board, constants, {})
+      memorys[1] = GE.applyPatches(results.memoryPatches, memorys[0])
 
-      expect(models[1].child0TimesCalled).toBe(1)
-      expect(models[1].child1TimesCalled).toBe(0)
-      expect(models[1].activeChild).toBe(1)
+      expect(memorys[1].child0TimesCalled).toBe(1)
+      expect(memorys[1].child1TimesCalled).toBe(0)
+      expect(memorys[1].activeChild).toBe(1)
       
-      constants = new GE.NodeVisitorConstants
-        modelData: models[1]
-        actions: actions
-        processes: processes
+      constants = new GE.ChipVisitorConstants
+        memoryData: memorys[1]
+        processors: processors
+        switches: switches
         evaluator: makeEvaluator()
-      results = GE.visitNode([], layout, constants, {})
-      models[2] = GE.applyPatches(results.modelPatches, models[1])
+      results = GE.visitChip([], board, constants, {})
+      memorys[2] = GE.applyPatches(results.memoryPatches, memorys[1])
 
-      expect(models[2].child0TimesCalled).toBe(1)
-      expect(models[2].child1TimesCalled).toBe(1)
-      expect(models[2].activeChild).toBe(2)
+      expect(memorys[2].child0TimesCalled).toBe(1)
+      expect(memorys[2].child1TimesCalled).toBe(1)
+      expect(memorys[2].activeChild).toBe(2)
 
     it "binds across constant arrays", ->
       people = [
@@ -432,26 +432,26 @@ describe "gamEvolve", ->
         { first: "joe", last: "johnson" }
       ]
 
-      actions = 
+      processors = 
         getName: 
           paramDefs:
             name: 
               direction: "in" 
             index: 
               direction: "in"
-          update: (params, tools, log) -> 
+          update: (params, transformers, log) -> 
             expect(params.index).toEqual(if params.name is "bill" then "0" else "1")
 
-      spyOn(actions.getName, "update").andCallThrough()
+      spyOn(processors.getName, "update").andCallThrough()
 
-      layout = 
-        foreach:
+      board = 
+        splitter:
           from: people
           bindTo: "person"
           index: "personIndex"
         children: [
           { 
-            action: "getName"
+            processor: "getName"
             params: 
               in: 
                 name: "bindings.person.first"
@@ -459,21 +459,21 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.NodeVisitorConstants
-        actions: actions
+      constants = new GE.ChipVisitorConstants
+        processors: processors
         evaluator: makeEvaluator()
-      GE.visitNode([], layout, constants, {})
+      GE.visitChip([], board, constants, {})
 
-      expect(actions.getName.update).toHaveBeenCalled()
+      expect(processors.getName.update).toHaveBeenCalled()
 
-    it "binds across model arrays", ->
-      oldModel = 
+    it "binds across memory arrays", ->
+      oldMemory = 
         people: [
           { first: "bill", last: "bobson" }
           { first: "joe", last: "johnson" }
         ]
 
-      actions = 
+      processors = 
         changeName: 
           paramDefs:
             newName: 
@@ -482,18 +482,18 @@ describe "gamEvolve", ->
               direction: "out"
             index: 
               direction: "in"
-          update: (params, tools, log) -> 
+          update: (params, transformers, log) -> 
             expect(params.index).toEqual(if params.newName is "bill" then "0" else "1")
             params.toChange = params.newName
 
-      layout = 
-        foreach:
-          from: "model.people"
+      board = 
+        splitter:
+          from: "memory.people"
           bindTo: "person"
           index: "personIndex"
         children: [
           { 
-            action: "changeName"
+            processor: "changeName"
             params: 
               in: 
                 newName: "bindings.person.first"
@@ -503,156 +503,156 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.NodeVisitorConstants
-        modelData: oldModel
-        actions: actions
+      constants = new GE.ChipVisitorConstants
+        memoryData: oldMemory
+        processors: processors
         evaluator: makeEvaluator()
-      results = GE.visitNode([], layout, constants, {})
-      newModel = GE.applyPatches(results.modelPatches, oldModel)
+      results = GE.visitChip([], board, constants, {})
+      newMemory = GE.applyPatches(results.memoryPatches, oldMemory)
 
-      expect(newModel.people[0].last).toBe("bill")
-      expect(newModel.people[1].last).toBe("joe")
+      expect(newMemory.people[0].last).toBe("bill")
+      expect(newMemory.people[1].last).toBe("joe")
 
-    it "communicates with services", ->
-      oldServiceData = 
+    it "communicates with io", ->
+      oldIoData = 
         serviceA: 
           a: 1
 
-      actions = 
-        incrementServiceData: 
+      processors = 
+        incrementIoData: 
           paramDefs:
             service:
               direction: "inout"
-          update: (params, tools, log) -> 
+          update: (params, transformers, log) -> 
             expect(params.service.a).toBe(1)
             params.service.a++
 
-      layout = 
-        action: "incrementServiceData"
+      board = 
+        processor: "incrementIoData"
         params:
           in:
-            service: "services.serviceA"
+            service: "io.serviceA"
           out:
-            "services.serviceA": "params.service"
+            "io.serviceA": "params.service"
 
-      constants = new GE.NodeVisitorConstants
-        serviceData: oldServiceData
-        actions: actions
+      constants = new GE.ChipVisitorConstants
+        ioData: oldIoData
+        processors: processors
         evaluator: makeEvaluator()
-      results = GE.visitNode([], layout, constants, {})
-      newServiceData = GE.applyPatches(results.servicePatches, oldServiceData)
+      results = GE.visitChip([], board, constants, {})
+      newIoData = GE.applyPatches(results.ioPatches, oldIoData)
 
-      expect(newServiceData.serviceA.a).toBe(2)
+      expect(newIoData.serviceA.a).toBe(2)
 
   describe "stepLoop()", ->
-    it "sends output data directly to services", ->
-      services = 
+    it "sends output data directly to io", ->
+      io = 
         myService:
           establishData: jasmine.createSpy()
 
-      outputServiceData = 
+      outputIoData = 
         myService:
           a = 1
 
       result = GE.stepLoop 
-        services: services
-        outputServiceData: outputServiceData
+        io: io
+        outputIoData: outputIoData
 
-      expect(services.myService.establishData).toHaveBeenCalledWith(outputServiceData.myService, {}, {})
-      expect(result.modelPatches).toBeEmpty()
-      expect(result.servicePatches).toBeEmpty()
+      expect(io.myService.establishData).toHaveBeenCalledWith(outputIoData.myService, {}, {})
+      expect(result.memoryPatches).toBeEmpty()
+      expect(result.ioPatches).toBeEmpty()
 
-    it "sends service input data to visitNode()", ->
-      services = 
+    it "sends io input data to visitChip()", ->
+      io = 
         myService:
           establishData: jasmine.createSpy()
 
-      inputServiceData = 
+      inputIoData = 
         myService:
           a: 1
 
-      actions = 
-        incrementServiceData: 
+      processors = 
+        incrementIoData: 
           paramDefs:
             service:
               direction: "inout"
-          update: (params, tools, log) -> 
+          update: (params, transformers, log) -> 
             expect(params.service.a).toBe(1)
             params.service.a++
 
-      layout = 
-        action: "incrementServiceData"
+      board = 
+        processor: "incrementIoData"
         params:
           in: 
-            service: "services.myService"
+            service: "io.myService"
           out: 
-            "services.myService": "params.service" 
+            "io.myService": "params.service" 
 
       result = GE.stepLoop 
-        node: layout
-        actions: actions 
-        services: services
-        inputServiceData: inputServiceData
+        chip: board
+        processors: processors 
+        io: io
+        inputIoData: inputIoData
         evaluator: makeEvaluator()
 
-      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {}, {})
-      expect(result.modelPatches).toBeEmpty()
-      expect(result.servicePatches.length).toEqual(1)
+      expect(io.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {}, {})
+      expect(result.memoryPatches).toBeEmpty()
+      expect(result.ioPatches.length).toEqual(1)
 
-    it "gathers service input data, visits nodes, uses tools, and gives output to services", ->
-      services = 
+    it "gathers io input data, visits chips, uses transformers, and gives output to io", ->
+      io = 
         myService:
           provideData: -> return { a: 1 }
           establishData: jasmine.createSpy()
 
-      spyOn(services.myService, "provideData").andCallThrough()
+      spyOn(io.myService, "provideData").andCallThrough()
 
-      tools = {
-        testTool: (arg1, arg2) -> return {_1: arg1, _2: arg2};
+      transformers = {
+        testTransformer: (arg1, arg2) -> return {_1: arg1, _2: arg2};
       }
 
-      actions = 
-        incrementServiceData: 
+      processors = 
+        incrementIoData: 
           paramDefs:
             service: 
               direction: "inout"
-          update: (params, tools, log) -> 
-            expect(tools.testTool(params.service.a, 2)._1).toBe(1)
+          update: (params, transformers, log) -> 
+            expect(transformers.testTransformer(params.service.a, 2)._1).toBe(1)
             params.service.a++
 
-      layout = 
-        action: "incrementServiceData"
+      board = 
+        processor: "incrementIoData"
         params:
           in:
-            service: "services.myService"
+            service: "io.myService"
           out:
-            "services.myService": "params.service"
+            "io.myService": "params.service"
 
-      serviceConfig = { configA: 1 }
+      ioConfig = { configA: 1 }
 
       result = GE.stepLoop 
-        node: layout
-        actions: actions 
-        tools: tools
-        services: services
-        serviceConfig: serviceConfig
+        chip: board
+        processors: processors 
+        transformers: transformers
+        io: io
+        ioConfig: ioConfig
         evaluator: makeEvaluator()
 
-      expect(services.myService.provideData).toHaveBeenCalledWith(serviceConfig, {})
-      expect(services.myService.establishData).toHaveBeenCalledWith({ a: 2 }, serviceConfig, {})
-      expect(result.modelPatches).toBeEmpty()
+      expect(io.myService.provideData).toHaveBeenCalledWith(ioConfig, {})
+      expect(io.myService.establishData).toHaveBeenCalledWith({ a: 2 }, ioConfig, {})
+      expect(result.memoryPatches).toBeEmpty()
 
     it "rejects conflicting patches", ->
       # Create old data, new data, and the patches between
       oldData = 
         a: 0
 
-      services = 
+      io = 
         myService:
           provideData: -> return { a: 0 }
           establishData: jasmine.createSpy()
 
-      actions = 
+      processors = 
         group:
           paramDefs: {}
           update: ->
@@ -664,58 +664,58 @@ describe "gamEvolve", ->
               var: null
           update: -> @params.var = @params.value
 
-      layoutA = 
-        action: "group"
+      boardA = 
+        processor: "group"
         children: [
           {
-            action: "setDataTo"
+            processor: "setDataTo"
             params:
               in:
                value: 1
               out:
-                "model.a": "params.var"
+                "memory.a": "params.var"
           },
           {
-            action: "setDataTo"
+            processor: "setDataTo"
             params:
               in:
                value: 2
               out:
-                "model.a": "params.var"
+                "memory.a": "params.var"
           }
         ]
 
       expect(-> GE.stepLoop 
-        node: layoutA
-        modelData: oldData
-        actions: actions 
+        chip: boardA
+        memoryData: oldData
+        processors: processors 
         evaluator: makeEvaluator()
       ).toThrow()
       
-      layoutB = 
-        action: "group"
+      boardB = 
+        processor: "group"
         children: [
           {
-            action: "setDataTo"
+            processor: "setDataTo"
             params:
              in:
                value: 2
               out:
-                "services.myService.a": "params.var"
+                "io.myService.a": "params.var"
           },
           {
-            action: "setDataTo"
+            processor: "setDataTo"
             params:
              in:
                value: 2
               out:
-                "services.myService.a": "params.var"
+                "io.myService.a": "params.var"
           }
         ]
 
       expect(-> GE.stepLoop 
-        node: layoutB 
-        actions: actions 
-        services: services
+        chip: boardB 
+        processors: processors 
+        io: io
         evaluator: makeEvaluator()
       ).toThrow()
