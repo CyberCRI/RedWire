@@ -1,0 +1,33 @@
+<div id="editBoardSplitterDialog">
+	<form name="form" style="form-inline" novalidate>
+		<div class="modal-header">
+			<h3>Edit Splitter <input ng-model="name" placeholder="Name"></input></h3>
+		</div>
+		<div class="modal-body"> 
+			<form class="form-horizontal">
+				<div class="control-group">
+					<label class="control-label" for="from">Split</label>
+					<div class="controls">
+						<input id="inputFrom" required ng-model="from" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="bindTo">Bind value to</label>
+					<div class="controls">
+						<input id="bindTo" required ng-model="bindTo"></input>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="index">Bind index to</label>
+					<div class="controls">
+						<input id="index" ng-model="index"></input>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+			<button class="btn btn-primary" ng-click="done()" ng-disabled="form.$invalid">Done</button>
+		</div>
+	</form>
+</div>

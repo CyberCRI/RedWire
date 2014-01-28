@@ -68,46 +68,19 @@ angular.module('gamEvolve.game.board', [
     [parent, index] = getBoardParentAndKey(currentGame.version.layout, path)
     parent.children.splice(index, 1) # Remove that child
 
-  ###
-  $scope.add = () ->
-    addActionDialog = $dialog.dialog
-      backdrop: true
-      dialogFade: true
-      backdropFade: true
-      backdropClick: false
-      templateUrl: 'game/actions/editAction.tpl.html'
-      controller: 'EditActionDialogCtrl'
-      resolve:
-        # This object will be provided to the dialog as a dependency, and serves to communicate between the two
-        action: ->
-          {
-            model:
-              name: ""
-              paramDefs: {}
-              update: ""
-            done: (model) ->
-              currentGame.version.actions[model.name] = 
-                paramDefs: model.paramDefs
-                update: model.update
-
-              addActionDialog.close()
-            cancel: ->
-              addActionDialog.close()
-          }
-    addActionDialog.open()
-  ###
-
   $scope.edit = (path) -> 
     chip = getBoardChip(currentGame.version.layout, path)
 
     # Determine type of chip
     if "action" of chip
-      # TODO
+      showDialog 'game/board/editBoardAction.tpl.html', 'EditBoardActionDialogCtrl', chip, (model) ->
+        _.extend(chip, model)
     else if "process" of chip
       showDialog 'game/board/editBoardAction.tpl.html', 'EditBoardActionDialogCtrl', chip, (model) ->
         _.extend(chip, model)
     else if "foreach" of chip
-      # TODO
+      showDialog 'game/board/editBoardSplitter.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
+        _.extend(chip, model)
     else if "send" of chip
       showDialog 'game/board/editBoardSend.tpl.html', 'EditBoardSendDialogCtrl', chip, (model) ->
         _.extend(chip, model)
@@ -125,9 +98,9 @@ angular.module('gamEvolve.game.board', [
 
 
 .controller 'EditBoardSendDialogCtrl', ($scope, liaison, currentGame) ->
-  # Convert between "paramDef form" used in game serialization and "pin form" used in GUI
   $scope.DESTINATIONS = enumeratePinDestinations(currentGame.version)
   $scope.name = liaison.model.comment
+  # Convert between "paramDef form" used in game serialization and "pin form" used in GUI
   $scope.pins = ({ input: input, output: output } for output, input of liaison.model.send)
 
   $scope.addPin = -> $scope.pins.push({ input: "", output: "" })
@@ -137,6 +110,23 @@ angular.module('gamEvolve.game.board', [
   $scope.done = -> liaison.done 
     comment: $scope.name
     send: _.object(([output, input] for {input: input, output: output} in $scope.pins))
+  $scope.cancel = -> liaison.cancel() 
+
+
+.controller 'EditBoardSplitterDialogCtrl', ($scope, liaison, currentGame) ->
+  $scope.DESTINATIONS = enumeratePinDestinations(currentGame.version)
+  $scope.name = liaison.model.comment
+  $scope.from = liaison.model.foreach.from
+  $scope.bindTo = liaison.model.foreach.bindTo
+  $scope.index = liaison.model.foreach.index
+
+  # Reply with the new data
+  $scope.done = -> liaison.done 
+    comment: $scope.name
+    foreach:
+      from: $scope.from
+      bindTo: $scope.bindTo
+      index: $scope.index
   $scope.cancel = -> liaison.cancel() 
 
 
@@ -180,7 +170,6 @@ angular.module('gamEvolve.game.board', [
             params.out[destination.drain] = destination.source
     return params
 
-  # Convert between "param form" used in game serialization and "pin form" used in GUI
   $scope.LINKAGES = ["simple", "custom"]
   $scope.DESTINATIONS = enumeratePinDestinations(currentGame.version)
   $scope.name = liaison.model.comment

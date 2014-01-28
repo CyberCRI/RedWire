@@ -3,12 +3,13 @@ String::capitalize = ->
     p1 + p2.toUpperCase()
 
 generateText = (source) ->
-  process = source.process
-  if process
-    _.string.humanize(process).capitalize()
-  else
-    'Effector'
+  if "process" of source then "Switch"
+  else if "action" of source then "Processor"
+  else if "send" of source then "Emitter"
+  else if "foreach" of source then "Splitter"
+  else throw new Error("Cannot find type of chip #{source}")
 
+# TODO: expand this list
 generateType = (source) ->
   if source.process
     'switch'
