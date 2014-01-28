@@ -69,7 +69,7 @@
                     <div class="tab-pane" id="actions" ng-controller="ActionsListCtrl">
                         <ul>
                             <li ng-repeat="actionName in actionNames">
-                                <a href="" ng-click="edit(actionName)" class="jstree-draggable" actionId="{{actionName}}">{{actionName}}</a>
+                                <a href="" ng-click="edit(actionName)" class="jstree-draggable" action-id="{{actionName}}">{{actionName}}</a>
                                 <a class="btn btn-small" ng-click="remove(actionName)"><i class="icon-trash"></i></a>
                             </li>
                         </ul>

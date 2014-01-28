@@ -108,3 +108,12 @@ angular.module('gamEvolve.model.games', [])
         currentGame.info = game
         currentGame.version = convertGameVersionFromJson(result[0])
       )
+
+  # TODO Remove, only for Dev workflow
+  $http.get('/games').success( (result) ->
+    $http.get('/game-versions?gameId=' + result[2].id)
+      .error( (error) -> console.log error )
+      .success( (result) ->
+        currentGame.info = result[1]
+        currentGame.version = convertGameVersionFromJson(result[0]) )
+    )

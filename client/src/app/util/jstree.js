@@ -1,3 +1,34 @@
+var dnd = {
+    "drag_check" : function (data) {
+        if(data.r.attr("rel") === "action") { // No dropping in actions
+            return false;
+        }
+        // For simplicity's sake, DnD is allowed only for adding actions INSIDE tree nodes
+        return {
+            after : false,
+            before : false,
+            inside : true
+        };
+    },
+    "drag_finish" : function (data) {
+        // TODO Generate proper data
+        this.create(data.r, "inside", data.o.attributes['action-id'].nodeValue, null, true);
+    }
+};
+
+var types = {
+    "types" : {
+        "switch" : {
+            "icon" : {
+                "image" : "/assets/images/switch.png"
+            }
+        },
+        "action" : {
+            "valid_children" : [] // Actions are leafs in the tree
+        }
+    }
+};
+
 angular.module('gamEvolve.util.jstree', [])
 
     .directive('jstree', function() {
@@ -11,43 +42,9 @@ angular.module('gamEvolve.util.jstree', [])
                         "json_data" : {
                             "data" : scope.jstree
                         },
-                        "dnd" : {
-                            "drop_finish" : function () {
-                                alert("DROP");
-                            },
-                            "drag_check" : function (data) {
-                                if(data.r.attr("id") == "phtml_1") {
-                                    return false;
-                                }
-                                return {
-                                    after : false,
-                                    before : false,
-                                    inside : true
-                                };
-                            },
-                            "drag_finish" : function (data) {
-                                console.log(data);
-                                alert(data.o.attributes['actionId'].nodeValue);
-                            }
-                        },
-                        "types" : {
-                            "valid_children" : [ "switch" ],
-                            "types" : {
-                                "switch" : {
-                                    "icon" : {
-                                        "image" : "http://localhost:2403/assets/images/switch.png"
-                                    },
-                                    "valid_children" : [ "default" ],
-                                    "max_depth" : 2,
-                                    "hover_node" : false,
-                                    "select_node" : function () {return false;}
-                                },
-                                "default" : {
-                                    "valid_children" : [ "default" ]
-                                }
-                            }
-                        },
-                        "plugins" : [ "themes", "json_data", "ui", "dnd", "types" ]
+                        "dnd" : dnd,
+                        "types" : types,
+                        "plugins" : [ "themes", "ui", "json_data", "dnd", "types", "wholerow", "crrm" ]
                     });
                 });
             }
