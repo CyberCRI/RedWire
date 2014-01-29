@@ -36,7 +36,10 @@
         </block-container>
         <block-splitter></block-splitter>
         <block-container init="200" style="overflow:scroll;">
-            <div jstree="board"></div>
+            <h4>Board</h4>
+            <div ng-controller="BoardCtrl"> 
+                <div jstree="board"></div>
+            </div>
         </block-container>
     </flexy-layout>
 </block-container>

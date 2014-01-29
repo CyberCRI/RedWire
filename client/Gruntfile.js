@@ -15,11 +15,20 @@ module.exports = function ( grunt ) {
   grunt.loadNpmTasks('grunt-recess');
   grunt.loadNpmTasks('grunt-ngmin');
   grunt.loadNpmTasks('grunt-html2js');
+  grunt.loadNpmTasks('grunt-ssh');
+  grunt.loadNpmTasks('grunt-rsync');
 
   /**
-   * Load in our build configuration file.
+   * Load in our build configuration files.
    */
   var userConfig = require( './build.config.js' );
+
+  var deployConfig = {};
+  try {
+    deployConfig = grunt.file.readJSON('deployConfig.json');
+  } catch(err) {
+    console.warn("*** WARNING: Cannot load deployment config ***\n");
+  } 
 
   /**
    * This is the configuration object Grunt uses to give each plugin its
@@ -245,9 +254,6 @@ module.exports = function ( grunt ) {
      */
     coffee: {
       source: {
-        options: {
-          bare: true
-        },
         expand: true,
         cwd: '.',
         src: [ '<%= app_files.coffee %>' ],
@@ -507,9 +513,61 @@ module.exports = function ( grunt ) {
         files: [ 'src/sandbox.html' ],
         tasks: [ 'copy:build_sandbox' ]
       },
+    },
 
+    sshconfig: {
+      prod: deployConfig
+    },
 
-    }
+    sshexec: {
+      uptime: {
+        command: "uptime",
+        options: {
+          config: "prod"
+        }
+      },
+
+      start: {
+        command: deployConfig.path + "/foreverStart.sh",
+        options: {
+          config: "prod"
+        }
+      },
+
+      stop: {
+        command: deployConfig.path + "/foreverStop.sh",
+        options: {
+          config: "prod"
+        }
+      },
+
+      clean: {
+        command: "rm -r " + deployConfig.path + "/*",
+        options: {
+          config: "prod"
+        }
+      },
+
+      npm_install: {
+        command: "cd " + deployConfig.path + " && npm install",
+        options: {
+          config: "prod"
+        }
+      },
+    },
+
+    rsync: {
+      prod: {
+        options: {
+            host: deployConfig.username + "@" + deployConfig.host,
+            src: "../server/",
+            exclude: ["node_modules", "data"],
+            dest: deployConfig.path,
+            recursive: true,
+            syncDestIgnoreExcl: true,
+        }
+      }
+    },
   };
 
   grunt.initConfig( grunt.util._.extend( taskConfig, userConfig ) );
@@ -545,6 +603,22 @@ module.exports = function ( grunt ) {
    */
   grunt.registerTask( 'compile', [
     'recess:compile', 'copy:compile_assets', 'ngmin', 'concat:compile_js', 'uglify', 'index:compile'
+  ]);
+
+  grunt.registerTask('deploy', [
+    'build',
+    'sshexec:stop',
+    'rsync:prod',
+    'sshexec:start'
+  ]);
+
+  grunt.registerTask('clean_deploy', [
+    'build',
+    'sshexec:stop',
+    'sshexec:clean',
+    'rsync:prod',
+    'sshexec:npm_install',
+    'sshexec:start'
   ]);
 
   /**

@@ -11,6 +11,8 @@ docs/
 # Ignore node modules
 client/npm-debug.log
 client/node_modules/
+server/npm-debug.log
+server/node_modules/
 
 # Ignore browser dependencies 
 client/vendor/
@@ -25,3 +27,6 @@ server/data/mongod.lock
 # Ignore compilation result
 server/public-dev/
 server/public-prod/
+
+# Ignore deployment config
+client/deployConfig.json

@@ -15,12 +15,12 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
   $scope.currentGame = currentGame;
   $scope.board = {}
   $scope.gameHistoryMeta = gameHistory.meta # In order to watch it
-  $scope.$watch('currentGame.version.layout',
-    ((json) -> if json
-      $scope.board = boardConverter.convert(json)),
-    false)
 
-  $scope.$watch('board', (board) -> console.log board)
+  # When the layout changed, update the board as well
+  updateBoard = -> 
+    if currentGame.version?.layout
+      $scope.board = boardConverter.convert(currentGame.version.layout)
+  $scope.$watch('currentGame.version.layout', updateBoard, true)
 
   # Update from gameHistory
   onUpdateGameHistory = ->
