@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "author": "",
   "description": "A tool for creating, sharing, and modifing online games using simple concepts.",
-  "homepage": "https://github.com/CyberCRI/gamEvolve",
+  "homepage": "https://github.com/CyberCRI/RedWire",
   "repository": {
     "type": "git",
-    "url": "https://github.com/CyberCRI/gamEvolve"
+    "url": "https://github.com/CyberCRI/RedWire"
   },
   "dependencies": {
     "deployd": "~0.6.10"
