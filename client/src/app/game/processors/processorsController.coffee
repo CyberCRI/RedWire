@@ -1,82 +1,82 @@
-angular.module('gamEvolve.game.actions', [
+angular.module('gamEvolve.game.processors', [
   'ui.bootstrap',
 ])
-.controller 'ActionsListCtrl', ($scope, $dialog, currentGame) ->
-  # Get the actions object from the currentGame service, and keep it updated
-  $scope.actions = {}
-  $scope.actionNames = []
+.controller 'ProcessorsListCtrl', ($scope, $dialog, currentGame) ->
+  # Get the processors object from the currentGame service, and keep it updated
+  $scope.processors = {}
+  $scope.processorNames = []
 
   # Bring currentGame into scope so we can watch it 
-  updateActions = ->
-    if currentGame.version?.actions?
-      $scope.actions = currentGame.version.actions
-      $scope.actionNames = _.keys(currentGame.version.actions)
+  updateProcessors = ->
+    if currentGame.version?.processors?
+      $scope.processors = currentGame.version.processors
+      $scope.processorNames = _.keys(currentGame.version.processors)
   $scope.currentGame = currentGame
-  $scope.$watch('currentGame', updateActions, true)
+  $scope.$watch('currentGame', updateProcessors, true)
 
   $scope.remove = (name) ->
-    delete currentGame.version.actions[name]
+    delete currentGame.version.processors[name]
 
   $scope.add = () ->
-    addActionDialog = $dialog.dialog
+    addProcessorDialog = $dialog.dialog
       backdrop: true
       dialogFade: true
       backdropFade: true
       backdropClick: false
-      templateUrl: 'game/actions/editAction.tpl.html'
-      controller: 'EditActionDialogCtrl'
+      templateUrl: 'game/processors/editProcessor.tpl.html'
+      controller: 'EditProcessorDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
-        action: ->
+        processor: ->
           {
             model:
               name: ""
               paramDefs: {}
               update: ""
             done: (model) ->
-              currentGame.version.actions[model.name] = 
+              currentGame.version.processors[model.name] = 
                 paramDefs: model.paramDefs
                 update: model.update
 
-              addActionDialog.close()
+              addProcessorDialog.close()
             cancel: ->
-              addActionDialog.close()
+              addProcessorDialog.close()
           }
-    addActionDialog.open()
+    addProcessorDialog.open()
 
-  $scope.edit = (actionName) -> 
-    action = currentGame.version.actions[actionName]
-    editActionDialog = $dialog.dialog
+  $scope.edit = (processorName) -> 
+    processor = currentGame.version.processors[processorName]
+    editProcessorDialog = $dialog.dialog
       backdrop: true
       dialogFade: true
       backdropFade: true
       backdropClick: false
-      templateUrl: 'game/actions/editAction.tpl.html'
-      controller: 'EditActionDialogCtrl'
+      templateUrl: 'game/processors/editProcessor.tpl.html'
+      controller: 'EditProcessorDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
-        action: ->
+        processor: ->
           {
             model:
-              name: actionName
-              paramDefs: action.paramDefs
-              update: action.update
+              name: processorName
+              paramDefs: processor.paramDefs
+              update: processor.update
             done: (model) ->
               # Handle rename case
-              if model.name isnt actionName
-                delete currentGame.version.actions[actionName]
+              if model.name isnt processorName
+                delete currentGame.version.processors[processorName]
 
-              currentGame.version.actions[model.name] = 
+              currentGame.version.processors[model.name] = 
                 paramDefs: model.paramDefs
                 update: model.update
 
-              editActionDialog.close()
+              editProcessorDialog.close()
             cancel: ->
-              editActionDialog.close()
+              editProcessorDialog.close()
           }
-    editActionDialog.open()
+    editProcessorDialog.open()
 
-.controller 'EditActionDialogCtrl', ($scope, action) ->
+.controller 'EditProcessorDialogCtrl', ($scope, processor) ->
   # Convert between "paramDef form" used in game serialization and "pin form" used in GUI
   toPins = (paramDefs) ->
     for paramName, paramDef of paramDefs
@@ -92,16 +92,16 @@ angular.module('gamEvolve.game.actions', [
     return paramDefs
 
   $scope.DIRECTIONS = ["in", "inout", "out"]
-  $scope.name = action.model.name
-  $scope.pins = toPins(action.model.paramDefs)
-  $scope.updateText = action.model.update
+  $scope.name = processor.model.name
+  $scope.pins = toPins(processor.model.paramDefs)
+  $scope.updateText = processor.model.update
 
   $scope.addPin = -> $scope.pins.push({ name: "", direction: "in" })
   $scope.removePin = (index) -> $scope.arguments.splice(index, 1)
 
   # Reply with the new data
-  $scope.done = -> action.done 
+  $scope.done = -> processor.done 
     name: $scope.name
     paramDefs: toParamDefs($scope.pins)
     update: $scope.updateText
-  $scope.cancel = -> action.cancel() 
+  $scope.cancel = -> processor.cancel() 

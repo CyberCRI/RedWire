@@ -2,8 +2,9 @@
 <block-container init="300">
     <flexy-layout orientation="vertical">
         <block-container style="overflow:scroll; font-size:13px;">
+            <h4>Memory</h4>
             <div class="jsonView" defocus>
-                <json child="model" type="'object'"></json>
+                <json child="board" type="'object'"></json>
             </div>
         </block-container>
         <block-splitter></block-splitter>
@@ -53,35 +54,35 @@
             <div>
                 <!-- Nav tabs -->
                 <ul class="nav nav-tabs">
-                    <li><a href="#tools" data-toggle="tab">Tools</a></li>
-                    <li><a href="#actions" data-toggle="tab">Actions</a></li>
+                    <li><a href="#transformers" data-toggle="tab">Transformers</a></li>
+                    <li><a href="#processors" data-toggle="tab">Processors</a></li>
                     <li><a href="#switches" data-toggle="tab">Switches</a></li>
                 </ul>
 
                 <!-- Tab panes -->
                 <div class="tab-content">
-                    <div class="tab-pane active" id="tools" ng-controller="ToolsListCtrl">
+                    <div class="tab-pane active" id="transformers" ng-controller="TransformersListCtrl">
                         <ul>
-                            <li ng-repeat="toolName in toolNames">
-                                <a href="" ng-click="edit(toolName)">{{toolName}}</a> 
-                                <a class="btn btn-small" ng-click="remove(toolName)"><i class="icon-trash"></i></a> 
+                            <li ng-repeat="transformerName in transformerNames">
+                                <a href="" ng-click="edit(transformerName)">{{transformerName}}</a> 
+                                <a class="btn btn-small" ng-click="remove(transformerName)"><i class="icon-trash"></i></a> 
                             </li>
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
-                  <div class="tab-pane" id="actions">
-                    <div class="tab-pane active" id="actions" ng-controller="ActionsListCtrl">
+                  <div class="tab-pane" id="processors">
+                    <div class="tab-pane active" id="processors" ng-controller="ProcessorsListCtrl">
                         <ul>
-                            <li ng-repeat="actionName in actionNames">
-                                <a href="" ng-click="edit(actionName)">{{actionName}}</a> 
-                                <a class="btn btn-small" ng-click="remove(actionName)"><i class="icon-trash"></i></a> 
+                            <li ng-repeat="processorName in processorNames">
+                                <a href="" ng-click="edit(processorName)">{{processorName}}</a> 
+                                <a class="btn btn-small" ng-click="remove(processorName)"><i class="icon-trash"></i></a> 
                             </li>
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
                   </div>
                   <div class="tab-pane" id="switches">
-                    <div class="tab-pane active" id="actions" ng-controller="SwitchesListCtrl">
+                    <div class="tab-pane active" id="processors" ng-controller="SwitchesListCtrl">
                         <ul>
                             <li ng-repeat="switchName in switchNames">
                                 <a href="" ng-click="edit(switchName)">{{switchName}}</a> 

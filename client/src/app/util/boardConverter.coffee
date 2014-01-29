@@ -3,10 +3,10 @@ String::capitalize = ->
     p1 + p2.toUpperCase()
 
 generateText = (source) ->
-  if "process" of source then "Switch"
-  else if "action" of source then "Processor"
-  else if "send" of source then "Emitter"
-  else if "foreach" of source then "Splitter"
+  if "switch" of source then "Switch"
+  else if "processor" of source then "Processor"
+  else if "emitter" of source then "Emitter"
+  else if "splitter" of source then "Splitter"
   else throw new Error("Cannot find type of chip #{source}")
 
 # TODO: expand this list
