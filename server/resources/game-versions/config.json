@@ -17,12 +17,12 @@
 			"id": "versionNumber",
 			"order": 1
 		},
-		"actions": {
-			"name": "actions",
+		"processors": {
+			"name": "processors",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
-			"id": "actions",
+			"id": "processors",
 			"order": 2
 		},
 		"assets": {
@@ -33,44 +33,44 @@
 			"id": "assets",
 			"order": 3
 		},
-		"layout": {
-			"name": "layout",
+		"board": {
+			"name": "board",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
-			"id": "layout",
+			"id": "board",
 			"order": 4
 		},
-		"model": {
-			"name": "model",
+		"memory": {
+			"name": "memory",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
-			"id": "model",
+			"id": "memory",
 			"order": 5
 		},
-		"processes": {
-			"name": "processes",
+		"switches": {
+			"name": "switches",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
-			"id": "processes",
+			"id": "switches",
 			"order": 6
 		},
-		"services": {
-			"name": "services",
+		"io": {
+			"name": "io",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
-			"id": "services",
+			"id": "io",
 			"order": 7
 		},
-		"tools": {
-			"name": "tools",
+		"transformers": {
+			"name": "transformers",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
-			"id": "tools",
+			"id": "transformers",
 			"order": 8
 		}
 	}

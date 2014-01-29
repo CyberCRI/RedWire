@@ -5,10 +5,10 @@ globals = @
 GE = globals.GE ? {}
 globals.GE = GE
 
-GE.services = {}
+GE.io = {}
 
-# Define keyboard input service
-GE.services.keyboard = 
+# Define keyboard input io
+GE.io.keyboard = 
   meta:
     visual: false
   factory: (options = {}) ->
@@ -29,14 +29,14 @@ GE.services.keyboard =
     return {
       provideData: -> return { 'keysDown': keysDown }
 
-      establishData: -> # NOOP. Input service does not take data
+      establishData: -> # NOOP. Input io does not take data
 
       # Remove all event handlers
       destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
     }
 
-# Define mouse input/output service
-GE.services.mouse = 
+# Define mouse input/output io
+GE.io.mouse = 
   meta:
     visual: false
   factory: (options = {}) ->
@@ -74,8 +74,8 @@ GE.services.mouse =
       destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
     }
 
-# Define canvas output service
-GE.services.canvas =  
+# Define canvas output io
+GE.io.canvas =  
   meta:
     visual: true
   factory: (options = {}) ->
@@ -219,8 +219,8 @@ GE.services.canvas =
         for layerName, canvas of layers then canvas.remove()
     }
 
-# Define keyboard input service
-GE.services.html =  
+# Define keyboard input io
+GE.io.html =  
   meta:
     visual: true
   factory: (options = {}) ->
@@ -305,8 +305,8 @@ GE.services.html =
           layer.remove()
     }
 
-# Define time service, that provides the current time in ms
-GE.services.time =  
+# Define time io, that provides the current time in ms
+GE.io.time =  
   meta:
     visual: false
   factory: ->
@@ -314,8 +314,8 @@ GE.services.time =
     establishData: -> # NOP
     destroy: -> # NOP
 
-# The HTTP service makes AJAX requests 
-GE.services.http =  
+# The HTTP io makes AJAX requests 
+GE.io.http =  
   meta:
     visual: false
   factory: ->
@@ -323,21 +323,21 @@ GE.services.http =
       requests: {}
       responses: {}
 
-    service =
+    io =
       provideData: () -> return state
 
-      establishData: (serviceData, config, assets) -> 
+      establishData: (ioData, config, assets) -> 
         # Expecting a format like { requests: { id: { method:, url:, data:, cache:, contentType: }, ... }, { responses: { id: { code:, data: }, ... }
 
         # Create new requests
-        for requestName in _.difference(_.keys(serviceData.requests), _.keys(state.requests)) 
+        for requestName in _.difference(_.keys(ioData.requests), _.keys(state.requests)) 
           do (requestName) ->
             jqXhr = $.ajax 
-              url: serviceData.requests[requestName].url
-              type: serviceData.requests[requestName].method ? "GET"
-              cache: serviceData.requests[requestName].cache ? true
-              data: serviceData.requests[requestName].data
-              contentType: serviceData.requests[requestName].contentType
+              url: ioData.requests[requestName].url
+              type: ioData.requests[requestName].method ? "GET"
+              cache: ioData.requests[requestName].cache ? true
+              data: ioData.requests[requestName].data
+              contentType: ioData.requests[requestName].contentType
             jqXhr.done (data, textStatus) -> 
               state.responses[requestName] = 
                 status: textStatus
@@ -350,17 +350,17 @@ GE.services.http =
             delete state.requests[requestName]
 
         # Remove deleted responses
-        for requestName in _.difference(_.keys(state.responses), _.keys(serviceData.responses)) 
+        for requestName in _.difference(_.keys(state.responses), _.keys(ioData.responses)) 
           delete state.responses[requestName]
 
         return state
 
       destroy: () -> # NOP
 
-    return service
+    return io
 
-# Define chart output service
-GE.services.charts =  
+# Define chart output io
+GE.io.charts =  
   meta:
     visual: true
   factory: (options = {}) ->
@@ -376,14 +376,14 @@ GE.services.charts =
     return {
       provideData: -> {}
 
-      establishData: (serviceData, config, assets) -> 
-        # Expecting serviceData like { chartA: { size:, position:, depth:, data:, options: }}
+      establishData: (ioData, config, assets) -> 
+        # Expecting ioData like { chartA: { size:, position:, depth:, data:, options: }}
 
         # Remove old charts 
-        for chartName in _.difference(_.keys(charts), _.keys(serviceData)) then removeChart(chartName)
+        for chartName in _.difference(_.keys(charts), _.keys(ioData)) then removeChart(chartName)
 
         # Create new charts and update old ones
-        for chartName, chartData of serviceData
+        for chartName, chartData of ioData
           # If the chart already exists...
           if chartName of charts 
             #... and has the same data, don't bother redrawing it

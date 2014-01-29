@@ -50,15 +50,17 @@ createDataUri = (filename) ->
 correctActions = (actions, processes, layoutNode) ->
   if "action" of layoutNode
     if layoutNode.action of actions 
-      # leave as is 
+      # change from "action: 'blah'"" to "processor: 'blah'"
+      layoutNode.processor = layoutNode.action
+      delete layoutNode.action
       if "children" of layoutNode
         throw new Error("Action '#{layoutNode.action}' cannot have children") 
     else if layoutNode.action of processes
-      # change from "action: 'blah'"" to "process: 'blah'"
-      layoutNode.process = layoutNode.action
+      # change from "action: 'blah'"" to "switch: 'blah'"
+      layoutNode.switch = layoutNode.action
       delete layoutNode.action
     else
-      throw new Error("Action '#{layoutNode.action}' is not an action or a process") 
+      throw new Error("Action '#{layoutNode.action}' is not a processor or a switch") 
 
   if layoutNode.children
     for child in layoutNode.children
@@ -94,49 +96,51 @@ outputFile = process.argv[3]
 outputObj = 
   name: path.basename(inputDir)
   fileVersion: OUTPUT_VERSION
-  model: {}
-  services: {}
-  layout: {}
-  actions: {}
-  processes: {}
-  tools: {}
+  memory: {}
+  io: {}
+  board: {}
+  processors: {}
+  switches: {}
+  transformers: {}
   assets: {}
 
 # Actions are in a JS file that needs to be parsed
-parsedActions = esprima.parse(fs.readFileSync(path.join(inputDir, "actions.js"), { encoding: "utf8" }))
+actionText = fs.readFileSync(path.join(inputDir, "actions.js"), { encoding: "utf8"})
+actionText = actionText.replace(/paramDefs/g, "pinDefs")
+parsedActions = esprima.parse(actionText)
 # Remove references to "this"
-actionsJson = parsedToObj(parsedActions.body[0].expression, (args, body) -> body.replace(/this\./g, ""))
+actionsJson = parsedToObj(parsedActions.body[0].expression, (args, body) -> body.replace(/this\./g, "").replace(/params/g, "pins").replace(/tools/g, "transformers"))
 # Split between actions and processes
 for name, value of actionsJson 
   if "update" of value 
-    outputObj.actions[name] = value
+    outputObj.processors[name] = value
   else
-    outputObj.processes[name] = value
+    outputObj.switches[name] = value
 
 # Read layout.json
 layoutJson = fs.readFileSync(path.join(inputDir, "layout.json"), { encoding: "utf8" })
-# Rename "graphics" to "canvas"
-layoutJson = layoutJson.replace(/services\.graphics/g, "services.canvas")
+# Do several renames
+layoutJson = layoutJson.replace(/services\.graphics/g, "services.canvas").replace(/services/g, "io").replace(/model/g, "memory").replace(/params/g, "pins").replace(/foreach/g, "splitter").replace(/send/g, "emitter").replace(/tools/g, "transformers")
 # Copy over layout JSON
-outputObj.layout = JSON.parse(layoutJson)
+outputObj.board = JSON.parse(layoutJson)
 # Correct between actions and processes
-correctActions(outputObj.actions, outputObj.processes, outputObj.layout)
+correctActions(outputObj.processors, outputObj.switches, outputObj.board)
 
 # Copy over model JSON
-outputObj.model = JSON.parse(fs.readFileSync(path.join(inputDir, "model.json"), { encoding: "utf8" }))
+outputObj.memory = JSON.parse(fs.readFileSync(path.join(inputDir, "model.json"), { encoding: "utf8" }))
 
 # Create layers config 
 parsedServices = JSON.parse(fs.readFileSync(path.join(inputDir, "services.json"), { encoding: "utf8" }))
-outputObj.services = 
+outputObj.io = 
   layers: convertServicesToLayers(parsedServices)
 
 # Tools are a JS file that needs to be parsed
 parsedTools = esprima.parse(fs.readFileSync(path.join(inputDir, "tools.js"), { encoding: "utf8" }))
 # Replace "this" references with tools. \b matches the word boundary
-outputObj.tools = parsedToObj parsedTools.body[0].expression, (args, body) -> 
+outputObj.transformers = parsedToObj parsedTools.body[0].expression, (args, body) -> 
   {
     args: args
-    body: body.replace(/this\.log/, "log").replace(/this\b/g, "tools") # Rename "this.log" -> "log" and "this.toto" to "tools.toto"
+    body: body.replace(/this\.log/, "log").replace(/this\b/g, "transformers") # Rename "this.log" -> "log" and "this.toto" to "tools.toto"
   }
 
 # Create data-URI encoded versions of all assets

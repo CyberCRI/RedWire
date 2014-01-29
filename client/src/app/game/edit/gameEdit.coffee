@@ -11,32 +11,33 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
       pageTitle: 'Edit Game'
 
 .controller 'GameEditCtrl', ($scope, $filter, gameHistory, currentGame, boardConverter, gameTime) -> 
-  $scope.model = {}
+  $scope.memory = {}
   $scope.currentGame = currentGame;
   $scope.board = {}
   $scope.gameHistoryMeta = gameHistory.meta # In order to watch it
-  $scope.$watch('currentGame.version.layout',
-    ((json) -> if json
-      $scope.board = boardConverter.convert(json)),
-    false)
-    
+
+  # When the board changes, update in scope
+  updateBoard = -> 
+    if currentGame.version?.board
+      $scope.board = boardConverter.convert(currentGame.version.board)
+  $scope.$watch('currentGame.version.board', updateBoard, true)
 
   # Update from gameHistory
   onUpdateGameHistory = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
 
-    newModel = gameHistory.data.frames[gameTime.currentFrameNumber].model
-    if not _.isEqual($scope.model, newModel) 
-      $scope.model = newModel
+    newMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
+    if not _.isEqual($scope.memory, newMemory) 
+      $scope.memory = newMemory
   $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)
 
   # Write back to gameHistory
-  onUpdateModel = ->
+  onUpdateMemory = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
 
-    # If we are on the first frame, update the game model
+    # If we are on the first frame, update the game memory
     if gameTime.currentFrameNumber == 0 
-      if not _.isEqual($scope.model, currentGame.version.model) 
-        currentGame.version.model = $scope.model
-  $scope.$watch('model', onUpdateModel, true)
+      if not _.isEqual($scope.memory, currentGame.version.memory) 
+        currentGame.version.memory = $scope.memory
+  $scope.$watch('memory', onUpdateMemory, true)
 

@@ -1,0 +1,22 @@
+<div id="editBoardSendDialog">
+	<form name="form" style="form-inline" novalidate>
+		<div class="modal-header">
+			<h3>Edit Send <input ng-model="name" placeholder="Send name"></input></h3>
+		</div>
+		<div class="modal-body"> 
+			<h4>Pins</h4>
+			<ul>
+				<li ng-repeat="pin in pins">
+					<input required ng-model="pin.output" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+					<div ui-ace="{ mode: 'ace/mode/javascript', theme: 'twilight' }" ng-model="pin.input"></div>
+					<a class="btn btn-small" ng-click="removePin($index)"><i class="icon-trash"></i></a>
+				</li>
+			</ul>
+			<a class="btn" ng-click="addPin()"><i class="icon-plus"></i></a>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+			<button class="btn btn-primary" ng-click="done()" ng-disabled="form.$invalid">Done</button>
+		</div>
+	</form>
+</div>

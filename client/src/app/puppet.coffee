@@ -8,8 +8,8 @@ GAME_DIMENSIONS = [960, 540]
 
 loadedGame = null
 isRecording = false
-lastModel = null
-recordedFrames = [] # Contains objects like {modelPatches: [], inputServiceData: {}, servicePatches: []}
+lastMemory = null
+recordedFrames = [] # Contains objects like {memoryPatches: [], inputIoData: {}, ioPatches: []}
 recordFrameReporter = null # Callback function for onRecordFrame
 
 # FUNCTIONS
@@ -18,68 +18,68 @@ recordFrameReporter = null # Callback function for onRecordFrame
 requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
   window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 
-# Converts input actions (with code as strings) to compiled form with code as functions.
+# Converts input processors (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were
-compileActions = (inputActions, evaluator) ->
-  return GE.mapObject inputActions, (value, key) ->
-    compiledAction = {}
+compileProcessors = (inputProcessors, evaluator) ->
+  return GE.mapObject inputProcessors, (value, key) ->
+    compiledProcessor = {}
     try
-      for actionKey, actionValue of value
-        compiledAction[actionKey] = switch actionKey
-          when "update" then GE.compileUpdate(actionValue, evaluator)
-          else actionValue
-      return compiledAction
+      for processorKey, processorValue of value
+        compiledProcessor[processorKey] = switch processorKey
+          when "update" then GE.compileUpdate(processorValue, evaluator)
+          else processorValue
+      return compiledProcessor
     catch compilationError
-      throw new Error("Error compiling action '#{key}'. #{compilationError}")
+      throw new Error("Error compiling processor '#{key}'. #{compilationError}")
 
-# Converts input actions (with code as strings) to compiled form with code as functions
+# Converts input processors (with code as strings) to compiled form with code as functions
 # Leaves non-code values as they were
-compileProcesses = (inputProcesses, evaluator) ->
-  return GE.mapObject inputProcesses, (value, key) ->
-    compiledProcess = {}
+compileSwitches = (inputSwitches, evaluator) ->
+  return GE.mapObject inputSwitches, (value, key) ->
+    compiledSwitch = {}
     try
-      for processKey, processValue of value
-        compiledProcess[processKey] = switch processKey
-          when "listActiveChildren" then GE.compileListActiveChildren(processValue, evaluator)
-          when "handleSignals" then GE.compileHandleSignals(processValue, evaluator)
-          else processValue
-      return compiledProcess
+      for switchKey, switchValue of value
+        compiledSwitch[switchKey] = switch switchKey
+          when "listActiveChildren" then GE.compileListActiveChildren(switchValue, evaluator)
+          when "handleSignals" then GE.compileHandleSignals(switchValue, evaluator)
+          else switchValue
+      return compiledSwitch
     catch compilationError
-      throw new Error("Error compiling process '#{key}'. #{compilationError}")
+      throw new Error("Error compiling switch '#{key}'. #{compilationError}")
 
-# Converts input tools (with code as strings) to compiled form with code as functions.
+# Converts input transformers (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were.
-compileTools = (inputTools, evaluator) ->
-  toolsContext = 
-    tools: null
-  compiledTools = GE.mapObject inputTools, (value, key) -> 
+compileTransformers = (inputTransformers, evaluator) ->
+  transformersContext = 
+    transformers: null
+  compiledTransformers = GE.mapObject inputTransformers, (value, key) -> 
     try
-      toolFactory = GE.compileTool(value.body, value.args, evaluator)
-      return toolFactory(toolsContext)
+      transformerFactory = GE.compileTransformer(value.body, value.args, evaluator)
+      return transformerFactory(transformersContext)
     catch compilationError
-      throw new Error("Error compiling tool '#{key}'. #{compilationError}")
-  toolsContext.tools = compiledTools
-  return compiledTools
+      throw new Error("Error compiling transformer '#{key}'. #{compilationError}")
+  transformersContext.transformers = compiledTransformers
+  return compiledTransformers
 
-destroyServices = (currentServices) ->
-  for serviceName, service of currentServices
-    service.destroy()
+destroyIo = (currentIo) ->
+  for ioName, io of currentIo
+    io.destroy()
 
-initializeServices = (serviceConfig) ->
-  # Create new services
-  currentServices = {}
-  for serviceName, serviceData of GE.services
+initializeIo = (ioConfig) ->
+  # Create new io
+  currentIo = {}
+  for ioName, ioData of GE.io
     try
       options = 
         elementSelector: '#gameContent'
         size: GAME_DIMENSIONS
-      if serviceData.meta.visual
-        options.layers = _.object(([layer.name, index] for index, layer of serviceConfig.layers when layer.type is serviceName ))
+      if ioData.meta.visual
+        options.layers = _.object(([layer.name, index] for index, layer of ioConfig.layers when layer.type is ioName ))
 
-      currentServices[serviceName] = serviceData.factory(options)
+      currentIo[ioName] = ioData.factory(options)
     catch error
-      throw new Error("Error initializing service '#{serviceName}'. #{error}")
-  return currentServices
+      throw new Error("Error initializing io '#{ioName}'. #{error}")
+  return currentIo
 
 destroyAssets = (oldAssets) ->
   for name, dataUrl of oldAssets.urls
@@ -93,7 +93,7 @@ destroyAssets = (oldAssets) ->
 
 # The evaluator is initialized with any JS assets.
 # Returns object containing three maps: { urls: , data: , objectUrls: }
-# TODO: move asset handling into gamEvolve.coffee. CSS could be handled by the HTML service. JS is harder.
+# TODO: move asset handling into gamEvolve.coffee. CSS could be handled by the HTML io. JS is harder.
 createAssets = (inputAssets, evaluator) ->
   assetNamesToData = {}
   assetNamesToObjectUrls = {}
@@ -125,18 +125,18 @@ createAssets = (inputAssets, evaluator) ->
 loadGameCode = (gameCode, logFunction) ->
   evaluator = eval
   return {
-    actions: compileActions(gameCode.actions, evaluator)
-    processes: compileProcesses(gameCode.processes, evaluator)
-    tools: compileTools(gameCode.tools, evaluator, logFunction)
-    layout: gameCode.layout
-    services: initializeServices(gameCode.services)
+    processors: compileProcessors(gameCode.processors, evaluator)
+    switches: compileSwitches(gameCode.switches, evaluator)
+    transformers: compileTransformers(gameCode.transformers, evaluator, logFunction)
+    board: gameCode.board
+    io: initializeIo(gameCode.io)
     assets: createAssets(gameCode.assets, evaluator)
     evaluator: evaluator
   }
 
 unloadGame = (loadedGame) ->
   destroyAssets(loadedGame.assets)
-  destroyServices(loadedGame.services)
+  destroyIo(loadedGame.io)
 
 makeReporter = (destinationWindow, destinationOrigin, operation) ->
   return (err, value) ->
@@ -145,30 +145,30 @@ makeReporter = (destinationWindow, destinationOrigin, operation) ->
     else
       destinationWindow.postMessage({ type: "success", operation: operation, value: value }, destinationOrigin)
 
-onRecordFrame = (model, inputServiceData = null) ->
+onRecordFrame = (memory, inputIoData = null) ->
   return GE.stepLoop
-    node: loadedGame.layout
-    modelData: model
+    chip: loadedGame.board
+    memoryData: memory
     assets: loadedGame.assets.data
-    actions: loadedGame.actions
-    processes: loadedGame.processes
-    services: loadedGame.services
-    tools: loadedGame.tools
+    processors: loadedGame.processors
+    switches: loadedGame.switches
+    io: loadedGame.io
+    transformers: loadedGame.transformers
     evaluator: eval
-    serviceConfig: {}
+    ioConfig: {}
     log: null
-    inputServiceData: inputServiceData
-    outputServiceData: null 
+    inputIoData: inputIoData
+    outputIoData: null 
 
 onRepeatRecordFrame = ->
   if !isRecording then return  # Stop when requested
 
   try
-    result = onRecordFrame(lastModel)
+    result = onRecordFrame(lastMemory)
 
     # Log result to send back in onStopRecording()
     recordedFrames.push(result)
-    lastModel = GE.applyPatches(result.modelPatches, lastModel)
+    lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
 
     requestAnimationFrame(onRepeatRecordFrame) # Loop!
   catch e
@@ -176,25 +176,25 @@ onRepeatRecordFrame = ->
     isRecording = false
     recordFrameReporter(e)
 
-onPlayFrame = (outputServiceData) ->
+onPlayFrame = (outputIoData) ->
   GE.stepLoop
-    node: loadedGame.layout
+    chip: loadedGame.board
     assets: loadedGame.assets.data
-    actions: loadedGame.actions
-    processes: loadedGame.processes
-    services: loadedGame.services
-    tools: loadedGame.tools
-    serviceConfig: {}
-    outputServiceData: outputServiceData 
+    processors: loadedGame.processors
+    switches: loadedGame.switches
+    io: loadedGame.io
+    transformers: loadedGame.transformers
+    ioConfig: {}
+    outputIoData: outputIoData 
 
-# Recalculate frames with different code but the same inputServiceData
-onUpdateFrames = (model, inputServiceDataFrames) ->
+# Recalculate frames with different code but the same inputIoData
+onUpdateFrames = (memory, inputIoDataFrames) ->
   results = []
-  lastModel = model
-  for inputServiceData in inputServiceDataFrames
+  lastMemory = memory
+  for inputIoData in inputIoDataFrames
     try
-      result = onRecordFrame(lastModel, inputServiceData)
-      lastModel = GE.applyPatches(result.modelPatches, lastModel)
+      result = onRecordFrame(lastMemory, inputIoData)
+      lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
       results.push(result)
     catch e
       console.log("Error in update frames", e)
@@ -225,7 +225,7 @@ window.addEventListener 'message', (e) ->
         loadedGame = loadGameCode(message.value)
         reporter(null)
       when "startRecording"
-        lastModel = message.value.model
+        lastMemory = message.value.memory
         recordedFrames = []
         recordFrameReporter = makeReporter(e.source, e.origin, "recording")
         isRecording = true
@@ -235,13 +235,13 @@ window.addEventListener 'message', (e) ->
         isRecording = false
         reporter(null, recordedFrames)
       when "recordFrame"
-        results = onRecordFrame(message.value.model)
+        results = onRecordFrame(message.value.memory)
         reporter(null, results)
       when "playFrame"
-        onPlayFrame(message.value.outputServiceData)
+        onPlayFrame(message.value.outputIoData)
         reporter(null)
       when "updateFrames"
-        results = onUpdateFrames(message.value.model, message.value.inputServiceDataFrames)
+        results = onUpdateFrames(message.value.memory, message.value.inputIoDataFrames)
         # TODO: check for errors and return them along with other data
         reporter(null, results)
       else

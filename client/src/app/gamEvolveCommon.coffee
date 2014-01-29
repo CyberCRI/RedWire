@@ -132,3 +132,12 @@ GE.dataURLToBlob = (dataURL) ->
     uInt8Array[i] = raw.charCodeAt(i)
 
   return new Blob([uInt8Array], {type: contentType})
+
+# For accessing a value within an embedded object or array
+# Takes a parent object/array and the "path" as an array
+# Returns [parent, key] where parent is the array/object and key is last one required to access the child
+GE.getParentAndKey = (parent, pathParts) ->
+  if pathParts.length is 0 then return [parent, null]
+  if pathParts.length is 1 then return [parent, pathParts[0]]
+  if pathParts[0] of parent then return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
+  throw new Error("Cannot find intermediate key '#{pathParts[0]}'")

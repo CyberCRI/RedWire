@@ -1,7 +1,7 @@
 {
   "name": "leap",
   "fileVersion": 0.1,
-  "model": {
+  "memory": {
     "blocks": [],
     "mouseDetection": {
       "state": null,
@@ -139,7 +139,7 @@
       "minGridTranslation": 1
     }
   },
-  "services": {
+  "io": {
     "layers": [
       {
         "name": "bg",
@@ -163,364 +163,355 @@
       }
     ]
   },
-  "layout": {
+  "board": {
     "children": [
       {
-        "send": {
-          "services.canvas.shapes": "tools.drawShape({ type: 'rectangle', layer: 'bg', position: [0, 0], size: services.canvas.size, fillStyle: 'black' })"
+        "emitter": {
+          "io.canvas.shapes": "transformers.drawShape({ type: 'rectangle', layer: 'bg', position: [0, 0], size: io.canvas.size, fillStyle: 'black' })"
         }
       },
       {
-        "params": {
+        "pins": {
           "in": {
-            "activeChild": "model.activeChild"
+            "activeChild": "memory.activeChild"
           },
           "out": {
-            "model.activeChild": "params.activeChild"
+            "memory.activeChild": "pins.activeChild"
           }
         },
         "children": [
           {
-            "send": {
-              "model.blocks": "model.constants.initialBlocks",
-              "model.gallery": "[]",
-              "model.selectedGalleryIndexes": "[]",
-              "model.events": "[{ type: 'began game', time: tools.makeTimestamp(services.time) }]"
+            "emitter": {
+              "memory.blocks": "memory.constants.initialBlocks",
+              "memory.gallery": "[]",
+              "memory.selectedGalleryIndexes": "[]",
+              "memory.events": "[{ type: 'began game', time: transformers.makeTimestamp(io.time) }]"
             }
           },
           {
-            "params": {
+            "pins": {
               "in": {
-                "value": "!model.ageForm.done"
+                "value": "!memory.ageForm.done"
               }
             },
             "children": [
               {
-                "action": "updateHtmlTemplate",
-                "params": {
+                "pins": {
                   "in": {
-                    "htmlService": "services.html",
-                    "modelValues": "model.ageForm",
+                    "htmlService": "io.html",
+                    "memoryValues": "memory.ageForm",
                     "assetName": "'form'",
                     "templateName": "'ageForm'"
                   },
                   "out": {
-                    "services.html": "params.htmlService",
-                    "model.ageForm": "params.modelValues"
+                    "io.html": "pins.htmlService",
+                    "memory.ageForm": "pins.memoryValues"
                   }
-                }
+                },
+                "processor": "updateHtmlTemplate"
               }
             ],
-            "process": "doWhile"
+            "switch": "doWhile"
           },
           {
-            "send": {
-              "model.events": "GE.appendToArray(model.events, { type: 'filled form', time: tools.makeTimestamp(services.time) })"
+            "emitter": {
+              "memory.events": "GE.appendToArray(memory.events, { type: 'filled form', time: transformers.makeTimestamp(io.time) })"
             }
           },
           {
-            "params": {
+            "pins": {
               "in": {
-                "value": "!services.html.receive.blocksForm || !services.html.receive.blocksForm.values.done"
+                "value": "!io.html.receive.blocksForm || !io.html.receive.blocksForm.values.done"
               }
             },
             "children": [
               {
-                "action": "detectMouse",
-                "params": {
+                "pins": {
                   "in": {
-                    "shapes": "tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeMovableBlockShapes(model.constants.grid, model.blocks, tools.rgbColorString(model.constants.blockColor), model.constants.blockSize))",
-                    "shape": "model.mouseDetection.shape",
-                    "mousePosition": "services.mouse.position",
-                    "mouseDown": "services.mouse.down",
-                    "state": "model.mouseDetection.state",
-                    "dragStartPosition": "model.mouseDetection.dragStartPosition"
+                    "shapes": "transformers.translateShapes(transformers.inverseVector(memory.gridTranslation), transformers.makeMovableBlockShapes(memory.constants.grid, memory.blocks, transformers.rgbColorString(memory.constants.blockColor), memory.constants.blockSize))",
+                    "shape": "memory.mouseDetection.shape",
+                    "mousePosition": "io.mouse.position",
+                    "mouseDown": "io.mouse.down",
+                    "state": "memory.mouseDetection.state",
+                    "dragStartPosition": "memory.mouseDetection.dragStartPosition"
                   },
                   "out": {
-                    "model.mouseDetection.state": "params.state",
-                    "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
-                    "model.mouseDetection.shape": "params.shape"
+                    "memory.mouseDetection.state": "pins.state",
+                    "memory.mouseDetection.dragStartPosition": "pins.dragStartPosition",
+                    "memory.mouseDetection.shape": "pins.shape"
                   }
+                },
+                "processor": "detectMouse"
+              },
+              {
+                "emitter": {
+                  "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(memory.gridTranslation), transformers.makeBlockShapes(memory.constants.grid, GE.difference(memory.blocks, memory.highlightedBlocks), transformers.rgbColorString(memory.constants.blockColor), memory.constants.blockSize)))"
                 }
               },
               {
-                "send": {
-                  "services.canvas.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, GE.difference(model.blocks, model.highlightedBlocks), tools.rgbColorString(model.constants.blockColor), model.constants.blockSize)))"
+                "emitter": {
+                  "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(memory.gridTranslation), transformers.makeBlockShapes(memory.constants.grid, memory.highlightedBlocks, transformers.rgbColorString(memory.constants.highlightedBlockColor), memory.constants.blockSize)))"
                 }
               },
               {
-                "send": {
-                  "services.canvas.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(model.gridTranslation), tools.makeBlockShapes(model.constants.grid, model.highlightedBlocks, tools.rgbColorString(model.constants.highlightedBlockColor), model.constants.blockSize)))"
+                "emitter": {
+                  "io.canvas.shapes": "transformers.drawShape({ layer: 'gallery', type: 'rectangle', position: memory.constants.galleryGrid.upperLeft, size: transformers.gridSizeInPixels(memory.constants.galleryGrid), fillStyle: 'grey', strokeStyle: 'white' })"
                 }
               },
               {
-                "send": {
-                  "services.canvas.shapes": "tools.drawShape({ layer: 'gallery', type: 'rectangle', position: model.constants.galleryGrid.upperLeft, size: tools.gridSizeInPixels(model.constants.galleryGrid), fillStyle: 'grey', strokeStyle: 'white' })"
+                "emitter": {
+                  "memory.targetGridTranslation": "transformers.subtractVectors(transformers.meanOfCoordinates(transformers.listBlockCenters(memory.constants.grid, memory.blocks)), transformers.gridCenter(memory.constants.grid))"
                 }
               },
               {
-                "send": {
-                  "model.targetGridTranslation": "tools.subtractVectors(tools.meanOfCoordinates(tools.listBlockCenters(model.constants.grid, model.blocks)), tools.gridCenter(model.constants.grid))"
-                }
-              },
-              {
-                "params": {
+                "pins": {
                   "in": {
-                    "value": "model.targetGridTranslation && tools.distanceBetweenPoints(model.gridTranslation, model.targetGridTranslation) > model.constants.minGridTranslation"
+                    "value": "memory.targetGridTranslation && transformers.distanceBetweenPoints(memory.gridTranslation, memory.targetGridTranslation) > memory.constants.minGridTranslation"
                   }
                 },
                 "children": [
                   {
-                    "send": {
-                      "model.gridTranslation": "tools.interpolateVector(model.gridTranslation, model.targetGridTranslation, 0.5)"
+                    "emitter": {
+                      "memory.gridTranslation": "transformers.interpolateVector(memory.gridTranslation, memory.targetGridTranslation, 0.5)"
                     }
                   }
                 ],
-                "process": "if"
+                "switch": "if"
               },
               {
-                "params": {
+                "pins": {
                   "in": {
-                    "value": "model.mouseDetection.state"
+                    "value": "memory.mouseDetection.state"
                   }
                 },
                 "children": [
                   {
                     "name": "drag",
-                    "params": {
+                    "pins": {
                       "in": {
-                        "value": "services.mouse.position != null"
+                        "value": "io.mouse.position != null"
                       }
                     },
                     "children": [
                       {
-                        "send": {
-                          "services.mouse.cursor": "'move'",
-                          "services.canvas.shapes": "tools.drawShape(tools.makeDraggedShape(model.constants.blockSize, tools.rgbColorString(tools.cyclicInterpolate(model.constants.highlightedBlockColor, model.constants.blockColor, model.dragFrameCounter / model.constants.dragHighlightPeriod)), services.mouse.position))",
-                          "model.dragFrameCounter": "(model.dragFrameCounter + 1) % model.constants.dragHighlightPeriod"
+                        "emitter": {
+                          "io.mouse.cursor": "'move'",
+                          "io.canvas.shapes": "transformers.drawShape(transformers.makeDraggedShape(memory.constants.blockSize, transformers.rgbColorString(transformers.cyclicInterpolate(memory.constants.highlightedBlockColor, memory.constants.blockColor, memory.dragFrameCounter / memory.constants.dragHighlightPeriod)), io.mouse.position))",
+                          "memory.dragFrameCounter": "(memory.dragFrameCounter + 1) % memory.constants.dragHighlightPeriod"
                         }
                       }
                     ],
-                    "process": "if"
+                    "switch": "if"
                   },
                   {
                     "name": "startDrag",
-                    "send": {
-                      "model.blocks": "GE.removeFromArray(model.blocks, model.mouseDetection.shape.meta)",
-                      "model.dragFrameCounter": 0
+                    "emitter": {
+                      "memory.blocks": "GE.removeFromArray(memory.blocks, memory.mouseDetection.shape.meta)",
+                      "memory.dragFrameCounter": 0
                     }
                   },
                   {
                     "name": "endDrag",
-                    "send": {
-                      "model.blockGroupsToBeHighlighted": "tools.makeBlockGroupsToBeHighlighted(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))",
-                      "model.blocks": "GE.appendToArray(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))",
-                      "model.events": "GE.appendToArray(model.events, { type: 'moved tile', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(GE.appendToArray(model.blocks, tools.findDroppedPosition(model.constants.grid, model.blocks, tools.translatePoint(model.gridTranslation, services.mouse.position)))) })"
+                    "emitter": {
+                      "memory.blockGroupsToBeHighlighted": "transformers.makeBlockGroupsToBeHighlighted(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))",
+                      "memory.blocks": "GE.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))",
+                      "memory.events": "GE.appendToArray(memory.events, { type: 'moved tile', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(GE.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))) })"
                     }
                   },
                   {
                     "name": "hover",
-                    "send": {
-                      "services.mouse.cursor": "'pointer'"
+                    "emitter": {
+                      "io.mouse.cursor": "'pointer'"
                     }
                   }
                 ],
-                "process": "when"
+                "switch": "when"
               },
               {
-                "send": {
-                  "services.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: model.gallery.length, canAddShape: model.gallery.length < 12, ready: model.gallery.length >= 5 } }"
+                "emitter": {
+                  "io.html.emitter.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: memory.gallery.length, canAddShape: memory.gallery.length < 12, ready: memory.gallery.length >= 5 } }"
                 }
               },
               {
-                "params": {
+                "pins": {
                   "in": {
-                    "value": "model.blockGroupsToBeHighlighted.length > 0"
+                    "value": "memory.blockGroupsToBeHighlighted.length > 0"
                   }
                 },
                 "children": [
                   {
-                    "send": {
-                      "model.highlightedBlocks": "_.first(model.blockGroupsToBeHighlighted)",
-                      "model.blockGroupsToBeHighlighted": "_.rest(model.blockGroupsToBeHighlighted)"
+                    "emitter": {
+                      "memory.highlightedBlocks": "_.first(memory.blockGroupsToBeHighlighted)",
+                      "memory.blockGroupsToBeHighlighted": "_.rest(memory.blockGroupsToBeHighlighted)"
                     }
                   },
                   {
-                    "send": {
-                      "model.highlightedBlocks": "[]"
+                    "emitter": {
+                      "memory.highlightedBlocks": "[]"
                     }
                   }
                 ],
-                "process": "if"
+                "switch": "if"
               },
               {
-                "params": {
+                "pins": {
                   "in": {
-                    "value": "services.html.receive.blocksForm && services.html.receive.blocksForm.values.addShape"
+                    "value": "io.html.receive.blocksForm && io.html.receive.blocksForm.values.addShape"
                   }
                 },
                 "children": [
                   {
-                    "send": {
-                      "model.gallery": "GE.appendToArray(model.gallery, model.blocks)",
-                      "model.events": "GE.appendToArray(model.events, { type: 'added shape to gallery', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(model.blocks) })"
+                    "emitter": {
+                      "memory.gallery": "GE.appendToArray(memory.gallery, memory.blocks)",
+                      "memory.events": "GE.appendToArray(memory.events, { type: 'added shape to gallery', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(memory.blocks) })"
                     }
                   }
                 ],
-                "process": "if"
+                "switch": "if"
               },
               {
-                "params": {
+                "pins": {
                   "in": {
-                    "value": "model.gallery.length > 0"
+                    "value": "memory.gallery.length > 0"
                   }
                 },
                 "children": [
                   {
-                    "send": {
-                      "services.canvas.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(model.constants.galleryGrid, _.last(model.gallery))), tools.makeBlockShapes(model.constants.galleryGrid, _.last(model.gallery), tools.rgbColorString(model.constants.blockColor), model.constants.galleryBlockSize)))"
+                    "emitter": {
+                      "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(transformers.findCenterOfCells(memory.constants.galleryGrid, _.last(memory.gallery))), transformers.makeBlockShapes(memory.constants.galleryGrid, _.last(memory.gallery), transformers.rgbColorString(memory.constants.blockColor), memory.constants.galleryBlockSize)))"
                     }
                   }
                 ],
-                "process": "if"
+                "switch": "if"
               }
             ],
-            "process": "doWhile"
+            "switch": "doWhile"
           },
           {
-            "send": {
-              "model.selectionGrids": "tools.makeSelectionGalleryGrids(model.constants.selectionGrid, model.constants.galleryGrid, model.gallery)",
-              "model.events": "GE.appendToArray(model.events, { type: 'began gallery selection', time: tools.makeTimestamp(services.time) })"
+            "emitter": {
+              "memory.selectionGrids": "transformers.makeSelectionGalleryGrids(memory.constants.selectionGrid, memory.constants.galleryGrid, memory.gallery)",
+              "memory.events": "GE.appendToArray(memory.events, { type: 'began gallery selection', time: transformers.makeTimestamp(io.time) })"
             }
           },
           {
-            "params": {
+            "pins": {
               "in": {
-                "value": "!services.html.receive.selectionForm || !services.html.receive.selectionForm.values.done"
+                "value": "!io.html.receive.selectionForm || !io.html.receive.selectionForm.values.done"
               }
             },
             "children": [
               {
-                "foreach": {
-                  "from": "model.selectionGrids",
+                "splitter": {
+                  "from": "memory.selectionGrids",
                   "bindTo": "selectionGrid",
                   "index": "selectionGridIndex"
                 },
                 "children": [
                   {
-                    "send": {
-                      "services.canvas.shapes": "tools.drawShapes(tools.makeSelectionGalleryShapes(model.selectionGrids, model.selectedGalleryIndexes))"
+                    "emitter": {
+                      "io.canvas.shapes": "transformers.drawShapes(transformers.makeSelectionGalleryShapes(memory.selectionGrids, memory.selectedGalleryIndexes))"
                     }
                   },
                   {
-                    "send": {
-                      "services.canvas.shapes": "tools.drawShapes(tools.translateShapes(tools.inverseVector(tools.findCenterOfCells(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex])), tools.makeBlockShapes(bindings.selectionGrid, model.gallery[bindings.selectionGridIndex], tools.rgbColorString(model.constants.blockColor), model.constants.galleryBlockSize)))"
+                    "emitter": {
+                      "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(transformers.findCenterOfCells(bindings.selectionGrid, memory.gallery[bindings.selectionGridIndex])), transformers.makeBlockShapes(bindings.selectionGrid, memory.gallery[bindings.selectionGridIndex], transformers.rgbColorString(memory.constants.blockColor), memory.constants.galleryBlockSize)))"
                     }
                   }
                 ]
               },
               {
-                "action": "detectMouse",
-                "params": {
+                "pins": {
                   "in": {
-                    "shapes": "_.map(model.selectionGrids, tools.makeGridCoveringRectangle, tools)",
-                    "shape": "model.mouseDetection.shape",
-                    "mousePosition": "services.mouse.position",
-                    "mouseDown": "services.mouse.down",
-                    "state": "model.mouseDetection.state",
-                    "dragStartPosition": "model.mouseDetection.dragStartPosition"
+                    "shapes": "_.map(memory.selectionGrids, transformers.makeGridCoveringRectangle, transformers)",
+                    "shape": "memory.mouseDetection.shape",
+                    "mousePosition": "io.mouse.position",
+                    "mouseDown": "io.mouse.down",
+                    "state": "memory.mouseDetection.state",
+                    "dragStartPosition": "memory.mouseDetection.dragStartPosition"
                   },
                   "out": {
-                    "model.mouseDetection.state": "params.state",
-                    "model.mouseDetection.dragStartPosition": "params.dragStartPosition",
-                    "model.mouseDetection.shape": "params.shape"
+                    "memory.mouseDetection.state": "pins.state",
+                    "memory.mouseDetection.dragStartPosition": "pins.dragStartPosition",
+                    "memory.mouseDetection.shape": "pins.shape"
                   }
-                }
+                },
+                "processor": "detectMouse"
               },
               {
-                "params": {
+                "pins": {
                   "in": {
-                    "value": "model.mouseDetection.state"
+                    "value": "memory.mouseDetection.state"
                   }
                 },
                 "children": [
                   {
                     "name": "hover",
-                    "send": {
-                      "services.mouse.cursor": "'pointer'"
+                    "emitter": {
+                      "io.mouse.cursor": "'pointer'"
                     }
                   },
                   {
                     "name": "click",
-                    "send": {
-                      "model.selectedGalleryIndexes": "GE.toggleValueInArray(model.selectedGalleryIndexes, model.mouseDetection.shape.meta)",
-                      "model.events": "GE.appendToArray(model.events, { type: 'selected shape', time: tools.makeTimestamp(services.time), shape: tools.serializeBlocks(model.gallery[model.mouseDetection.shape.meta]) })"
+                    "emitter": {
+                      "memory.selectedGalleryIndexes": "GE.toggleValueInArray(memory.selectedGalleryIndexes, memory.mouseDetection.shape.meta)",
+                      "memory.events": "GE.appendToArray(memory.events, { type: 'selected shape', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(memory.gallery[memory.mouseDetection.shape.meta]) })"
                     }
                   }
                 ],
-                "process": "when"
+                "switch": "when"
               },
               {
-                "send": {
-                  "services.html.send.selectionForm": "{ asset: 'selectionForm', values: { done: false, ready: model.selectedGalleryIndexes.length >= 1 } }"
+                "emitter": {
+                  "io.html.emitter.selectionForm": "{ asset: 'selectionForm', values: { done: false, ready: memory.selectedGalleryIndexes.length >= 1 } }"
                 }
               }
             ],
-            "process": "doWhile"
+            "switch": "doWhile"
           },
           {
-            "send": {
-              "model.events": "GE.appendToArray(model.events, { type: 'completed selection', time: tools.makeTimestamp(services.time) })"
+            "emitter": {
+              "memory.events": "GE.appendToArray(memory.events, { type: 'completed selection', time: transformers.makeTimestamp(io.time) })"
             }
           },
           {
-            "send": {
-              "services.http.requests.playerTracking": "{ url: 'http://localhost/', data: tools.makeTrackingString({ age: model.ageForm.age, gender: model.ageForm.gender}, model.events), method: 'POST', contentType: 'application/json; charset=UTF-8',  }"
+            "emitter": {
+              "io.http.requests.playerTracking": "{ url: 'http://localhost/', data: transformers.makeTrackingString({ age: memory.ageForm.age, gender: memory.ageForm.gender}, memory.events), method: 'POST', contentType: 'application/json; charset=UTF-8',  }"
             }
           },
           {
-            "params": {
+            "pins": {
               "in": {
-                "value": "!services.html.receive.thanksForm || !services.html.receive.thanksForm.values.done"
+                "value": "!io.html.receive.thanksForm || !io.html.receive.thanksForm.values.done"
               }
             },
             "children": [
               {
-                "send": {
-                  "services.html.send.thanksForm": "{ asset: 'thanksForm', values: { done: false } }"
+                "emitter": {
+                  "io.html.emitter.thanksForm": "{ asset: 'thanksForm', values: { done: false } }"
                 }
               }
             ],
-            "process": "doWhile"
+            "switch": "doWhile"
           }
         ],
-        "process": "doInSequence"
+        "switch": "doInSequence"
       }
     ],
-    "process": "doInParallel"
+    "switch": "doInParallel"
   },
-  "actions": {
+  "processors": {
     "changeParameterThroughKeyboard": {
-      "paramDefs": {
+      "pinDefs": {
         "parameter": {
           "direction": "inout"
         },
         "keysDown": null,
         "keyMap": null
       },
-      "update": "for (var keyCode in params.keyMap) {\n  if (params.keysDown[keyCode]) {\n    var value = params.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      params.parameter += Number(value);\n    } else {\n      params.parameter = value;\n    }\n    break;\n  }\n}"
-    },
-    "doForSomeTime": {
-      "paramDefs": {
-        "time": null,
-        "timer": {
-          "direction": "inout"
-        }
-      },
-      "update": "if (params.timer++ >= params.time) {\n  params.timer = 0;\n  return GE.signals.DONE;\n}"
+      "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
     },
     "detectMouse": {
-      "paramDefs": {
+      "pinDefs": {
         "shapes": null,
         "shape": {
           "direction": "inout"
@@ -537,66 +528,76 @@
           "default": "5"
         }
       },
-      "update": "if (!params.state)\n  params.state = 'none';\nswitch (params.state) {\ncase 'none':\n  if (params.mousePosition) {\n    for (var i in params.shapes) {\n      if (tools.pointIntersectsShape(params.mousePosition, params.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + params.state);\n        params.state = 'hover';\n        params.shape = params.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!params.mousePosition || !tools.pointIntersectsShape(params.mousePosition, params.shape)) {\n    params.state = 'none';\n    params.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (params.mouseDown) {\n    params.dragStartPosition = params.mousePosition;\n    params.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!params.mouseDown) {\n    params.state = 'click';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(params.dragStartPosition).distanceFrom(Vector.create(params.mousePosition)) >= params.minimumDragDistance) {\n    params.state = 'startDrag';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  params.state = 'hover';\n  break;\ncase 'startDrag':\n  params.state = 'drag';\n  break;\ncase 'drag':\n  if (!params.mouseDown) {\n    params.state = 'endDrag';\n    params.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  params.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + params.state + '\\'');\n}"
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
     },
     "updateHtmlTemplate": {
-      "paramDefs": {
+      "pinDefs": {
         "htmlService": {
           "direction": "inout"
         },
-        "modelValues": {
+        "memoryValues": {
           "direction": "inout"
         },
         "assetName": null,
         "templateName": null
       },
-      "update": "if (!params.htmlService.receive[params.templateName]) {\n  params.htmlService.send[params.templateName] = {\n    asset: params.assetName,\n    values: params.modelValues\n  };\n} else {\n  params.modelValues = params.htmlService.receive[params.templateName].values;\n  params.htmlService.send[params.templateName] = params.htmlService.receive[params.templateName];\n}"
+      "update": "if (!pins.htmlService.receive[pins.templateName]) {\n  pins.htmlService.send[pins.templateName] = {\n    asset: pins.assetName,\n    values: pins.memoryValues\n  };\n} else {\n  pins.memoryValues = pins.htmlService.receive[pins.templateName].values;\n  pins.htmlService.send[pins.templateName] = pins.htmlService.receive[pins.templateName];\n}"
     }
   },
-  "processes": {
+  "switches": {
     "doInParallel": {
       "doc": "Just to place children under it"
     },
     "doInSequence": {
-      "paramDefs": {
+      "pinDefs": {
         "activeChild": {
           "direction": "inout",
           "default": 0
         }
       },
-      "listActiveChildren": "return [params.activeChild];",
-      "handleSignals": "if (signals[params.activeChild] == GE.signals.DONE)\n  params.activeChild++;\nif (params.activeChild > children.length - 1) {\n  params.activeChild = 0;\n  return GE.signals.DONE;\n}"
+      "listActiveChildren": "return [pins.activeChild];",
+      "handleSignals": "if (signals[pins.activeChild] == GE.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return GE.signals.DONE;\n}"
+    },
+    "doForSomeTime": {
+      "pinDefs": {
+        "time": null,
+        "timer": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return children;",
+      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return GE.signals.DONE;\n}"
     },
     "doWhile": {
-      "paramDefs": {
+      "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "return !!params.value ? children : [];",
-      "handleSignals": "if (!params.value)\n  return GE.signals.DONE;"
+      "listActiveChildren": "return !!pins.value ? children : [];",
+      "handleSignals": "if (!pins.value)\n  return GE.signals.DONE;"
     },
     "when": {
-      "paramDefs": {
+      "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "return tools.childByName(children, params.value);"
+      "listActiveChildren": "return transformers.childByName(children, pins.value);"
     },
     "if": {
-      "paramDefs": {
+      "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "return params.value ? [0] : children.length > 1 ? [1] : [];"
+      "listActiveChildren": "return pins.value ? [0] : children.length > 1 ? [1] : [];"
     },
     "sandwich": {
-      "paramDefs": {
+      "pinDefs": {
         "condition": null,
         "started": {
           "direction": "inout"
         }
       },
-      "listActiveChildren": "if (!params.track) {\n  if (!params.condition) {\n    return [0];\n  } else {\n    params.track = true;\n    return [1];\n  }\n} else {\n  if (params.condition) {\n    return [1];\n  } else {\n    params.track = false;\n    return [2];\n  }\n}"
+      "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
     }
   },
-  "tools": {
+  "transformers": {
     "drawShape": {
       "args": [
         "shape",
@@ -638,14 +639,14 @@
         "grid",
         "cell"
       ],
-      "body": "return tools.gridCellToPoint(grid, cell, [\n  0,\n  0\n]);"
+      "body": "return transformers.gridCellToPoint(grid, cell, [\n  0,\n  0\n]);"
     },
     "gridCellCenter": {
       "args": [
         "grid",
         "cell"
       ],
-      "body": "return tools.gridCellToPoint(grid, cell, [\n  0.5,\n  0.5\n]);"
+      "body": "return transformers.gridCellToPoint(grid, cell, [\n  0.5,\n  0.5\n]);"
     },
     "gridCellRectangle": {
       "args": [
@@ -653,7 +654,7 @@
         "cell",
         "meta"
       ],
-      "body": "return {\n  type: 'rectangle',\n  position: tools.gridCellUpperLeft(grid, cell),\n  size: grid.cellSize,\n  meta: meta\n};"
+      "body": "return {\n  type: 'rectangle',\n  position: transformers.gridCellUpperLeft(grid, cell),\n  size: grid.cellSize,\n  meta: meta\n};"
     },
     "gridSizeInPixels": {
       "args": [
@@ -681,7 +682,7 @@
         "center",
         "mousePosition"
       ],
-      "body": "return rotation - tools.calculateRotationAngle(center, mousePosition);"
+      "body": "return rotation - transformers.calculateRotationAngle(center, mousePosition);"
     },
     "calculateRotation": {
       "args": [
@@ -689,7 +690,7 @@
         "center",
         "mousePosition"
       ],
-      "body": "return tools.calculateRotationAngle(center, mousePosition) + rotationOffset;"
+      "body": "return transformers.calculateRotationAngle(center, mousePosition) + rotationOffset;"
     },
     "childByName": {
       "args": [
@@ -704,14 +705,14 @@
         "cell",
         "meta"
       ],
-      "body": "return _.extend(tools.gridCellRectangle(grid, cell, meta), {\n  strokeStyle: 'white',\n  fillStyle: 'white'\n});"
+      "body": "return _.extend(transformers.gridCellRectangle(grid, cell, meta), {\n  strokeStyle: 'white',\n  fillStyle: 'white'\n});"
     },
     "makeGridCoveringRectangle": {
       "args": [
         "grid",
         "meta"
       ],
-      "body": "return {\n  meta: meta,\n  type: 'rectangle',\n  position: grid.upperLeft,\n  size: tools.gridSizeInPixels(grid),\n  strokeStyle: 'white',\n  fillStyle: 'white'\n};"
+      "body": "return {\n  meta: meta,\n  type: 'rectangle',\n  position: grid.upperLeft,\n  size: transformers.gridSizeInPixels(grid),\n  strokeStyle: 'white',\n  fillStyle: 'white'\n};"
     },
     "meanOfCoordinates": {
       "args": [
@@ -724,7 +725,7 @@
         "grid",
         "cells"
       ],
-      "body": "if (cells.length == 0)\n  return [\n    0,\n    0\n  ];\nvar gridCenter = tools.gridCenter(grid);\nvar sum = _.reduce(cells, function (memo, cell) {\n    return [\n      memo[0] + cell[0] + 0.5,\n      memo[1] + cell[1] + 0.5\n    ];\n  }, [\n    0,\n    0\n  ]);\nreturn [\n  sum[0] * grid.cellSize[0] / cells.length - gridCenter[0],\n  sum[1] * grid.cellSize[1] / cells.length - gridCenter[1]\n];"
+      "body": "if (cells.length == 0)\n  return [\n    0,\n    0\n  ];\nvar gridCenter = transformers.gridCenter(grid);\nvar sum = _.reduce(cells, function (memo, cell) {\n    return [\n      memo[0] + cell[0] + 0.5,\n      memo[1] + cell[1] + 0.5\n    ];\n  }, [\n    0,\n    0\n  ]);\nreturn [\n  sum[0] * grid.cellSize[0] / cells.length - gridCenter[0],\n  sum[1] * grid.cellSize[1] / cells.length - gridCenter[1]\n];"
     },
     "listBlockCenters": {
       "args": [
@@ -746,7 +747,7 @@
         "blockColor",
         "blockSize"
       ],
-      "body": "var that = tools;\nreturn _.map(blocks, function (block) {\n  return _.extend(that.gridCellRectangle(grid, block, block), {\n    layer: 'blocks',\n    fillStyle: blockColor,\n    size: blockSize\n  });\n});"
+      "body": "var that = transformers;\nreturn _.map(blocks, function (block) {\n  return _.extend(that.gridCellRectangle(grid, block, block), {\n    layer: 'blocks',\n    fillStyle: blockColor,\n    size: blockSize\n  });\n});"
     },
     "makeMovableBlockShapes": {
       "args": [
@@ -755,7 +756,7 @@
         "blockColor",
         "blockSize"
       ],
-      "body": "var that = tools;\nvar movableBlocks = _.filter(blocks, function (block) {\n    return that.canMoveBlock(blocks, block);\n  });\nreturn _.map(movableBlocks, function (block) {\n  return _.extend(that.gridCellRectangle(grid, block, block), {\n    layer: 'blocks',\n    fillStyle: blockColor,\n    size: blockSize\n  });\n});"
+      "body": "var that = transformers;\nvar movableBlocks = _.filter(blocks, function (block) {\n    return that.canMoveBlock(blocks, block);\n  });\nreturn _.map(movableBlocks, function (block) {\n  return _.extend(that.gridCellRectangle(grid, block, block), {\n    layer: 'blocks',\n    fillStyle: blockColor,\n    size: blockSize\n  });\n});"
     },
     "makeDraggedShape": {
       "args": [
@@ -769,7 +770,7 @@
       "args": [
         "shapes"
       ],
-      "body": "var that = tools;\nreturn _.reduce(shapes, function (memo, shape) {\n  return that.drawShape(shape, memo);\n}, {});"
+      "body": "var that = transformers;\nreturn _.reduce(shapes, function (memo, shape) {\n  return that.drawShape(shape, memo);\n}, {});"
     },
     "blocksAreNeighbors": {
       "args": [
@@ -782,7 +783,7 @@
       "args": [
         "blocks"
       ],
-      "body": "var adjList = _.map(blocks, function () {\n    return [];\n  });\nfor (var i = 0; i < blocks.length - 1; i++) {\n  for (var j = i + 1; j < blocks.length; j++) {\n    if (tools.blocksAreNeighbors(blocks[i], blocks[j])) {\n      adjList[i].push(j);\n      adjList[j].push(i);\n    }\n  }\n}\nreturn adjList;"
+      "body": "var adjList = _.map(blocks, function () {\n    return [];\n  });\nfor (var i = 0; i < blocks.length - 1; i++) {\n  for (var j = i + 1; j < blocks.length; j++) {\n    if (transformers.blocksAreNeighbors(blocks[i], blocks[j])) {\n      adjList[i].push(j);\n      adjList[j].push(i);\n    }\n  }\n}\nreturn adjList;"
     },
     "visitBlocks": {
       "args": [
@@ -796,7 +797,7 @@
         "blocks",
         "block"
       ],
-      "body": "var blocksWithout = tools.removeElement(blocks, GE.indexOf(blocks, block));\nvar adjList = tools.makeAdjacencyList(blocksWithout);\nvar visited = tools.visitBlocks(adjList, [0]);\nreturn _.flatten(visited).length == blocksWithout.length;"
+      "body": "var blocksWithout = transformers.removeElement(blocks, GE.indexOf(blocks, block));\nvar adjList = transformers.makeAdjacencyList(blocksWithout);\nvar visited = transformers.visitBlocks(adjList, [0]);\nreturn _.flatten(visited).length == blocksWithout.length;"
     },
     "findFreeBlockPositions": {
       "args": [
@@ -844,14 +845,14 @@
         "galleryGrid",
         "gallery"
       ],
-      "body": "var that = tools;\nreturn _.map(_.range(gallery.length), function (index) {\n  var cell = that.gridIndexToCell(selectionGrid, index);\n  return {\n    type: 'infinite',\n    'upperLeft': that.gridCellUpperLeft(selectionGrid, cell),\n    'cellSize': galleryGrid.cellSize,\n    'gridSize': galleryGrid.gridSize\n  };\n});"
+      "body": "var that = transformers;\nreturn _.map(_.range(gallery.length), function (index) {\n  var cell = that.gridIndexToCell(selectionGrid, index);\n  return {\n    type: 'infinite',\n    'upperLeft': that.gridCellUpperLeft(selectionGrid, cell),\n    'cellSize': galleryGrid.cellSize,\n    'gridSize': galleryGrid.gridSize\n  };\n});"
     },
     "makeSelectionGalleryShapes": {
       "args": [
         "selectionGrids",
         "selectedGalleryIndexes"
       ],
-      "body": "var that = tools;\nreturn _.map(selectionGrids, function (selectionGrid, index) {\n  return _.extend(that.makeGridCoveringRectangle(selectionGrid, index), {\n    fillStyle: GE.contains(selectedGalleryIndexes, index) ? 'red' : 'grey',\n    strokeStyle: 'white',\n    layer: 'gallery'\n  });\n});"
+      "body": "var that = transformers;\nreturn _.map(selectionGrids, function (selectionGrid, index) {\n  return _.extend(that.makeGridCoveringRectangle(selectionGrid, index), {\n    fillStyle: GE.contains(selectedGalleryIndexes, index) ? 'red' : 'grey',\n    strokeStyle: 'white',\n    layer: 'gallery'\n  });\n});"
     },
     "serializeBlocks": {
       "args": [
@@ -871,14 +872,14 @@
         "blocks",
         "mousePosition"
       ],
-      "body": "var that = tools;\nvar hoveredCell = tools.gridCellAtPoint(grid, mousePosition);\nif (!hoveredCell)\n  return blocks;\nvar freeBlockPositions = tools.findFreeBlockPositions(blocks);\nreturn _.min(freeBlockPositions, function (block) {\n  return that.distanceBetweenPoints(hoveredCell, block);\n});"
+      "body": "var that = transformers;\nvar hoveredCell = transformers.gridCellAtPoint(grid, mousePosition);\nif (!hoveredCell)\n  return blocks;\nvar freeBlockPositions = transformers.findFreeBlockPositions(blocks);\nreturn _.min(freeBlockPositions, function (block) {\n  return that.distanceBetweenPoints(hoveredCell, block);\n});"
     },
     "makeBlockGroupsToBeHighlighted": {
       "args": [
         "blocks",
         "newPosition"
       ],
-      "body": "log(GE.logLevels.INFO, 'makeBlockGroupsToBeHighlighted', arguments);\nvar newBlocks = GE.appendToArray(blocks, newPosition);\nvar adjList = tools.makeAdjacencyList(newBlocks);\nvar visitedBlockIndexes = _.rest(tools.visitBlocks(adjList, [newBlocks.length - 1]));\nreturn _.map(visitedBlockIndexes, function (blockIndexes) {\n  return _.map(blockIndexes, function (index) {\n    return newBlocks[index];\n  });\n});"
+      "body": "log(GE.logLevels.INFO, 'makeBlockGroupsToBeHighlighted', arguments);\nvar newBlocks = GE.appendToArray(blocks, newPosition);\nvar adjList = transformers.makeAdjacencyList(newBlocks);\nvar visitedBlockIndexes = _.rest(transformers.visitBlocks(adjList, [newBlocks.length - 1]));\nreturn _.map(visitedBlockIndexes, function (blockIndexes) {\n  return _.map(blockIndexes, function (index) {\n    return newBlocks[index];\n  });\n});"
     },
     "adjustShapesByMeta": {
       "args": [
@@ -902,7 +903,7 @@
         "end",
         "fraction"
       ],
-      "body": "return fraction < 0.5 ? tools.interpolateVector(start, end, fraction / 0.5) : tools.interpolateVector(end, start, (fraction - 0.5) / 0.5);"
+      "body": "return fraction < 0.5 ? transformers.interpolateVector(start, end, fraction / 0.5) : transformers.interpolateVector(end, start, (fraction - 0.5) / 0.5);"
     },
     "rgbColorString": {
       "args": [

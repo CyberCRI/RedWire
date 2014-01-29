@@ -5,15 +5,15 @@ globals = @
 GE = globals.GE ? {}
 globals.GE = GE
 
-# The logFunction can be reset before visiting each node that calls tools
-GE.toolsLogger = null
+# The logFunction can be reset before visiting each chip that calls transformers
+GE.transformersLogger = null
 
-GE.Model = class 
+GE.Memory = class 
   constructor: (data = {}, @previous = null) -> 
     @data = GE.cloneFrozen(data)
     @version = if @previous? then @previous.version + 1 else 0
 
-  setData: (data) -> return new GE.Model(data, @)
+  setData: (data) -> return new GE.Memory(data, @)
 
   clonedData: -> return GE.cloneData(@data)
 
@@ -31,30 +31,30 @@ GE.Model = class
     if GE.doPatchesConflict(patches) then throw new Error("Patches conflict")
 
     newData = GE.applyPatches(patches, @data)
-    return new GE.Model(newData, @)
+    return new GE.Memory(newData, @)
 
-GE.NodeVisitorConstants = class 
-  # Accepts options for "modelData", "serviceData", "assets", "actions", "tools", and "evaluator"
+GE.ChipVisitorConstants = class 
+  # Accepts options for "memoryData", "ioData", "assets", "processors", "transformers", and "evaluator"
   constructor: (options) -> 
     _.defaults this, options,
-      modelData: {}
-      serviceData: {}
+      memoryData: {}
+      ioData: {}
       assets: {}
-      actions: {}
-      processes: {}
-      tools: {}
+      processors: {}
+      switches: {}
+      transformers: {}
       evaluator: null
 
-GE.NodeVisitorResult = class 
-  constructor: (@result = null, @modelPatches = [], @servicePatches = [], @logMessages = []) ->
+GE.ChipVisitorResult = class 
+  constructor: (@result = null, @memoryPatches = [], @ioPatches = [], @logMessages = []) ->
 
   # Return new results with combination of this and other
   appendWith: (other) ->
     # Don't touch @result
-    newModelPatches = GE.concatenate(@modelPatches, other.modelPatches)
-    newServicePatches = GE.concatenate(@servicePatches, other.servicePatches)
+    newMemoryPatches = GE.concatenate(@memoryPatches, other.memoryPatches)
+    newIoPatches = GE.concatenate(@ioPatches, other.ioPatches)
     newLogMessages = GE.concatenate(@logMessages, other.logMessages)
-    return new GE.NodeVisitorResult(@result, newModelPatches, newServicePatches, newLogMessages)
+    return new GE.ChipVisitorResult(@result, newMemoryPatches, newIoPatches, newLogMessages)
 
 # Class used just to "tag" a string as being a reference rather than a JSON value
 GE.BindingReference = class 
@@ -63,8 +63,8 @@ GE.BindingReference = class
 # Used to compile expressions into executable functions, and to call these functions in the correct context.
 GE.EvaluationContext = class 
   constructor: (@constants, bindings) ->
-    @model = GE.cloneData(@constants.modelData)
-    @services = GE.cloneData(@constants.serviceData)
+    @memory = GE.cloneData(@constants.memoryData)
+    @io = GE.cloneData(@constants.ioData)
     @bindings = {}
     @setupBindings(bindings)
 
@@ -78,11 +78,11 @@ GE.EvaluationContext = class
 
   compileExpression: (expression) -> GE.compileExpression(expression, @constants.evaluator)
 
-  # Params are optional
-  evaluateFunction: (f, params) -> f(@model, @services, @constants.assets, @constants.tools, @bindings, params)
+  # Pins are optional
+  evaluateFunction: (f, pins) -> f(@memory, @io, @constants.assets, @constants.transformers, @bindings, pins)
 
-  # Params are optional
-  evaluateExpression: (expression, params) -> @evaluateFunction(@compileExpression(expression), params)
+  # Pins are optional
+  evaluateExpression: (expression, pins) -> @evaluateFunction(@compileExpression(expression), pins)
 
 GE.extensions =
     IMAGE: ["png", "gif", "jpeg", "jpg"]
@@ -92,15 +92,6 @@ GE.extensions =
 
 # Reject arrays as objects
 GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
-
-# For accessing a value within an embedded object or array
-# Takes a parent object/array and the "path" as an array
-# Returns [parent, key] where parent is the array/object and key w
-GE.getParentAndKey = (parent, pathParts) ->
-  if pathParts.length is 0 then return [parent, null]
-  if pathParts.length is 1 then return [parent, pathParts[0]]
-  if pathParts[0] of parent then return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
-  throw new Error("Cannot find intermediate key '#{pathParts[0]}'")
 
 # Sets a value within an embedded object or array, creating intermediate objects if necessary
 # Takes a root object/array and the "path" as an array of keys
@@ -116,7 +107,7 @@ GE.deepSet = (root, pathParts, value) ->
 
 # Compare new object and old object to create list of patches.
 # The top-level oldValue must be an object
-# Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
+# Using JSON patch format @ http://transformers.ietf.org/html/draft-pbryan-json-patch-04
 # TODO: handle arrays
 # TODO: handle escape syntax
 GE.makePatches = (oldValue, newValue, prefix = "", patches = []) ->
@@ -140,7 +131,7 @@ GE.makePatches = (oldValue, newValue, prefix = "", patches = []) ->
 
 # Takes an oldValue and list of patches and creates a new value
 # The top-level oldValue must be an object
-# Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
+# Using JSON patch format @ http://transformers.ietf.org/html/draft-pbryan-json-patch-04
 # TODO: handle arrays
 # TODO: handle escape syntax
 GE.applyPatches = (patches, oldValue, prefix = "") ->
@@ -190,321 +181,321 @@ GE.addPathToPatches = (path, patches) ->
     patch.path = path
   return patches
 
-# Set default values in paramDefs
-GE.fillParamDefDefaults = (paramDefs) ->
+# Set default values in pinDefs
+GE.fillPinDefDefaults = (pinDefs) ->
   # Cannot use normal "for key, value of" loop because cannot handle replace null values
-  for paramName of paramDefs
-    if not paramDefs[paramName]? then paramDefs[paramName] = {}
-    _.defaults paramDefs[paramName], 
+  for pinName of pinDefs
+    if not pinDefs[pinName]? then pinDefs[pinName] = {}
+    _.defaults pinDefs[pinName], 
       direction: "in"
-  return paramDefs
+  return pinDefs
 
-# Returns an object mapping parameter namaes to their values 
-# Param expressions is an object that contains 'in' and 'out' attributes
-GE.evaluateInputParameters = (evaluationContext, paramDefs, paramExpressions) ->
-  evaluatedParams = {}
+# Returns an object mapping pin expression names to their values 
+# Pin expressions is an object that contains 'in' and 'out' attributes
+GE.evaluateInputPinExpressions = (evaluationContext, pinDefs, pinExpressions) ->
+  evaluatedPins = {}
 
-  # TODO: don't evaluate output parameters here!
-  for paramName, paramOptions of paramDefs
-    # Resolve parameter value. If the layout doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
-    if paramOptions.direction in ["in", "inout"] and paramExpressions.in?[paramName] 
-      paramValue = paramExpressions.in[paramName]
-    else if paramOptions.direction in ["out", "inout"] and paramExpressions.out?[paramName] 
-      paramValue = paramExpressions.out[paramName]
-    else if paramOptions.default? 
-      paramValue = paramOptions.default
-    else if paramOptions.direction in ["in", "inout"]
-      throw new Error("Missing input parameter value for parameter '#{paramName}'")
+  # TODO: don't evaluate output pinexpressions here!
+  for pinName, pinOptions of pinDefs
+    # Resolve pin expression value. If the board doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
+    if pinOptions.direction in ["in", "inout"] and pinExpressions.in?[pinName] 
+      pinValue = pinExpressions.in[pinName]
+    else if pinOptions.direction in ["out", "inout"] and pinExpressions.out?[pinName] 
+      pinValue = pinExpressions.out[pinName]
+    else if pinOptions.default? 
+      pinValue = pinOptions.default
+    else if pinOptions.direction in ["in", "inout"]
+      throw new Error("Missing input pin expression for pin '#{pinName}'")
 
     try
-      evaluatedParams[paramName] = evaluationContext.evaluateExpression(paramValue)
+      evaluatedPins[pinName] = evaluationContext.evaluateExpression(pinValue)
     catch error
-      throw new Error("Error evaluating the input parameter expression '#{paramValue}' for parameter '#{paramName}':\n#{error.stack}")
-  return evaluatedParams
+      throw new Error("Error evaluating the input pin expression expression '#{pinValue}' for pin '#{pinName}':\n#{error.stack}")
+  return evaluatedPins
 
-# Updates the evaluation context by evaluating the output parameter expressions
-# Param expressions is an object that contains 'in' and 'out' attributes
-GE.evaluateOutputParameters = (evaluationContext, paramDefs, paramExpressions, evaluatedParams) ->
-  # Only output parameters should be accessible
-  outParams = _.pick(evaluatedParams, (paramName for paramName, paramOptions of paramDefs when paramOptions.direction in ["out", "inout"]))
+# Updates the evaluation context by evaluating the output pin expressions
+# Pin expressions is an object that contains 'in' and 'out' attributes
+GE.evaluateOutputPinExpressions = (evaluationContext, pinDefs, pinExpressions, evaluatedPins) ->
+  # Only output pinexpressions should be accessible
+  outPins = _.pick(evaluatedPins, (pinName for pinName, pinOptions of pinDefs when pinOptions.direction in ["out", "inout"]))
 
-  for paramName, paramValue of paramExpressions.out
+  for pinName, pinValue of pinExpressions.out
     try
-      outputValue = evaluationContext.evaluateExpression(paramValue, outParams)
+      outputValue = evaluationContext.evaluateExpression(pinValue, outPins)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{paramValue}' for parameter '#{paramName}':\n#{error.stack}\nOutput params were #{JSON.stringify(outParams)}.")
+      throw new Error("Error evaluating the output pin expression '#{pinValue}' for pin '#{pinName}':\n#{error.stack}\nOutput pins were #{JSON.stringify(outPins)}.")
 
-    [parent, key] = GE.getParentAndKey(evaluationContext, paramName.split("."))
+    [parent, key] = GE.getParentAndKey(evaluationContext, pinName.split("."))
     parent[key] = outputValue
 
-GE.calculateBindingSet = (node, constants, oldBindings) ->
+GE.calculateBindingSet = (chip, constants, oldBindings) ->
   bindingSet = []
 
-  # If expression is a JSON object (which includes arrays) then loop over the values. Otherwise make references to model and services
-  if _.isObject(node.foreach.from)
-    for key, value of node.foreach.from
+  # If expression is a JSON object (which includes arrays) then loop over the values. Otherwise make references to memory and io
+  if _.isObject(chip.splitter.from)
+    for key, value of chip.splitter.from
       # Avoid polluting old object, and avoid creating new properties
       newBindings = Object.create(oldBindings)
-      newBindings[node.foreach.bindTo] = value
-      if node.foreach.index? then newBindings["#{node.foreach.index}"] = key
+      newBindings[chip.splitter.bindTo] = value
+      if chip.splitter.index? then newBindings["#{chip.splitter.index}"] = key
 
-      if node.foreach.where?
+      if chip.splitter.where?
         # TODO: compile expressions ahead of time
         evaluationContext = new GE.EvaluationContext(constants, newBindings)
         try
           # If the where clause evaluates to false, don't add it
-          if evaluationContext.evaluateExpression(node.foreach.where) then bindingSet.push(newBindings)
+          if evaluationContext.evaluateExpression(chip.splitter.where) then bindingSet.push(newBindings)
         catch error
-          throw new Error("Error evaluating the where expression '#{node.foreach.where}' for foreach node '#{node}':\n#{error.stack}")
+          throw new Error("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}':\n#{error.stack}")
       else
         bindingSet.push(newBindings)
-  else if _.isString(node.foreach.from)
+  else if _.isString(chip.splitter.from)
     inputContext = 
-      model: GE.cloneData(constants.modelData)
-      services: GE.cloneData(constants.serviceData)
+      memory: GE.cloneData(constants.memoryData)
+      io: GE.cloneData(constants.ioData)
 
-    [parent, key] = GE.getParentAndKey(inputContext, node.foreach.from.split("."))
+    [parent, key] = GE.getParentAndKey(inputContext, chip.splitter.from.split("."))
     boundValue = parent[key]
 
     for key of boundValue
       # Avoid polluting old object, and avoid creating new properties
       newBindings = Object.create(oldBindings)
-      newBindings[node.foreach.bindTo] = new GE.BindingReference("#{node.foreach.from}.#{key}")
-      if node.foreach.index? then newBindings["#{node.foreach.index}"] = key
+      newBindings[chip.splitter.bindTo] = new GE.BindingReference("#{chip.splitter.from}.#{key}")
+      if chip.splitter.index? then newBindings["#{chip.splitter.index}"] = key
 
-      if node.foreach.where?
+      if chip.splitter.where?
         # TODO: compile expressions ahead of time
         evaluationContext = new GE.EvaluationContext(constants, newBindings)
         try
           # If the where clause evaluates to false, don't add it
-          if evaluationContext.evaluateExpression(node.foreach.where) then bindingSet.push(newBindings)
+          if evaluationContext.evaluateExpression(chip.splitter.where) then bindingSet.push(newBindings)
         catch error
-          throw new Error("Error evaluating the where expression '#{node.foreach.where}' for foreach node '#{node}':\n#{error.stack}")
+          throw new Error("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}':\n#{error.stack}")
       else
         bindingSet.push(newBindings)
   else
-    throw new Error("Foreach 'from' must be string or a JSON object")
+    throw new Error("Splitter 'from' must be string or a JSON object")
 
   return bindingSet
 
-GE.visitActionNode = (path, node, constants, bindings) ->
-  if node.action not of constants.actions then throw new Error("Cannot find action '#{node.action}'")
+GE.visitProcessorChip = (path, chip, constants, bindings) ->
+  if chip.processor not of constants.processors then throw new Error("Cannot find processor '#{chip.processor}'")
 
-  action = constants.actions[node.action]
+  processor = constants.processors[chip.processor]
 
   # TODO: compile expressions ahead of time
   evaluationContext = new GE.EvaluationContext(constants, bindings)
-  GE.fillParamDefDefaults(action.paramDefs)
-  evaluatedParams = GE.evaluateInputParameters(evaluationContext, action.paramDefs, node.params)
+  GE.fillPinDefDefaults(processor.pinDefs)
+  evaluatedPins = GE.evaluateInputPinExpressions(evaluationContext, processor.pinDefs, chip.pins)
 
-  result = new GE.NodeVisitorResult()
-  GE.toolsLogger = GE.makeLogFunction(path, result.logMessages)
+  result = new GE.ChipVisitorResult()
+  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
   try
-    methodResult = action.update(evaluatedParams, constants.tools, GE.toolsLogger)
+    methodResult = processor.update(evaluatedPins, constants.transformers, GE.transformersLogger)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    GE.toolsLogger(GE.logLevels.ERROR, "Calling action #{node.action}.update raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}.\n#{e.stack}")
+    GE.transformersLogger(GE.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{e.stack}")
 
-  GE.evaluateOutputParameters(evaluationContext, action.paramDefs, node.params, evaluatedParams)
+  GE.evaluateOutputPinExpressions(evaluationContext, processor.pinDefs, chip.pins, evaluatedPins)
 
   result.result = methodResult
-  result.modelPatches = GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model))
-  result.servicePatches = GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services))
+  result.memoryPatches = GE.addPathToPatches(path, GE.makePatches(constants.memoryData, evaluationContext.memory))
+  result.ioPatches = GE.addPathToPatches(path, GE.makePatches(constants.ioData, evaluationContext.io))
 
   return result
 
-GE.visitProcessNode = (path, node, constants, bindings) ->
-  if node.process not of constants.processes then throw new Error("Cannot find process '#{node.process}'")
+GE.visitSwitchChip = (path, chip, constants, bindings) ->
+  if chip.switch not of constants.switches then throw new Error("Cannot find switch '#{chip.switch}'")
 
-  process = constants.processes[node.process]
-  childNames = if node.children? then (child.name ? index.toString()) for index, child of node.children else []
+  switchChip = constants.switches[chip.switch]
+  childNames = if chip.children? then (child.name ? index.toString()) for index, child of chip.children else []
 
   # TODO: compile expressions ahead of time
   evaluationContext = new GE.EvaluationContext(constants, bindings)
-  GE.fillParamDefDefaults(process.paramDefs)
-  evaluatedParams = GE.evaluateInputParameters(evaluationContext, process.paramDefs, node.params)
+  GE.fillPinDefDefaults(switchChip.pinDefs)
+  evaluatedPins = GE.evaluateInputPinExpressions(evaluationContext, switchChip.pinDefs, chip.pins)
 
-  result = new GE.NodeVisitorResult()
-  GE.toolsLogger = GE.makeLogFunction(path, result.logMessages)
+  result = new GE.ChipVisitorResult()
+  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
   # check which children should be activated
-  if "listActiveChildren" of process
+  if "listActiveChildren" of switchChip
     try
-      activeChildren = process.listActiveChildren(evaluatedParams, childNames, constants.tools, GE.toolsLogger)
-      if not _.isArray(activeChildren) then throw new Error("Calling listActiveChildren() on node '#{node.process}' did not return an array")
+      activeChildren = switchChip.listActiveChildren(evaluatedPins, childNames, constants.transformers, GE.transformersLogger)
+      if not _.isArray(activeChildren) then throw new Error("Calling listActiveChildren() on chip '#{chip.switch}' did not return an array")
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      GE.toolsLogger(GE.logLevels.ERROR, "Calling process #{node.process}.listActiveChildren raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+      GE.transformersLogger(GE.logLevels.ERROR, "Calling switch #{chip.switch}.listActiveChildren raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
   else
     # By default, all children are considered active
     activeChildren = childNames
 
   # Continue with children
-  childSignals = new Array(node.children.length)
+  childSignals = new Array(chip.children.length)
   for childIndex in activeChildren
-    childResult = GE.visitNode(GE.appendToArray(path, childIndex), node.children[childIndex], constants, bindings)
+    childResult = GE.visitChip(GE.appendToArray(path, childIndex), chip.children[childIndex], constants, bindings)
     childSignals[childIndex] = childResult.result
     result = result.appendWith(childResult)
 
   # Handle signals
   # TODO: if handler not defined, propogate error signals upwards? How to merge them?
-  if "handleSignals" of process
+  if "handleSignals" of switchChip
     try
-      signalsResult = process.handleSignals(evaluatedParams, childNames, activeChildren, childSignals, constants.tools, GE.toolsLogger)
+      signalsResult = switchChip.handleSignals(evaluatedPins, childNames, activeChildren, childSignals, constants.transformers, GE.transformersLogger)
 
-      GE.evaluateOutputParameters(evaluationContext, process.paramDefs, node.params, evaluatedParams)
-      modelPatches = GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model))
-      servicePatches = GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services))
+      GE.evaluateOutputPinExpressions(evaluationContext, switchChip.pinDefs, chip.pins, evaluatedPins)
+      memoryPatches = GE.addPathToPatches(path, GE.makePatches(constants.memoryData, evaluationContext.memory))
+      ioPatches = GE.addPathToPatches(path, GE.makePatches(constants.ioData, evaluationContext.io))
 
-      result = result.appendWith(new GE.NodeVisitorResult(signalsResult, modelPatches, servicePatches))
+      result = result.appendWith(new GE.ChipVisitorResult(signalsResult, memoryPatches, ioPatches))
       result.result = signalsResult # appendWith() does not affect result
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      GE.toolsLogger(GE.logLevels.ERROR, "Calling process #{node.process}.handleSignals raised an exception #{e}. Input params were #{JSON.stringify(evaluatedParams)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+      GE.transformersLogger(GE.logLevels.ERROR, "Calling switch #{chip.switch}.handleSignals raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
 
   return result
 
-GE.visitForeachNode = (path, node, constants, oldBindings) ->
-  bindingSet = GE.calculateBindingSet(node, constants, oldBindings)
-  result = new GE.NodeVisitorResult()
+GE.visitSplitterChip = (path, chip, constants, oldBindings) ->
+  bindingSet = GE.calculateBindingSet(chip, constants, oldBindings)
+  result = new GE.ChipVisitorResult()
   for newBindings in bindingSet
     # Continue with children
-    for childIndex, child of (node.children or [])
-      childResult = GE.visitNode(GE.appendToArray(path, childIndex), child, constants, newBindings)
+    for childIndex, child of (chip.children or [])
+      childResult = GE.visitChip(GE.appendToArray(path, childIndex), child, constants, newBindings)
       result = result.appendWith(childResult)
   return result
 
-GE.visitSendNode = (path, node, constants, bindings) ->
-  modelPatches = []
-  servicePatches = []
+GE.visitEmitterChip = (path, chip, constants, bindings) ->
+  memoryPatches = []
+  ioPatches = []
 
   # Return "DONE" signal, so it can be put in sequences
-  result = new GE.NodeVisitorResult(GE.signals.DONE)
-  GE.toolsLogger = GE.makeLogFunction(path, result.logMessages)
+  result = new GE.ChipVisitorResult(GE.signals.DONE)
+  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
-  for dest, src of node.send  
+  for dest, src of chip.emitter  
     evaluationContext = new GE.EvaluationContext(constants, bindings)
 
     try
       outputValue = evaluationContext.evaluateExpression(src)
     catch error
-      throw new Error("Error evaluating the output parameter value expression '#{src}' for send node:\n#{error.stack}")
+      throw new Error("Error evaluating the output pin expression value expression '#{src}' for emitter chip:\n#{error.stack}")
 
     [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
     parent[key] = outputValue
 
-    modelPatches = GE.concatenate(modelPatches, GE.addPathToPatches(path, GE.makePatches(constants.modelData, evaluationContext.model)))
-    servicePatches = GE.concatenate(servicePatches, GE.addPathToPatches(path, GE.makePatches(constants.serviceData, evaluationContext.services)))
+    memoryPatches = GE.concatenate(memoryPatches, GE.addPathToPatches(path, GE.makePatches(constants.memoryData, evaluationContext.memory)))
+    ioPatches = GE.concatenate(ioPatches, GE.addPathToPatches(path, GE.makePatches(constants.ioData, evaluationContext.io)))
   
-  result.modelPatches = modelPatches
-  result.servicePatches = servicePatches
+  result.memoryPatches = memoryPatches
+  result.ioPatches = ioPatches
   return result
 
-GE.nodeVisitors =
-  "action": GE.visitActionNode
-  "process": GE.visitProcessNode
-  "foreach": GE.visitForeachNode
-  "send": GE.visitSendNode
+GE.chipVisitors =
+  "processor": GE.visitProcessorChip
+  "switch": GE.visitSwitchChip
+  "splitter": GE.visitSplitterChip
+  "emitter": GE.visitEmitterChip
 
-# Constants are modelData, assets, actions, processes and serviceData
+# Constants are memoryData, assets, processors, switches and ioData
 # The path is an array of the indices necessary to access the children
-GE.visitNode = (path, node, constants, bindings = {}) ->
-  # TODO: defer action and call execution until whole tree is evaluated?
+GE.visitChip = (path, chip, constants, bindings = {}) ->
+  # TODO: defer processor and call execution until whole tree is evaluated?
   # TODO: handle children as object in addition to array
-  for nodeType, visitor of GE.nodeVisitors
-    if nodeType of node
-      return visitor(path, node, constants, bindings)
+  for chipType, visitor of GE.chipVisitors
+    if chipType of chip
+      return visitor(path, chip, constants, bindings)
 
   result.logMessages.push
     path: path
     level: GE.logLevels.ERROR
-    message: ["Layout item '#{JSON.stringify(node)}' is not understood"]
+    message: ["Board item '#{JSON.stringify(chip)}' is not understood"]
 
-  return new GE.NodeVisitorResult()
+  return new GE.ChipVisitorResult()
 
-# The argument "options" can values for "node", modelData", "assets", "actions", "processes", "tools", "services", "serviceConfig", and "evaluator".
-# By default, checks the services object for input data, visits the tree given in node, and then provides output data to services.
-# If outputServiceData is not null, the loop is not stepped, and the data is sent directly to the services. In this case, no model patches are returned.
-# Otherwise, if inputServiceData is not null, this data is used instead of asking the services.
-# Returns { modelPatches: [...], inputServiceData: {...}, servicePatches: [...], logMessages: [...] }
+# The argument "options" can values for "chip", memoryData", "assets", "processors", "switches", "transformers", "io", "ioConfig", and "evaluator".
+# By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
+# If outputIoData is not null, the loop is not stepped, and the data is sent directly to the io. In this case, no memory patches are returned.
+# Otherwise, if inputIoData is not null, this data is used instead of asking the io.
+# Returns { memoryPatches: [...], inputIoData: {...}, ioPatches: [...], logMessages: [...] }
 GE.stepLoop = (options) ->
   _.defaults options, 
-    node: null
-    modelData: {}
+    chip: null
+    memoryData: {}
     assets: {}
-    actions: {}
-    processes: {}
-    services: {}
-    serviceConfig: {}
+    processors: {}
+    switches: {}
+    io: {}
+    ioConfig: {}
     evaluator: eval
-    inputServiceData: null
-    outputServiceData: null 
+    inputIoData: null
+    outputIoData: null 
 
-  if options.outputServiceData != null
-    modelPatches = []
-    servicePatches = []
+  if options.outputIoData != null
+    memoryPatches = []
+    ioPatches = []
     logMessages = []
   else
-    if options.inputServiceData == null
-      options.inputServiceData = {}
-      for serviceName, service of options.services
-        options.inputServiceData[serviceName] = service.provideData(options.serviceConfig, options.assets)
+    if options.inputIoData == null
+      options.inputIoData = {}
+      for ioName, io of options.io
+        options.inputIoData[ioName] = io.provideData(options.ioConfig, options.assets)
 
-    result = GE.visitNode [], options.node, new GE.NodeVisitorConstants
-      modelData: options.modelData
-      serviceData: options.inputServiceData
+    result = GE.visitChip [], options.chip, new GE.ChipVisitorConstants
+      memoryData: options.memoryData
+      ioData: options.inputIoData
       assets: options.assets
-      actions: options.actions
-      processes: options.processes
-      tools: options.tools
+      processors: options.processors
+      switches: options.switches
+      transformers: options.transformers
       evaluator: options.evaluator
     
-    if GE.doPatchesConflict(result.modelPatches) then throw new Error("Model patches conflict: #{JSON.stringify(result.modelPatches)}")
-    modelPatches = result.modelPatches
+    if GE.doPatchesConflict(result.memoryPatches) then throw new Error("Memory patches conflict: #{JSON.stringify(result.memoryPatches)}")
+    memoryPatches = result.memoryPatches
 
-    if GE.doPatchesConflict(result.servicePatches) then throw new Error("Service patches conflict: #{JSON.stringify(result.servicePatches)}")
-    servicePatches = result.servicePatches
-    options.outputServiceData = GE.applyPatches(result.servicePatches, options.inputServiceData)
+    if GE.doPatchesConflict(result.ioPatches) then throw new Error("IO patches conflict: #{JSON.stringify(result.ioPatches)}")
+    ioPatches = result.ioPatches
+    options.outputIoData = GE.applyPatches(result.ioPatches, options.inputIoData)
 
     logMessages = result.logMessages
 
-  for serviceName, service of options.services
-    service.establishData(options.outputServiceData[serviceName], options.serviceConfig, options.assets)
+  for ioName, io of options.io
+    io.establishData(options.outputIoData[ioName], options.ioConfig, options.assets)
 
-  return { modelPatches: modelPatches, inputServiceData: options.inputServiceData, servicePatches: servicePatches, logMessages: logMessages }
+  return { memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
 
-# Compile expression source into sandboxed function of (model, services, assets, tools, bindings, params) 
-GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["model", "services", "assets", "tools", "bindings", "params"])
+# Compile expression source into sandboxed function of (memory, io, assets, transformers, bindings, pins) 
+GE.compileExpression = (expressionText, evaluator) -> GE.compileSource("return #{expressionText};", evaluator, ["memory", "io", "assets", "transformers", "bindings", "pins"])
 
-# Compile tool source into a function of an "context" object that generates the tools function,
-# baking in the "tools" parameter of "context".
-GE.compileTool = (expressionText, args, evaluator) -> 
+# Compile transformer source into a function of an "context" object that generates the transformers function,
+# baking in the "transformers" pin expression of "context".
+GE.compileTransformer = (expressionText, args, evaluator) -> 
   source = """
     return function(#{args.join(', ')}) { 
-      var tools = context.tools; 
-      var log = GE.toolsLogger; 
+      var transformers = context.transformers; 
+      var log = GE.transformersLogger; 
       #{expressionText} 
     };
   """
   return GE.compileSource(source, evaluator, ["context"])
 
-# Compile action.update() source into sandboxed function of (params, tools, log) 
-GE.compileUpdate = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "tools", "log"])
+# Compile processor.update() source into sandboxed function of (pins, transformers, log) 
+GE.compileUpdate = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["pins", "transformers", "log"])
 
-# Compile action listActiveChildren source into sandboxed function of (params, children, tools, log) 
-GE.compileListActiveChildren = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "tools", "log"])
+# Compile processor listActiveChildren source into sandboxed function of (pins, children, transformers, log) 
+GE.compileListActiveChildren = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["pins", "children", "transformers", "log"])
 
-# Compile action handleSignals source into sandboxed function of (params, children, activeChildren, signals, tools, log) 
-GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["params", "children", "activeChildren", "signals", "tools", "log"])
+# Compile processor handleSignals source into sandboxed function of (pins, children, activeChildren, signals, transformers, log) 
+GE.compileHandleSignals = (expressionText, evaluator) -> GE.compileSource(expressionText, evaluator, ["pins", "children", "activeChildren", "signals", "transformers", "log"])
 
-# Compile source into sandboxed function of params
-GE.compileSource = (expressionText, evaluator, params) ->
+# Compile source into sandboxed function of pins
+GE.compileSource = (expressionText, evaluator, pins) ->
   # Parentheses are needed around function because of strange JavaScript syntax rules
   # TODO: use "new Function" instead of eval? 
   # TODO: add "use strict"?
   # TODO: detect errors
-  functionText = "(function(#{params.join(', ')}) {\n#{expressionText}\n})"
+  functionText = "(function(#{pins.join(', ')}) {\n#{expressionText}\n})"
   expressionFunc = evaluator(functionText)
   if typeof(expressionFunc) isnt "function" then throw new Error("Expression does not evaluate as a function") 
   return expressionFunc
