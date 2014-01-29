@@ -85,16 +85,11 @@ angular.module('gamEvolve.game.board', [
       showDialog 'game/board/editBoardSend.tpl.html', 'EditBoardSendDialogCtrl', chip, (model) ->
         _.extend(chip, model)
       
-  # Listen to clicks on buttons next to each chip on the board, and pass the message 
-  # The path of the chip is encoded in an attribute, either editChip or removeChip
-  $("body").on "click", "a[editChip]", (event) -> 
-    $scope.$apply ->
-      chipPath = JSON.parse($(event.currentTarget).attr("editChip"))
-      $scope.edit(chipPath)
-  $("body").on "click", "a[removeChip]", (event) -> 
-    $scope.$apply ->
-      chipPath = JSON.parse($(event.currentTarget).attr("removeChip"))
-      $scope.remove(chipPath)
+  $scope.$on 'editChipButtonClick', (event, chipPath) ->
+    $scope.edit(chipPath)
+
+  $scope.$on 'removeChipButtonClick', (event, chipPath) ->
+    $scope.remove(chipPath)
 
 
 .controller 'EditBoardSendDialogCtrl', ($scope, liaison, currentGame) ->
