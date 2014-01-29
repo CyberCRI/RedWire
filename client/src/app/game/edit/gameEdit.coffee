@@ -15,6 +15,7 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
   $scope.currentGame = currentGame;
   $scope.board = {}
   $scope.gameHistoryMeta = gameHistory.meta # In order to watch it
+  $scope.gameTime = gameTime;
 
   # When the board changes, update in scope
   updateBoard = -> 

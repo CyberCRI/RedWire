@@ -3,7 +3,7 @@
     <flexy-layout orientation="vertical">
         <block-container style="overflow:scroll; font-size:13px;">
             <h4>Memory</h4>
-            <div class="jsonView" defocus>
+            <div class="jsonView" defocus ng-class="{ notEditable: gameTime.currentFrameNumber > 0}">
                 <json child="memory" type="'object'"></json>
             </div>
         </block-container>
