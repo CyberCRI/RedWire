@@ -40,7 +40,7 @@ angular.module( 'gamEvolve', [
 .controller('AppCtrl', ( $scope, $location ) ->
   $scope.$on '$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) ->
     if angular.isDefined( toState.data.pageTitle )
-      $scope.pageTitle = toState.data.pageTitle + ' | gameEvolve'
+      $scope.pageTitle = toState.data.pageTitle + ' | RedWire'
 )
 
 # Set options for xeditable
