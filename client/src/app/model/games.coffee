@@ -1,33 +1,3 @@
-# These properties need to be converted from JSON strings to objects upon loading, and back to JSON for saving
-JSON_PROPERTIES = [
-  'processors'
-  'assets'
-  'board'
-  'memory'
-  'switches'
-  'io'
-  'transformers'
-]
-
-convertGameVersionFromJson = (gameVersionJson) ->
-  gameVersion = 
-    id: gameVersionJson.id
-    gameId: gameVersionJson.gameId
-    versionNumber: gameVersionJson.versionNumber
-  for propertyName in JSON_PROPERTIES
-    gameVersion[propertyName] = JSON.parse(gameVersionJson[propertyName])
-  return gameVersion
-
-convertGameVersionToJson = (gameVersion) ->
-  gameVersionJson = 
-    id: gameVersion.id
-    gameId: gameVersion.gameId
-    versionNumber: gameVersion.versionNumber
-  for propertyName in JSON_PROPERTIES
-    gameVersionJson[propertyName] = JSON.stringify(gameVersion[propertyName], null, 2)
-  return gameVersionJson
-
-
 angular.module('gamEvolve.model.games', [])
 
 .factory 'currentGame', ->
@@ -35,7 +5,7 @@ angular.module('gamEvolve.model.games', [])
   version: null
   creator: null
 
-.factory 'games', ($http, $q, loggedUser, currentGame) ->
+.factory 'games', ($http, $q, loggedUser, currentGame, gameConverter) ->
   saveInfo = ->
     $http.post('/games', currentGame.info)
       .then (savedGame) ->
@@ -47,8 +17,8 @@ angular.module('gamEvolve.model.games', [])
     
   saveVersion = ->
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
-    $http.post('/game-versions', convertGameVersionToJson(currentGame.version))
-      .then (savedGameVersion) -> currentGame.version = convertGameVersionFromJson(savedGameVersion.data)
+    $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
+      .then (savedGameVersion) -> currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)
 
   # TODO: shouldn't this just define an object rather than returning an object? What's the role of the names?
   saveActions:
@@ -111,7 +81,7 @@ angular.module('gamEvolve.model.games', [])
     getCreator = $http.get("/users?id=#{game.ownerId}")
     updateCurrentGame = ([version, creator]) ->
       currentGame.info = game
-      currentGame.version = convertGameVersionFromJson(version.data[0])
+      currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(version.data[0])
       currentGame.creator = creator.data.username
       console.log("loaded game", currentGame)
     onError = (error) -> console.log("Error loading game", error) # TODO: notify the user of the error

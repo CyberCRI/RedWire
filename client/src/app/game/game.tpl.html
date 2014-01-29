@@ -1,37 +1,40 @@
 <flexy-layout orientation="vertical">
 
     <!-- Header -->
-    <block-container init="80">
+    <block-container init="80" id="headerBar">
         <flexy-layout orientation="horizontal">
             <block-container init="150" class="logo"></block-container>
             <block-container>
                 <div>
-                    <h4>
+                    <h4 id="title">
                         <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a> 
                         by 
                         {{ currentGame.creator }}</a> 
                     </h4>
                     <div ng-controller="TimeCtrl" id="timeController">
                         <div id="recordContainer">
-                            <a class="btn btn-primary" href="#" ng-click="triggerRecord()"><i class="icon-white" ng-class="{'icon-play-circle': !isRecording, 'icon-stop': isRecording}"></i></a>
+                            <div class="btn-group">
+                                <a class="btn btn-primary" href="#" ng-click="triggerRecord()"><i class="icon-white" ng-class="{'icon-play-circle': !isRecording, 'icon-stop': isRecording}"></i></a>
+                                <a class="btn btn-warning" href="#" ng-click="reset()" ng-disabled="disableTimeControls"><i class="icon-white icon-remove"></i></a>
+                            </div>
                         </div>
                         <div id="sliderContainer">
-                            <input type="range" ng-model="currentFrameString" min="0" max="{{lastFrame}}" ng-disabled="{{lastFrame == 0}}" />
+                            <input type="range" ng-model="currentFrameString" min="0" max="{{lastFrame}}" ng-disabled="disableTimeControls" />
                         </div>
                         <div id="frameNumberContainer">
                             <span>{{currentFrame + 1}}/{{lastFrame + 1}}</span>
                         </div>
                         <div id="steppingContainer">
                             <div class="btn-group">
-                                <a class="btn btn" href="#" ng-click="triggerPlay()"><i ng-class="{'icon-play': !isPlaying, 'icon-pause': isPlaying}"></i></a>
+                                <a class="btn btn" href="#" ng-click="triggerPlay()" ng-disabled="disableTimeControls"><i ng-class="{'icon-play': !isPlaying, 'icon-pause': isPlaying}"></i></a>
                             </div>
                             <div class="btn-group">
-                                <a class="btn" href="#" ng-click="stepBackward()"><i class="icon-step-backward"></i></a>
-                                <a class="btn" href="#" ng-click="stepForward()"><i class="icon-step-forward"></i></a>
+                                <a class="btn" href="#" ng-click="stepBackward()" ng-disabled="disableTimeControls"><i class="icon-step-backward"></i></a>
+                                <a class="btn" href="#" ng-click="stepForward()" ng-disabled="disableTimeControls"><i class="icon-step-forward"></i></a>
                             </div>
                             <div class="btn-group">
-                                <a class="btn" href="#" ng-click="jumpToStart()"><i class="icon-fast-backward"></i></a>
-                                <a class="btn" href="#" ng-click="jumpToEnd()"><i class="icon-fast-forward"></i></a>
+                                <a class="btn" href="#" ng-click="jumpToStart()" ng-disabled="disableTimeControls"><i class="icon-fast-backward"></i></a>
+                                <a class="btn" href="#" ng-click="jumpToEnd()" ng-disabled="disableTimeControls"><i class="icon-fast-forward"></i></a>
                             </div>
                         </div>
                     </div>
@@ -41,19 +44,20 @@
                 <div ng-show="user.isLoggedIn()">
                     Welcome, {{user.profile.username}}
                 </div>
-                <div ng-show="user.isLoggedIn() && currentGame.version">
-                    <button ng-click="games.saveCurrent()" class="btn btn-primary">
-                        {{games.getSaveAction().name}} Game
+                <div class="btn-group btn-group-vertical">
+                    <button ng-click="games.saveCurrent()" class="btn btn-primary" ng-show="user.isLoggedIn() && currentGame.version">
+                        {{games.getSaveAction().name}}
                     </button>
-                </div>
-                <div ng-show="user.isNotLoggedIn()">
-                    <button ng-click="users.login('micouz', 'password')" class="btn btn-primary">
+                    <button ng-click="users.login('micouz', 'password')" class="btn btn-small" ng-show="user.isNotLoggedIn()">
                         Login
                     </button>
+                    <button ng-click="gameSelectionDialog.open()" class="btn btn-small">
+                        Load
+                    </button>
+                    <button ng-click="importExportDialog.open()" class="btn btn-small">
+                        Import/Export
+                    </button>
                 </div>
-                <button ng-click="gameSelectionDialog.open()" class="btn btn-primary">
-                    Select a Game
-                </button>
             </block-container>
         </flexy-layout>
     </block-container>

@@ -3,8 +3,8 @@
     <flexy-layout orientation="vertical">
         <block-container style="overflow:scroll; font-size:13px;">
             <h4>Memory</h4>
-            <div class="jsonView" defocus>
-                <json child="board" type="'object'"></json>
+            <div class="jsonView" defocus ng-class="{ notEditable: gameTime.currentFrameNumber > 0}">
+                <json child="memory" type="'object'"></json>
             </div>
         </block-container>
         <block-splitter></block-splitter>
@@ -20,8 +20,7 @@
                     </li>
                 </ul>
 
-                <div file-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop files here</span></div>
-                <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                <div file-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop new assets here</span></div>
             </div>
         </block-container>
     </flexy-layout>

@@ -19,14 +19,14 @@ angular.module('gamEvolve.game', [
         ;
     })
 
-    .controller('GameCtrl', function ($scope, currentGame, games, loggedUser, users, gameSelectionDialog) {
+    .controller('GameCtrl', function ($scope, currentGame, games, loggedUser, users, gameSelectionDialog, importExportDialog) {
         // Binding services
         $scope.currentGame = currentGame;
         $scope.games = games;
         $scope.user = loggedUser;
         $scope.users = users;
         $scope.gameSelectionDialog = gameSelectionDialog;
-
+        $scope.importExportDialog = importExportDialog;
     })
 
 ;

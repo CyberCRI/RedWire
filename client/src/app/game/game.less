@@ -1,3 +1,6 @@
+@red: #cf0404;
+
+
 body {
     position: fixed;
     left: 0;
@@ -13,20 +16,30 @@ body {
 }
 
 .block-content{
-    border:1px solid #000000;
+    border: 0; 
+}
+
+#headerBar {
+    border-bottom: 1px @red solid 
 }
 
 .splitter{
-    background: orange;
+    background: @red;
 }
 
 .ghost {
-    background: orange;
+    background: @red;
     opacity: 0.5;
 }
 
 div.logo {
-	background-image:url(images/logo.gif);
+    background-image: url(images/logo.png);
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#title {
+    text-align: center;
 }
 
 
@@ -35,6 +48,7 @@ div.logo {
 @import 'assets/assets.less';
 @import 'board/editBoard.less';
 @import 'edit/gameEdit.less';
+@import 'import/import.less';
 @import 'layers/layers.less';
 @import 'log/log.less';
 @import 'player/player.less';

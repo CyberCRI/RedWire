@@ -5,6 +5,7 @@ angular.module('gamEvolve.game.time', [])
   $scope.lastFrame = 100
   $scope.isPlaying = false
   $scope.isRecording = false
+  $scope.disableTimeControls = true
 
   $scope.jumpToStart = -> $scope.currentFrame = 0
   $scope.jumpToEnd = -> $scope.currentFrame = $scope.lastFrame
@@ -13,9 +14,17 @@ angular.module('gamEvolve.game.time', [])
   $scope.triggerPlay = -> $scope.isPlaying = !$scope.isPlaying
   $scope.triggerRecord = -> $scope.isRecording = !$scope.isRecording
 
+  $scope.reset = -> 
+    frameCount = gameHistory.data.frames.length
+    if frameCount > 1
+      gameHistory.data.frames.splice(1, frameCount - 1)
+      gameHistory.meta.version++
+      gameTime.currentFrameNumber = 0
+
   onUpdateModel = ->
     $scope.currentFrame = gameTime.currentFrameNumber
     $scope.lastFrame = Math.max(0, gameHistory.data.frames.length - 1)
+    $scope.disableTimeControls = gameHistory.data.frames.length < 2 or $scope.isPlaying
 
   onPlayFrame = ->
     if not $scope.isPlaying then return

@@ -11,10 +11,12 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.logger'
   'gamEvolve.util.tree'
   'gamEvolve.util.boardConverter'
+  'gamEvolve.util.gameConverter'
   'gamEvolve.game'
   'gamEvolve.game.assets'
   'gamEvolve.game.board'
   'gamEvolve.game.edit'
+  'gamEvolve.game.import'
   'gamEvolve.game.layers'
   'gamEvolve.game.log'
   'gamEvolve.game.player'
@@ -38,7 +40,7 @@ angular.module( 'gamEvolve', [
 .controller('AppCtrl', ( $scope, $location ) ->
   $scope.$on '$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) ->
     if angular.isDefined( toState.data.pageTitle )
-      $scope.pageTitle = toState.data.pageTitle + ' | gameEvolve'
+      $scope.pageTitle = toState.data.pageTitle + ' | RedWire'
 )
 
 # Set options for xeditable
