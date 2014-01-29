@@ -14,10 +14,10 @@ angular.module('gamEvolve.game.time', [])
   $scope.triggerPlay = -> $scope.isPlaying = !$scope.isPlaying
   $scope.triggerRecord = -> $scope.isRecording = !$scope.isRecording
 
-  $scope.removeHistory = -> 
+  $scope.reset = -> 
     frameCount = gameHistory.data.frames.length
     if frameCount > 1
-      gameHistory.data.frames.splice(0, frameCount - 1)
+      gameHistory.data.frames.splice(1, frameCount - 1)
       gameHistory.meta.version++
       gameTime.currentFrameNumber = 0
 
