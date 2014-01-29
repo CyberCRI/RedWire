@@ -44,6 +44,7 @@ angular.module('gamEvolve.util.jstree', [])
                         },
                         "dnd" : dnd,
                         "types" : types,
+                        "core": { html_titles: true },
                         "plugins" : [ "themes", "ui", "json_data", "dnd", "types", "wholerow", "crrm" ]
                     });
                 });
