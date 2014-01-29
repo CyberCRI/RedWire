@@ -1,13 +1,22 @@
+messageToString = (message) ->
+  messageParts = for value in message 
+    if _.isString(value) then value else JSON.stringify(value) 
+  return messageParts.join("  ")
+
+firstLine = (str) ->
+  index = str.indexOf("\n")
+  return if index is -1 then str else str.slice(0, index)
+
+
 angular.module('gamEvolve.game.log', [])
 .controller('LogCtrl', ($scope, gameHistory) ->
   # Format a message. Leave strings alone, and format other values as JSON
-  messageToString = (message) ->
-    messageParts = for value in message 
-      if _.isString(value) then value else JSON.stringify(value) 
-    return messageParts.join("  ")
-
   onUpdateGameHistory = () ->
     $scope.text = ""
+    if gameHistory.data.compilationErrors.length > 0
+      $scope.text += "COMPILATION ERRORS:\n"
+      for error in gameHistory.data.compilationErrors
+        $scope.text += "  #{firstLine(error)}\n"
     for index, frame of gameHistory.data.frames
       if frame.logMessages.length > 0
         $scope.text += "FRAME #{parseInt(index) + 1}:\n"

@@ -1,16 +1,95 @@
 {
-  "name": "Stupendous Space Battle",
+  "name": "Stupendous Side-Scrolling Space Shooter",
   "fileVersion": 0.1,
-  "memory": { },
-  "io": {
-    "layers": [
+    "memory": {
+    "starfield": [],
+    "hero": {
+      "position": [
+        50,
+        270
+      ]
+    }
+  },
+  "board": {
+    "switch": "Do in parallel",
+    "comment": "",
+    "children": [
       {
-        "name": "bg",
-        "type": "canvas"
+        "comment": "Draw the black of space",
+        "emitter": {
+          "io.canvas.shapes": "transfomers.drawShape({ type: 'rectangle', layer: 'space', position: [0, 0], size: services.canvas.size, fillStyle: 'black' })"
+        }
+      },
+      {
+        "comment": "Draw player's spaceship",
+        "emitter": {
+          "io.canvas.shapes": "transfomers.drawShape({ type: 'image', asset: 'hero', layer: 'ships', position: hero.position })"
+        }
+      },
+      {
+        "comment": "Draw starfield",
+        "emitter": {
+          "io.canvas.shapes": "transfomers.drawStarfield(memory.starfield)"
+        }
+      },
+      {
+        "switch": "Do in Sequence",
+        "comment": "First initialize the starfield, then keep updating it",
+        "children": [
+          {
+            "comment": "Let there be stars!",
+            "emitter": {
+              "memory.starfield": "transformers.initializeStars(50, io.canvas.size)"
+            }
+          },
+          {
+            "switch": "Do Forever",
+            "comment": "",
+            "children": [
+              {
+                "comment": "Update starfield",
+                "emitter": {
+                  "memory.starfield": "transfomers.updateStarfield(memory.starfield, io.canvas.size)"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "processor": "Change Parameter Through Keyboard",
+        "params": {
+          "in": {
+            "parameter": "memory.hero.position[0]",
+            "keysDown": "services.keyboard.keysDown",
+            "keyMap": "model.constants.rotationKeyMap"
+          },
+          "out": {
+            "bindings.selectedPiece.rotation": "params.parameter"
+          }
+        }
       }
     ]
   },
-  "board": { },
+  "io": {
+    "layers": [
+      {
+        "name": "space",
+        "type": "canvas",
+        "$$hashKey": "02O"
+      },
+      {
+        "name": "stars",
+        "type": "canvas",
+        "$$hashKey": "02S"
+      },
+      {
+        "name": "ships",
+        "type": "canvas",
+        "$$hashKey": "02W"
+      }
+    ]
+  },
   "processors": {
     "Change Parameter through Keyboard": {
       "pinDefs": {
@@ -40,7 +119,7 @@
           "default": "5"
         }
       },
-      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.povarVarersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.povarVarersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
     }
   },
   "switches": {
@@ -74,6 +153,11 @@
       "listActiveChildren": "return !!pins.value ? children : [];",
       "handleSignals": "if (!pins.value)\n  return GE.signals.DONE;"
     },
+    "Do Forever": {
+      "pinDefs": {},
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
     "When": {
       "pinDefs": {
         "value": null
@@ -104,12 +188,12 @@
       ],
       "body": "var shapes = oldShapes || {};\nshapes[_.uniqueId()] = shape;\nreturn shapes;"
     },
-    "pointIntersectsShape": {
+    "povarVarersectsShape": {
       "args": [
-        "point",
+        "povar",
         "shape"
       ],
-      "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.center);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(point));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var pointInShapeFrame = Vector.create(point);\n  if (shape.translation)\n    pointInShapeFrame = pointInShapeFrame.subtract(shape.translation);\n  return pointInShapeFrame.elements[0] >= shape.position[0] && pointInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && pointInShapeFrame.elements[1] >= shape.position[1] && pointInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
+      "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.center);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(povar));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var povarInShapeFrame = Vector.create(povar);\n  if (shape.translation)\n    povarInShapeFrame = povarInShapeFrame.subtract(shape.translation);\n  return povarInShapeFrame.elements[0] >= shape.position[0] && povarInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && povarInShapeFrame.elements[1] >= shape.position[1] && povarInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
     },
     "removeElement": {
       "args": [
@@ -142,14 +226,14 @@
       "args": [
         "pieces"
       ],
-      "body": "var printed = '{';\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (printed !== '{') {\n    printed += ', ';\n  }\n  printed += transformers.pieceToString(piece);\n}\nprinted += '}';\nreturn printed;"
+      "body": "var prvared = '{';\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (prvared !== '{') {\n    prvared += ', ';\n  }\n  prvared += transformers.pieceToString(piece);\n}\nprvared += '}';\nreturn prvared;"
     },
     "distance": {
       "args": [
-        "point1",
-        "point2"
+        "povar1",
+        "povar2"
       ],
-      "body": "var point1x = point1[0] || point1.x;\nvar point1y = point1[1] || point1.y;\nvar point2x = point2[0] || point2.x;\nvar point2y = point2[1] || point2.y;\nvar diffX = point1x - point2x;\nvar diffY = point1y - point2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
+      "body": "var povar1x = povar1[0] || povar1.x;\nvar povar1y = povar1[1] || povar1.y;\nvar povar2x = povar2[0] || povar2.x;\nvar povar2y = povar2[1] || povar2.y;\nvar diffX = povar1x - povar2x;\nvar diffY = povar1y - povar2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
     },
     "calculateRotationAngle": {
       "args": [
@@ -180,6 +264,26 @@
         "value"
       ],
       "body": "var childIndex = GE.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
+    },
+    "initializeStarfield": {
+      "args": [
+        "count",
+        "screenSize"
+      ],
+      "body": "var stars = []; for(var i = 0; i < count; i++) { stars.push({ position: [Math.random()*io.canvas.size[0], Math.random()*io.canvas.size[1]], velocity: 5 }); } return stars;"
+    },
+    "updateStarfield": {
+      "args": [
+        "starfield",
+        "screenSize"
+      ],
+      "body": "var stars = []; \nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    if(star.position[0] < 0) {\n        memory.stars.push({ \n            position: [io.canvas.size[0], Math.random() * io.canvas.size[1]]\n        });\n    }\n    else { \n        stars.push({ position: [star.position[0] - star.velocity, star.position[1]], velocity: star.velocity }); \n    } \n}\nreturn stars;"
+    },
+    "drawStarfield": {
+      "args": [
+        "starfeld"
+      ],
+      "body": "var shapes = []; for(var i = 0; i < starfield.length; i++) { var star = starfield[i]; shapes.push({ type: 'image', asset: 'star', layer: 'stars', position: star.position }); } return tools.drawShapes(shapes);"
     }
   },
   "assets": {}

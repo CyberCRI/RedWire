@@ -19,22 +19,31 @@ angular.module('gamEvolve.game.player', [])
     message = e.data
 
     if message.type is "error"
-      console.error("Puppet reported error", message.error)
+      console.error("Puppet reported error on operation #{message.operation}.",  message.error)
     else
-      console.log("Puppet reported success", message)
+      console.log("Puppet reported success on operation #{message.operation}.", message)
 
     # TODO: handle errors in recording and update
 
     switch message.operation
       when "loadGameCode"
-        # Once the game is loaded
-        if gameHistory.data.frames.length > 0
-          # If there are already frames, then update them 
-          inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
-          sendMessage("updateFrames", { memory: gameHistory.data.frames[0].memory, inputIoDataFrames })
+        if message.type is "error"
+          $scope.$apply ->
+            gameHistory.data.compilationErrors = [message.error]
+            gameHistory.meta.version++
         else
-          # Else just record the first frame
-          sendMessage("recordFrame", { memory: gameCode.memory })
+          # The game loaded successfully
+          $scope.$apply ->
+            gameHistory.data.compilationErrors = []
+            gameHistory.meta.version++
+
+          if gameHistory.data.frames.length > 0
+            # If there are already frames, then update them 
+            inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
+            sendMessage("updateFrames", { memory: gameHistory.data.frames[0].memory, inputIoDataFrames })
+          else
+            # Else just record the first frame
+            sendMessage("recordFrame", { memory: gameCode.memory })
       when "recordFrame"
         # Set the first frame
         $scope.$apply ->

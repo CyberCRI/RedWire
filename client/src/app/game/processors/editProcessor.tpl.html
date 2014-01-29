@@ -16,7 +16,7 @@
 			<a class="btn" ng-click="addPin()"><i class="icon-plus"></i></a>
 
 			<h4>Program</h4>
-			<div ui-ace="{ onLoad : aceLoaded, mode: 'ace/mode/javascript', theme: 'twilight' }" ng-model="updateText"></div>
+			<div ui-ace="{ onLoad : aceLoaded, mode: 'ace/mode/javascript', theme: 'twilight', useWrapMode: true }" ng-model="updateText"></div>
 		</div>
 		<div class="modal-footer">
 			<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
