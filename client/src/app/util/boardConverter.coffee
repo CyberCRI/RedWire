@@ -1,6 +1,6 @@
 generateText = (source) ->
-  if "process" of source then "Switch"
-  else if "action" of source then "Processor"
+  if "process" of source then "Switch - " + source.process
+  else if "action" of source then "Processor - " + source.action
   else if "send" of source then "Emitter"
   else if "foreach" of source then "Splitter"
   else throw new Error("Cannot find type of chip #{source}")
@@ -29,10 +29,12 @@ angular.module('gamEvolve.util.boardConverter', [])
         state = 'open' # Only the root node is opened by default
       converted =
         data: generateText(source) + makeChipButtons(path)
-        attr : { rel : generateType(source) },
+        attr:
+          rel: generateType(source)
         state: state
         metadata:
-          source: JSON.parse(JSON.stringify(source)); # Copy source
+          source: JSON.parse(JSON.stringify(source)) # Copy source
+          path: path
       delete converted.metadata.source.children
       converted.children = []
       if source.children?

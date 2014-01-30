@@ -44,4 +44,3 @@ angular.module( 'gamEvolve', [
 # Set options for xeditable
 .run (editableOptions) ->
   editableOptions.theme = "bs2"
-

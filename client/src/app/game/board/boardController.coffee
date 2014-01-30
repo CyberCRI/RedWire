@@ -1,3 +1,5 @@
+# TODO Delete - The next two methods are now in currentGame service
+
 # For accessing a chip within a board via it's path
 # Takes the board object and the "path" as an array
 # Returns [parent, key] where parent is the parent chip and key is last one required to access the child

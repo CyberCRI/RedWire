@@ -27,6 +27,20 @@ convertGameVersionToJson = (gameVersion) ->
     gameVersionJson[propertyName] = JSON.stringify(gameVersion[propertyName], null, 2)
   return gameVersionJson
 
+# For accessing a chip within a board via it's path
+# Takes the board object and the "path" as an array
+# Returns [parent, key] where parent is the parent chip and key is last one required to access the child
+getBoardParentAndKey = (parent, pathParts) ->
+  if pathParts.length is 0 then return [parent, null]
+  if pathParts.length is 1 then return [parent, pathParts[0]]
+  if pathParts[0] < parent.children.length then return getBoardParentAndKey(parent.children[pathParts[0]], _.rest(pathParts))
+  throw new Error("Cannot find intermediate key '#{pathParts[0]}'")
+
+getBoardChip = (parent, pathParts) ->
+  if pathParts.length is 0 then return parent
+  [foundParent, index] = getBoardParentAndKey(parent, pathParts)
+  return foundParent.children[index]
+
 
 angular.module('gamEvolve.model.games', [])
 
@@ -34,6 +48,8 @@ angular.module('gamEvolve.model.games', [])
   info: null
   version: null
   creator: null
+  getTreeNode: (path) ->
+    getBoardChip(@version.layout, path)
 
 .factory 'games', ($http, $q, loggedUser, currentGame) ->
   saveInfo = ->
