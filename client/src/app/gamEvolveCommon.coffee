@@ -141,3 +141,8 @@ GE.getParentAndKey = (parent, pathParts) ->
   if pathParts.length is 1 then return [parent, pathParts[0]]
   if pathParts[0] of parent then return GE.getParentAndKey(parent[pathParts[0]], _.rest(pathParts))
   throw new Error("Cannot find intermediate key '#{pathParts[0]}'")
+
+# Return the beginning of a string, up to the first newline
+GE.firstLine = (str) ->
+  index = str.indexOf("\n")
+  return if index is -1 then str else str.slice(0, index)

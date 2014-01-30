@@ -19,7 +19,7 @@ angular.module('gamEvolve.game.player', [])
     message = e.data
 
     if message.type is "error"
-      console.error("Puppet reported error on operation #{message.operation}.",  message.error)
+      console.error("Puppet reported error on operation #{message.operation}.", message.error)
     else
       console.log("Puppet reported success on operation #{message.operation}.", message)
 
@@ -29,7 +29,7 @@ angular.module('gamEvolve.game.player', [])
       when "loadGameCode"
         if message.type is "error"
           $scope.$apply ->
-            gameHistory.data.compilationErrors = [message.error]
+            gameHistory.data.compilationErrors = [GE.firstLine(message.error)]
             gameHistory.meta.version++
         else
           # The game loaded successfully
@@ -37,7 +37,7 @@ angular.module('gamEvolve.game.player', [])
             gameHistory.data.compilationErrors = []
             gameHistory.meta.version++
 
-          if gameHistory.data.frames.length > 0
+          if gameHistory.data.frames.length > 0 and not gameHistory.data.frames[0].error?
             # If there are already frames, then update them 
             inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
             sendMessage("updateFrames", { memory: gameHistory.data.frames[0].memory, inputIoDataFrames })
@@ -45,13 +45,27 @@ angular.module('gamEvolve.game.player', [])
             # Else just record the first frame
             sendMessage("recordFrame", { memory: gameCode.memory })
       when "recordFrame"
-        # Set the first frame
         $scope.$apply ->
-          newFrame = 
-            memory: gameCode.memory # Initial memory
-            inputIoData: message.value.inputIoData 
-            ioPatches: message.value.ioPatches
-            logMessages: message.value.logMessages 
+          # Set the first frame
+          newFrame = null
+          if message.type is "error"
+            newFrame = 
+              memory: gameCode.memory # Initial memory
+              inputIoData: null
+              ioPatches: null
+              logMessages: [ 
+                { 
+                  path: []
+                  level: GE.logLevels.ERROR
+                  message: [GE.firstLine(message.error)] 
+                }
+              ]
+          else
+            newFrame = 
+              memory: gameCode.memory # Initial memory
+              inputIoData: message.value.inputIoData 
+              ioPatches: message.value.ioPatches
+              logMessages: message.value.logMessages 
           gameHistory.data.frames = [newFrame]
           gameHistory.meta.version++
           gameTime.currentFrameNumber = 0

@@ -198,7 +198,7 @@ onUpdateFrames = (memory, inputIoDataFrames) ->
       results.push(result)
     catch e
       console.log("Error in update frames", e)
-      results.push({ error: e })
+      results.push({ error: e.stack })
       return results # Return right away
 
   return results
