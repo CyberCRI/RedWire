@@ -4,7 +4,7 @@ String::capitalize = ->
 
 generateText = (source) ->
   if "switch" of source then "Switch - " + source.process
-  else if "processor" of source then "Processor - " + source.action
+  else if "processor" of source then "Processor - " + source.processor
   else if "emitter" of source then "Emitter"
   else if "splitter" of source then "Splitter"
   else throw new Error("Cannot find type of chip #{source}")
@@ -14,7 +14,7 @@ generateType = (source) ->
   if source.process
     'switch'
   else
-    'action'
+    'processor'
 
 pathToString = (path) -> "[#{path.join(",")}]" 
 

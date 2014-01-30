@@ -5,10 +5,10 @@ angular.module('gamEvolve.util.jstree', [])
 
         var dnd = {
             'drag_check' : function (data) {
-                if(data.r.attr('rel') === 'action') { // No dropping in actions
+                if(data.r.attr('rel') === 'processor') { // No dropping in processors
                     return false;
                 }
-                // For simplicity's sake, DnD is allowed only for adding actions INSIDE tree nodes
+                // For simplicity's sake, DnD is allowed only for adding processors INSIDE tree nodes
                 return {
                     after : false,
                     before : false,
@@ -16,11 +16,11 @@ angular.module('gamEvolve.util.jstree', [])
                 };
             },
             'drag_finish' : function (data) {
-                var actionId = data.o.attributes['action-id'].nodeValue;
+                var processorId = data.o.attributes['processor-id'].nodeValue;
                 var path = data.r.data('path');
                 var target = currentGame.getTreeNode(path);
                 var source = {
-                    action: actionId,
+                    processor: processorId,
                     params: { in: {}, out: {} }
                 };
                 target.children.unshift(source);
@@ -34,8 +34,8 @@ angular.module('gamEvolve.util.jstree', [])
                         'image' : '/assets/images/switch.png'
                     }
                 },
-                'action' : {
-                    'valid_children' : [] // Actions are leafs in the tree
+                'processor' : {
+                    'valid_children' : [] // Processors are leafs in the tree
                 }
             }
         };

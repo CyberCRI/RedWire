@@ -10,6 +10,7 @@ JSON_PROPERTIES = [
 ]
 
 angular.module('gamEvolve.util.gameConverter', [])
+
 .factory "gameConverter", ->
   convertGameVersionFromEmbeddedJson: (gameVersionJson) ->
     gameVersion = 
