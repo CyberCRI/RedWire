@@ -23,13 +23,13 @@ In terms of development, we follow [Beck's Directive]:
 Testing it
 ----------
 
-Just check out our [deployed version](http://cybercri.github.io/RedWire) on gh-pages!
+Just check out our [deployed version](http://cybercri.github.io/RedWire) on gh-pages! Please note that this is an older version of RedWire.
 
 
 Getting Started
 ---------------
 
-To get the application up and running, check our [Getting Started](https://github.com/CyberCRI/RedWire/wiki/Getting-Started) Page
+To get the application up and running, check our [Getting Started](https://github.com/CyberCRI/RedWire/wiki/Getting-Started) Page. Please note that you should checkout the dev branch to get the latest version.
 
 
 Wiki
