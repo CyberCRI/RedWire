@@ -37,13 +37,6 @@ angular.module('gamEvolve.game.board', [
 ])
 
 .controller 'BoardCtrl', ($scope, $dialog, currentGame) ->
-  # Get the layout object from the currentGame service, and keep it updated
-  $scope.layout = {}
-
-  # Bring currentGame into scope so we can watch it 
-  updateBoard = -> $scope.layout = currentGame.version?.layout
-  $scope.currentGame = currentGame
-  $scope.$watch('currentGame', updateBoard, true)
 
   showDialog = (templateUrl, controller, model, onDone) -> 
     dialog = $dialog.dialog
@@ -67,12 +60,11 @@ angular.module('gamEvolve.game.board', [
     dialog.open()
 
   $scope.remove = (path) ->
-    [parent, index] = getBoardParentAndKey(currentGame.version.layout, path)
+    [parent, index] = getBoardParentAndKey(currentGame.version.board, path)
     parent.children.splice(index, 1) # Remove that child
 
-  $scope.edit = (path) -> 
-    chip = getBoardChip(currentGame.version.layout, path)
-
+  $scope.edit = (path) ->
+    chip = getBoardChip(currentGame.version.board, path)
     # Determine type of chip
     if "action" of chip
       showDialog 'game/board/editBoardAction.tpl.html', 'EditBoardActionDialogCtrl', chip, (model) ->

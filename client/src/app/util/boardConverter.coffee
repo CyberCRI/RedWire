@@ -11,7 +11,7 @@ generateText = (source) ->
 
 # TODO: expand this list
 generateType = (source) ->
-  if source.process
+  if source.switch
     'switch'
   else
     'processor'

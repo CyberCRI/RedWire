@@ -103,5 +103,4 @@ angular.module('gamEvolve.model.games', [])
       currentGame.creator = creator.data.username
       console.log("loaded game", currentGame)
     onError = (error) -> console.log("Error loading game", error) # TODO: notify the user of the error
-
     $q.all([getVersion, getCreator]).then(updateCurrentGame, onError)
