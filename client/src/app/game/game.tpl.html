@@ -48,13 +48,13 @@
                     <button ng-click="games.saveCurrent()" class="btn btn-primary" ng-show="user.isLoggedIn() && currentGame.version">
                         {{games.getSaveAction().name}}
                     </button>
-                    <button ng-click="users.login('micouz', 'password')" class="btn btn-small" ng-show="user.isNotLoggedIn()">
+                    <button ng-click="loginDialog.open();" class="btn btn-small" ng-show="user.isNotLoggedIn()">
                         Login
                     </button>
-                    <button ng-click="gameSelectionDialog.open()" class="btn btn-small">
+                    <button ng-click="gameSelectionDialog.open();" class="btn btn-small">
                         Load
                     </button>
-                    <button ng-click="importExportDialog.open()" class="btn btn-small">
+                    <button ng-click="importExportDialog.open();" class="btn btn-small">
                         Import/Export
                     </button>
                 </div>

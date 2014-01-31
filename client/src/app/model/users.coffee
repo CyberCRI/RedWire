@@ -20,3 +20,10 @@ angular.module('gamEvolve.model.users', [])
           loggedUser.profile = user
           deferred.resolve(user)
       deferred.promise
+
+    logout: ->
+      loggedUser.profile = null
+
+    findByEmail: (email) ->
+      # TODO
+#      $http.get('/users/{email: email}')

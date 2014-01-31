@@ -1,0 +1,26 @@
+<div class="modal-header">
+    <h3>Login</h3>
+</div>
+<div class="modal-body">
+    <table>
+        <tr>
+            <td>Username : </td>
+            <td><input ng-model="username" /></td>
+        </tr>
+        <tr>
+            <td>Email : </td>
+            <td><input ng-model="email" /></td>
+        </tr>
+        <tr>
+            <td>Password : </td>
+            <td><input ng-model="password" /></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><button ng-click="login()" ng-disabled="!isValid()">Login</button></td>
+        </tr>
+    </table>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+</div>
