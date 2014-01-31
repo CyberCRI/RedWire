@@ -66,16 +66,16 @@ angular.module('gamEvolve.game.board', [
   $scope.edit = (path) ->
     chip = getBoardChip(currentGame.version.board, path)
     # Determine type of chip
-    if "action" of chip
+    if "processor" of chip
       showDialog 'game/board/editBoardAction.tpl.html', 'EditBoardActionDialogCtrl', chip, (model) ->
         _.extend(chip, model)
-    else if "process" of chip
+    else if "switch" of chip
       showDialog 'game/board/editBoardAction.tpl.html', 'EditBoardActionDialogCtrl', chip, (model) ->
         _.extend(chip, model)
-    else if "foreach" of chip
+    else if "splitter" of chip
       showDialog 'game/board/editBoardSplitter.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
         _.extend(chip, model)
-    else if "send" of chip
+    else if "emitter" of chip
       showDialog 'game/board/editBoardSend.tpl.html', 'EditBoardSendDialogCtrl', chip, (model) ->
         _.extend(chip, model)
       
@@ -166,16 +166,16 @@ angular.module('gamEvolve.game.board', [
   # Depending on if this is an action or a process, get the right kind of data 
   # TODO: move this to calling controller?
   typeDef = null
-  if "action" of liaison.model 
-    $scope.kind = "Action" 
-    $scope.type = liaison.model.action
-    typeDef = currentGame.version.actions[$scope.type]
-  else if "process" of liaison.model
+  if "processor" of liaison.model
+    $scope.kind = "Processor"
+    $scope.type = liaison.model.processor
+    typeDef = currentGame.version.processors[$scope.type]
+  else if "switch" of liaison.model
     $scope.kind = "Switch" 
-    $scope.type = liaison.model.process
-    typeDef = currentGame.version.processes[$scope.type]
+    $scope.type = liaison.model.switch
+    typeDef = currentGame.version.switches[$scope.type]
   else
-    throw new Error("Model is not an action or switch")
+    throw new Error("Model is not a processor or switch")
 
   # TODO: refactor into function
   $scope.pins = []
