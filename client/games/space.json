@@ -8,7 +8,16 @@
         50,
         270
       ]
-    }
+    },
+    "topLevelActiveChild": 0,
+    "enemies": [
+      {
+        "type": "big",
+        "position": [800, 270],
+        "health": 1
+      }
+    ],
+    "heroLasers": []
   },
   "board": {
     "switch": "Do in parallel",
@@ -35,6 +44,14 @@
       {
         "switch": "Do in Sequence",
         "comment": "First initialize the starfield, then keep updating it",
+        "pins": {
+          "in": {
+            "activeChild": "memory.topLevelActiveChild"
+          },
+          "out": {
+            "memory.topLevelActiveChild": "pins.activeChild"
+          }
+        },
         "children": [
           {
             "comment": "Let there be stars!",
@@ -57,6 +74,19 @@
         ]
       },
       {
+        "processor": "Move thing with arrow keys",
+        "comment": "Move the hero with arrow keys",
+        "pins": {
+          "in": {
+            "position": "memory.hero.position",
+            "keysDown": "io.keyboard.keysDown"
+          },
+          "out": {
+            "memory.position": "params.position"
+          }
+        },
+      },
+      {
         "processor": "Change Parameter Through Keyboard",
         "params": {
           "in": {
@@ -67,6 +97,55 @@
           "out": {
             "bindings.selectedPiece.rotation": "params.parameter"
           }
+        }
+      },
+      {
+        "splitter": {
+          "from": "memory.enemies",
+          "bindTo": "enemy"
+        },
+        "children": [
+          {
+            "comment": "Draw enemy",
+            "emitter": {
+              "io.shapes": "transformers.drawShape({ type: 'image', asset: 'bindings.enemy.type', position: 'bindings.enemy.position' })"
+            }
+          },
+          { 
+            "switch": "If",
+            "comment": "If the enemy is still alive",
+            "pins": {
+              "in": {
+                "value": "bindings.enemy.health > 0"
+              }
+            },
+            "children": [
+              {
+                "switch": "Do in Parallel",
+                "comment": "Move the enemy and check collisions",
+                "children": [
+                  {
+                    "comment": "Move enemy",
+                    "emitter": {
+                      "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy)"
+                    }
+                  }
+                ]
+              },
+              { 
+                "comment": "Remove enemy",
+                "emitter": {
+                  "bindings.enemy": "null"
+                } 
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "comment": "Handle firing",
+        "emitter": {
+          "memory.heroLasers": "GE.appendToArray(memory.heroLasers, _.contains(keyboard.keysDown, 38) && [ [memory.hero.position ] ] || [])"
         }
       }
     ]
@@ -100,6 +179,20 @@
         "keyMap": null
       },
       "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
+    },
+    "Move thing with arrow keys": {
+      "pinDefs": {
+        "parameter": {
+          "keysDown": null,
+          "position": {
+            "direction": "inout"
+          },
+          "speed": {
+            "default": 1
+          }
+        }
+      },
+      "update": "if(_.contains(pins.keysDown, 37)) pins.position[0] -= pins.speed;\nif(_.contains(pins.keysDown, 39)) pins.position[0] += pins.speed;\nif(_.contains(pins.keysDown, 38)) pins.position[1] -= pins.speed;\nif(_.contains(pins.keysDown, 38)) pins.position[1] += pins.speed;"
     },
     "Detect Mouse": {
       "pinDefs": {
@@ -284,6 +377,20 @@
         "starfeld"
       ],
       "body": "var shapes = []; for(var i = 0; i < starfield.length; i++) { var star = starfield[i]; shapes.push({ type: 'image', asset: 'star', layer: 'stars', position: star.position }); } return tools.drawShapes(shapes);"
+    },
+    "moveEnemy": {
+      "args": [
+        "enemy",
+        "time"
+      ],
+      "body": "return [ enemy.position[0] - 1, enemy.position[1] + 10 * Math.sin(time / 1000) ];"
+    },
+    "findCollisions": {
+      "args": [
+        "heroLasers",
+        "enemies"
+      ],
+      "body": "var collisions = [];\nfor("
     }
   },
   "assets": {}

@@ -219,7 +219,7 @@ GE.io.canvas =
         for layerName, canvas of layers then canvas.remove()
     }
 
-# Define keyboard input io
+# Define HTML input io
 GE.io.html =  
   meta:
     visual: true
