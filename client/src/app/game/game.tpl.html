@@ -1,5 +1,4 @@
 <flexy-layout orientation="vertical">
-
     <!-- Header -->
     <block-container init="80" id="headerBar">
         <flexy-layout orientation="horizontal">
@@ -71,7 +70,7 @@
 
     <!-- Footer -->
     <block-container id="logWindow" init="60">
-        <div ui-ace="{ onLoad : aceLoaded }" ng-controller="LogCtrl" ng-model="text"></div>
+        <div ui-ace="{ useWrapMode: true }" readonly="true" ng-controller="LogCtrl" ng-model="text"></div>
     </block-container>
 
 </flexy-layout>

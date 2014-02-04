@@ -20,7 +20,7 @@
     "heroLasers": []
   },
   "board": {
-    "switch": "Do in parallel",
+    "switch": "Do in Parallel",
     "comment": "",
     "children": [
       {
@@ -83,19 +83,6 @@
           },
           "out": {
             "memory.position": "params.position"
-          }
-        },
-      },
-      {
-        "processor": "Change Parameter Through Keyboard",
-        "params": {
-          "in": {
-            "parameter": "memory.hero.position[0]",
-            "keysDown": "services.keyboard.keysDown",
-            "keyMap": "model.constants.rotationKeyMap"
-          },
-          "out": {
-            "bindings.selectedPiece.rotation": "params.parameter"
           }
         }
       },
@@ -217,7 +204,9 @@
   },
   "switches": {
     "Do in Parallel": {
-      "doc": "Just to place children under it"
+      "doc": "Just to place children under it",
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
     },
     "Do In Sequence": {
       "pinDefs": {
@@ -384,13 +373,6 @@
         "time"
       ],
       "body": "return [ enemy.position[0] - 1, enemy.position[1] + 10 * Math.sin(time / 1000) ];"
-    },
-    "findCollisions": {
-      "args": [
-        "heroLasers",
-        "enemies"
-      ],
-      "body": "var collisions = [];\nfor("
     }
   },
   "assets": {}

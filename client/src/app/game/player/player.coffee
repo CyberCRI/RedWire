@@ -1,6 +1,18 @@
 # TODO: this should be configurable
 GAME_DIMENSIONS = [960, 540]
 
+buildLogMessages = (result) ->
+  if not result.errors then return result.logMessages
+
+  errorMessages = for error in result.errors
+    { 
+      path: error.path
+      level: GE.logLevels.ERROR
+      message: [error.stage, GE.firstLine(error.message)] 
+    }
+  return errorMessages.concat(result.logMessages)
+
+
 angular.module('gamEvolve.game.player', [])
 .controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime) -> 
   # Globals
@@ -37,7 +49,7 @@ angular.module('gamEvolve.game.player', [])
             gameHistory.data.compilationErrors = []
             gameHistory.meta.version++
 
-          if gameHistory.data.frames.length > 0 and not gameHistory.data.frames[0].error?
+          if gameHistory.data.frames.length > 0 and gameHistory.data.frames[0].inputIoData
             # If there are already frames, then update them 
             inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
             sendMessage("updateFrames", { memory: gameHistory.data.frames[0].memory, inputIoDataFrames })
@@ -45,27 +57,18 @@ angular.module('gamEvolve.game.player', [])
             # Else just record the first frame
             sendMessage("recordFrame", { memory: gameCode.memory })
       when "recordFrame"
+        if message.type is "error" then throw new Error("Cannot deal with recordFrame error")
+
         $scope.$apply ->
           # Set the first frame
-          newFrame = null
-          if message.type is "error"
-            newFrame = 
-              memory: gameCode.memory # Initial memory
-              inputIoData: null
-              ioPatches: null
-              logMessages: [ 
-                { 
-                  path: []
-                  level: GE.logLevels.ERROR
-                  message: [GE.firstLine(message.error)] 
-                }
-              ]
-          else
-            newFrame = 
-              memory: gameCode.memory # Initial memory
-              inputIoData: message.value.inputIoData 
-              ioPatches: message.value.ioPatches
-              logMessages: message.value.logMessages 
+          newFrame = 
+            memory: gameCode.memory # Initial memory
+            inputIoData: message.value.inputIoData 
+            ioPatches: message.value.ioPatches
+            logMessages: buildLogMessages(message.value) 
+
+          if message.value.errors then console.error("Record frames errors", message.value.errors)
+
           gameHistory.data.frames = [newFrame]
           gameHistory.meta.version++
           gameTime.currentFrameNumber = 0
@@ -97,21 +100,29 @@ angular.module('gamEvolve.game.player', [])
           # Update the version
           gameHistory.meta.version++
       when "updateFrames" 
+        if message.type is "error" then throw new Error("Cannot deal with updateFrames error")
+
         $scope.$apply ->
-          # Replace existing frames by the new results
+          # Replace existing frames by the new results, until an error is found
           lastMemory = gameHistory.data.frames[0].memory
           for index, results of message.value
             gameHistory.data.frames[index] = 
               memory: lastMemory
               ioPatches: results.ioPatches
-              inputIoData: results.inputIoData
-              logMessages: results.logMessages
+              inputIoData: gameHistory.data.frames[index].inputIoData # Copy old inputIoData
+              logMessages: buildLogMessages(results)
+
+            if results.errors 
+              console.error("Update frames errors", results.errors)
+              break
+
+            break # Stop updating when error is found
+
             # Calcuate the next memory to be used
             lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
 
             # Update the version
           gameHistory.meta.version++
-
           # Display the current frame
           onUpdateFrame(gameTime.currentFrameNumber)
 

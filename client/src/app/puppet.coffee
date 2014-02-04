@@ -141,7 +141,7 @@ unloadGame = (loadedGame) ->
 makeReporter = (destinationWindow, destinationOrigin, operation) ->
   return (err, value) ->
     if err 
-      destinationWindow.postMessage({ type: "error", operation: operation, error: err.stack }, destinationOrigin)
+      destinationWindow.postMessage({ type: "error", operation: operation, error: err.stack, path: err.path }, destinationOrigin)
     else
       destinationWindow.postMessage({ type: "success", operation: operation, value: value }, destinationOrigin)
 
@@ -188,19 +188,16 @@ onPlayFrame = (outputIoData) ->
     outputIoData: outputIoData 
 
 # Recalculate frames with different code but the same inputIoData
+# TODO: don't have stepLoop() send the output data, as an optimization
 onUpdateFrames = (memory, inputIoDataFrames) ->
   results = []
   lastMemory = memory
   for inputIoData in inputIoDataFrames
-    try
-      result = onRecordFrame(lastMemory, inputIoData)
-      lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
-      results.push(result)
-    catch e
-      console.log("Error in update frames", e)
-      results.push({ error: e.stack })
-      return results # Return right away
+    result = onRecordFrame(lastMemory, inputIoData)
+    results.push(result)
+    if results.errors then return results # Return right away
 
+    lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
   return results
 
 # MAIN

@@ -67,16 +67,16 @@ angular.module('gamEvolve.game.board', [
     chip = getBoardChip(currentGame.version.board, path)
     # Determine type of chip
     if "processor" of chip
-      showDialog 'game/board/editBoardAction.tpl.html', 'EditBoardActionDialogCtrl', chip, (model) ->
+      showDialog 'game/board/editBoardProcessor.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
         _.extend(chip, model)
     else if "switch" of chip
-      showDialog 'game/board/editBoardAction.tpl.html', 'EditBoardActionDialogCtrl', chip, (model) ->
+      showDialog 'game/board/editBoardProcessor.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
         _.extend(chip, model)
     else if "splitter" of chip
       showDialog 'game/board/editBoardSplitter.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
         _.extend(chip, model)
     else if "emitter" of chip
-      showDialog 'game/board/editBoardSend.tpl.html', 'EditBoardSendDialogCtrl', chip, (model) ->
+      showDialog 'game/board/editBoardEmitter.tpl.html', 'EditBoardEmitterDialogCtrl', chip, (model) ->
         _.extend(chip, model)
       
   $scope.$on 'editChipButtonClick', (event, chipPath) ->
@@ -86,11 +86,11 @@ angular.module('gamEvolve.game.board', [
     $scope.remove(chipPath)
 
 
-.controller 'EditBoardSendDialogCtrl', ($scope, liaison, currentGame) ->
+.controller 'EditBoardEmitterDialogCtrl', ($scope, liaison, currentGame) ->
   $scope.DESTINATIONS = enumeratePinDestinations(currentGame.version)
   $scope.name = liaison.model.comment
   # Convert between "paramDef form" used in game serialization and "pin form" used in GUI
-  $scope.pins = ({ input: input, output: output } for output, input of liaison.model.send)
+  $scope.pins = ({ input: input, output: output } for output, input of liaison.model.emitter)
 
   $scope.addPin = -> $scope.pins.push({ input: "", output: "" })
   $scope.removePin = (index) -> $scope.pins.splice(index, 1)
@@ -98,7 +98,7 @@ angular.module('gamEvolve.game.board', [
   # Reply with the new data
   $scope.done = -> liaison.done 
     comment: $scope.name
-    send: _.object(([output, input] for {input: input, output: output} in $scope.pins))
+    emitter: _.object(([output, input] for {input: input, output: output} in $scope.pins))
   $scope.cancel = -> liaison.cancel() 
 
 
@@ -119,7 +119,7 @@ angular.module('gamEvolve.game.board', [
   $scope.cancel = -> liaison.cancel() 
 
 
-.controller 'EditBoardActionDialogCtrl', ($scope, liaison, currentGame) ->
+.controller 'EditBoardProcessorDialogCtrl', ($scope, liaison, currentGame) ->
   # Source must start with "model" or "services", then a dot, then some more text or indexing 
   sourceIsSimple = (source) -> /^(model|services)\.[\w.\[\]]+$/.test(source)
 
@@ -163,7 +163,7 @@ angular.module('gamEvolve.game.board', [
   $scope.DESTINATIONS = enumeratePinDestinations(currentGame.version)
   $scope.name = liaison.model.comment
 
-  # Depending on if this is an action or a process, get the right kind of data 
+  # Depending on if this is an processor or a switch, get the right kind of data 
   # TODO: move this to calling controller?
   typeDef = null
   if "processor" of liaison.model
