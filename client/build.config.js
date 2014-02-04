@@ -73,7 +73,7 @@ module.exports = {
       'vendor/angular-ui-multi-sortable/multiSortable.js',
       'vendor/angular-file-dnd/dist/angular-file-dnd.js',
       'vendor/angular-xeditable/dist/js/xeditable.js',
-      'vendor/jstree/dist/jstree.js',
+      'vendor/jstree/jquery.jstree.js',
       'vendor/rivets/dist/rivets.js',
       'vendor/sylvester/sylvester.src.js',
       'vendor/Chart.js/Chart.js'
@@ -81,11 +81,13 @@ module.exports = {
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
       'vendor/JSONedit/css/styles.css',
-      'vendor/jstree/dist/themes/default/style.css',
+      'vendor/jstree/themes/default/style.css',
       'vendor/angular-xeditable/dist/css/xeditable.css',
     ],
     images: [
       'vendor/bootstrap/img/*.png',
+      'vendor/jstree/themes/default/*.gif',
+      'vendor/jstree/themes/default/*.png',
     ]
   }
 };

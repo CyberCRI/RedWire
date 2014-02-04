@@ -1,3 +1,5 @@
+# TODO Delete - The next two methods are now in currentGame service
+
 # For accessing a chip within a board via it's path
 # Takes the board object and the "path" as an array
 # Returns [parent, key] where parent is the parent chip and key is last one required to access the child
@@ -35,13 +37,6 @@ angular.module('gamEvolve.game.board', [
 ])
 
 .controller 'BoardCtrl', ($scope, $dialog, currentGame) ->
-  # Get the layout object from the currentGame service, and keep it updated
-  $scope.layout = {}
-
-  # Bring currentGame into scope so we can watch it 
-  updateBoard = -> $scope.layout = currentGame.version?.layout
-  $scope.currentGame = currentGame
-  $scope.$watch('currentGame', updateBoard, true)
 
   showDialog = (templateUrl, controller, model, onDone) -> 
     dialog = $dialog.dialog
@@ -65,36 +60,30 @@ angular.module('gamEvolve.game.board', [
     dialog.open()
 
   $scope.remove = (path) ->
-    [parent, index] = getBoardParentAndKey(currentGame.version.layout, path)
+    [parent, index] = getBoardParentAndKey(currentGame.version.board, path)
     parent.children.splice(index, 1) # Remove that child
 
-  $scope.edit = (path) -> 
-    chip = getBoardChip(currentGame.version.layout, path)
-
+  $scope.edit = (path) ->
+    chip = getBoardChip(currentGame.version.board, path)
     # Determine type of chip
-    if "action" of chip
+    if "processor" of chip
       showDialog 'game/board/editBoardAction.tpl.html', 'EditBoardActionDialogCtrl', chip, (model) ->
         _.extend(chip, model)
-    else if "process" of chip
+    else if "switch" of chip
       showDialog 'game/board/editBoardAction.tpl.html', 'EditBoardActionDialogCtrl', chip, (model) ->
         _.extend(chip, model)
-    else if "foreach" of chip
+    else if "splitter" of chip
       showDialog 'game/board/editBoardSplitter.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
         _.extend(chip, model)
-    else if "send" of chip
+    else if "emitter" of chip
       showDialog 'game/board/editBoardSend.tpl.html', 'EditBoardSendDialogCtrl', chip, (model) ->
         _.extend(chip, model)
       
-  # Listen to clicks on buttons next to each chip on the board, and pass the message 
-  # The path of the chip is encoded in an attribute, either editChip or removeChip
-  $("body").on "click", "a[editChip]", (event) -> 
-    $scope.$apply ->
-      chipPath = JSON.parse($(event.currentTarget).attr("editChip"))
-      $scope.edit(chipPath)
-  $("body").on "click", "a[removeChip]", (event) -> 
-    $scope.$apply ->
-      chipPath = JSON.parse($(event.currentTarget).attr("removeChip"))
-      $scope.remove(chipPath)
+  $scope.$on 'editChipButtonClick', (event, chipPath) ->
+    $scope.edit(chipPath)
+
+  $scope.$on 'removeChipButtonClick', (event, chipPath) ->
+    $scope.remove(chipPath)
 
 
 .controller 'EditBoardSendDialogCtrl', ($scope, liaison, currentGame) ->
@@ -177,16 +166,16 @@ angular.module('gamEvolve.game.board', [
   # Depending on if this is an action or a process, get the right kind of data 
   # TODO: move this to calling controller?
   typeDef = null
-  if "action" of liaison.model 
-    $scope.kind = "Action" 
-    $scope.type = liaison.model.action
-    typeDef = currentGame.version.actions[$scope.type]
-  else if "process" of liaison.model
+  if "processor" of liaison.model
+    $scope.kind = "Processor"
+    $scope.type = liaison.model.processor
+    typeDef = currentGame.version.processors[$scope.type]
+  else if "switch" of liaison.model
     $scope.kind = "Switch" 
-    $scope.type = liaison.model.process
-    typeDef = currentGame.version.processes[$scope.type]
+    $scope.type = liaison.model.switch
+    typeDef = currentGame.version.switches[$scope.type]
   else
-    throw new Error("Model is not an action or switch")
+    throw new Error("Model is not a processor or switch")
 
   # TODO: refactor into function
   $scope.pins = []
