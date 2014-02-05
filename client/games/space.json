@@ -26,19 +26,19 @@
       {
         "comment": "Draw the black of space",
         "emitter": {
-          "io.canvas.shapes": "transfomers.drawShape({ type: 'rectangle', layer: 'space', position: [0, 0], size: services.canvas.size, fillStyle: 'black' })"
+          "io.canvas.shapes": "transformers.drawShape({ type: 'rectangle', layer: 'space', position: [0, 0], size: io.canvas.size, fillStyle: 'black' })"
         }
       },
       {
         "comment": "Draw player's spaceship",
         "emitter": {
-          "io.canvas.shapes": "transfomers.drawShape({ type: 'image', asset: 'hero', layer: 'ships', position: hero.position })"
+          "io.canvas.shapes": "transformers.drawShape({ type: 'image', asset: 'hero', layer: 'ships', position: memory.hero.position })"
         }
       },
       {
         "comment": "Draw starfield",
         "emitter": {
-          "io.canvas.shapes": "transfomers.drawStarfield(memory.starfield)"
+          "io.canvas.shapes": "transformers.drawStarfield(memory.starfield)"
         }
       },
       {
@@ -56,7 +56,7 @@
           {
             "comment": "Let there be stars!",
             "emitter": {
-              "memory.starfield": "transformers.initializeStars(50, io.canvas.size)"
+              "memory.starfield": "transformers.initializeStarfield(50, io.canvas.size)"
             }
           },
           {
@@ -66,7 +66,7 @@
               {
                 "comment": "Update starfield",
                 "emitter": {
-                  "memory.starfield": "transfomers.updateStarfield(memory.starfield, io.canvas.size)"
+                  "memory.starfield": "transformers.updateStarfield(memory.starfield, io.canvas.size)"
                 }
               }
             ]
@@ -208,7 +208,7 @@
       "listActiveChildren": "return children;",
       "handleSignals": ""
     },
-    "Do In Sequence": {
+    "Do in Sequence": {
       "pinDefs": {
         "activeChild": {
           "direction": "inout",
@@ -270,12 +270,18 @@
       ],
       "body": "var shapes = oldShapes || {};\nshapes[_.uniqueId()] = shape;\nreturn shapes;"
     },
-    "povarVarersectsShape": {
+    "drawShapes": {
       "args": [
-        "povar",
+        "shapes"
+      ],
+      "body": "var that = transformers;\nreturn _.reduce(shapes, function (memo, shape) {\n  return that.drawShape(shape, memo);\n}, {});"
+    },
+    "pointIntersectsShape": {
+      "args": [
+        "point",
         "shape"
       ],
-      "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.center);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(povar));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var povarInShapeFrame = Vector.create(povar);\n  if (shape.translation)\n    povarInShapeFrame = povarInShapeFrame.subtract(shape.translation);\n  return povarInShapeFrame.elements[0] >= shape.position[0] && povarInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && povarInShapeFrame.elements[1] >= shape.position[1] && povarInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
+      "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.center);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(point));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var pointInShapeFrame = Vector.create(point);\n  if (shape.translation)\n    pointInShapeFrame = pointInShapeFrame.subtract(shape.translation);\n  return pointInShapeFrame.elements[0] >= shape.position[0] && pointInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && pointInShapeFrame.elements[1] >= shape.position[1] && pointInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
     },
     "removeElement": {
       "args": [
@@ -363,9 +369,9 @@
     },
     "drawStarfield": {
       "args": [
-        "starfeld"
+        "starfield"
       ],
-      "body": "var shapes = []; for(var i = 0; i < starfield.length; i++) { var star = starfield[i]; shapes.push({ type: 'image', asset: 'star', layer: 'stars', position: star.position }); } return tools.drawShapes(shapes);"
+      "body": "var shapes = []; for(var i = 0; i < starfield.length; i++) { var star = starfield[i]; shapes.push({ type: 'image', asset: 'star', layer: 'stars', position: star.position }); } return transformers.drawShapes(shapes);"
     },
     "moveEnemy": {
       "args": [

@@ -35,10 +35,12 @@ angular.module('gamEvolve.util.gameConverter', [])
     return gameVersionJson
 
   convertGameFromJson: (gameJson) ->
-    return JSON.parse(gameJson)
+    parsed = JSON.parse(gameJson)
+    return {
+       info: _.pick(parsed, META_PROPERTIES...)
+       version: _.pick(parsed, JSON_PROPERTIES...)
+    }
 
   convertGameToJson: (currentGame) ->    
-    filteredObject =
-       info: _.pick(currentGame.info, META_PROPERTIES...)
-       version: _.pick(currentGame.version, JSON_PROPERTIES...)
+    filteredObject = _.extend({}, _.pick(currentGame.info, META_PROPERTIES...), _.pick(currentGame.version, JSON_PROPERTIES...))
     return JSON.stringify(filteredObject, null, 2)

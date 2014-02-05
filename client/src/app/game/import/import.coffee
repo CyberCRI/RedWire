@@ -19,8 +19,11 @@ angular.module('gamEvolve.game.import', [
             model: gameConverter.convertGameToJson(currentGame)
             done: (newModel) ->
               newGame = gameConverter.convertGameFromJson(newModel)
+
+              # Don't lose existing meta-info, but change the game code completely
               _.extend(currentGame.info, newGame.info)
-              _.extend(currentGame.version, newGame.version)
+              currentGame.version = newGame.version 
+
               dialog.close()
             cancel: ->
               dialog.close()
