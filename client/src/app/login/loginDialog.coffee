@@ -23,16 +23,24 @@ angular.module('gamEvolve.login', [
 
 .controller 'LoginDialogCtrl', ($scope, loginDialog, users) ->
 
+    handleError = (error) ->
+      $scope.errorMessage = "Wrong credentials"
+
+    login = (username, password) ->
+      users.login(username, password).then(loginDialog.close, handleError)
+
     $scope.login = ->
       username = $scope.username
       password = $scope.password
       if username
-        users.login(username, password).then( -> loginDialog.close())
+        login(username, password)
       else
         email = $scope.email
-        # TODO
-#        users.findByEmail(email).then (result) ->
-#          console.log result
+        users.findByEmail(email).then (result) ->
+          if result.data.length is 0
+            $scope.errorMessage = "Email not found"
+          else
+            login(result.data[0].username)
 
     $scope.cancel = loginDialog.close
 

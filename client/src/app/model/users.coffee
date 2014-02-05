@@ -14,7 +14,11 @@ angular.module('gamEvolve.model.users', [])
     login: (username, password) ->
       deferred = $q.defer()
       $http.post('/users/login', {username: username, password: password})
-        .then -> $http.get('/users/me')
+        .then ->
+          $http.get('/users/me')
+        ,
+          ->
+            deferred.reject('Error')
         .then (result) ->
           user = result.data
           loggedUser.profile = user
@@ -25,5 +29,4 @@ angular.module('gamEvolve.model.users', [])
       loggedUser.profile = null
 
     findByEmail: (email) ->
-      # TODO
-#      $http.get('/users/{email: email}')
+      $http.get('/users/?{"email": "' + email + '"}')
