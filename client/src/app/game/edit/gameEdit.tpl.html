@@ -50,17 +50,9 @@
 <block-container init="300">
     <flexy-layout orientation="vertical">
         <block-container style="overflow:scroll;">
-            <div>
-                <!-- Nav tabs -->
-                <ul class="nav nav-tabs">
-                    <li><a href="#processors" data-toggle="tab">Processors</a></li>
-                    <li><a href="#switches" data-toggle="tab">Switches</a></li>
-                    <li><a href="#transformers" data-toggle="tab">Transformers</a></li>
-                </ul>
-
-                <!-- Tab panes -->
-                <div class="tab-content">
-                    <div class="tab-pane active" id="processors" ng-controller="ProcessorsListCtrl">
+            <accordion close-others="true">
+                <accordion-group heading="Processors" is-open="true">
+                    <div id="processors" ng-controller="ProcessorsListCtrl">
                         <ul>
                             <li ng-repeat="processorName in processorNames">
                                 <a href="" ng-click="edit(processorName)" class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</a> 
@@ -69,7 +61,9 @@
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
-                    <div class="tab-pane" id="switches" ng-controller="SwitchesListCtrl">
+                </accordion-group>
+                <accordion-group heading="Switches">
+                    <div id="switches" ng-controller="SwitchesListCtrl">
                         <ul>
                             <li ng-repeat="switchName in switchNames">
                                 <a href="" ng-click="edit(switchName)" class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</a> 
@@ -78,7 +72,9 @@
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
-                    <div class="tab-pane" id="transformers" ng-controller="TransformersListCtrl">
+                </accordion-group>
+                <accordion-group heading="Transformers">
+                    <div id="transformers" ng-controller="TransformersListCtrl">
                         <ul>
                             <li ng-repeat="transformerName in transformerNames">
                                 <a href="" ng-click="edit(transformerName)">{{transformerName}}</a> 
@@ -87,8 +83,8 @@
                         </ul>
                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
                     </div>
-                </div>
-            </div>
+                </accordion-group>
+            </accordion>
         </block-container>
         <block-splitter></block-splitter>
         <block-container style="overflow:scroll;">

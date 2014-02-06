@@ -27,7 +27,7 @@ makeChipButtons = (path) -> """
   <a href="" class="btn btn-small" removeChip="#{pathToString(path)}"><i class="icon-trash"></i></a>
   """
 
-  
+
 angular.module('gamEvolve.util.boardConverter', [])
 
 .factory 'boardConverter', ->
