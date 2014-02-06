@@ -2,7 +2,15 @@ String::capitalize = ->
   @replace /(^|\s)([a-z])/g, (m, p1, p2) ->
     p1 + p2.toUpperCase()
 
-generateText = (source) -> "#{source.comment || 'Untitled'} (#{generateType(source)})"
+generateName = (source) -> source.comment || 'Untitled'
+
+generateText = (source) -> 
+  switch generateType(source)
+    when "switch" then "#{generateName(source)} (#{source.switch})"
+    when "processor" then "#{generateName(source)} (#{source.processor})"
+    when "emitter" then "#{generateName(source)} (Emitter)"
+    when "splitter" then "#{generateName(source)} (Splitter)"
+    else throw new Error("Unknown type of chip #{source}")
 
 # TODO: expand this list
 generateType = (source) ->
