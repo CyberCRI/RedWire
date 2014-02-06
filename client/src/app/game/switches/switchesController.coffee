@@ -8,14 +8,14 @@ angular.module('gamEvolve.game.switches', [
 
   # Bring currentGame into scope so we can watch it 
   updateSwitches = ->
-    if currentGame.version?.processes?
-      $scope.switches = currentGame.version.processes
-      $scope.switchNames = _.keys(currentGame.version.processes)
+    if currentGame.version?.switches?
+      $scope.switches = currentGame.version.switches
+      $scope.switchNames = _.keys(currentGame.version.switches)
   $scope.currentGame = currentGame
   $scope.$watch('currentGame', updateSwitches, true)
 
   $scope.remove = (name) ->
-    delete currentGame.version.processes[name]
+    delete currentGame.version.switches[name]
 
   $scope.add = () ->
     addSwitchDialog = $dialog.dialog
@@ -35,7 +35,7 @@ angular.module('gamEvolve.game.switches', [
               listActiveChildren: ""
               handleSignals: ""
             done: (model) ->
-              currentGame.version.processes[model.name] = 
+              currentGame.version.switches[model.name] = 
                 paramDefs: model.paramDefs
                 listActiveChildren: model.listActiveChildren
                 handleSignals: model.handleSignals
@@ -47,7 +47,7 @@ angular.module('gamEvolve.game.switches', [
     addSwitchDialog.open()
 
   $scope.edit = (switchName) -> 
-    switchData = currentGame.version.processes[switchName]
+    switchData = currentGame.version.switches[switchName]
     editSwitchDialog = $dialog.dialog
       backdrop: true
       dialogFade: true
@@ -67,9 +67,9 @@ angular.module('gamEvolve.game.switches', [
             done: (model) ->
               # Handle rename case
               if model.name isnt switchName
-                delete currentGame.version.processes[switchName]
+                delete currentGame.version.switches[switchName]
 
-              currentGame.version.processes[model.name] = 
+              currentGame.version.switches[model.name] = 
                 paramDefs: model.paramDefs
                 listActiveChildren: model.listActiveChildren
                 handleSignals: model.handleSignals

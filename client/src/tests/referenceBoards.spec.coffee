@@ -1,6 +1,6 @@
 EMPTY_DO_IN_PARALLEL_SOURCE =
   children: []
-  process: "doInParallel"
+  switch: "doInParallel"
 
 EMPTY_DO_IN_PARALLEL_CONVERTED =
   data: "Do In Parallel"
@@ -10,7 +10,7 @@ EMPTY_DO_IN_PARALLEL_CONVERTED =
 
 EMPTY_DO_IN_SEQUENCE_SOURCE =
   children: []
-  process: "doInSequence"
+  switch: "doInSequence"
 
 EMPTY_DO_IN_SEQUENCE_CONVERTED =
   data: "Do In Sequence"
@@ -20,7 +20,7 @@ EMPTY_DO_IN_SEQUENCE_CONVERTED =
 
 SINGLE_CHILD_SOURCE =
   children: [EMPTY_DO_IN_PARALLEL_SOURCE]
-  process: "doInSequence"
+  switch: "doInSequence"
 
 SINGLE_CHILD_CONVERTED =
   data: "Do In Sequence"
@@ -30,7 +30,7 @@ SINGLE_CHILD_CONVERTED =
 
 MULTIPLE_CHILDREN_SOURCE =
   children: [EMPTY_DO_IN_PARALLEL_SOURCE, EMPTY_DO_IN_SEQUENCE_SOURCE]
-  process: "doInSequence"
+  switch: "doInSequence"
 
 MULTIPLE_CHILDREN_CONVERTED =
   data: "Do In Sequence"
@@ -40,7 +40,7 @@ MULTIPLE_CHILDREN_CONVERTED =
 
 DEEP_SOURCE =
   children: [MULTIPLE_CHILDREN_SOURCE]
-  process: "doInParallel"
+  switch: "doInParallel"
 
 DEEP_CONVERTED =
   data: "Do In Sequence"

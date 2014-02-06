@@ -16,9 +16,14 @@ angular.module('gamEvolve.game.import', [
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
         liaison: ->
           {
-            model: gameConverter.convertGameVersionToJson(currentGame.version)
+            model: gameConverter.convertGameToJson(currentGame)
             done: (newModel) ->
-              _.extend(currentGame.version, gameConverter.convertGameVersionFromJson(newModel))
+              newGame = gameConverter.convertGameFromJson(newModel)
+
+              # Don't lose existing meta-info, but change the game code completely
+              _.extend(currentGame.info, newGame.info)
+              currentGame.version = newGame.version 
+
               dialog.close()
             cancel: ->
               dialog.close()

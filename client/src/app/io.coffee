@@ -139,6 +139,7 @@ GE.io.canvas =
             if shape.lineWidth then ctx.lineWidth = shape.lineWidth
             ctx.strokeRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
         when 'image'
+          if shape.asset not of assets then throw new Error("Cannot find asset '#{shape.asset}' for shape '#{JSON.stringify(shape)}'")
           ctx.drawImage(assets[shape.asset], shape.position[0], shape.position[1])
         when 'text'
           text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
@@ -219,7 +220,7 @@ GE.io.canvas =
         for layerName, canvas of layers then canvas.remove()
     }
 
-# Define keyboard input io
+# Define HTML input io
 GE.io.html =  
   meta:
     visual: true

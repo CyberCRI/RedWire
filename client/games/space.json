@@ -1,0 +1,390 @@
+{
+  "name": "Stupendous Side-Scrolling Space Shooter",
+  "memory": {
+    "starfield": [],
+    "hero": {
+      "position": [
+        50,
+        270
+      ],
+      "$$hashKey": "032"
+    },
+    "topLevelActiveChild": 0,
+    "enemies": [
+      {
+        "type": "big",
+        "position": [
+          800,
+          270
+        ],
+        "health": 1,
+        "$$hashKey": "03B"
+      }
+    ],
+    "heroLasers": []
+  },
+  "board": {
+    "switch": "Do in Parallel",
+    "comment": "",
+    "children": [
+      {
+        "comment": "Draw the black of space",
+        "emitter": {
+          "io.canvas.shapes": "transformers.drawShape({ type: 'rectangle', layer: 'space', position: [0, 0], size: io.canvas.size, fillStyle: 'black' })"
+        }
+      },
+      {
+        "comment": "Draw player's spaceship",
+        "emitter": {
+          "io.canvas.shapes": "transformers.drawShape({ type: 'image', asset: 'hero', layer: 'ships', position: memory.hero.position })"
+        }
+      },
+      {
+        "comment": "Draw starfield",
+        "emitter": {
+          "io.canvas.shapes": "transformers.drawStarfield(memory.starfield)"
+        }
+      },
+      {
+        "switch": "Do in Sequence",
+        "comment": "First initialize the starfield, then keep updating it",
+        "pins": {
+          "in": {
+            "activeChild": "memory.topLevelActiveChild"
+          },
+          "out": {
+            "memory.topLevelActiveChild": "pins.activeChild"
+          }
+        },
+        "children": [
+          {
+            "comment": "Let there be stars!",
+            "emitter": {
+              "memory.starfield": "transformers.initializeStarfield(50, io.canvas.size)"
+            }
+          },
+          {
+            "switch": "Do Forever",
+            "comment": "",
+            "children": [
+              {
+                "comment": "Update starfield",
+                "emitter": {
+                  "memory.starfield": "transformers.updateStarfield(memory.starfield, io.canvas.size)"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "processor": "Move thing with arrow keys",
+        "comment": "Move the hero with arrow keys",
+        "pins": {
+          "in": {
+            "position": "memory.hero.position",
+            "keysDown": "io.keyboard.keysDown"
+          },
+          "out": {
+            "memory.position": "pins.position"
+          }
+        }
+      },
+      {
+        "splitter": {
+          "from": "memory.enemies",
+          "bindTo": "enemy"
+        },
+        "children": [
+          {
+            "comment": "Draw enemy",
+            "emitter": {
+              "io.shapes": "transformers.drawShape({ type: 'image', asset: 'bindings.enemy.type', position: 'bindings.enemy.position' })"
+            }
+          },
+          {
+            "switch": "If",
+            "comment": "If the enemy is still alive",
+            "pins": {
+              "in": {
+                "value": "bindings.enemy.health > 0"
+              }
+            },
+            "children": [
+              {
+                "switch": "Do in Parallel",
+                "comment": "Move the enemy and check collisions",
+                "children": [
+                  {
+                    "comment": "Move enemy",
+                    "emitter": {
+                      "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy)"
+                    }
+                  }
+                ]
+              },
+              {
+                "comment": "Remove enemy",
+                "emitter": {
+                  "bindings.enemy": "null"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "comment": "Handle firing",
+        "emitter": {
+          "memory.heroLasers": "GE.appendToArray(memory.heroLasers, _.contains(io.keyboard.keysDown, 38) && [ [memory.hero.position ] ] || [])"
+        }
+      }
+    ]
+  },
+  "io": {
+    "layers": [
+      {
+        "name": "space",
+        "type": "canvas",
+        "$$hashKey": "02O"
+      },
+      {
+        "name": "stars",
+        "type": "canvas",
+        "$$hashKey": "02S"
+      },
+      {
+        "name": "ships",
+        "type": "canvas",
+        "$$hashKey": "02W"
+      }
+    ]
+  },
+  "processors": {
+    "Change Parameter through Keyboard": {
+      "pinDefs": {
+        "parameter": {
+          "direction": "inout"
+        },
+        "keysDown": null,
+        "keyMap": null
+      },
+      "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
+    },
+    "Move thing with arrow keys": {
+      "pinDefs": {
+        "keysDown": null,
+        "position": {
+          "direction": "inout"
+        },
+        "speed": {
+          "default": 1
+        }
+      },
+      "update": "if(_.contains(pins.keysDown, 37)) pins.position[0] -= pins.speed;\nif(_.contains(pins.keysDown, 39)) pins.position[0] += pins.speed;\nif(_.contains(pins.keysDown, 38)) pins.position[1] -= pins.speed;\nif(_.contains(pins.keysDown, 38)) pins.position[1] += pins.speed;"
+    },
+    "Detect Mouse": {
+      "pinDefs": {
+        "shapes": null,
+        "shape": {
+          "direction": "inout"
+        },
+        "mousePosition": null,
+        "mouseDown": null,
+        "state": {
+          "direction": "inout"
+        },
+        "dragStartPosition": {
+          "direction": "inout"
+        },
+        "minimumDragDistance": {
+          "default": "5"
+        }
+      },
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.povarVarersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.povarVarersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+    }
+  },
+  "switches": {
+    "Do in Parallel": {
+      "doc": "Just to place children under it",
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
+    "Do in Sequence": {
+      "pinDefs": {
+        "activeChild": {
+          "direction": "inout",
+          "default": 0
+        }
+      },
+      "listActiveChildren": "return [pins.activeChild];",
+      "handleSignals": "if (signals[pins.activeChild] == GE.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return GE.signals.DONE;\n}"
+    },
+    "Do for Some Time": {
+      "pinDefs": {
+        "time": null,
+        "timer": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return children;",
+      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return GE.signals.DONE;\n}"
+    },
+    "Do While": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return !!pins.value ? children : [];",
+      "handleSignals": "if (!pins.value)\n  return GE.signals.DONE;"
+    },
+    "Do Forever": {
+      "pinDefs": {},
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
+    "When": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return transformers.childByName(children, pins.value);"
+    },
+    "If": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return pins.value ? [0] : children.length > 1 ? [1] : [];"
+    },
+    "Sandwhich": {
+      "pinDefs": {
+        "condition": null,
+        "started": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
+    }
+  },
+  "transformers": {
+    "drawShape": {
+      "args": [
+        "shape",
+        "oldShapes"
+      ],
+      "body": "var shapes = oldShapes || {};\nshapes[_.uniqueId()] = shape;\nreturn shapes;"
+    },
+    "drawShapes": {
+      "args": [
+        "shapes"
+      ],
+      "body": "var that = transformers;\nreturn _.reduce(shapes, function (memo, shape) {\n  return that.drawShape(shape, memo);\n}, {});"
+    },
+    "pointIntersectsShape": {
+      "args": [
+        "point",
+        "shape"
+      ],
+      "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.center);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(point));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var pointInShapeFrame = Vector.create(point);\n  if (shape.translation)\n    pointInShapeFrame = pointInShapeFrame.subtract(shape.translation);\n  return pointInShapeFrame.elements[0] >= shape.position[0] && pointInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && pointInShapeFrame.elements[1] >= shape.position[1] && pointInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
+    },
+    "removeElement": {
+      "args": [
+        "tab",
+        "index"
+      ],
+      "body": "var newArray = [];\nfor (var i = 0; i < tab.length; i++) {\n  if (i != index)\n    newArray.push(tab[i]);\n}\nreturn newArray;"
+    },
+    "replace": {
+      "args": [
+        "oldPiece",
+        "newPiece",
+        "pieces"
+      ],
+      "body": "for (var i in pieces) {\n  var piece = pieces[i];\n  if (piece.col === oldPiece.col && piece.row === oldPiece.row) {\n    result = pieces.slice(0, i).concat(newPiece).concat(pieces.slice(i + 1, pieces.length));\n    return result;\n  }\n}\nreturn pieces;"
+    },
+    "coordinatesToString": {
+      "args": [
+        "coordinates"
+      ],
+      "body": "var x = coordinates[0] || coordinates.x;\nvar y = coordinates[1] || coordinates.y;\nreturn '[' + x + ', ' + y + ']';"
+    },
+    "pieceToString": {
+      "args": [
+        "piece"
+      ],
+      "body": "if (piece)\n  return '{col:' + piece.col + ', row:' + piece.row + ', type:' + piece.type + '}';\nelse\n  return piece;"
+    },
+    "piecesToString": {
+      "args": [
+        "pieces"
+      ],
+      "body": "var prvared = '{';\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (prvared !== '{') {\n    prvared += ', ';\n  }\n  prvared += transformers.pieceToString(piece);\n}\nprvared += '}';\nreturn prvared;"
+    },
+    "distance": {
+      "args": [
+        "povar1",
+        "povar2"
+      ],
+      "body": "var povar1x = povar1[0] || povar1.x;\nvar povar1y = povar1[1] || povar1.y;\nvar povar2x = povar2[0] || povar2.x;\nvar povar2y = povar2[1] || povar2.y;\nvar diffX = povar1x - povar2x;\nvar diffY = povar1y - povar2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
+    },
+    "calculateRotationAngle": {
+      "args": [
+        "center",
+        "mousePosition"
+      ],
+      "body": "var h = [\n    mousePosition[0] - center[0],\n    mousePosition[1] - center[1]\n  ];\nvar omDistance = Math.sqrt(h[0] * h[0] + h[1] * h[1]);\nvar ratio = -h[1] / omDistance;\nvar angle = 0;\nif (omDistance !== 0) {\n  var absValueAngle = Math.acos(ratio) * 180 / Math.PI;\n  if (h[0] <= 0) {\n    angle = -absValueAngle;\n  } else {\n    angle = absValueAngle;\n  }\n}\nreturn angle;"
+    },
+    "calculateRotationOffset": {
+      "args": [
+        "rotation",
+        "center",
+        "mousePosition"
+      ],
+      "body": "return rotation - transformers.calculateRotationAngle(center, mousePosition);"
+    },
+    "calculateRotation": {
+      "args": [
+        "rotationOffset",
+        "center",
+        "mousePosition"
+      ],
+      "body": "return transformers.calculateRotationAngle(center, mousePosition) + rotationOffset;"
+    },
+    "childByName": {
+      "args": [
+        "children",
+        "value"
+      ],
+      "body": "var childIndex = GE.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
+    },
+    "initializeStarfield": {
+      "args": [
+        "count",
+        "screenSize"
+      ],
+      "body": "var stars = []; for(var i = 0; i < count; i++) { stars.push({ position: [Math.random()*screenSize[0], Math.random()*screenSize[1]], velocity: 5 }); } return stars;"
+    },
+    "updateStarfield": {
+      "args": [
+        "starfield",
+        "screenSize"
+      ],
+      "body": "var stars = []; \nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    if(star.position[0] < 0) {\n        stars.push({ \n            position: [screenSize[0], Math.random() * screenSize[1]],\n            velocity: star.velocity\n        });\n    }\n    else { \n        stars.push({ position: [star.position[0] - star.velocity, star.position[1]], velocity: star.velocity }); \n    } \n}\nreturn stars;"
+    },
+    "drawStarfield": {
+      "args": [
+        "starfield"
+      ],
+      "body": "var shapes = []; for(var i = 0; i < starfield.length; i++) { var star = starfield[i]; shapes.push({ type: 'image', asset: 'star', layer: 'stars', position: star.position }); } return transformers.drawShapes(shapes);"
+    },
+    "moveEnemy": {
+      "args": [
+        "enemy",
+        "time"
+      ],
+      "body": "return [ enemy.position[0] - 1, enemy.position[1] + 10 * Math.sin(time / 1000) ];"
+    }
+  },
+  "assets": {
+    "hero": "data:image/png;base64,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",
+    "star": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH3gEXCwg7YckdpAAAAQVJREFUGNMtkD1LgmEYRs99P/ri+9pSlGK0qJME9QNaxFWipf5ClBH9tPYGlyBoURdxqqkvGiqjFPx4rgZbz3TOMUDmjnvA3DB3FCOKIsYlipGcmeEhsF4qs1HZ5mcyZS1L+Xh95fP9jSiBh6AkK+r4tKNub6Dr2zt1ewOdnHWUZEWFEJQzd/JpSq3R4GB/j8SNmcRNY5ckzZjOZ7iZU6nWaLeaJG4AJGa0W00q1RpmjqPIYjqhPxzx/DUG4GX8TX84YjGdgOLKKV8oqLhZ0uH5pe6HIx1dXCnbKitfKMhDkGEmdyfkcuTTIjv1Ok+PD8wnvywXC2KMGCDMcFs94h8pxlW+xB/dMm/kuEOG0gAAAABJRU5ErkJggg=="
+  }
+}

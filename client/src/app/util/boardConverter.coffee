@@ -2,19 +2,23 @@ String::capitalize = ->
   @replace /(^|\s)([a-z])/g, (m, p1, p2) ->
     p1 + p2.toUpperCase()
 
-generateText = (source) ->
-  if "switch" of source then "Switch - " + source.process
-  else if "processor" of source then "Processor - " + source.processor
-  else if "emitter" of source then "Emitter"
-  else if "splitter" of source then "Splitter"
-  else throw new Error("Cannot find type of chip #{source}")
+generateName = (source) -> source.comment || 'Untitled'
+
+generateText = (source) -> 
+  switch generateType(source)
+    when "switch" then "#{generateName(source)} (#{source.switch})"
+    when "processor" then "#{generateName(source)} (#{source.processor})"
+    when "emitter" then "#{generateName(source)} (Emitter)"
+    when "splitter" then "#{generateName(source)} (Splitter)"
+    else throw new Error("Unknown type of chip #{source}")
 
 # TODO: expand this list
 generateType = (source) ->
-  if source.switch
-    'switch'
-  else
-    'processor'
+  if "switch" of source then "switch"
+  else if "processor" of source then "processor"
+  else if "emitter" of source then "emitter"
+  else if "splitter" of source then "splitter"
+  else throw new Error("Cannot find type of chip #{source}")
 
 pathToString = (path) -> "[#{path.join(",")}]" 
 
@@ -23,11 +27,10 @@ makeChipButtons = (path) -> """
   <a href="" class="btn btn-small" removeChip="#{pathToString(path)}"><i class="icon-trash"></i></a>
   """
 
-  
+
 angular.module('gamEvolve.util.boardConverter', [])
 
 .factory 'boardConverter', ->
-    
     convert: (source, path = []) ->
       state = 'closed'
       if path.length is 0 
@@ -40,9 +43,10 @@ angular.module('gamEvolve.util.boardConverter', [])
         metadata:
           source: JSON.parse(JSON.stringify(source)) # Copy source
           path: path
+
       delete converted.metadata.source.children
-      converted.children = []
       if source.children?
+        converted.children = []
         for childIndex, child of source.children
           converted.children.push(@convert(child, GE.appendToArray(path, childIndex)))
       converted

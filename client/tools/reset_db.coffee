@@ -47,17 +47,13 @@ deleteThing = (thingType, id, cb) ->
     cb()
 
 createGames = (cb) ->
-  gameFiles = fs.readdirSync(gameDir)
-  console.log("Found games", gameFiles)
-  if gameFiles.length is 0 then cb()
-
   doneCount = 0
   for gameFile in gameFiles
     createGame gameFile, ->
       if ++doneCount == gameFiles.length then cb()
 
 createGame = (gameFile, cb) ->
-  gameJson = fs.readFileSync(path.join(gameDir, gameFile), { encoding: "utf8"})
+  gameJson = fs.readFileSync(gameFile, { encoding: "utf8"})
   game = JSON.parse(gameJson)
   for property in ['processors', 'assets', 'board', 'memory', 'switches', 'io', 'transformers']
     game[property] = JSON.stringify(game[property], null, 2)
@@ -86,10 +82,10 @@ createGame = (gameFile, cb) ->
 
 # MAIN
 if process.argv.length < 6
-  util.error("Usage: coffee reset_db.coffee <server_url> <username> <password> <games_directory>")
+  util.error("Usage: coffee reset_db.coffee <server_url> <username> <password> <games_files...>")
   process.exit(1)
 
-[server, username, password, gameDir] = process.argv[2..]
+[server, username, password, gameFiles...] = process.argv[2..]
 
 # Have request store and send cookies
 request = request.defaults

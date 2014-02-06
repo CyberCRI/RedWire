@@ -685,12 +685,12 @@ describe "gamEvolve", ->
           }
         ]
 
-      expect(-> GE.stepLoop 
+      results = GE.stepLoop 
         chip: boardA
         memoryData: oldData
         processors: processors 
         evaluator: makeEvaluator()
-      ).toThrow()
+      expect(results.errors.length).not.toBeEmpty()
       
       boardB = 
         processor: "group"
@@ -713,9 +713,9 @@ describe "gamEvolve", ->
           }
         ]
 
-      expect(-> GE.stepLoop 
+      results = GE.stepLoop 
         chip: boardB 
         processors: processors 
         io: io
         evaluator: makeEvaluator()
-      ).toThrow()
+      expect(results.errors.length).not.toBeEmpty()

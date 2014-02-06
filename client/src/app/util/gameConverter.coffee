@@ -9,6 +9,10 @@ JSON_PROPERTIES = [
   'assets'
 ]
 
+META_PROPERTIES = [
+  "name"
+]
+
 angular.module('gamEvolve.util.gameConverter', [])
 
 .factory "gameConverter", ->
@@ -30,9 +34,13 @@ angular.module('gamEvolve.util.gameConverter', [])
       gameVersionJson[propertyName] = JSON.stringify(gameVersion[propertyName], null, 2)
     return gameVersionJson
 
-  convertGameVersionFromJson: (gameVersionJson) ->
-    return JSON.parse(gameVersionJson)
+  convertGameFromJson: (gameJson) ->
+    parsed = JSON.parse(gameJson)
+    return {
+       info: _.pick(parsed, META_PROPERTIES...)
+       version: _.pick(parsed, JSON_PROPERTIES...)
+    }
 
-  convertGameVersionToJson: (gameVersion) ->
-    filteredObject = _.pick(gameVersion, JSON_PROPERTIES...)
+  convertGameToJson: (currentGame) ->    
+    filteredObject = _.extend({}, _.pick(currentGame.info, META_PROPERTIES...), _.pick(currentGame.version, JSON_PROPERTIES...))
     return JSON.stringify(filteredObject, null, 2)
