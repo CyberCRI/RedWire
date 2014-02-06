@@ -12,6 +12,13 @@ buildLogMessages = (result) ->
     }
   return errorMessages.concat(result.logMessages)
 
+extendFrameResults = (result, memory, inputIoData) ->
+  # Override memory, inputIoData, and log messages
+  result.logMessages = buildLogMessages(result) 
+  if memory? then result.memory = memory
+  if inputIoData? then result.inputIoData = inputIoData 
+  return result
+
 
 angular.module('gamEvolve.game.player', [])
 .controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime) -> 
@@ -63,11 +70,7 @@ angular.module('gamEvolve.game.player', [])
 
         $scope.$apply ->
           # Set the first frame
-          newFrame = 
-            memory: gameCode.memory # Initial memory
-            inputIoData: message.value.inputIoData 
-            ioPatches: message.value.ioPatches
-            logMessages: buildLogMessages(message.value) 
+          newFrame = extendFrameResults(message.value, gameCode.memory)
 
           if message.value.errors
             console.error("Record frames errors", message.value.errors)
@@ -87,18 +90,13 @@ angular.module('gamEvolve.game.player', [])
           # Remove frames after the current one
           gameHistory.data.frames.length = gameTime.currentFrameNumber + 1
 
-           # Replace the io data on the last frame
-          results = message.value[0]
-          gameHistory.data.frames[gameTime.currentFrameNumber].inputIoData = results.inputIoData
-          gameHistory.data.frames[gameTime.currentFrameNumber].ioPatches = results.ioPatches
-          gameHistory.data.frames[gameTime.currentFrameNumber].logMessages = results.logMessages
+          # Calculate memory going into the next frame
+          lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
+          lastMemory = GE.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
 
           # Add in the new results
-          lastMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
           for results in message.value[1..]
-            gameHistory.data.frames.push _.extend results, 
-              memory: lastMemory
-              logMessages: buildLogMessages(results)
+            gameHistory.data.frames.push(extendFrameResults(results, lastMemory))
               
             if results.errors 
               console.error("Stop recording frames errors", results.errors)
@@ -120,18 +118,13 @@ angular.module('gamEvolve.game.player', [])
           # Replace existing frames by the new results, until an error is found
           lastMemory = gameHistory.data.frames[0].memory
           for index, results of message.value
-            gameHistory.data.frames[index] = 
-              memory: lastMemory
-              ioPatches: results.ioPatches
-              inputIoData: gameHistory.data.frames[index].inputIoData # Copy old inputIoData
-              logMessages: buildLogMessages(results)
+            # Copy over old inputIoData
+            gameHistory.data.frames[index] = extendFrameResults(results, lastMemory, gameHistory.data.frames[index].inputIoData)
 
             if results.errors 
               console.error("Update frames errors", results.errors)
               gameTime.errorsFound = true
-              break
-
-            break # Stop updating when error is found
+              break # Stop updating when error is found
 
             # Calcuate the next memory to be used
             lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
@@ -188,7 +181,10 @@ angular.module('gamEvolve.game.player', [])
   onUpdateRecording = (isRecording) ->
     if not gameCode? then return
     if isRecording 
-      sendMessage("startRecording", { memory: gameHistory.data.frames[gameTime.currentFrameNumber].memory })
+      # Start recording on next frame
+      lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
+      nextMemory = GE.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+      sendMessage("startRecording", { memory: nextMemory })
     else
       sendMessage("stopRecording")
   $scope.$watch('gameTime.isRecording', onUpdateRecording, true)
