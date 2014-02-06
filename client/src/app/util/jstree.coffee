@@ -23,6 +23,13 @@ angular.module("gamEvolve.util.jstree", []).directive "jstree", (currentGame) ->
           params:
             in: {}
             out: {}
+        else if "emitter" of data.o.attributes
+          emitter: {}
+        else if "splitter" of data.o.attributes
+          splitter: 
+            from: ""
+            bindTo: ""
+            index: ""
         else 
           throw new Error("Unknown element #{data.o} accepted for drag and drop")
 

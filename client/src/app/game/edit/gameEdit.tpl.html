@@ -51,7 +51,13 @@
     <flexy-layout orientation="vertical">
         <block-container style="overflow:scroll;">
             <accordion close-others="true">
-                <accordion-group heading="Processors" is-open="true">
+                <accordion-group heading="Basic" is-open="true">
+                    <ul>
+                        <li><a href="" class="jstree-draggable" emitter>Emitter</a></li>
+                        <li><a href="" class="jstree-draggable" splitter>Splitter</a></li>
+                    </ul>
+                </accordion-group>
+                <accordion-group heading="Processors">
                     <div id="processors" ng-controller="ProcessorsListCtrl">
                         <ul>
                             <li ng-repeat="processorName in processorNames">

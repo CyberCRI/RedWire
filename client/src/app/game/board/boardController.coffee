@@ -105,14 +105,14 @@ angular.module('gamEvolve.game.board', [
 .controller 'EditBoardSplitterDialogCtrl', ($scope, liaison, currentGame) ->
   $scope.DESTINATIONS = enumeratePinDestinations(currentGame.version)
   $scope.name = liaison.model.comment
-  $scope.from = liaison.model.foreach.from
-  $scope.bindTo = liaison.model.foreach.bindTo
-  $scope.index = liaison.model.foreach.index
+  $scope.from = liaison.model.splitter.from
+  $scope.bindTo = liaison.model.splitter.bindTo
+  $scope.index = liaison.model.splitter.index
 
   # Reply with the new data
   $scope.done = -> liaison.done 
     comment: $scope.name
-    foreach:
+    splitter:
       from: $scope.from
       bindTo: $scope.bindTo
       index: $scope.index
