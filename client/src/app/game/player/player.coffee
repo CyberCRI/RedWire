@@ -42,12 +42,14 @@ angular.module('gamEvolve.game.player', [])
         if message.type is "error"
           $scope.$apply ->
             gameHistory.data.compilationErrors = [GE.firstLine(message.error)]
+            gameTime.errorsFound = true
             gameHistory.meta.version++
         else
           # The game loaded successfully
           $scope.$apply ->
             gameHistory.data.compilationErrors = []
             gameHistory.meta.version++
+            gameTime.errorsFound = false
 
           if gameHistory.data.frames.length > 0 and gameHistory.data.frames[0].inputIoData
             # If there are already frames, then update them 
@@ -57,7 +59,7 @@ angular.module('gamEvolve.game.player', [])
             # Else just record the first frame
             sendMessage("recordFrame", { memory: gameCode.memory })
       when "recordFrame"
-        if message.type is "error" then throw new Error("Cannot deal with recordFrame error")
+        if message.type is "error" then throw new Error("Cannot deal with recordFrame error message")
 
         $scope.$apply ->
           # Set the first frame
@@ -67,11 +69,19 @@ angular.module('gamEvolve.game.player', [])
             ioPatches: message.value.ioPatches
             logMessages: buildLogMessages(message.value) 
 
-          if message.value.errors then console.error("Record frames errors", message.value.errors)
+          if message.value.errors
+            console.error("Record frames errors", message.value.errors)
+            gameTime.errorsFound = true
 
           gameHistory.data.frames = [newFrame]
           gameHistory.meta.version++
           gameTime.currentFrameNumber = 0
+      when "recording"
+        if message.type isnt "error" then new Error("Cannot deal with recording success message")
+
+        console.log("Recording met with error. Stopping it")
+        $scope.$apply ->
+          gameTime.isRecording = false
       when "stopRecording" 
         $scope.$apply ->
           # Remove frames after the current one
@@ -86,11 +96,15 @@ angular.module('gamEvolve.game.player', [])
           # Add in the new results
           lastMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
           for results in message.value[1..]
-            gameHistory.data.frames.push
+            gameHistory.data.frames.push _.extend results, 
               memory: lastMemory
-              ioPatches: results.ioPatches
-              inputIoData: results.inputIoData
-              logMessages: results.logMessages
+              logMessages: buildLogMessages(results)
+              
+            if results.errors 
+              console.error("Stop recording frames errors", results.errors)
+              gameTime.errorsFound = true
+              break
+
             # Calcuate the next memory to be used
             lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
 
@@ -114,6 +128,7 @@ angular.module('gamEvolve.game.player', [])
 
             if results.errors 
               console.error("Update frames errors", results.errors)
+              gameTime.errorsFound = true
               break
 
             break # Stop updating when error is found
@@ -124,6 +139,7 @@ angular.module('gamEvolve.game.player', [])
             # Update the version
           gameHistory.meta.version++
           # Display the current frame
+          # TODO: go to the frame of first error
           onUpdateFrame(gameTime.currentFrameNumber)
 
   sendMessage = (operation, value) ->  

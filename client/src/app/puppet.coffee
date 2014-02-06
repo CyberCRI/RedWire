@@ -163,18 +163,16 @@ onRecordFrame = (memory, inputIoData = null) ->
 onRepeatRecordFrame = ->
   if !isRecording then return  # Stop when requested
 
-  try
-    result = onRecordFrame(lastMemory)
+  result = onRecordFrame(lastMemory)
+  # Log result to send back in onStopRecording()
+  recordedFrames.push(result)
 
-    # Log result to send back in onStopRecording()
-    recordedFrames.push(result)
-    lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
-
-    requestAnimationFrame(onRepeatRecordFrame) # Loop!
-  catch e
-    # TODO: send back current frame results, even if they conflict or other error arises
+  if result.errors
     isRecording = false
-    recordFrameReporter(e)
+    recordFrameReporter(result.errors)
+  else 
+    lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
+    requestAnimationFrame(onRepeatRecordFrame) # Loop!
 
 onPlayFrame = (outputIoData) ->
   GE.stepLoop

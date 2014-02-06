@@ -24,6 +24,7 @@ angular.module('gamEvolve.game.time', [])
   onUpdateModel = ->
     $scope.currentFrame = gameTime.currentFrameNumber
     $scope.lastFrame = Math.max(0, gameHistory.data.frames.length - 1)
+    $scope.isRecording = gameTime.isRecording
     $scope.disableTimeControls = gameHistory.data.frames.length < 2 or $scope.isRecording
 
   onPlayFrame = ->

@@ -9,6 +9,11 @@
                         <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a> 
                         by 
                         {{ currentGame.creator }}</a> 
+
+                        <span id="executionInfo">
+                            <span class="label label-success" ng-show="!gameTime.errorsFound">Success</span>
+                            <span class="label label-warning" ng-show="gameTime.errorsFound">Errors found (see log)</span>
+                        </span>
                     </h4>
                     <div ng-controller="TimeCtrl" id="timeController">
                         <div id="recordContainer">
