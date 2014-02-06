@@ -10,12 +10,12 @@ describe 'Board Converter', ->
   it 'should convert root chip', ->
     input = board.EMPTY_DO_IN_PARALLEL.source
     output = sut.convert(input)
-    expect(output.data).toEqual 'Do In Parallel'
+    expect(output.attr.rel).toEqual 'switch'
 
   it 'should handle multiple chip process types', ->
     input = board.EMPTY_DO_IN_SEQUENCE.source
     output = sut.convert(input)
-    expect(output.data).toEqual 'Do In Sequence'
+    expect(output.attr.rel).toEqual 'switch'
 
   it 'should make root switch open by default', ->
     input = board.EMPTY_DO_IN_PARALLEL.source
@@ -27,7 +27,7 @@ describe 'Board Converter', ->
     output = sut.convert(input)
     expect(output.children.length).toBe 1
     expect(output.metadata.source.children).toBe undefined
-    expect(output.children).toContain sut.convert(input.children[0], false)
+    expect(output.children[0].data).toEqual sut.convert(input.children[0], [0]).data
 
   it 'should convert multiple children in switch', ->
     input = board.MULTIPLE_CHILDREN.source

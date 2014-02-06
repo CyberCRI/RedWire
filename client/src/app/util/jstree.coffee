@@ -2,31 +2,52 @@ angular.module("gamEvolve.util.jstree", []).directive "jstree", (currentGame) ->
 
   dnd =
     drag_check: (data) ->
-      # No dropping in processors
-      return false if data.r.attr("rel") is "processor"
-      # For simplicity's sake, DnD is allowed only for adding processors INSIDE tree nodes
-      after: false
-      before: false
-      inside: true
+      # No dropping in processors or emitters
+      if data.r.attr("rel") in ["processor", "emitter"] then return false 
+
+      # TODO: allow adding nodes before and after, not just inside
+      result =  
+        after: false
+        before: false
+        inside: true
+      return result
 
     drag_finish: (data) ->
-      processorId = data.o.attributes["processor-id"].nodeValue
+      source = if "processor-id" of data.o.attributes
+          processor: data.o.attributes["processor-id"].nodeValue
+          params:
+            in: {}
+            out: {}
+        else if "switch-id" of data.o.attributes
+          switch: data.o.attributes["switch-id"].nodeValue
+          params:
+            in: {}
+            out: {}
+        else 
+          throw new Error("Unknown element #{data.o} accepted for drag and drop")
+
       path = data.r.data("path")
       target = currentGame.getTreeNode(path)
-      source =
-        processor: processorId
-        params:
-          in: {}
-          out: {}
+
+      # If the target doesn't have children, it needs an empty list
+      if not target.children? then target.children = [] 
       target.children.unshift source
 
-  types = types:
+  types = 
     switch:
       icon:
         image: "/assets/images/switch.png"
     processor:
-      valid_children: [] # Processors are leafs in the tree
-
+      valid_children: [] # Leaves in the tree
+      icon:
+        image: "/assets/images/processor.png"
+    emitter:
+      valid_children: [] # Leaves in the tree
+      icon:
+        image: "/assets/images/emitter.png"
+    splitter:
+      icon:
+        image: "/assets/images/splitter.png"
 
   restrict: "A"
   scope:
@@ -39,7 +60,8 @@ angular.module("gamEvolve.util.jstree", []).directive "jstree", (currentGame) ->
         json_data:
           data: scope.jstree
         dnd: dnd
-        types: types
+        types: 
+          types: types
         core:
           html_titles: true
         plugins: ["themes", "ui", "json_data", "dnd", "types", "wholerow", "crrm"]
