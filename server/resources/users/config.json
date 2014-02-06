@@ -13,7 +13,7 @@
 			"name": "isAdmin",
 			"type": "boolean",
 			"typeLabel": "boolean",
-			"required": true,
+			"required": false,
 			"id": "isAdmin",
 			"order": 1
 		}

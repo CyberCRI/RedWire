@@ -11,7 +11,7 @@ angular.module('gamEvolve.model.users', [])
 
 .factory 'users', (loggedUser, $http, $q) ->
 
-    login: (username, password) ->
+    logUser = (username, password) ->
       deferred = $q.defer()
       $http.post('/users/login', {username: username, password: password})
         .then ->
@@ -25,8 +25,14 @@ angular.module('gamEvolve.model.users', [])
           deferred.resolve(user)
       deferred.promise
 
+    login: logUser
+
     logout: ->
       loggedUser.profile = null
 
     findByEmail: (email) ->
       $http.get('/users/?{"email": "' + email + '"}')
+
+    createAndLogin: (username, email, password) ->
+      $http.post('/users', {username: username, email: email, password: password}).then ->
+        logUser(username, password)
