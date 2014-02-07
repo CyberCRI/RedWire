@@ -31,12 +31,12 @@ angular.module('gamEvolve.game.switches', [
           {
             model:
               name: ""
-              paramDefs: {}
+              pinDefs: {}
               listActiveChildren: ""
               handleSignals: ""
             done: (model) ->
               currentGame.version.switches[model.name] = 
-                paramDefs: model.paramDefs
+                pinDefs: model.pinDefs
                 listActiveChildren: model.listActiveChildren
                 handleSignals: model.handleSignals
 
@@ -61,7 +61,7 @@ angular.module('gamEvolve.game.switches', [
           {
             model:
               name: switchName
-              paramDefs: switchData.paramDefs
+              pinDefs: switchData.pinDefs
               listActiveChildren: switchData.listActiveChildren
               handleSignals: switchData.handleSignals
             done: (model) ->
@@ -70,7 +70,7 @@ angular.module('gamEvolve.game.switches', [
                 delete currentGame.version.switches[switchName]
 
               currentGame.version.switches[model.name] = 
-                paramDefs: model.paramDefs
+                pinDefs: model.pinDefs
                 listActiveChildren: model.listActiveChildren
                 handleSignals: model.handleSignals
 
@@ -81,23 +81,23 @@ angular.module('gamEvolve.game.switches', [
     editSwitchDialog.open()
 
 .controller 'EditSwitchDialogCtrl', ($scope, switchIntermediary) ->
-  # Convert between "paramDef form" used in game serialization and "pin form" used in GUI
-  toPins = (paramDefs) ->
-    for paramName, paramDef of paramDefs
-      name: paramName
-      direction: paramDef?.direction || "in"
-      default: paramDef?.default || "" 
-  toParamDefs = (pins) ->
-    paramDefs = {}
+  # Convert between "pinDef form" used in game serialization and "pin form" used in GUI
+  toPins = (pinDefs) ->
+    for pinName, pinDef of pinDefs
+      name: pinName
+      direction: pinDef?.direction || "in"
+      default: pinDef?.default || "" 
+  toPinDefs = (pins) ->
+    pinDefs = {}
     for pin in pins
-      paramDefs[pin.name] = 
+      pinDefs[pin.name] = 
         direction: pin.direction 
         default: if pin.direction is "in" then pin.default else null
-    return paramDefs
+    return pinDefs
 
   $scope.DIRECTIONS = ["in", "inout", "out"]
   $scope.name = switchIntermediary.model.name
-  $scope.pins = toPins(switchIntermediary.model.paramDefs)
+  $scope.pins = toPins(switchIntermediary.model.pinDefs)
   $scope.listActiveChildrenText = switchIntermediary.model.listActiveChildren
   $scope.handleSignalsText = switchIntermediary.model.handleSignals
 
@@ -107,7 +107,7 @@ angular.module('gamEvolve.game.switches', [
   # Reply with the new data
   $scope.done = -> switchIntermediary.done 
     name: $scope.name
-    paramDefs: toParamDefs($scope.pins)
+    pinDefs: toPinDefs($scope.pins)
     listActiveChildren: $scope.listActiveChildrenText
     handleSignals: $scope.handleSignalsText
   $scope.cancel = -> switchIntermediary.cancel() 

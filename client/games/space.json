@@ -86,7 +86,7 @@
             "keysDown": "io.keyboard.keysDown"
           },
           "out": {
-            "memory.position": "pins.position"
+            "memory.hero.position": "pins.position"
           }
         }
       },
@@ -173,15 +173,20 @@
     },
     "Move thing with arrow keys": {
       "pinDefs": {
-        "keysDown": null,
+        "keysDown": {
+          "direction": "in",
+          "default": ""
+        },
         "position": {
-          "direction": "inout"
+          "direction": "inout",
+          "default": null
         },
         "speed": {
-          "default": 1
+          "direction": "in",
+          "default": "1"
         }
       },
-      "update": "if(_.contains(pins.keysDown, 37)) pins.position[0] -= pins.speed;\nif(_.contains(pins.keysDown, 39)) pins.position[0] += pins.speed;\nif(_.contains(pins.keysDown, 38)) pins.position[1] -= pins.speed;\nif(_.contains(pins.keysDown, 38)) pins.position[1] += pins.speed;"
+      "update": "if(pins.keysDown[37]) pins.position[0] -= pins.speed;\nif(pins.keysDown[39]) pins.position[0] += pins.speed;\nif(pins.keysDown[38]) pins.position[1] -= pins.speed;\nif(pins.keysDown[40]) pins.position[1] += pins.speed;"
     },
     "Detect Mouse": {
       "pinDefs": {

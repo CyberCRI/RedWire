@@ -89,7 +89,7 @@ angular.module('gamEvolve.game.board', [
 .controller 'EditBoardEmitterDialogCtrl', ($scope, liaison, currentGame) ->
   $scope.DESTINATIONS = enumeratePinDestinations(currentGame.version)
   $scope.name = liaison.model.comment
-  # Convert between "paramDef form" used in game serialization and "pin form" used in GUI
+  # Convert between "pinDef form" used in game serialization and "pin form" used in GUI
   $scope.pins = ({ input: input, output: output } for output, input of liaison.model.emitter)
 
   $scope.addPin = -> $scope.pins.push({ input: "", output: "" })
@@ -120,44 +120,44 @@ angular.module('gamEvolve.game.board', [
 
 
 .controller 'EditBoardProcessorDialogCtrl', ($scope, liaison, currentGame) ->
-  # Source must start with "model" or "services", then a dot, then some more text or indexing 
-  sourceIsSimple = (source) -> /^(model|services)\.[\w.\[\]]+$/.test(source)
+  # Source must start with "memory" or "services", then a dot, then some more text or indexing 
+  sourceIsSimple = (source) -> /^(memory|services)\.[\w.\[\]]+$/.test(source)
 
-  # Drain must be a simple mapping of the parameter
-  drainIsSimple = (name, outValues) -> "params.#{name}" in _.values(outValues)
+  # Drain must be a simple mapping of the pin
+  drainIsSimple = (name, outValues) -> "pins.#{name}" in _.values(outValues)
 
   # Determine if pin destination is "simple" or "custom"
   determineLinkage = (name, direction, inValues, outValues) ->
     if direction in ["in", "inout"] and not sourceIsSimple(inValues[name]) then return "custom" 
     if direction in ["out", "inout"] and not drainIsSimple(name, outValues) then return "custom" 
     # The drain and source destinations must be equal
-    if direction is "inout" and outValues[inValues[name]] isnt "params.#{name}" then return "custom"
+    if direction is "inout" and outValues[inValues[name]] isnt "pins.#{name}" then return "custom"
     return "simple" 
 
   # Only valid if determineLinkage() returns "simple"
   getSimpleDestination = (name, direction, inValues, outValues) ->
     if direction in ["in", "inout"] then return inValues[name] 
     for destination, expression in outValues
-      if expression is "params.#{name}" then return destination
-    throw new Error("Cannot find simple destination for parameter '#{name}'")
+      if expression is "pins.#{name}" then return destination
+    throw new Error("Cannot find simple destination for pin '#{name}'")
 
-  findParameterReferences = (name, outValues) ->
-    return ({ drain: drain, source: source } for drain, source of outValues when source.indexOf("params.#{name}") != -1)
+  findPinReferences = (name, outValues) ->
+    return ({ drain: drain, source: source } for drain, source of outValues when source.indexOf("pins.#{name}") != -1)
 
   convertPinsToModel = (pins) ->
-    params = 
+    result = 
       in: {}
       out: {}
     for pin in pins
       if pin.direction in ["in", "inout"]
-        params.in[pin.name] = if pin.linkage is "simple" then pin.simpleDestination else pin.customDestinations.in
+        result.in[pin.name] = if pin.linkage is "simple" then pin.simpleDestination else pin.customDestinations.in
       if pin.direction in ["out", "inout"]
         if pin.linkage is "simple" 
-          params.out[pin.simpleDestination] = "params.#{pin.name}"
+          result.out[pin.simpleDestination] = "pins.#{pin.name}"
         else
           for destination in pin.customDestinations.out
-            params.out[destination.drain] = destination.source
-    return params
+            result.out[destination.drain] = destination.source
+    return result
 
   $scope.LINKAGES = ["simple", "custom"]
   $scope.DESTINATIONS = enumeratePinDestinations(currentGame.version)
@@ -179,21 +179,21 @@ angular.module('gamEvolve.game.board', [
 
   # TODO: refactor into function
   $scope.pins = []
-  for paramName, paramDef of typeDef.paramDefs
+  for pinName, pinDef of typeDef.pinDefs
     pin = 
-      name: paramName
-      direction: paramDef?.direction ? "in"
-      default: paramDef?.default
+      name: pinName
+      direction: pinDef?.direction ? "in"
+      default: pinDef?.default
       simpleDestination: ""
       customDestinations:
         in: ""
         out: []
-    pin.linkage = determineLinkage(paramName, pin.direction, liaison.model.params.in, liaison.model.params.out)
+    pin.linkage = determineLinkage(pinName, pin.direction, liaison.model.pins.in, liaison.model.pins.out)
     if pin.linkage == "simple" 
-      pin.simpleDestination = getSimpleDestination(paramName, pin.direction, liaison.model.params.in, liaison.model.params.out)
+      pin.simpleDestination = getSimpleDestination(pinName, pin.direction, liaison.model.pins.in, liaison.model.pins.out)
     else
-      pin.customDestinations.in = liaison.model.params.in[paramName]
-      pin.customDestinations.out = findParameterReferences(paramName, liaison.model.params.out)
+      pin.customDestinations.in = liaison.model.pins.in[pinName]
+      pin.customDestinations.out = findPinReferences(pinName, liaison.model.pins.out)
     $scope.pins.push(pin)
 
   $scope.addCustomDestination = (pinName) -> 
@@ -206,5 +206,5 @@ angular.module('gamEvolve.game.board', [
   # Reply with the new data
   $scope.done = -> liaison.done 
     comment: $scope.name
-    params: convertPinsToModel($scope.pins)
+    pins: convertPinsToModel($scope.pins)
   $scope.cancel = -> liaison.cancel() 

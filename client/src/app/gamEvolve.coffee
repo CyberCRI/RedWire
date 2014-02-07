@@ -459,7 +459,7 @@ GE.stepLoop = (options) ->
       options.inputIoData = {}
       try
         for ioName, io of options.io
-          options.inputIoData[ioName] = io.provideData(options.ioConfig, options.assets)
+          options.inputIoData[ioName] = GE.cloneData(io.provideData(options.ioConfig, options.assets))
       catch e 
         return makeErrorResponse("readIo", e)
 

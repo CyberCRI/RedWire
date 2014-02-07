@@ -31,11 +31,11 @@ angular.module('gamEvolve.game.processors', [
           {
             model:
               name: ""
-              paramDefs: {}
+              pinDefs: {}
               update: ""
             done: (model) ->
               currentGame.version.processors[model.name] = 
-                paramDefs: model.paramDefs
+                pinDefs: model.pinDefs
                 update: model.update
 
               addProcessorDialog.close()
@@ -59,7 +59,7 @@ angular.module('gamEvolve.game.processors', [
           {
             model:
               name: processorName
-              paramDefs: processor.paramDefs
+              pinDefs: processor.pinDefs
               update: processor.update
             done: (model) ->
               # Handle rename case
@@ -67,7 +67,7 @@ angular.module('gamEvolve.game.processors', [
                 delete currentGame.version.processors[processorName]
 
               currentGame.version.processors[model.name] = 
-                paramDefs: model.paramDefs
+                pinDefs: model.pinDefs
                 update: model.update
 
               editProcessorDialog.close()
@@ -77,23 +77,23 @@ angular.module('gamEvolve.game.processors', [
     editProcessorDialog.open()
 
 .controller 'EditProcessorDialogCtrl', ($scope, processor) ->
-  # Convert between "paramDef form" used in game serialization and "pin form" used in GUI
-  toPins = (paramDefs) ->
-    for paramName, paramDef of paramDefs
-      name: paramName
-      direction: paramDef?.direction || "in"
-      default: paramDef?.default || "" 
-  toParamDefs = (pins) ->
-    paramDefs = {}
+  # Convert between "pinDef form" used in game serialization and "pin form" used in GUI
+  toPins = (pinDefs) ->
+    for pinName, pinDef of pinDefs
+      name: pinName
+      direction: pinDef?.direction || "in"
+      default: pinDef?.default || "" 
+  toPinDefs = (pins) ->
+    pinDefs = {}
     for pin in pins
-      paramDefs[pin.name] = 
+      pinDefs[pin.name] = 
         direction: pin.direction 
         default: if pin.direction is "in" then pin.default else null
-    return paramDefs
+    return pinDefs
 
   $scope.DIRECTIONS = ["in", "inout", "out"]
   $scope.name = processor.model.name
-  $scope.pins = toPins(processor.model.paramDefs)
+  $scope.pins = toPins(processor.model.pinDefs)
   $scope.updateText = processor.model.update
 
   $scope.addPin = -> $scope.pins.push({ name: "", direction: "in" })
@@ -102,6 +102,6 @@ angular.module('gamEvolve.game.processors', [
   # Reply with the new data
   $scope.done = -> processor.done 
     name: $scope.name
-    paramDefs: toParamDefs($scope.pins)
+    pinDefs: toPinDefs($scope.pins)
     update: $scope.updateText
   $scope.cancel = -> processor.cancel() 
