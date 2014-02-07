@@ -31,6 +31,7 @@ makeChipButtons = (path) -> """
 angular.module('gamEvolve.util.boardConverter', [])
 
 .factory 'boardConverter', ->
+
     convert: (source, path = []) ->
       state = 'closed'
       if path.length is 0 
@@ -50,3 +51,15 @@ angular.module('gamEvolve.util.boardConverter', [])
         for childIndex, child of source.children
           converted.children.push(@convert(child, GE.appendToArray(path, childIndex)))
       converted
+
+    revert: (treeJson) ->
+      @revertNode(treeJson)
+
+    revertNode: (nodeJson) ->
+      node = nodeJson.metadata.source
+      if nodeJson.children?
+        node.children = []
+        for childJson in nodeJson.children
+          child = @revertNode(childJson)
+          node.children.push child
+      node
