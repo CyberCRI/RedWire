@@ -9,7 +9,6 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.games'
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
-  'gamEvolve.util.jstree'
   'gamEvolve.util.boardConverter'
   'gamEvolve.util.gameConverter'
   'gamEvolve.game'
