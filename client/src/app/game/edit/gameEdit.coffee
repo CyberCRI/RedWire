@@ -10,7 +10,8 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
     data: 
       pageTitle: 'Edit Game'
 
-.controller 'GameEditCtrl', ($scope, $filter, gameHistory, currentGame, boardConverter, gameTime) -> 
+.controller 'GameEditCtrl', ($scope, $stateParams, games, $filter, gameHistory, currentGame, boardConverter, gameTime) ->
+  games.loadFromId $stateParams.gameId
   $scope.memory = {}
   $scope.currentGame = currentGame;
   $scope.board = {}

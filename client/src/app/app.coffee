@@ -34,7 +34,7 @@ angular.module( 'gamEvolve', [
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->
-  $urlRouterProvider.otherwise( '/game/1234/edit' )
+  $urlRouterProvider.otherwise( '/game/065ffe64aa2928a3/edit' )
 )
 
 .controller('AppCtrl', ( $scope, $location ) ->

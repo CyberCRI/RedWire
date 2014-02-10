@@ -112,13 +112,12 @@ angular.module('gamEvolve.model.games', [])
   loadAll: ->
     allGames = []
     $http.get('/games')
-      .error( (error) -> console.log error )
       .success( (result) -> allGames.push game for game in result )
+      .error (error) -> console.log error
     allGames
 
   # Load the game content and the creator info, then put it all into currentGame
   load: (game) ->
-    # TODO Optimize - Query for the last version only
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
     getVersion = $http.get("/game-versions?#{query}")
     getCreator = $http.get("/users?id=#{game.ownerId}")
@@ -129,3 +128,10 @@ angular.module('gamEvolve.model.games', [])
       console.log("loaded game", currentGame)
     onError = (error) -> console.log("Error loading game", error) # TODO: notify the user of the error
     $q.all([getVersion, getCreator]).then(updateCurrentGame, onError)
+
+  loadFromId: (gameId) ->
+    $http.get("/games/#{gameId}")
+      .success(@load)
+      .error (error) ->
+        console.log error
+        window.alert "Incorrect URL : Are you sure #{gameId} is a valid game ID ?"
