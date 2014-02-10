@@ -6,8 +6,7 @@
       "position": [
         50,
         270
-      ],
-      "$$hashKey": "03H"
+      ]
     },
     "topLevelActiveChild": 0,
     "enemies": [
@@ -17,11 +16,11 @@
           800,
           270
         ],
-        "health": 1,
-        "$$hashKey": "03Q"
+        "health": 1
       }
     ],
-    "heroLasers": []
+    "heroLasers": {},
+    "lastFiringTime": 0
   },
   "board": {
     "switch": "Do in Parallel",
@@ -95,7 +94,8 @@
         "pins": {
           "in": {
             "position": "memory.hero.position",
-            "keysDown": "io.keyboard.keysDown"
+            "keysDown": "io.keyboard.keysDown",
+            "speed": "2"
           },
           "out": {
             "memory.hero.position": "pins.position"
@@ -150,10 +150,26 @@
         },
         "children": [
           {
-            "comment": "Fire",
-            "emitter": {
-              "memory.heroLasers": "GE.appendToArray(memory.heroLasers, memory.hero.position)"
-            }
+            "switch": "Limit Rate",
+            "comment": "Don't fire too often",
+            "pins": {
+              "in": {
+                "currentTime": "io.time",
+                "minTime": "1000",
+                "lastTime": "memory.lastFiringTime"
+              },
+              "out": {
+                "memory.lastFiringTime": "pins.lastTime"
+              }
+            },
+            "children": [
+              {
+                "comment": "Fire",
+                "emitter": {
+                  "memory.heroLasers": "GE.addUniqueToObject(memory.heroLasers, memory.hero.position)"
+                }
+              }
+            ]
           }
         ]
       }
@@ -163,23 +179,19 @@
     "layers": [
       {
         "name": "space",
-        "type": "canvas",
-        "$$hashKey": "02O"
+        "type": "canvas"
       },
       {
         "name": "stars",
-        "type": "canvas",
-        "$$hashKey": "02S"
+        "type": "canvas"
       },
       {
         "name": "ships",
-        "type": "canvas",
-        "$$hashKey": "02W"
+        "type": "canvas"
       },
       {
         "name": "attacks",
-        "type": "canvas",
-        "$$hashKey": "04Y"
+        "type": "canvas"
       }
     ]
   },
@@ -290,6 +302,17 @@
         }
       },
       "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
+    },
+    "Limit Rate": {
+      "pinDefs": {
+        "currentTime": null,
+        "minTime": null,
+        "lastTime": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
+      "handleSignals": "if(signals[0] == GE.signals.DONE) pins.lastTime = pins.currentTime;"
     }
   },
   "transformers": {
@@ -408,14 +431,14 @@
         "lasers",
         "asset"
       ],
-      "body": "var shapes = []; for(var i = 0; i < lasers.length; i++) { var laser = lasers[i]; shapes.push({ type: 'image', asset: asset, layer: 'attacks', position: laser }); } return transformers.drawShapes(shapes);"
+      "body": "var shapes = []; \nfor(var key in lasers) { \n    var laser = lasers[key]; \n    shapes.push({ \n        type: 'image', \n        asset: asset, \n        layer: 'attacks', \n        position: laser }); \n} \nreturn transformers.drawShapes(shapes);    "
     },
     "updateLasers": {
       "args": [
         "lasers",
         "screenSize"
       ],
-      "body": "var newLasers = []; \nfor(var i = 0; i < lasers.length; i++) { \n    var laser = lasers[i]; \n    if(laser[0] < screenSize[1]) {\n        newLasers.push( [laser[0] + 3, laser[1]] ); \n    } \n}\nreturn newLasers;"
+      "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[0]) laser[0] = laser[0] + 3;\n    else delete lasers[key]; \n}\nreturn lasers;"
     },
     "moveEnemy": {
       "args": [

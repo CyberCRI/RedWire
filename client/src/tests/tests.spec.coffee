@@ -9,7 +9,7 @@ describe "gamEvolve", ->
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
       toBeEmpty: () -> @actual.length == 0
 
-  describe "patches", -> 
+  describe "memory", -> 
     it "can remove value from array", ->
       a = 
         v: [10..15]
@@ -20,17 +20,6 @@ describe "gamEvolve", ->
       patchResult = GE.applyPatches(patches, a)
 
       expect(patchResult).toDeeplyEqual(b)
-
-  describe "memory", ->
-    it "can be created empty", ->
-      memory = new GE.Memory()
-      expect(memory.version).toEqual(0)
-      expect(memory.data).toDeeplyEqual({})
-
-    it "can be created with data", ->
-      memory = new GE.Memory({a: 1, b: 2})
-      expect(memory.version).toEqual(0)
-      expect(memory.data).toDeeplyEqual({a: 1, b: 2})
 
     it "can be patched", ->
       # Create old data, new data, and the patches between
@@ -45,51 +34,77 @@ describe "gamEvolve", ->
           b2: "there"
         c: 
           bob: "is cool"
+
+      # Create the result via patches
       patches = GE.makePatches(oldData, newData)
+      result = GE.applyPatches(patches, oldData)
 
-      # Create memory objects of the data
-      oldMemory = new GE.Memory(oldData)
-      newMemory = oldMemory.applyPatches(patches)
+      # The new data and old data should still be valid and different
+      expect(oldData).not.toDeeplyEqual(newData)
+      expect(result).toDeeplyEqual(newData)
 
-      # The new memory and the old memory should still both be valid and different
-      expect(oldMemory.version).toEqual(0)
-      expect(oldMemory.data).toDeeplyEqual(oldData)
-      expect(newMemory.version).toEqual(1)
-      expect(newMemory.data).toDeeplyEqual(newData)
-
-    it "rejects conflicting patches", ->
-      # Create old data, new data, and the patches between
+    it "detects conflicting patches", ->
+      # Test changing same attribute
       oldData = 
-        a: 1
+        a: 
+          b: 1
+        c: 2
       newDataA = 
-        a: 2 
+        a: 
+          b: 2
       newDataB = 
-        b: 3
-      patchesA = GE.makePatches(oldData, newDataA)
-      patchesB = GE.makePatches(oldData, newDataB)
+        a:
+          b: 3
+        c: 2
+      
+      patchesA = GE.makePatches(oldData, newDataA, "a")
+      patchesB = GE.makePatches(oldData, newDataB, "b")
+      allPatches = GE.concatenate(patchesA, patchesB)
 
-      # Create memory objects of the data
-      oldMemory = new GE.Memory(oldData)
-      expect(-> oldMemory.applyPatches(_.flatten([patchesA, patchesB]))).toThrow()
+      conflicts = GE.detectPatchConflicts(allPatches)
+      expect(conflicts.length).toBe(1)
+      expect(conflicts[0].path).toBe("/a/b")
 
-    it "can be retrieved at a given version", ->
-      v0 = 
-        a: 0
-      v1 =
-        a: 1
-      v2 = 
-        a: 2
+      # Test child attribute
+      oldData = 
+        a: 
+          b: 1
+      newDataA = 
+        a: 
+          b: 
+            c: 2
+      newDataB = 
+        a:
+          b: 3
+      
+      patchesA = GE.makePatches(oldData, newDataA, "a")
+      patchesB = GE.makePatches(oldData, newDataB, "b")
+      allPatches = GE.concatenate(patchesA, patchesB)
 
-      memory = new GE.Memory(v0).setData(v1).setData(v2)
+      conflicts = GE.detectPatchConflicts(allPatches)
+      expect(conflicts.length).toBe(1)
+      expect(conflicts[0].path).toBe("/a/b")
 
-      expect(memory.clonedData()).toDeeplyEqual(v2)
-      expect(memory.version).toBe(2)
+       # Test no conflict
+      oldData = 
+        a: 
+          b: 1
+        c: 2
+      newDataA = 
+        a: 
+          b: 2
+        c: 2
+      newDataB = 
+        a: 
+          b: 1
+        c: 3
+      
+      patchesA = GE.makePatches(oldData, newDataA, "a")
+      patchesB = GE.makePatches(oldData, newDataB, "b")
+      allPatches = GE.concatenate(patchesA, patchesB)
 
-      expect(memory.atVersion(1).clonedData()).toDeeplyEqual(v1)
-      expect(memory.atVersion(1).version).toBe(1)
-
-      expect(memory.atVersion(0).clonedData()).toDeeplyEqual(v0)
-      expect(memory.atVersion(0).version).toBe(0)
+      conflicts = GE.detectPatchConflicts(allPatches)
+      expect(conflicts).toBeEmpty()
 
 
   describe "visitChip()", ->
