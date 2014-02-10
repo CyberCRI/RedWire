@@ -325,6 +325,7 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
   # check which children should be activated
+  activeChildren = null
   if "listActiveChildren" of switchChip
     try
       activeChildren = switchChip.listActiveChildren(evaluatedPins, childNames, constants.transformers, GE.transformersLogger, path)
@@ -333,9 +334,9 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
       GE.transformersLogger(GE.logLevels.ERROR, "Calling switch #{chip.switch}.listActiveChildren raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
-  else
-    # By default, all children are considered active
-    activeChildren = childNames
+ 
+  # By default, all children are considered active
+  if activeChildren is null then activeChildren = childNames
 
   # Continue with children
   childSignals = new Array(chip.children.length)

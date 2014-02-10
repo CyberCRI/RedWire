@@ -19,7 +19,8 @@
         "health": 1
       }
     ],
-    "heroLasers": {}
+    "heroLasers": {},
+    "lastFiringTime": 0
   },
   "board": {
     "switch": "Do in Parallel",
@@ -93,7 +94,8 @@
         "pins": {
           "in": {
             "position": "memory.hero.position",
-            "keysDown": "io.keyboard.keysDown"
+            "keysDown": "io.keyboard.keysDown",
+            "speed": "2"
           },
           "out": {
             "memory.hero.position": "pins.position"
@@ -148,10 +150,26 @@
         },
         "children": [
           {
-            "comment": "Fire",
-            "emitter": {
-              "memory.heroLasers": "GE.addUniqueToObject(memory.heroLasers, memory.hero.position)"
-            }
+            "switch": "Limit Rate",
+            "comment": "Don't fire too often",
+            "pins": {
+              "in": {
+                "currentTime": "io.time",
+                "minTime": "1000",
+                "lastTime": "memory.lastFiringTime"
+              },
+              "out": {
+                "memory.lastFiringTime": "pins.lastTime"
+              }
+            },
+            "children": [
+              {
+                "comment": "Fire",
+                "emitter": {
+                  "memory.heroLasers": "GE.addUniqueToObject(memory.heroLasers, memory.hero.position)"
+                }
+              }
+            ]
           }
         ]
       }
@@ -284,6 +302,17 @@
         }
       },
       "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
+    },
+    "Limit Rate": {
+      "pinDefs": {
+        "currentTime": null,
+        "minTime": null,
+        "lastTime": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
+      "handleSignals": "if(signals[0] == GE.signals.DONE) pins.lastTime = pins.currentTime;"
     }
   },
   "transformers": {
@@ -409,7 +438,7 @@
         "lasers",
         "screenSize"
       ],
-      "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[1]) laser[0] = laser[0] + 3;\n    else delete lasers[key]; \n}\nreturn lasers;"
+      "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[0]) laser[0] = laser[0] + 3;\n    else delete lasers[key]; \n}\nreturn lasers;"
     },
     "moveEnemy": {
       "args": [
