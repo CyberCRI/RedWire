@@ -8,31 +8,6 @@ globals.GE = GE
 # The logFunction can be reset before visiting each chip that calls transformers
 GE.transformersLogger = null
 
-GE.Memory = class 
-  constructor: (data = {}, @previous = null) -> 
-    @data = GE.cloneFrozen(data)
-    @version = if @previous? then @previous.version + 1 else 0
-
-  setData: (data) -> return new GE.Memory(data, @)
-
-  clonedData: -> return GE.cloneData(@data)
-
-  atVersion: (version) -> 
-    if version > version then throw new Error("Version not found")
-
-    m = @
-    while m.version > version then m = m.previous
-    return m
-
-  makePatches: (newData) -> return GE.makePatches(@data, newData)
-
-  applyPatches: (patches) ->
-    if patches.length == 0 then return @ # Nothing to do
-    if GE.doPatchesConflict(patches) then throw new Error("Patches conflict")
-
-    newData = GE.applyPatches(patches, @data)
-    return new GE.Memory(newData, @)
-
 GE.ChipVisitorConstants = class 
   # Accepts options for "memoryData", "ioData", "assets", "processors", "transformers", and "evaluator"
   constructor: (options) -> 
@@ -116,22 +91,22 @@ GE.deepSet = (root, pathParts, value) ->
 # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
 # TODO: handle arrays
 # TODO: handle escape syntax
-GE.makePatches = (oldValue, newValue, prefix = "", patches = []) ->
+GE.makePatches = (oldValue, newValue, path = null, prefix = "", patches = []) ->
   if _.isEqual(newValue, oldValue) then return patches
 
   if oldValue is undefined
-    patches.push { add: prefix, value: GE.cloneData(newValue) }
+    patches.push { add: prefix, value: GE.cloneData(newValue), path: path }
   else if newValue is undefined 
-    patches.push { remove: prefix }
+    patches.push { remove: prefix, path: path }
   else if not _.isObject(newValue) or not _.isObject(oldValue) or typeof(oldValue) != typeof(newValue)
-    patches.push { replace: prefix, value: GE.cloneData(newValue) }
+    patches.push { replace: prefix, value: GE.cloneData(newValue), path: path }
   else if _.isArray(oldValue) and oldValue.length != newValue.length
     # In the case that we modified an array, we need to replace the whole thing  
-    patches.push { replace: prefix, value: GE.cloneData(newValue) }
+    patches.push { replace: prefix, value: GE.cloneData(newValue), path: path }
   else 
     # both elements are objects or arrays
     keys = _.union(_.keys(oldValue), _.keys(newValue))
-    GE.makePatches(oldValue[key], newValue[key], "#{prefix}/#{key}", patches) for key in keys
+    GE.makePatches(oldValue[key], newValue[key], path, "#{prefix}/#{key}", patches) for key in keys
 
   return patches
 
@@ -160,32 +135,56 @@ GE.applyPatches = (patches, oldValue, prefix = "") ->
 
   return value
 
-# Returns true if more than 1 patch in the list tries to affect the same key
-GE.doPatchesConflict = (patches) ->
-  affectedKeys = {} # If a key is set to "FINAL" then it should not be touched by another patch
-  for patch in patches
+# Returns information about patches that affect the same key
+GE.detectPatchConflicts = (patches) ->
+  # First, mark what patches affect what keys. 
+  # Set all patches that affect a certain key to the index of that patch in the list
+  affectedKeys = {} 
+  for index, patch of patches
     path = patch.remove or patch.add or patch.replace
     pathParts = _.rest(path.split("/"))
 
+    # Go down the keys in the patch, created objects under affectedKeys as necessary
     parent = affectedKeys
-    for pathPart in _.initial(pathParts)
-      if pathPart of parent 
-        if parent[pathPart] == "FINAL" then return true # The path was not to be touched
-      else
-        parent[pathPart] = {}
+    for pathPart in pathParts
+      if pathPart not of parent then parent[pathPart] = { }
       parent = parent[pathPart]
 
     # "parent" is now the last parent
-    if _.last(pathParts) of parent then return true
-    parent[_.last(pathParts)] = "FINAL" 
+    if "__patchIndexes__" not of parent then parent.__patchIndexes__ = []
+    parent.__patchIndexes__.push(index)
 
-  return false
+  # Find child 
+  findChildPatchIndexes = (obj) ->
+    childIndexes = []
+    for key, value of obj when key isnt "__patchIndexes__"
+      if value.__patchIndexes__ 
+        childIndexes = GE.concatenate(childIndexes, value.__patchIndexes__)
+      childIndexes = GE.concatenate(findChildPatchIndexes(value))
+    return childIndexes
 
-# Modifies patches by adding the given path to them
-GE.addPathToPatches = (path, patches) -> 
-  for patch in patches 
-    patch.path = path
-  return patches
+  detectConflicts = (obj, prefix = "") ->
+    conflicts = []
+    if obj.__patchIndexes__
+      # Can't have more than one patch modifying a value
+      if obj.__patchIndexes__.length > 1 
+        conflicts.push
+          path: prefix
+          patches: (patches[index] for index in obj.__patchIndexes__)
+
+      # No child values should be modified
+      for patchIndexes in findChildPatchIndexes(obj)
+        conflicts.push
+          path: prefix
+          patches: (patches[index] for index in patchIndexes)
+    else
+      # Recurse, looking for patches
+      for key, value of obj 
+        conflicts = GE.concatenate(conflicts, detectConflicts(value, "#{prefix}/#{key}"))
+
+    return conflicts
+
+  return detectConflicts(affectedKeys)
 
 # Set default values in pinDefs
 GE.fillPinDefDefaults = (pinDefs) ->
@@ -306,8 +305,8 @@ GE.visitProcessorChip = (path, chip, constants, bindings) ->
   GE.evaluateOutputPinExpressions(path, evaluationContext, processor.pinDefs, chip.pins, evaluatedPins)
 
   result.result = methodResult
-  result.memoryPatches = GE.addPathToPatches(path, GE.makePatches(constants.memoryData, evaluationContext.memory))
-  result.ioPatches = GE.addPathToPatches(path, GE.makePatches(constants.ioData, evaluationContext.io))
+  result.memoryPatches = GE.makePatches(constants.memoryData, evaluationContext.memory, path)
+  result.ioPatches = GE.makePatches(constants.ioData, evaluationContext.io, path)
 
   return result
 
@@ -352,8 +351,8 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
       signalsResult = switchChip.handleSignals(evaluatedPins, childNames, activeChildren, childSignals, constants.transformers, GE.transformersLogger)
 
       GE.evaluateOutputPinExpressions(path, evaluationContext, switchChip.pinDefs, chip.pins, evaluatedPins)
-      memoryPatches = GE.addPathToPatches(path, GE.makePatches(constants.memoryData, evaluationContext.memory))
-      ioPatches = GE.addPathToPatches(path, GE.makePatches(constants.ioData, evaluationContext.io))
+      memoryPatches = GE.makePatches(constants.memoryData, evaluationContext.memory, path)
+      ioPatches = GE.makePatches(constants.ioData, evaluationContext.io, path)
 
       result = result.appendWith(new GE.ChipVisitorResult(signalsResult, memoryPatches, ioPatches))
       result.result = signalsResult # appendWith() does not affect result
@@ -392,8 +391,8 @@ GE.visitEmitterChip = (path, chip, constants, bindings) ->
     [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
     parent[key] = outputValue
 
-    memoryPatches = GE.concatenate(memoryPatches, GE.addPathToPatches(path, GE.makePatches(constants.memoryData, evaluationContext.memory)))
-    ioPatches = GE.concatenate(ioPatches, GE.addPathToPatches(path, GE.makePatches(constants.ioData, evaluationContext.io)))
+    memoryPatches = GE.concatenate(memoryPatches, GE.makePatches(constants.memoryData, evaluationContext.memory, path))
+    ioPatches = GE.concatenate(ioPatches, GE.makePatches(constants.ioData, evaluationContext.io, path))
   
   result.memoryPatches = memoryPatches
   result.ioPatches = ioPatches
@@ -476,13 +475,15 @@ GE.stepLoop = (options) ->
       return makeErrorResponse("executeChips", e)
     
     try 
-      if GE.doPatchesConflict(result.memoryPatches) then throw new Error("Memory patches conflict: #{JSON.stringify(result.memoryPatches)}")
+      conflicts = GE.detectPatchConflicts(result.memoryPatches)
+      if conflicts.length > 0 then throw new Error("Memory patches conflict: #{JSON.stringify(conflicts)}")
       memoryPatches = result.memoryPatches
     catch e 
       return makeErrorResponse("patchMemory", e)
 
     try
-      if GE.doPatchesConflict(result.ioPatches) then throw new Error("IO patches conflict: #{JSON.stringify(result.ioPatches)}")
+      conflicts = GE.detectPatchConflicts(result.ioPatches)
+      if conflicts.length > 0 then throw new Error("IO patches conflict: #{JSON.stringify(conflicts)}")
       ioPatches = result.ioPatches
       options.outputIoData = GE.applyPatches(result.ioPatches, options.inputIoData)
     catch e 

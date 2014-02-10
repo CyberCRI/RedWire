@@ -6,8 +6,7 @@
       "position": [
         50,
         270
-      ],
-      "$$hashKey": "03H"
+      ]
     },
     "topLevelActiveChild": 0,
     "enemies": [
@@ -17,11 +16,10 @@
           800,
           270
         ],
-        "health": 1,
-        "$$hashKey": "03Q"
+        "health": 1
       }
     ],
-    "heroLasers": []
+    "heroLasers": {}
   },
   "board": {
     "switch": "Do in Parallel",
@@ -152,7 +150,7 @@
           {
             "comment": "Fire",
             "emitter": {
-              "memory.heroLasers": "GE.appendToArray(memory.heroLasers, memory.hero.position)"
+              "memory.heroLasers": "GE.addUniqueToObject(memory.heroLasers, memory.hero.position)"
             }
           }
         ]
@@ -163,23 +161,19 @@
     "layers": [
       {
         "name": "space",
-        "type": "canvas",
-        "$$hashKey": "02O"
+        "type": "canvas"
       },
       {
         "name": "stars",
-        "type": "canvas",
-        "$$hashKey": "02S"
+        "type": "canvas"
       },
       {
         "name": "ships",
-        "type": "canvas",
-        "$$hashKey": "02W"
+        "type": "canvas"
       },
       {
         "name": "attacks",
-        "type": "canvas",
-        "$$hashKey": "04Y"
+        "type": "canvas"
       }
     ]
   },
@@ -408,14 +402,14 @@
         "lasers",
         "asset"
       ],
-      "body": "var shapes = []; for(var i = 0; i < lasers.length; i++) { var laser = lasers[i]; shapes.push({ type: 'image', asset: asset, layer: 'attacks', position: laser }); } return transformers.drawShapes(shapes);"
+      "body": "var shapes = []; \nfor(var key in lasers) { \n    var laser = lasers[key]; \n    shapes.push({ \n        type: 'image', \n        asset: asset, \n        layer: 'attacks', \n        position: laser }); \n} \nreturn transformers.drawShapes(shapes);    "
     },
     "updateLasers": {
       "args": [
         "lasers",
         "screenSize"
       ],
-      "body": "var newLasers = []; \nfor(var i = 0; i < lasers.length; i++) { \n    var laser = lasers[i]; \n    if(laser[0] < screenSize[1]) {\n        newLasers.push( [laser[0] + 3, laser[1]] ); \n    } \n}\nreturn newLasers;"
+      "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[1]) laser[0] = laser[0] + 3;\n    else delete lasers[key]; \n}\nreturn lasers;"
     },
     "moveEnemy": {
       "args": [

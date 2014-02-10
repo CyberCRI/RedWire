@@ -146,3 +146,12 @@ GE.getParentAndKey = (parent, pathParts) ->
 GE.firstLine = (str) ->
   index = str.indexOf("\n")
   return if index is -1 then str else str.slice(0, index)
+
+# Returns a new object like the old one, but with the new key-value pair set
+GE.addToObject = (obj, key, value) ->
+  newObj = GE.cloneData(obj)
+  newObj[key] = value
+  return newObj
+
+# Returns a new object like the old one, but with the value set at a unique key
+GE.addUniqueToObject = (obj, value) -> GE.addToObject(obj, _.uniqueId(), value)

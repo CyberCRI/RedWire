@@ -1,3 +1,10 @@
+# Modifies the object by taking out the "$$hashKey" property put in by AngularJS
+filterOutHashKey = (obj) ->
+  if "$$hashKey" of obj then delete obj["$$hashKey"]
+  for key, value of obj
+    if _.isObject(value) then filterOutHashKey(value)
+  return obj
+
 angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
 
 .config ($stateProvider) ->
@@ -26,9 +33,8 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
   # Update from gameHistory
   onUpdateGameHistory = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
-    newMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
-    if not _.isEqual($scope.memory, newMemory) 
-      $scope.memory = newMemory
+    # Clone is necessary to avoid AngularJS adding in $$hashKey properties
+    $scope.memory = GE.cloneData(gameHistory.data.frames[gameTime.currentFrameNumber].memory)
   $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)
 
   # Write back to gameHistory
@@ -37,7 +43,7 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
 
     # If we are on the first frame, update the game memory
     if gameTime.currentFrameNumber == 0 
-      if not _.isEqual($scope.memory, currentGame.version.memory) 
-        currentGame.version.memory = $scope.memory
+      newMemory = GE.cloneData($scope.memory)
+      currentGame.version.memory = filterOutHashKey(newMemory)
   $scope.$watch('memory', onUpdateMemory, true)
 
