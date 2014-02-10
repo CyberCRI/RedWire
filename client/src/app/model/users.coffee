@@ -20,9 +20,12 @@ angular.module('gamEvolve.model.users', [])
           ->
             deferred.reject('Error')
         .then (result) ->
-          user = result.data
-          loggedUser.profile = user
-          deferred.resolve(user)
+          if result
+            user = result.data
+            loggedUser.profile = user
+            deferred.resolve(user)
+          else
+            deferred.reject('Error')
       deferred.promise
 
     login: logUser
