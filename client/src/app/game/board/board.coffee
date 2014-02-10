@@ -134,6 +134,7 @@ angular.module('gamEvolve.game.boardTree', [
         backdropClick: false
         templateUrl: templateUrl
         controller: controller
+        dialogClass: "large-modal"
         resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
           liaison: ->
