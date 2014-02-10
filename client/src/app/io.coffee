@@ -203,10 +203,10 @@ GE.io.canvas =
 
         # Copy shapes from object into arrays based on their layer
         for id, shape of data.shapes
-          layerName = shape.layer || 'default'
-          if layerName not of layers then throw new Error('No layer for shape')
+          if not shape.layer then throw new Error("Missing layer for shape '#{JSON.stringify(shape)}'")
+          if shape.layer not of layers then throw new Error("Invalid layer for shape '#{JSON.stringify(shape)}'")
 
-          shapeArrays[layerName].push(shape)
+          shapeArrays[shape.layer].push(shape)
 
         # For each layer, sort shapes and then draw them
         for layerName, shapeArray of shapeArrays
