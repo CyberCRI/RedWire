@@ -13,7 +13,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.gameConverter'
   'gamEvolve.game'
   'gamEvolve.game.assets'
-  'gamEvolve.game.board'
+  'gamEvolve.game.boardTree'
   'gamEvolve.game.edit'
   'gamEvolve.game.import'
   'gamEvolve.game.layers'

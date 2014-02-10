@@ -12,18 +12,41 @@ getBoardChip = (parent, pathParts) ->
   if pathParts.length is 0 then return parent
   [foundParent, index] = getBoardParentAndKey(parent, pathParts)
   return foundParent.children[index]
-  
+
+
 
 angular.module('gamEvolve.model.games', [])
 
+
 .factory 'currentGame', ->
+
   info: null
   version: null
   creator: null
+
   getTreeNode: (path) ->
     getBoardChip(@version.board, path)
 
+  enumeratePinDestinations: ->
+    destinations = @enumerateModelKeys(@version)
+    @enumerateServiceKeys(GE.services, destinations)
+    return destinations
+
+  enumerateModelKeys: (model, prefix = ['model'], keys = []) ->
+    for name, value of model
+      keys.push(GE.appendToArray(prefix, name).join('.'))
+      if GE.isOnlyObject(value) then @enumerateModelKeys(value, GE.appendToArray(prefix, name), keys)
+    return keys
+
+  enumerateServiceKeys: (services,  keys = []) ->
+    # TODO: dig down a bit into what values the services provide
+    for name of services
+      keys.push(['services', name].join('.'))
+    return keys
+
+
 .factory 'games', ($http, $q, loggedUser, currentGame, gameConverter) ->
+
   saveInfo = ->
     $http.post('/games', currentGame.info)
       .then (savedGame) ->
