@@ -96,11 +96,12 @@ angular.module('gamEvolve.model.games', [])
   # Load the game content and the creator info, then put it all into currentGame
   load: (game) ->
     # TODO Optimize - Query for the last version only
-    getVersion = $http.get('/game-versions?gameId=' + game.id)
+    query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
+    getVersion = $http.get("/game-versions?#{query}")
     getCreator = $http.get("/users?id=#{game.ownerId}")
     updateCurrentGame = ([version, creator]) ->
       currentGame.info = game
-      currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(version.data[version.data.length-1])
+      currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(version.data[0])
       currentGame.creator = creator.data.username
       console.log("loaded game", currentGame)
     onError = (error) -> console.log("Error loading game", error) # TODO: notify the user of the error
