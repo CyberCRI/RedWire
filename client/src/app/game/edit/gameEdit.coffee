@@ -26,7 +26,6 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
   # Update from gameHistory
   onUpdateGameHistory = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
-
     newMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
     if not _.isEqual($scope.memory, newMemory) 
       $scope.memory = newMemory
