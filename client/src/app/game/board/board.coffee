@@ -6,7 +6,7 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.game.board.editSplitterDialog'
 ])
 
-.directive 'boardTree', (currentGame, boardConverter) ->
+.directive 'boardTree', (currentGame, boardConverter, nodes) ->
 
     dnd =
 
@@ -42,8 +42,8 @@ angular.module('gamEvolve.game.boardTree', [
           else
             throw new Error("Unknown element #{data.o} accepted for drag and drop")
 
-        path = data.r.data('path')
-        target = currentGame.getTreeNode(path)
+        nodeId = data.r.data('nodeId')
+        target = nodes.find nodeId
 
         # If the target doesn't have children, it needs an empty list
         if not target.children? then target.children = []
@@ -91,24 +91,19 @@ angular.module('gamEvolve.game.boardTree', [
 
       $(element).on 'click', 'a[editChip]', (eventObject) ->
         clicked = $(eventObject.target)
-        emitEditEvent = (path) ->
-          scope.$emit 'editChipButtonClick', JSON.parse(path)
-        if clicked.attr('editChip')
-          emitEditEvent clicked.attr('editChip')
-        else
-          emitEditEvent $(clicked.parent()[0]).attr('editChip')
+        if not clicked.attr('editChip') then clicked = $(clicked.parent()[0])
+        nodeId = clicked.attr('nodeId')
+        scope.$emit 'editChipButtonClick', nodeId
 
       $(element).on 'click', 'a[removeChip]', (eventObject) ->
         clicked = $(eventObject.target)
-        emitRemoveEvent = (path) ->
-          scope.$emit 'removeChipButtonClick', JSON.parse(path)
-        if clicked.attr('removeChip')
-          emitRemoveEvent clicked.attr('removeChip')
-        else
-          emitRemoveEvent $(clicked.parent()[0]).attr('removeChip')
+        if not clicked.attr('removeChip') then clicked = $(clicked.parent()[0])
+        nodeId = clicked.attr('nodeId')
+        parentNodeId = clicked.attr('parentNodeId')
+        scope.$emit 'removeChipButtonClick', {nodeId: nodeId, parentNodeId: parentNodeId}
 
 
-.controller 'BoardCtrl', ($scope, $dialog, boardConverter, currentGame, gameHistory, gameTime) ->
+.controller 'BoardCtrl', ($scope, $dialog, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
 
     $scope.game = currentGame
 
@@ -147,12 +142,14 @@ angular.module('gamEvolve.game.boardTree', [
             }
       dialog.open()
 
-    $scope.remove = (path) ->
-      [parent, index] = getBoardParentAndKey(currentGame.version.board, path)
+    $scope.remove = (nodeId, parentNodeId) ->
+      node = nodes.find(nodeId)
+      parent = nodes.find(parentNodeId)
+      index = parent.children.indexOf node
       parent.children.splice(index, 1) # Remove that child
 
-    $scope.edit = (path) ->
-      chip = currentGame.getTreeNode(path)
+    $scope.edit = (nodeId) ->
+      chip = nodes.find(nodeId)
       # Determine type of chip
       if 'processor' of chip
         showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
@@ -167,8 +164,37 @@ angular.module('gamEvolve.game.boardTree', [
         showDialog 'game/board/editBoardEmitterDialog.tpl.html', 'EditBoardEmitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
 
-    $scope.$on 'editChipButtonClick', (event, chipPath) ->
-      $scope.edit(chipPath)
+    $scope.$on 'editChipButtonClick', (event, nodeId) ->
+      $scope.edit(nodeId)
 
-    $scope.$on 'removeChipButtonClick', (event, chipPath) ->
-      $scope.remove(chipPath)
+    $scope.$on 'removeChipButtonClick', (event, message) ->
+      $scope.remove(message.nodeId, message.parentNodeId)
+
+
+.factory 'nodes', ->
+
+    counter = 0
+    nodesById = {}
+
+    states = {}
+
+    register: (node) ->
+      id = counter++
+      nodesById[id] = node
+      id
+
+    find: (id) ->
+      node = nodesById[id]
+      if not node then console.log "No node found for ID #{id}"
+      node
+
+    open: (nodeId) ->
+      states[nodeId] = 'open'
+
+    close: (nodeId) ->
+      states[nodeId] = 'closed'
+
+    findState: (nodeId) ->
+      state = states[nodeId]
+      if not state then state = 'closed'
+      state

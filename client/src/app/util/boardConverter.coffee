@@ -20,36 +20,34 @@ generateType = (source) ->
   else if "splitter" of source then "splitter"
   else throw new Error("Cannot find type of chip #{source}")
 
-pathToString = (path) -> "[#{path.join(",")}]" 
-
-makeChipButtons = (path) -> """
-  <a href="" class="btn btn-small" editChip="#{pathToString(path)}"><i class="icon-edit"></i></a>
-  <a href="" class="btn btn-small" removeChip="#{pathToString(path)}"><i class="icon-trash"></i></a>
+makeChipButtons = (nodeId, parentNodeId) -> """
+  <a href="" class="btn btn-small" editChip nodeId="#{nodeId}"><i class="icon-edit"></i></a>
+  <a href="" class="btn btn-small" removeChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}"><i class="icon-trash"></i></a>
   """
 
 
-angular.module('gamEvolve.util.boardConverter', [])
+angular.module('gamEvolve.util.boardConverter', ['gamEvolve.game.boardTree'])
 
-.factory 'boardConverter', ->
 
-    convert: (source, path = []) ->
-      state = 'closed'
-      if path.length is 0 
-        state = 'open' # Only the root node is opened by default
+.factory 'boardConverter', (nodes) ->
+
+    convert: (node, parentNodeId = -1) ->
+      nodeId = nodes.register(node)
+      if parentNodeId < 0 then nodes.open(nodeId) # The root node is opened by default
       converted =
-        data: generateText(source) + makeChipButtons(path)
+        data: generateText(node) + makeChipButtons(nodeId, parentNodeId)
         attr:
-          rel: generateType(source)
-        state: state
+          rel: generateType(node)
+        state: nodes.findState(nodeId)
         metadata:
-          source: JSON.parse(JSON.stringify(source)) # Copy source
-          path: path
+          source: JSON.parse(JSON.stringify(node)) # Copy source
+          nodeId: nodeId
 
       delete converted.metadata.source.children
-      if source.children?
+      if node.children?
         converted.children = []
-        for childIndex, child of source.children
-          converted.children.push(@convert(child, GE.appendToArray(path, childIndex)))
+        for child in node.children
+          converted.children.push(@convert(child, nodeId))
       converted
 
     revert: (treeJson) ->
