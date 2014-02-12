@@ -4,15 +4,43 @@
 			<h3>Edit Emitter <input ng-model="name" placeholder="Emitter name"></input></h3>
 		</div>
 		<div class="modal-body"> 
-			<h4>Pins</h4>
-			<ul>
-				<li ng-repeat="pin in pins">
-					<input required ng-model="pin.output" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
-					<div ui-ace="{ mode: 'ace/mode/javascript', theme: 'twilight', useWrapMode: true }" ng-model="pin.input"></div>
-					<a class="btn btn-small" ng-click="removePin($index)"><i class="icon-trash"></i></a>
-				</li>
-			</ul>
-			<a class="btn" ng-click="addPin()"><i class="icon-plus"></i></a>
+			<table class="chip">
+				<colgroup>
+					<col class="col-left">
+					<col class="cols-center" span="3">
+					<col class="col-right">
+				</colgroup>
+				<tr>
+					<td class="pins-in-label">In</td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td class="pins-out-label">Out</td>
+				</tr>
+				</tr>
+					<td></td>
+					<td class="chip-inside chip-border-top chip-border-left chip-border-right" colspan="3">{{name}}</td>
+					<td></td>
+				</tr>
+				<tr ng-repeat="pin in pins">
+					<td class="pin-in"></td>
+					<td class="chip-inside chip-border-left"></td>
+					<td class="chip-inside">
+						<a class="btn btn-small" ng-click="removePin($index)"><i class="icon-trash"></i></a>
+					</td>
+					<td class="chip-inside chip-border-right">
+						<div ui-ace="{ mode: 'ace/mode/javascript', theme: 'twilight', useWrapMode: true }" ng-model="pin.input"></div>
+					</td>
+					<td class="pin-out">
+						<input required ng-model="pin.output" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+					</td>
+				</tr>
+					<td></td>
+					<td class="chip-inside chip-border-bottom chip-border-left chip-border-right" colspan="3">
+						<a class="btn" ng-click="addPin()"><i class="icon-plus"></i></a>
+					</td>
+					<td></td>
+			</table>
 		</div>
 		<div class="modal-footer">
 			<button class="btn btn-warning" ng-click="cancel()">Cancel</button>

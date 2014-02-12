@@ -1,15 +1,63 @@
-#editBoardEmitterDialog {
+@chip-border-style: 2px solid black;
+
+table.chip {
+	width: 100%;
+	margin: auto;
+	text-align: center;
+
 	.ace_editor {
 		display: inline-block;
 		height: 50px;
-		width: 200px;
+		width: 90%;
+		min-width: 100px;
+		text-align: left;
+	}
+
+	.chip-inside {
+		background-color: whitesmoke;
+	}
+
+	.pin-in, .pin-out {
+		border-bottom: 1px solid black;
+	}
+
+	.chip-border-top {
+		border-top: @chip-border-style;
+	}
+
+	.chip-border-left {
+		border-left: @chip-border-style;
+	}
+
+	.chip-border-right {
+		border-right: @chip-border-style;
+	}
+
+	.chip-border-bottom {
+		border-bottom: @chip-border-style;
+	}
+}
+
+#editBoardEmitterDialog {
+	table.chip {
+		.col-left {
+			width: 5%;
+		}
+
+		.col-right {
+			width: 25%;
+		}
 	}
 }
 
 #editBoardProcessorDialog {
-	.ace_editor {
-		display: inline-block;
-		height: 50px;
-		width: 200px;
+	table.chip {
+		.col-left {
+			width: 25%;
+		}
+
+		.col-right {
+			width: 25%;
+		}
 	}
 }
