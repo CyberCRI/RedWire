@@ -13,18 +13,12 @@ table.chip {
 	margin: auto;
 	text-align: center;
 
-	.col-left {
-		width: 40%;
-	}
-
-	.col-right {
-		width: 40%;
-	}
-
 	.ace_editor {
 		display: inline-block;
 		height: 50px;
 		width: 90%;
+		min-width: 100px;
+		text-align: left;
 	}
 
 	.chip-inside {
@@ -32,7 +26,7 @@ table.chip {
 	}
 
 	.pin-in, .pin-out {
-		border-bottom: 1px dashed red;
+		border-bottom: 1px solid black;
 	}
 
 	.chip-border-top {
@@ -49,5 +43,17 @@ table.chip {
 
 	.chip-border-bottom {
 		border-bottom: @chip-border-style;
+	}
+}
+
+#editBoardEmitterDialog {
+	table.chip {
+		.col-left {
+			width: 5%;
+		}
+
+		.col-right {
+			width: 25%;
+		}
 	}
 }
