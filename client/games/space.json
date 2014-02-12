@@ -166,7 +166,7 @@
               {
                 "comment": "Fire",
                 "emitter": {
-                  "memory.heroLasers": "GE.addUniqueToObject(memory.heroLasers, memory.hero.position)"
+                  "memory.heroLasers": "GE.addUniqueToObject(memory.heroLasers, [memory.hero.position[0] + 40, memory.hero.position[1]])"
                 }
               }
             ]
@@ -415,7 +415,7 @@
         "count",
         "screenSize"
       ],
-      "body": "var stars = []; for(var i = 0; i < count; i++) { stars.push({ position: [Math.random()*screenSize[0], Math.random()*screenSize[1]], velocity: 5 }); } return stars;"
+      "body": "var stars = []; \nfor(var i = 0; i < count; i++) { \n    stars.push({ \n        position: [Math.random()*screenSize[0], \n        Math.random()*screenSize[1]], \n        velocity: 5 \n    }); \n} \nreturn stars;"
     },
     "updateStarfield": {
       "args": [
