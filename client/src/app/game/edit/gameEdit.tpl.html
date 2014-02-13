@@ -33,8 +33,10 @@
     <flexy-layout orientation="vertical">
         <block-container id="gamePlayerContainer">
             <div id="gameOverlay">
-                <i class="icon-play-circle"></i>
-                <p>Recording</p>
+                <div id="notification">
+                    <i class="font-icon-record"></i>
+                    <p>Recording</p>
+                </div>
             </div>
             <iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
         </block-container>
