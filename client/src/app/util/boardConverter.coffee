@@ -31,9 +31,14 @@ angular.module('gamEvolve.util.boardConverter', ['gamEvolve.game.boardTree'])
 
 .factory 'boardConverter', (nodes) ->
 
-    convert: (node, parentNodeId = -1) ->
-      nodeId = nodes.register(node)
-      if parentNodeId < 0 then nodes.open(nodeId) # The root node is opened by default
+    convert: (treeRoot) ->
+      @convertNode treeRoot, -1
+
+    convertNode: (node, parentNodeId) ->
+      if parentNodeId < 0
+        nodeId = nodes.registerRoot node
+      else
+        nodeId = nodes.register node
       converted =
         data: generateText(node) + makeChipButtons(nodeId, parentNodeId)
         attr:
@@ -42,12 +47,11 @@ angular.module('gamEvolve.util.boardConverter', ['gamEvolve.game.boardTree'])
         metadata:
           source: JSON.parse(JSON.stringify(node)) # Copy source
           nodeId: nodeId
-
       delete converted.metadata.source.children
       if node.children?
         converted.children = []
         for child in node.children
-          converted.children.push(@convert(child, nodeId))
+          converted.children.push(@convertNode(child, nodeId))
       converted
 
     revert: (treeJson) ->
