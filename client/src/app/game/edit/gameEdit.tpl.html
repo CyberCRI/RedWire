@@ -34,7 +34,7 @@
         <block-container id="gamePlayerContainer">
             <div id="gameOverlay" ng-controller="OverlayCtrl" ng-hide="!showOverlay">
                 <div id="notification" ng-hide="!notification">
-                    <i ng-class="notification.icon"></i>
+                    <i class="{{notification.icon}}"></i>
                     <p>{{notification.text}}</p>
                 </div>
             </div>

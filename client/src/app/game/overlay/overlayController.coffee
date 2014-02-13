@@ -20,7 +20,7 @@ angular.module('gamEvolve.game.overlay', [])
         icon: "font-icon-record"
         text: "Recording"
       when "updating"
-        icon: "font-icon-spin3"
+        icon: "font-icon-spin3 animate-spin"
         text: "Updating"
       when "waiting"
         icon: "font-icon-spin5"
