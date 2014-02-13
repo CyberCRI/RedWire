@@ -88,9 +88,15 @@ angular.module('gamEvolve.game.boardTree', [
           plugins: ['themes', 'ui', 'json_data', 'dnd', 'types', 'wholerow', 'crrm']
         .bind "move_node.jstree", ->
           updateModel()
+        .bind "open_node.jstree", (event, data) ->
+          nodeId = data.rslt.obj.data().nodeId
+          nodes.open nodeId
+        .bind "close_node.jstree", (event, data) ->
+          nodeId = data.rslt.obj.data().nodeId
+          nodes.close nodeId
 
-      $(element).on 'click', 'a[editChip]', (eventObject) ->
-        clicked = $(eventObject.target)
+      $(element).on 'click', 'a[editChip]', (event) ->
+        clicked = $(event.target)
         if not clicked.attr('editChip') then clicked = $(clicked.parent()[0])
         nodeId = clicked.attr('nodeId')
         scope.$emit 'editChipButtonClick', nodeId
@@ -173,18 +179,25 @@ angular.module('gamEvolve.game.boardTree', [
 
 .factory 'nodes', ->
 
-    counter = 0
-    nodesById = {}
+    nodes = []
+    states = [0] # Root tree is open by default
 
-    states = {}
+    registerRoot: (newRoot) ->
+      if nodes.length is 0 or nodes[0] isnt newRoot
+        # Reset nodes
+        nodes = [newRoot]
+        states = [0] # Root tree is open by default
+      0
 
     register: (node) ->
-      id = counter++
-      nodesById[id] = node
-      id
+      # nodeId is actually the index in the nodes array
+      for registeredNode, index in nodes
+        if registeredNode is node then return index
+      # Not registered yet
+      nodes.push node
 
     find: (id) ->
-      node = nodesById[id]
+      node = nodes[id]
       if not node then console.log "No node found for ID #{id}"
       node
 
@@ -195,6 +208,4 @@ angular.module('gamEvolve.game.boardTree', [
       states[nodeId] = 'closed'
 
     findState: (nodeId) ->
-      state = states[nodeId]
-      if not state then state = 'closed'
-      state
+      if nodeId is 0 then 'open' else states[nodeId]
