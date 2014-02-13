@@ -35,7 +35,7 @@ angular.module('gamEvolve.game.overlay', [])
   onUpdate = ->
     $scope.notification = createNotification()
     # Show the overlay if there is a current notification or if we are dragging the borders
-    $scope.showOverlay = $scope.notification? || overlay.draggingBorders
+    $scope.showOverlay = $scope.notification? 
 
     # Get ready to cancel the notification when it expires
     if $scope.notification then $timeout(onUpdate, 100)
@@ -45,6 +45,9 @@ angular.module('gamEvolve.game.overlay', [])
   $scope.$watch("overlay", onUpdate, true)
 
   # Activate the overlay when dragging
-  # TODO: move this to a directive to do it properly
-  $("body").on("mousedown", -> $scope.$apply -> overlay.draggingBorders = true)
-  $("body").on("mouseup", -> $scope.$apply -> overlay.draggingBorders = false)
+  # Trying to use angular here via ng-hide cripples drag n' drop, so this workaround uses jQuery directly
+  # Trying to show the overlay on mousemove creates the same problem :(
+  $("body").on "mousedown", -> 
+    $("#gameOverlay").show()
+  $("body").on "mouseup", -> 
+    if not $scope.showOverlay then $("#gameOverlay").hide()
