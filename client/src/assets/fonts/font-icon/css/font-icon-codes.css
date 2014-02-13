@@ -1,0 +1,17 @@
+
+.font-icon-spin3:before { content: '\e809'; } /* '' */
+.font-icon-error-alt:before { content: '\e804'; } /* '' */
+.font-icon-ok:before { content: '\e805'; } /* '' */
+.font-icon-download:before { content: '\e80c'; } /* '' */
+.font-icon-upload:before { content: '\e80d'; } /* '' */
+.font-icon-download-cloud:before { content: '\e80a'; } /* '' */
+.font-icon-upload-cloud:before { content: '\e80b'; } /* '' */
+.font-icon-arrows-cw:before { content: '\e808'; } /* '' */
+.font-icon-spin5:before { content: '\e80e'; } /* '' */
+.font-icon-stop:before { content: '\e802'; } /* '' */
+.font-icon-pause:before { content: '\e803'; } /* '' */
+.font-icon-back:before { content: '\e807'; } /* '' */
+.font-icon-hourglass:before { content: '\e80f'; } /* '' */
+.font-icon-record:before { content: '\e801'; } /* '' */
+.font-icon-erase:before { content: '\e806'; } /* '' */
+.font-icon-play:before { content: '\e800'; } /* '' */
