@@ -21,7 +21,7 @@ extendFrameResults = (result, memory, inputIoData) ->
 
 
 angular.module('gamEvolve.game.player', [])
-.controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime) -> 
+.controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime, overlay) -> 
   # Globals
   gameCode = null
   oldRoundedScale = null
@@ -49,16 +49,18 @@ angular.module('gamEvolve.game.player', [])
         if message.type is "error"
           $scope.$apply ->
             gameHistory.data.compilationErrors = [GE.firstLine(message.error)]
-            gameTime.errorsFound = true
+            overlay.makeNotification("error")
             gameHistory.meta.version++
         else
           # The game loaded successfully
           $scope.$apply ->
             gameHistory.data.compilationErrors = []
             gameHistory.meta.version++
-            gameTime.errorsFound = false
 
           if gameHistory.data.frames.length > 0 and gameHistory.data.frames[0].inputIoData
+            # Notify the user
+            overlay.makeNotification("updating", true)
+
             # If there are already frames, then update them 
             inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
             sendMessage("updateFrames", { memory: gameHistory.data.frames[0].memory, inputIoDataFrames })
@@ -74,7 +76,7 @@ angular.module('gamEvolve.game.player', [])
 
           if message.value.errors
             console.error("Record frames errors", message.value.errors)
-            gameTime.errorsFound = true
+            overlay.makeNotification("error")
 
           gameHistory.data.frames = [newFrame]
           gameHistory.meta.version++
@@ -84,9 +86,12 @@ angular.module('gamEvolve.game.player', [])
 
         console.log("Recording met with error. Stopping it")
         $scope.$apply ->
+          hadRecordingErrors = true # Used to notify the user 
           gameTime.isRecording = false
       when "stopRecording" 
         $scope.$apply ->
+          metError = false
+
           # Remove frames after the current one
           gameHistory.data.frames.length = gameTime.currentFrameNumber + 1
 
@@ -100,11 +105,16 @@ angular.module('gamEvolve.game.player', [])
               
             if results.errors 
               console.error("Stop recording frames errors", results.errors)
-              gameTime.errorsFound = true
+              metError = true
               break
 
             # Calcuate the next memory to be used
             lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
+
+          if metError 
+            overlay.makeNotification("error")
+          else
+            overlay.clearNotification() # Clear "updating" status
 
           # Go the the last frame
           gameTime.currentFrameNumber = gameHistory.data.frames.length - 1
@@ -115,6 +125,8 @@ angular.module('gamEvolve.game.player', [])
         if message.type is "error" then throw new Error("Cannot deal with updateFrames error")
 
         $scope.$apply ->
+          metError = false
+
           # Replace existing frames by the new results, until an error is found
           lastMemory = gameHistory.data.frames[0].memory
           for index, results of message.value
@@ -123,13 +135,18 @@ angular.module('gamEvolve.game.player', [])
 
             if results.errors 
               console.error("Update frames errors", results.errors)
-              gameTime.errorsFound = true
+              metError = true
               break # Stop updating when error is found
 
             # Calcuate the next memory to be used
             lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
 
-            # Update the version
+          if metError 
+            overlay.makeNotification("error")
+          else
+            overlay.clearNotification() # Clear "updating" status
+
+          # Update the version
           gameHistory.meta.version++
           # Display the current frame
           # TODO: go to the frame of first error
@@ -138,6 +155,7 @@ angular.module('gamEvolve.game.player', [])
   sendMessage = (operation, value) ->  
     # Note that we're sending the message to "*", rather than some specific origin. 
     # Sandboxed iframes which lack the 'allow-same-origin' header don't have an origin which you can target: you'll have to send to any origin, which might alow some esoteric attacks. 
+    console.log("Sending #{operation} message to puppet");
     $('#gamePlayer')[0].contentWindow.postMessage({operation: operation, value: value}, '*')
 
   onUpdateCode = (code) ->
@@ -181,11 +199,17 @@ angular.module('gamEvolve.game.player', [])
   onUpdateRecording = (isRecording) ->
     if not gameCode? then return
     if isRecording 
+      # Notify the user
+      overlay.makeNotification("recording")
+
       # Start recording on next frame
       lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
       nextMemory = GE.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
       sendMessage("startRecording", { memory: nextMemory })
     else
+      # Notify the user
+      overlay.makeNotification("updating", true)
+
       sendMessage("stopRecording")
   $scope.$watch('gameTime.isRecording', onUpdateRecording, true)
 
