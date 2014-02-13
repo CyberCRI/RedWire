@@ -2,6 +2,7 @@ NOTIFICATION_TIME = 3000 # in ms
 
 
 angular.module('gamEvolve.game.overlay', [])
+
 .controller "OverlayCtrl", ($scope, $timeout, overlay) -> 
   $scope.showOverlay = false
   $scope.notification = 
@@ -43,3 +44,7 @@ angular.module('gamEvolve.game.overlay', [])
   $scope.overlay = overlay
   $scope.$watch("overlay", onUpdate, true)
 
+  # Activate the overlay when dragging
+  # TODO: move this to a directive to do it properly
+  $("body").on("mousedown", -> $scope.$apply -> overlay.draggingBorders = true)
+  $("body").on("mouseup", -> $scope.$apply -> overlay.draggingBorders = false)
