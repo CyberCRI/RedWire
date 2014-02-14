@@ -21,19 +21,13 @@
                         <div id="assetsList" ng-controller="AssetsCtrl">
                             <h4>Assets</h4>
 
-            <!-- Center Column-->
-            <block-container>
-                <flexy-layout orientation="vertical">
-                    <block-container id="gamePlayerContainer">
-                        <iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
-                    </block-container>
-                    <block-splitter></block-splitter>
-                    <block-container init="200" style="overflow:scroll;">
-                        <h4>Board</h4>
-                        <board-tree></board-tree>
-                    </block-container>
-                </flexy-layout>
-            </block-container>
+                            <ul>
+                                <li ng-repeat="asset in assets">
+                                    <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
+                                    <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
+                                    <a class="btn" ng-click="remove(asset.name)"><i class="icon-trash"></i></a>
+                                </li>
+                            </ul>
 
                             <div file-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop new assets here</span></div>
                         </div>
@@ -49,7 +43,7 @@
                     <block-container id="gamePlayerContainer">
                         <div id="gameOverlay" ng-controller="OverlayCtrl" ng-hide="!showOverlay">
                             <div id="notification" ng-hide="!notification">
-                                <i class="{{notification.icon}}"></i>
+                                <i ng-class="notification.icon"></i>
                                 <p>{{notification.text}}</p>
                             </div>
                         </div>
@@ -116,13 +110,13 @@
                         <div ng-controller="LayersCtrl" id="layersList">
                             <h4>Layers</h4>
                             <ul ui-multi-sortable ng-model="layers">
-                              <li ng-repeat="layer in layers">
-                                <i class="icon-align-justify"></i>
-                                <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
-                                -
-                                <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
-                                <a class="btn btn-small" ng-click="removeLayer($index)"><i class="icon-trash"></i></a>
-                              </li>
+                                <li ng-repeat="layer in layers">
+                                    <i class="icon-align-justify"></i>
+                                    <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
+                                    -
+                                    <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
+                                    <a class="btn btn-small" ng-click="removeLayer($index)"><i class="icon-trash"></i></a>
+                                </li>
                             </ul>
 
                             <a class="btn" ng-click="addLayer()"><i class="icon-plus"></i></a>
