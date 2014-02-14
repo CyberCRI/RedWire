@@ -6,10 +6,6 @@
                 <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a>
                 by
                 <a>{{ currentGame.creator }}</a>
-                <span id="executionInfo">
-                    <span class="label label-success" ng-show="!gameTime.errorsFound">Success</span>
-                    <span class="label label-warning" ng-show="gameTime.errorsFound">Errors found (see log)</span>
-                </span>
             </h4>
             <ng-include src="'game/edit/header/time/template.tpl.html'"></ng-include>
         </div>

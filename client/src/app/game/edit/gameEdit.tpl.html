@@ -21,19 +21,19 @@
                         <div id="assetsList" ng-controller="AssetsCtrl">
                             <h4>Assets</h4>
 
-<!-- Center Column-->
-<block-container>
-    <flexy-layout orientation="vertical">
-        <block-container id="gamePlayerContainer">
-            <iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
-        </block-container>
-        <block-splitter></block-splitter>
-        <block-container init="200" style="overflow:scroll;">
-            <h4>Board</h4>
-            <board-tree></board-tree>
-        </block-container>
-    </flexy-layout>
-</block-container>
+            <!-- Center Column-->
+            <block-container>
+                <flexy-layout orientation="vertical">
+                    <block-container id="gamePlayerContainer">
+                        <iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
+                    </block-container>
+                    <block-splitter></block-splitter>
+                    <block-container init="200" style="overflow:scroll;">
+                        <h4>Board</h4>
+                        <board-tree></board-tree>
+                    </block-container>
+                </flexy-layout>
+            </block-container>
 
                             <div file-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop new assets here</span></div>
                         </div>
