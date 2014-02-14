@@ -1,4 +1,5 @@
-angular.module('gamEvolve.game.time', [])
+angular.module('gamEvolve.game.edit.header.time', [])
+
 .controller 'TimeCtrl', ($scope, $timeout, gameHistory, gameTime) ->
   $scope.currentFrame = 0
   $scope.currentFrameString = "0" # Needed by the input range element in the template

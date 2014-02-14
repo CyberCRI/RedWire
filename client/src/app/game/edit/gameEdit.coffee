@@ -5,13 +5,17 @@ filterOutHashKey = (obj) ->
     if _.isObject(value) then filterOutHashKey(value)
   return obj
 
-angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
+angular.module('gamEvolve.game.edit', [
+  'flexyLayout'
+  'JSONedit'
+  'gamEvolve.game.edit.header'
+])
 
 .config ($stateProvider) ->
-  $stateProvider.state 'game.edit', 
-    url: '/:gameId/edit'
+  $stateProvider.state 'game-edit',
+    url: '/game/:gameId/edit'
     views: 
-      "game.main": 
+      "main":
         controller: 'GameEditCtrl'
         templateUrl: 'game/edit/gameEdit.tpl.html'
     data: 
