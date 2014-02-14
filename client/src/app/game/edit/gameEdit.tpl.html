@@ -3,8 +3,8 @@
     <flexy-layout orientation="vertical">
         <block-container style="overflow:scroll; font-size:13px;">
             <h4>Memory</h4>
-            <div class="jsonView" defocus ng-class="{ notEditable: gameTime.currentFrameNumber > 0}">
-                <json child="memory" type="'object'"></json>
+            <div ng-class="{ notEditable: gameTime.currentFrameNumber > 0}">
+                
             </div>
         </block-container>
         <block-splitter></block-splitter>
@@ -100,7 +100,7 @@
         <block-container style="overflow:scroll;">
             <div ng-controller="LayersCtrl" id="layersList">
                 <h4>Layers</h4>
-                <ul ui-multi-sortable ng-model="layers">
+                <ul ui-sortable ng-model="layers">
                   <li ng-repeat="layer in layers">
                     <i class="icon-align-justify"></i> 
                     <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a> 

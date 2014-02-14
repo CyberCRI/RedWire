@@ -5,7 +5,7 @@ filterOutHashKey = (obj) ->
     if _.isObject(value) then filterOutHashKey(value)
   return obj
 
-angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
+angular.module('gamEvolve.game.edit', ['flexyLayout'])
 
 .config ($stateProvider) ->
   $stateProvider.state 'game.edit', 
@@ -32,19 +32,22 @@ angular.module('gamEvolve.game.edit', ['flexyLayout', 'JSONedit'])
   $scope.$watch('currentGame.version.board', updateBoard, true)
 
   # Update from gameHistory
-  onUpdateGameHistory = ->
+  onUpdateMemoryModel = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
     # Clone is necessary to avoid AngularJS adding in $$hashKey properties
     $scope.memory = GE.cloneData(gameHistory.data.frames[gameTime.currentFrameNumber].memory)
-  $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)
+  $scope.$watch('gameHistoryMeta', onUpdateMemoryModel, true)
+
+  # TODO: enable this. Right now it's too freaking slow!
+  $scope.$watch('gameTime.currentFrameNumber', onUpdateMemoryModel)
 
   # Write back to gameHistory
-  onUpdateMemory = ->
+  onUpdateMemoryEditor = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
 
     # If we are on the first frame, update the game memory
     if gameTime.currentFrameNumber == 0 
       newMemory = GE.cloneData($scope.memory)
       currentGame.version.memory = filterOutHashKey(newMemory)
-  $scope.$watch('memory', onUpdateMemory, true)
+  $scope.$watch('memory', onUpdateMemoryEditor, true)
 
