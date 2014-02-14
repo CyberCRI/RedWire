@@ -63,7 +63,7 @@ angular.module('gamEvolve.game.player', [])
 
             # If there are already frames, then update them 
             inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
-            sendMessage("updateFrames", { memory: gameHistory.data.frames[0].memory, inputIoDataFrames })
+            sendMessage("updateFrames", { memory: gameCode.memory, inputIoDataFrames })
           else
             # Else just record the first frame
             sendMessage("recordFrame", { memory: gameCode.memory })
@@ -128,7 +128,7 @@ angular.module('gamEvolve.game.player', [])
           metError = false
 
           # Replace existing frames by the new results, until an error is found
-          lastMemory = gameHistory.data.frames[0].memory
+          lastMemory = gameCode.memory
           for index, results of message.value
             # Copy over old inputIoData
             gameHistory.data.frames[index] = extendFrameResults(results, lastMemory, gameHistory.data.frames[index].inputIoData)

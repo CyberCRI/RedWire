@@ -18,6 +18,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.import'
   'gamEvolve.game.layers'
   'gamEvolve.game.log'
+  'gamEvolve.game.memory'
   'gamEvolve.game.overlay'
   'gamEvolve.game.player'
   'gamEvolve.game.processors'

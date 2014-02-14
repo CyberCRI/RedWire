@@ -87,6 +87,7 @@ module.exports = {
       'vendor/bootstrap/img/*.png',
       'vendor/jstree/themes/default/*.gif',
       'vendor/jstree/themes/default/*.png',
+      'vendor/jsoneditor/img/jsoneditor-icons.png',
     ]
   }
 };
