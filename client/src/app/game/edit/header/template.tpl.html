@@ -15,22 +15,25 @@
         </div>
     </block-container>
     <block-container init="200" id="gameLoadingControls">
-        <div ng-controller="MenuCtrl" ng-show="user.isLoggedIn()">
-            Welcome, {{user.profile.username}}
-        </div>
-        <div class="btn-group btn-group-vertical">
-            <button ng-click="games.saveCurrent()" class="btn btn-primary" ng-show="user.isLoggedIn() && currentGame.version">
-                {{games.getSaveAction().name}}
-            </button>
-            <button ng-click="loginDialog.open();" class="btn btn-small" ng-show="user.isNotLoggedIn()">
-                Login
-            </button>
-            <button ng-click="gameSelectionDialog.open();" class="btn btn-small">
-                Load
-            </button>
-            <button ng-click="importExportDialog.open();" class="btn btn-small">
-                Import/Export
-            </button>
+        <div ng-controller="MenuCtrl">
+            <div ng-show="user.isLoggedIn()">
+                Welcome, {{user.profile.username}}
+            </div>
+            <div class="btn-group btn-group-vertical">
+                <button ng-click="games.saveCurrent()" class="btn btn-primary"
+                        ng-show="user.isLoggedIn() && currentGame.version">
+                    {{games.getSaveAction().name}}
+                </button>
+                <button ng-click="loginDialog.open();" class="btn btn-small" ng-show="user.isNotLoggedIn()">
+                    Login
+                </button>
+                <button ng-click="gameSelectionDialog.open();" class="btn btn-small">
+                    Load
+                </button>
+                <button ng-click="importExportDialog.open();" class="btn btn-small">
+                    Import/Export
+                </button>
+            </div>
         </div>
     </block-container>
 </flexy-layout>

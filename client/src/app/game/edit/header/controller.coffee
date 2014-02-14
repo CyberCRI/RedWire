@@ -10,6 +10,6 @@ angular.module('gamEvolve.game.edit.header', [
 .controller 'MenuCtrl', ($scope, loggedUser, games, loginDialog, gameSelectionDialog, importExportDialog) ->
     $scope.user = loggedUser
     $scope.games = games
-    $scope.loginDialog = gameSelectionDialog
+    $scope.loginDialog = loginDialog
     $scope.gameSelectionDialog = gameSelectionDialog
     $scope.importExportDialog = importExportDialog
