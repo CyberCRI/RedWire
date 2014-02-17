@@ -224,7 +224,7 @@ GE.evaluateOutputPinExpressions = (path, evaluationContext, pinDefs, pinExpressi
   # Only output pins should be accessible
   outPins = _.pick(evaluatedPins, (pinName for pinName, pinOptions of pinDefs when pinOptions.direction in ["out", "inout"]))
 
-  for pinName, pinValue of pinExpressions.out
+  for pinName, pinValue of pinExpressions?.out
     try
       outputValue = evaluationContext.evaluateExpression(pinValue, outPins)
     catch error
