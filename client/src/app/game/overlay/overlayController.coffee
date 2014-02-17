@@ -47,11 +47,7 @@ angular.module('gamEvolve.game.overlay', [])
   $scope.$watch("isDraggingBorders", onUpdate, true)
 
   # Activate the overlay when dragging
-  # Trying to use angular here via ng-hide cripples drag n' drop, so this workaround uses jQuery directly
-  # Trying to show the overlay on mousemove creates the same problem :(
   $("body").on "mousedown", ".splitter", -> 
-    # $("#gameOverlay").show()
     $scope.$apply(-> $scope.isDraggingBorders = true)
   $("body").on "mouseup", ".splitter", -> 
-    # if not $scope.showOverlay then $("#gameOverlay").hide()
     $scope.$apply(-> $scope.isDraggingBorders = false)
