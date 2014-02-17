@@ -1,7 +1,7 @@
 RedWire
 =========
 
-A tool for creating, sharing, and modifing online games using simple concepts. Try it online at http://cybercri.github.com/RedWire/ (best used with Google Chrome for the time being).
+A tool for creating, sharing, and modifing online games using simple concepts. Try it online at http://redwire.io (best used with Google Chrome for the time being).
 
 Inspired by both [Rich Hickey's notions of simplicity] and [Bret Victor's ideas on understanding programming], the goal of the project is to let people take other's games and easily modify them, or take several games and recombine them in novel ways. In order to do so, games must be written as a set of "atoms" that can be moved, copied, and forked with minimum refactoring hassle.
 
