@@ -1,0 +1,68 @@
+@font-face {
+  font-family: 'font-icon';
+  src: url('../font/font-icon.eot?38567800');
+  src: url('../font/font-icon.eot?38567800#iefix') format('embedded-opentype'),
+       url('../font/font-icon.woff?38567800') format('woff'),
+       url('../font/font-icon.ttf?38567800') format('truetype'),
+       url('../font/font-icon.svg?38567800#font-icon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+/* Chrome hack: SVG is rendered more smooth in Windozze. 100% magic, uncomment if you need it. */
+/* Note, that will break hinting! In other OS-es font will be not as sharp as it could be */
+/*
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: 'font-icon';
+    src: url('../font/font-icon.svg?38567800#font-icon') format('svg');
+  }
+}
+*/
+ 
+ [class^="font-icon-"]:before, [class*=" font-icon-"]:before {
+  font-family: "font-icon";
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+ 
+  display: inline-block;
+  text-decoration: inherit;
+  width: 1em;
+  margin-right: .2em;
+  text-align: center;
+  /* opacity: .8; */
+ 
+  /* For safety - reset parent styles, that can break glyph codes*/
+  font-variant: normal;
+  text-transform: none;
+     
+  /* fix buttons height, for twitter bootstrap */
+  line-height: 1em;
+ 
+  /* Animation center compensation - margins should be symmetric */
+  /* remove if not needed */
+  margin-left: .2em;
+ 
+  /* you can be more comfortable with increased icons size */
+  /* font-size: 120%; */
+ 
+  /* Uncomment for 3D effect */
+  /* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
+}
+ 
+.font-icon-spin3:before { content: '\e809'; } /* '' */
+.font-icon-error-alt:before { content: '\e804'; } /* '' */
+.font-icon-ok:before { content: '\e805'; } /* '' */
+.font-icon-download:before { content: '\e80c'; } /* '' */
+.font-icon-upload:before { content: '\e80d'; } /* '' */
+.font-icon-download-cloud:before { content: '\e80a'; } /* '' */
+.font-icon-upload-cloud:before { content: '\e80b'; } /* '' */
+.font-icon-arrows-cw:before { content: '\e808'; } /* '' */
+.font-icon-spin5:before { content: '\e80e'; } /* '' */
+.font-icon-stop:before { content: '\e802'; } /* '' */
+.font-icon-pause:before { content: '\e803'; } /* '' */
+.font-icon-back:before { content: '\e807'; } /* '' */
+.font-icon-hourglass:before { content: '\e80f'; } /* '' */
+.font-icon-record:before { content: '\e801'; } /* '' */
+.font-icon-erase:before { content: '\e806'; } /* '' */
+.font-icon-play:before { content: '\e800'; } /* '' */

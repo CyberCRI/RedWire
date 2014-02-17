@@ -1,0 +1,21 @@
+{
+	"type": "UserCollection",
+	"properties": {
+		"email": {
+			"name": "email",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "email",
+			"order": 0
+		},
+		"isAdmin": {
+			"name": "isAdmin",
+			"type": "boolean",
+			"typeLabel": "boolean",
+			"required": false,
+			"id": "isAdmin",
+			"order": 1
+		}
+	}
+}

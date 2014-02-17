@@ -1,0 +1,31 @@
+<div class="modal-header">
+    <h3>Create User</h3>
+</div>
+<div class="modal-body">
+    <table>
+        <tr>
+            <td>Username : </td>
+            <td><input type="text" ng-model="username" /></td>
+        </tr>
+        <tr>
+            <td>Email : </td>
+            <td><input type="text" ng-model="email" /></td>
+        </tr>
+        <tr>
+            <td>Password : </td>
+            <td><input type="password" ng-model="password" /></td>
+        </tr>
+        <tr>
+            <td>Verify Password : </td>
+            <td><input type="password" ng-model="verifyPassword" /></td>
+        </tr>
+        <tr>
+            <td></td>
+            <td><button class="btn btn-success" ng-click="createUser()" ng-disabled="!isValid()">Create User</button></td>
+        </tr>
+    </table>
+    <p ng-bind="errorMessage"></p>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+</div>

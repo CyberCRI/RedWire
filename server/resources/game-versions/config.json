@@ -1,0 +1,77 @@
+{
+	"type": "Collection",
+	"properties": {
+		"gameId": {
+			"name": "gameId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "gameId",
+			"order": 0
+		},
+		"versionNumber": {
+			"name": "versionNumber",
+			"type": "number",
+			"typeLabel": "number",
+			"required": true,
+			"id": "versionNumber",
+			"order": 1
+		},
+		"processors": {
+			"name": "processors",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "processors",
+			"order": 2
+		},
+		"assets": {
+			"name": "assets",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "assets",
+			"order": 3
+		},
+		"board": {
+			"name": "board",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "board",
+			"order": 4
+		},
+		"memory": {
+			"name": "memory",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "memory",
+			"order": 5
+		},
+		"switches": {
+			"name": "switches",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "switches",
+			"order": 6
+		},
+		"io": {
+			"name": "io",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "io",
+			"order": 7
+		},
+		"transformers": {
+			"name": "transformers",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "transformers",
+			"order": 8
+		}
+	}
+}

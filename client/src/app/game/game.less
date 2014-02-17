@@ -1,0 +1,70 @@
+@red: #cf0404;
+
+
+body {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    color: rgb(80, 80, 80);
+
+}
+
+.block {
+    transition: all 0.2s;
+}
+
+.block-content{
+    border: 0; 
+}
+
+#headerBar {
+    border-bottom: 1px @red solid 
+}
+
+.splitter{
+    background: @red;
+}
+
+.ghost {
+    background: @red;
+    opacity: 0.5;
+}
+
+div.logo {
+    background-image: url(images/logo.png);
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#title {
+    text-align: center;
+}
+
+#gameLoadingControls {
+    text-align: right;
+
+    button {
+        margin-left: auto;
+        margin-right: 0;
+    }
+}
+
+
+/* Import child LESS files */
+
+@import 'modals.less';
+@import 'assets/assets.less';
+@import 'board/board.less';
+@import 'edit/gameEdit.less';
+@import 'import/import.less';
+@import 'layers/layers.less';
+@import 'log/log.less';
+@import 'memory/memory.less';
+@import 'overlay/overlay.less';
+@import 'player/player.less';
+@import 'processors/editProcessors.less';
+@import 'switches/editSwitches.less';
+@import 'edit/header/time/time';
+@import 'transformers/editTransformers.less';

@@ -29,7 +29,7 @@ Just check out our [deployed version](http://cybercri.github.io/RedWire) on gh-p
 Getting Started
 ---------------
 
-To get the application up and running, check our [Getting Started](https://github.com/CyberCRI/RedWire/wiki/Getting-Started) Page. Please note that you should checkout the dev branch to get the latest version.
+To get the application up and running, check our [Getting Started](https://github.com/CyberCRI/RedWire/wiki/Getting-Started) Page
 
 
 Wiki

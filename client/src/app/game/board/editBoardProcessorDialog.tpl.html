@@ -1,0 +1,68 @@
+<div id="editBoardProcessorDialog">
+	<form name="form" style="form-inline" novalidate>
+		<div class="modal-header">
+			<h3>Edit {{kind}} {{type}} <input ng-model="name" placeholder="Name"></input></h3>
+		</div>
+		<div class="modal-body"> 
+			<table class="chip">
+				<colgroup>
+					<col class="col-left">
+					<col class="cols-center" span="3">
+					<col class="col-right">
+				</colgroup>
+				<tr>
+					<td class="pins-in-label">In</td>
+					<td></td>
+					<td></td>
+					<td></td>
+					<td class="pins-out-label">Out</td>
+				</tr>
+				</tr>
+					<td></td>
+					<td class="chip-inside chip-border-top chip-border-left chip-border-right" colspan="3">{{name}}</td>
+					<td></td>
+				</tr>
+				<tr ng-repeat="pin in pins">
+					<td class="pin-in">
+						<input ng-model="pin.simpleDestination" ng-show="pin.linkage == 'simple' && (pin.direction == 'in' || pin.direction == 'inout')" placeholder="input/output value" class="input-small" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+
+						<div ng-show="pin.linkage == 'custom'">
+							<div ui-ace="{ mode: 'ace/mode/javascript', theme: 'twilight', useWrapMode: true }" ng-model="pin.customDestinations.in"></div>
+						</div>
+					</td>
+					<td class="chip-inside chip-border-left"></td>
+					<td class="chip-inside">
+						<span>{{pin.name}}</span>
+						<select ng-model="pin.linkage" ng-options="linkage for linkage in LINKAGES" class="input-small"></select>
+						<a class="btn btn-small" ng-click="removePin($index)"><i class="icon-trash"></i></a>
+					</td>
+					<td class="chip-inside chip-border-right"></td>
+					<td class="pin-out">
+						<input ng-model="pin.simpleDestination" ng-show="pin.linkage == 'simple' && (pin.direction == 'out' || pin.direction == 'inout')" placeholder="input/output value" class="input-small" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+
+						<div ng-show="pin.linkage == 'custom' && (pin.direction == 'out' || pin.direction == 'inout')">
+							<ul>
+								<li ng-repeat="destination in pin.customDestinations.out">
+									<div ui-ace="{ mode: 'ace/mode/javascript', theme: 'twilight', useWrapMode: true }" ng-model="destination.source"></div>
+									<input required ng-model="destination.drain" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+									<a class="btn btn-small" ng-click="removeCustomDestination(pin.name, $index)"><i class="icon-trash"></i></a>
+								</li>
+							</ul>
+		
+							<a class="btn" ng-click="addCustomDestination(pin.name)"><i class="icon-plus"></i></a>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td class="chip-inside chip-border-bottom chip-border-left chip-border-right" colspan="3"></td>
+					<td></td>
+				</tr>
+			</table>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+			<button class="btn btn-primary" ng-click="done()" ng-disabled="form.$invalid">Done</button>
+		</div>
+	</form>
+</div>

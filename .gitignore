@@ -1,16 +1,32 @@
 # Ignore OS garbage
 .DS_Store
+*~
 
-# Ignore JS not in libraries
-concepts/*.js
-platform/site/*.js
-platform/site/tests/*.js
+# Ignore IDE config files
+.idea/
 
 # Ignore generated documentation
 docs/
 
 # Ignore node modules
-platform/node_modules/
+client/npm-debug.log
+client/node_modules/
+server/npm-debug.log
+server/node_modules/
 
-# Ignore deployment directory
-platform/.temp_ghpages/
+# Ignore browser dependencies 
+client/vendor/
+client/.bowerrc
+
+# Ignore dpd temp files
+server/.dpd/
+server/data/-deployd*
+server/data/journal
+server/data/mongod.lock
+
+# Ignore compilation result
+server/public-dev/
+server/public-prod/
+
+# Ignore deployment config
+client/deployConfig.json

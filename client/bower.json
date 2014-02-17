@@ -1,0 +1,29 @@
+{
+  "name": "RedWire",
+  "version": "0.0.1",
+  "devDependencies": {
+    "angular": "~1.0.7",
+    "angular-mocks": "~1.0.7",
+    "bootstrap": "~2.3.2",
+    "angular-bootstrap": "~0.3.0",
+    "angular-ui-router": "~0.0.1",
+    "angular-ui-utils": "~0.0.3",
+    "underscore": "~1.5.2",
+    "underscore.string": "*",
+    "jasmine": "~1.3.1",
+    "flexy-layout": "https://github.com/lorenzofox3/flexy-layout.git",
+    "jquery-ui": "1.10.0",
+    "rivets": "0.5.12",
+    "jstree": "v.pre1.0",
+    "sylvester": "~0.1.3",
+    "angular-file-dnd": "~1.0.3",
+    "angular-xeditable": "~0.1.8",
+    "Chart.js": "git://github.com/CyberCRI/Chart.js",
+    "angular-ui-ace": "git://github.com/angular-ui/ui-ace.git#b2024c14dc6336bc232e1bb0b124b6be26f2bbee",
+    "jsoneditor": "~2.3.6"
+  },
+  "dependencies": {},
+  "resolutions": {
+    "angular": "~1.0.7"
+  }
+}

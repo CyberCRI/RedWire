@@ -1,0 +1,15 @@
+<table class="table">
+    <tr>
+        <th>
+            <span ng-click="orderedProperty = 'name'; orderedDirection = !orderedDirection"
+                  style="cursor: pointer;">
+                Name
+            </span>
+        </th>
+    </tr>
+    <tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
+        <td style="cursor: pointer;">
+            <a ng-click="select(game)" style="cursor: pointer;">{{ game.name }}</a>
+        </td>
+    </tr>
+</table>
