@@ -11,10 +11,11 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.logger'
   'gamEvolve.util.boardConverter'
   'gamEvolve.util.gameConverter'
-  'gamEvolve.game'
   'gamEvolve.game.assets'
   'gamEvolve.game.boardTree'
   'gamEvolve.game.edit'
+  'gamEvolve.game.list'
+  'gamEvolve.game.play'
   'gamEvolve.game.import'
   'gamEvolve.game.layers'
   'gamEvolve.game.log'
@@ -24,7 +25,6 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.processors'
   'gamEvolve.game.select'
   'gamEvolve.game.switches'
-  'gamEvolve.game.time'
   'gamEvolve.game.transformers'
   'gamEvolve.login'
   'gamEvolve.model.games'
@@ -37,7 +37,7 @@ angular.module( 'gamEvolve', [
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->
-  $urlRouterProvider.otherwise( '/game/065ffe64aa2928a3/edit' )
+  $urlRouterProvider.otherwise( '/game/list' )
 )
 
 .controller('AppCtrl', ( $scope, $location ) ->

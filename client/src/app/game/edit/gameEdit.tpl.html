@@ -1,116 +1,134 @@
-<!-- West Column-->
-<block-container init="400">
-    <flexy-layout orientation="vertical">
-        <block-container style="overflow:scroll; font-size:13px;">
-            <div id="memoryEditor" ng-class="{ notEditable: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl">
-                
-            </div>
-        </block-container>
-        <block-splitter></block-splitter>
-        <block-container style="overflow:scroll;">
-            <div id="assetsList" ng-controller="AssetsCtrl">
-                <h4>Assets</h4>
+<flexy-layout orientation="vertical">
+    <!-- Header -->
+    <block-container ng-include src="'game/edit/header/template.tpl.html'" init="80" id="headerBar"></block-container>
 
-                <ul>
-                    <li ng-repeat="asset in assets">
-                        <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
-                        <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
-                        <a class="btn" ng-click="remove(asset.name)"><i class="icon-trash"></i></a> 
-                    </li>
-                </ul>
+    <!-- Main -->
+    <block-container>
+        <flexy-layout>
 
-                <div file-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop new assets here</span></div>
-            </div>
-        </block-container>
-    </flexy-layout>
-</block-container>
+            <!-- West Column-->
+            <block-container init="300">
+                <flexy-layout orientation="vertical">
+                    <block-container style="overflow:scroll; font-size:13px;">
+                        <h4>Memory</h4>
+                        <div id="memoryEditor" ng-class="{ notEditable: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl"></div>
+                    </block-container>
+                    <block-splitter></block-splitter>
+                    <block-container style="overflow:scroll;">
+                        <div id="assetsList" ng-controller="AssetsCtrl">
+                            <h4>Assets</h4>
 
-<block-splitter></block-splitter>
+                            <ul>
+                                <li ng-repeat="asset in assets">
+                                    <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
+                                    <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
+                                    <a class="btn" ng-click="remove(asset.name)"><i class="icon-trash"></i></a>
+                                </li>
+                            </ul>
 
-<!-- Center Column-->
-<block-container>
-    <flexy-layout orientation="vertical">
-        <block-container id="gamePlayerContainer">
-            <div id="gameOverlay" ng-controller="OverlayCtrl" ng-hide="!showOverlay">
-                <div id="notification" ng-hide="!notification">
-                    <i class="{{notification.icon}}"></i>
-                    <p>{{notification.text}}</p>
-                </div>
-            </div>
-            <iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
-        </block-container>
-        <block-splitter></block-splitter>
-        <block-container init="200" style="overflow:scroll;">
-            <h4>Board</h4>
-            <board-tree></board-tree>
-        </block-container>
-    </flexy-layout>
-</block-container>
+                            <div file-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop new assets here</span></div>
+                        </div>
+                    </block-container>
+                </flexy-layout>
+            </block-container>
 
-<block-splitter></block-splitter>
+            <block-splitter></block-splitter>
 
-<!-- East Column-->
-<block-container init="300">
-    <flexy-layout orientation="vertical">
-        <block-container style="overflow:scroll;">
-            <accordion close-others="true">
-                <accordion-group heading="Basic" is-open="true">
-                    <ul>
-                        <li><a href="" class="jstree-draggable" emitter>Emitter</a></li>
-                        <li><a href="" class="jstree-draggable" splitter>Splitter</a></li>
-                    </ul>
-                </accordion-group>
-                <accordion-group heading="Processors">
-                    <div id="processors" ng-controller="ProcessorsListCtrl">
-                        <ul>
-                            <li ng-repeat="processorName in processorNames">
-                                <a href="" ng-click="edit(processorName)" class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</a> 
-                                <a class="btn btn-small" ng-click="remove(processorName)"><i class="icon-trash"></i></a> 
-                            </li>
-                        </ul>
-                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
-                    </div>
-                </accordion-group>
-                <accordion-group heading="Switches">
-                    <div id="switches" ng-controller="SwitchesListCtrl">
-                        <ul>
-                            <li ng-repeat="switchName in switchNames">
-                                <a href="" ng-click="edit(switchName)" class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</a> 
-                                <a class="btn btn-small" ng-click="remove(switchName)"><i class="icon-trash"></i></a> 
-                            </li>
-                        </ul>
-                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
-                    </div>
-                </accordion-group>
-                <accordion-group heading="Transformers">
-                    <div id="transformers" ng-controller="TransformersListCtrl">
-                        <ul>
-                            <li ng-repeat="transformerName in transformerNames">
-                                <a href="" ng-click="edit(transformerName)">{{transformerName}}</a> 
-                                <a class="btn btn-small" ng-click="remove(transformerName)"><i class="icon-trash"></i></a> 
-                            </li>
-                        </ul>
-                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
-                    </div>
-                </accordion-group>
-            </accordion>
-        </block-container>
-        <block-splitter></block-splitter>
-        <block-container style="overflow:scroll;">
-            <div ng-controller="LayersCtrl" id="layersList">
-                <h4>Layers</h4>
-                <ul ui-sortable ng-model="layers">
-                  <li ng-repeat="layer in layers">
-                    <i class="icon-align-justify"></i> 
-                    <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a> 
-                    -
-                    <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
-                    <a class="btn btn-small" ng-click="removeLayer($index)"><i class="icon-trash"></i></a>
-                  </li>
-                </ul>
+            <!-- Center Column-->
+            <block-container>
+                <flexy-layout orientation="vertical">
+                    <block-container id="gamePlayerContainer">
+                        <div id="gameOverlay" ng-controller="OverlayCtrl" ng-hide="!showOverlay">
+                            <div id="notification" ng-hide="!notification">
+                                <i ng-class="notification.icon"></i>
+                                <p>{{notification.text}}</p>
+                            </div>
+                        </div>
+                        <iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
+                    </block-container>
+                    <block-splitter></block-splitter>
+                    <block-container init="200" style="overflow:scroll;">
+                        <h4>Board</h4>
+                        <board-tree></board-tree>
+                    </block-container>
+                </flexy-layout>
+            </block-container>
 
-                <a class="btn" ng-click="addLayer()"><i class="icon-plus"></i></a>
-            </div>
-        </block-container>
-    </flexy-layout>
-</block-container>
+            <block-splitter></block-splitter>
+
+            <!-- East Column-->
+            <block-container init="300">
+                <flexy-layout orientation="vertical">
+                    <block-container style="overflow:scroll;">
+                        <accordion close-others="true">
+                            <accordion-group heading="Basic" is-open="true">
+                                <ul>
+                                    <li><a href="" class="jstree-draggable" emitter>Emitter</a></li>
+                                    <li><a href="" class="jstree-draggable" splitter>Splitter</a></li>
+                                </ul>
+                            </accordion-group>
+                            <accordion-group heading="Processors">
+                                <div id="processors" ng-controller="ProcessorsListCtrl">
+                                    <ul>
+                                        <li ng-repeat="processorName in processorNames">
+                                            <a href="" ng-click="edit(processorName)" class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</a>
+                                            <a class="btn btn-small" ng-click="remove(processorName)"><i class="icon-trash"></i></a>
+                                        </li>
+                                    </ul>
+                                    <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                                </div>
+                            </accordion-group>
+                            <accordion-group heading="Switches">
+                                <div id="switches" ng-controller="SwitchesListCtrl">
+                                    <ul>
+                                        <li ng-repeat="switchName in switchNames">
+                                            <a href="" ng-click="edit(switchName)" class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</a>
+                                            <a class="btn btn-small" ng-click="remove(switchName)"><i class="icon-trash"></i></a>
+                                        </li>
+                                    </ul>
+                                    <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                                </div>
+                            </accordion-group>
+                            <accordion-group heading="Transformers">
+                                <div id="transformers" ng-controller="TransformersListCtrl">
+                                    <ul>
+                                        <li ng-repeat="transformerName in transformerNames">
+                                            <a href="" ng-click="edit(transformerName)">{{transformerName}}</a>
+                                            <a class="btn btn-small" ng-click="remove(transformerName)"><i class="icon-trash"></i></a>
+                                        </li>
+                                    </ul>
+                                    <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                                </div>
+                            </accordion-group>
+                        </accordion>
+                    </block-container>
+                    <block-splitter></block-splitter>
+                    <block-container style="overflow:scroll;">
+                        <div ng-controller="LayersCtrl" id="layersList">
+                            <h4>Layers</h4>
+                            <ul ui-sortable ng-model="layers">
+                                <li ng-repeat="layer in layers">
+                                    <i class="icon-align-justify"></i>
+                                    <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
+                                    -
+                                    <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
+                                    <a class="btn btn-small" ng-click="removeLayer($index)"><i class="icon-trash"></i></a>
+                                </li>
+                            </ul>
+
+                            <a class="btn" ng-click="addLayer()"><i class="icon-plus"></i></a>
+                        </div>
+                    </block-container>
+                </flexy-layout>
+            </block-container>
+        </flexy-layout>
+    </block-container>
+
+    <block-splitter></block-splitter>
+
+    <!-- Footer -->
+    <block-container id="logWindow" init="60">
+        <div ui-ace="{ useWrapMode: true }" readonly="true" ng-controller="LogCtrl" ng-model="text"></div>
+    </block-container>
+
+</flexy-layout>

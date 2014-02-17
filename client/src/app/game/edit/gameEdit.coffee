@@ -1,10 +1,21 @@
-angular.module('gamEvolve.game.edit', ['flexyLayout'])
+# Modifies the object by taking out the "$$hashKey" property put in by AngularJS
+filterOutHashKey = (obj) ->
+  if "$$hashKey" of obj then delete obj["$$hashKey"]
+  for key, value of obj
+    if _.isObject(value) then filterOutHashKey(value)
+  return obj
+
+angular.module('gamEvolve.game.edit', [
+  'flexyLayout'
+  'gamEvolve.game.memory'
+  'gamEvolve.game.edit.header'
+])
 
 .config ($stateProvider) ->
-  $stateProvider.state 'game.edit', 
-    url: '/:gameId/edit'
+  $stateProvider.state 'game-edit',
+    url: '/game/:gameId/edit'
     views: 
-      "game.main": 
+      "main":
         controller: 'GameEditCtrl'
         templateUrl: 'game/edit/gameEdit.tpl.html'
     data: 
