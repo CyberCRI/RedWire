@@ -40,7 +40,7 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
           result.out[pin.simpleDestination] = "pins.#{pin.name}"
         else
           for destination in pin.customDestinations.out
-            pins.out[destination.drain] = destination.source
+            result.out[destination.drain] = destination.source
     return result
 
   $scope.LINKAGES = ['simple', 'custom']
