@@ -23,7 +23,6 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.overlay'
   'gamEvolve.game.player'
   'gamEvolve.game.processors'
-  'gamEvolve.game.select'
   'gamEvolve.game.switches'
   'gamEvolve.game.transformers'
   'gamEvolve.login'

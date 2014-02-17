@@ -230,4 +230,5 @@ angular.module('gamEvolve.game.player', [])
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!
   # Until then automatically resize once in a while.
-  setInterval(onResize, 1000)
+  resizeIntervalId = setInterval(onResize, 1000)
+  $scope.$on("$destroy", -> clearInterval(resizeIntervalId))
