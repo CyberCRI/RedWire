@@ -105,7 +105,7 @@ angular.module('gamEvolve.game.player', [])
           lastMemory = GE.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
 
           # Add in the new results
-          for results in message.value[1..]
+          for results in message.value
             gameHistory.data.frames.push(extendFrameResults(results, lastMemory))
               
             if results.errors 

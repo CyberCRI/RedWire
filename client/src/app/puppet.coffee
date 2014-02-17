@@ -169,7 +169,7 @@ onRepeatRecordFrame = ->
 
   if result.errors
     isRecording = false
-    recordFrameReporter(result.errors)
+    recordFrameReporter(new Error("Errors in recording"))
   else 
     lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatRecordFrame) # Loop!
