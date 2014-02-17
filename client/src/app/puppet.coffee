@@ -84,7 +84,7 @@ initializeIo = (ioConfig) ->
 destroyAssets = (oldAssets) ->
   for name, dataUrl of oldAssets.urls
     splitUrl = GE.splitDataUrl(dataUrl)
-    if splitUrl.mimeType == "application/javascript"
+    if splitUrl.mimeType in ["application/javascript", "text/javascript"]
       # Nothing to do, cannot unload JS!
     else if splitUrl.mimeType == "text/css"
       oldAssets.data[name].remove()
@@ -101,7 +101,7 @@ createAssets = (inputAssets, evaluator) ->
   # Create new assets
   for name, dataUrl of inputAssets
     splitUrl = GE.splitDataUrl(dataUrl)
-    if splitUrl.mimeType == "application/javascript"
+    if splitUrl.mimeType in ["application/javascript", "text/javascript"]
       script = atob(splitUrl.data)
       evaluator(script)
     else if splitUrl.mimeType == "text/css"
