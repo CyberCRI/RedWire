@@ -26,7 +26,7 @@ angular.module('gamEvolve.model.games', [])
     return keys
 
 
-.factory 'games', ($http, $q, loggedUser, currentGame, gameConverter) ->
+.factory 'games', ($http, $q, loggedUser, currentGame, gameConverter, gameHistory, gameTime) ->
 
   saveInfo = ->
     $http.post('/games', currentGame.info)
@@ -99,6 +99,10 @@ angular.module('gamEvolve.model.games', [])
 
   # Load the game content and the creator info, then put it all into currentGame
   load: (game) ->
+    # Clear the current game data
+    gameHistory.reset()
+    gameTime.reset()
+
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
     getVersion = $http.get("/game-versions?#{query}")
     getCreator = $http.get("/users?id=#{game.ownerId}")
