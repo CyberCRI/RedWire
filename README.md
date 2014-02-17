@@ -23,7 +23,7 @@ In terms of development, we follow [Beck's Directive]:
 Testing it
 ----------
 
-Just check out our [deployed version](http://cybercri.github.io/RedWire) on gh-pages! Please note that this is an older version of RedWire.
+Just check out our deployed version on http://redwire.io/! Please note that this is an older version of RedWire.
 
 
 Getting Started
