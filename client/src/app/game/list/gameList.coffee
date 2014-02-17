@@ -11,9 +11,9 @@ angular.module('gamEvolve.game.list', [])
       data:
         pageTitle: 'List Games'
 
-.controller 'GameListCtrl', ($scope, games) ->
+.controller 'GameListCtrl', ($scope, games, $state) ->
 
     $scope.games = games.loadAll()
 
     $scope.select = (game) ->
-      games.load(game)
+      $state.transitionTo('game-edit', {gameId: game.id})
