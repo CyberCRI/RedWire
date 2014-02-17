@@ -7,10 +7,9 @@
         <flexy-layout>
 
             <!-- West Column-->
-            <block-container init="300">
+            <block-container init="400">
                 <flexy-layout orientation="vertical">
                     <block-container style="overflow:scroll; font-size:13px;">
-                        <h4>Memory</h4>
                         <div id="memoryEditor" ng-class="{ notEditable: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl"></div>
                     </block-container>
                     <block-splitter></block-splitter>

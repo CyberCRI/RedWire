@@ -23,6 +23,7 @@ extendFrameResults = (result, memory, inputIoData) ->
 angular.module('gamEvolve.game.player', [])
 .controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime, overlay) -> 
   # Globals
+  puppetIsAlive = false
   gameCode = null
   oldRoundedScale = null
 
@@ -45,6 +46,10 @@ angular.module('gamEvolve.game.player', [])
     # TODO: handle errors in recording and update
 
     switch message.operation
+      when "areYouAlive"
+        if message.type is "error" then throw new Error("Cannot deal with areYouAlive error message")
+        puppetIsAlive = true
+        onUpdateCode() # Code might be already there 
       when "loadGameCode"
         if message.type is "error"
           $scope.$apply ->
@@ -158,10 +163,11 @@ angular.module('gamEvolve.game.player', [])
     console.log("Sending #{operation} message to puppet");
     $('#gamePlayer')[0].contentWindow.postMessage({operation: operation, value: value}, '*')
 
-  onUpdateCode = (code) ->
-    if not code? then return
+  onUpdateCode = ->
+    if not currentGame.version? then return
+    if not puppetIsAlive then return
 
-    gameCode = code
+    gameCode = currentGame.version
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
   $scope.$watch('currentGame.version', onUpdateCode, true)
@@ -212,6 +218,15 @@ angular.module('gamEvolve.game.player', [])
 
       sendMessage("stopRecording")
   $scope.$watch('gameTime.isRecording', onUpdateRecording, true)
+
+  # Keep pinging puppet until he responds
+  checkPuppetForSignsOfLife = -> 
+    if puppetIsAlive then return # Will be set to true by message event listener
+
+    sendMessage("areYouAlive")
+    setTimeout(checkPuppetForSignsOfLife, 500)
+
+  checkPuppetForSignsOfLife()
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!
   # Until then automatically resize once in a while.

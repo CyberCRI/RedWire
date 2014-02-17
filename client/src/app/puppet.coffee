@@ -210,6 +210,8 @@ window.addEventListener 'message', (e) ->
 
   try 
     switch message.operation
+      when "areYouAlive"
+        reporter(null) # Of course we're alive!
       when "changeScale"
         $("#gameContent").css 
           "-webkit-transform": "scale(#{message.value})"
