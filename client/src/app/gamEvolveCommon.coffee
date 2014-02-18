@@ -14,7 +14,7 @@ GE.makeConstantSet = (values...) ->
   for value in values then obj[value] = value
   return Object.freeze(obj)
 
-GE.logLevels = GE.makeConstantSet("ERROR", "WARN", "INFO", "LOG")
+GE.logLevels = GE.makeConstantSet("ERROR", "WARN", "INFO")
 
 GE.signals = GE.makeConstantSet("DONE", "ERROR")
 

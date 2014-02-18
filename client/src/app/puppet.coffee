@@ -113,6 +113,7 @@ createAssets = (inputAssets, evaluator) ->
 
       image = new Image()
       image.src = objectUrl
+      
       # TODO: verify that images loaded correctly?
 
       assetNamesToObjectUrls[name] = objectUrl

@@ -288,13 +288,13 @@ GE.visitProcessorChip = (path, chip, constants, bindings) ->
 
   processor = constants.processors[chip.processor]
 
+  result = new GE.ChipVisitorResult()
+  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
+
   # TODO: compile expressions ahead of time
   evaluationContext = new GE.EvaluationContext(constants, bindings)
   GE.fillPinDefDefaults(processor.pinDefs)
   evaluatedPins = GE.evaluateInputPinExpressions(path, evaluationContext, processor.pinDefs, chip.pins)
-
-  result = new GE.ChipVisitorResult()
-  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
   try
     methodResult = processor.update(evaluatedPins, constants.transformers, GE.transformersLogger)
@@ -316,13 +316,13 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   switchChip = constants.switches[chip.switch]
   childNames = if chip.children? then (child.name ? index.toString()) for index, child of chip.children else []
 
+  result = new GE.ChipVisitorResult()
+  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
+
   # TODO: compile expressions ahead of time
   evaluationContext = new GE.EvaluationContext(constants, bindings)
   GE.fillPinDefDefaults(switchChip.pinDefs)
   evaluatedPins = GE.evaluateInputPinExpressions(path, evaluationContext, switchChip.pinDefs, chip.pins)
-
-  result = new GE.ChipVisitorResult()
-  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
   # check which children should be activated
   activeChildren = null
@@ -545,13 +545,18 @@ GE.determineAssetType = (url) ->
 
 # Returns a function that adds to logMessages with the given path
 GE.makeLogFunction = (path, logMessages) ->
-  return (args...) ->
+  logFunction = (args...) ->
     if args.length == 0 then throw new Error("Log function requires one or more arguments")
  
     logMessages.push
       path: path
       level: args[0]
       message: args[1..]
+  # Create shortcut functions   
+  logFunction.info = (args...) -> logFunction(GE.logLevels.INFO, args...)
+  logFunction.warn = (args...) -> logFunction(GE.logLevels.WARN, args...)  
+  logFunction.error = (args...) -> logFunction(GE.logLevels.ERROR, args...)  
+  return logFunction
 
 # Load all the assets in the given object (name: url) and then call callback with the results, or error
 # TODO: have cache-busting be configurable

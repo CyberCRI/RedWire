@@ -24,6 +24,7 @@ angular.module('gamEvolve.game.processors', [
       backdropFade: true
       backdropClick: false
       templateUrl: 'game/processors/editProcessor.tpl.html'
+      dialogClass: "large-modal"
       controller: 'EditProcessorDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
@@ -52,6 +53,7 @@ angular.module('gamEvolve.game.processors', [
       backdropFade: true
       backdropClick: false
       templateUrl: 'game/processors/editProcessor.tpl.html'
+      dialogClass: "large-modal"
       controller: 'EditProcessorDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two

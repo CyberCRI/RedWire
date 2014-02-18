@@ -27,11 +27,6 @@
     "comment": "",
     "children": [
       {
-        "emitter": {
-          "memory.intersect": "transformers.shapesIntersect({\n    type: \"rectangle\",\n    position: memory.hero.position,\n    size: transformers.getAssetSize(assets.hero)\n}, {\n    type: \"rectangle\",\n    position: memory.enemies[0].position,\n    size: transformers.getAssetSize(assets[memory.enemies[0].type])\n});"
-        }
-      },
-      {
         "comment": "Draw the black of space",
         "emitter": {
           "io.canvas.shapes": "transformers.drawShape({ type: 'rectangle', layer: 'space', position: [0, 0], size: io.canvas.size, fillStyle: 'black' })"
@@ -52,7 +47,7 @@
       {
         "comment": "Draw lasers",
         "emitter": {
-          "io.canvas.shapes": "transformers.drawLasers(memory.heroLasers, 'blue_beam')"
+          "io.canvas.shapes": "transformers.drawShapes(transformers.makeLaserShapes(memory.heroLasers, 'blue_beam'))"
         }
       },
       {
@@ -114,12 +109,6 @@
         },
         "children": [
           {
-            "comment": "Draw enemy",
-            "emitter": {
-              "io.canvas.shapes": "transformers.drawShape({ type: 'image', asset: bindings.enemy.type, layer: 'ships', position: bindings.enemy.position })"
-            }
-          },
-          {
             "switch": "If",
             "comment": "If the enemy is still alive",
             "pins": {
@@ -129,10 +118,40 @@
             },
             "children": [
               {
-                "comment": "Move enemy",
-                "emitter": {
-                  "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy, io.time, io.canvas.size)"
-                }
+                "switch": "Do in Parallel",
+                "pins": {},
+                "children": [
+                  {
+                    "comment": "Draw enemy",
+                    "emitter": {
+                      "io.canvas.shapes": "transformers.drawShape({ type: 'image', asset: bindings.enemy.type, layer: 'ships', position: bindings.enemy.position })"
+                    }
+                  },
+                  {
+                    "comment": "Move enemy",
+                    "emitter": {
+                      "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy, io.time, io.canvas.size)"
+                    }
+                  },
+                  {
+                    "switch": "If",
+                    "comment": "If the enemy gets hit",
+                    "pins": {
+                      "in": {
+                        "value": "transformers.shapesIntersect({\n    type: 'image', \n    asset: bindings.enemy.type, \n    position: bindings.enemy.position \n}, transformers.makeLaserShapes(memory.heroLasers, \"blue_beam\"), assets)"
+                      },
+                      "out": {}
+                    },
+                    "children": [
+                      {
+                        "comment": "Reduce health",
+                        "emitter": {
+                          "bindings.enemy.health": "bindings.enemy.health - 1"
+                        }
+                      }
+                    ]
+                  }
+                ]
               },
               {
                 "comment": "Remove enemy",
@@ -435,13 +454,6 @@
       ],
       "body": "var shapes = []; for(var i = 0; i < starfield.length; i++) { var star = starfield[i]; shapes.push({ type: 'image', asset: 'star', layer: 'stars', position: star.position }); } return transformers.drawShapes(shapes);"
     },
-    "drawLasers": {
-      "args": [
-        "lasers",
-        "asset"
-      ],
-      "body": "var shapes = []; \nfor(var key in lasers) { \n    var laser = lasers[key]; \n    shapes.push({ \n        type: 'image', \n        asset: asset, \n        layer: 'attacks', \n        position: laser }); \n} \nreturn transformers.drawShapes(shapes);    "
-    },
     "updateLasers": {
       "args": [
         "lasers",
@@ -460,15 +472,23 @@
     "shapesIntersect": {
       "args": [
         "left",
-        "right"
+        "right",
+        "assets"
       ],
-      "body": "function makeSatObject(shape) {\n    switch(shape.type) {\n        case \"circle\":\n            return new SAT.Circle(new SAT.Vector(shape.position[0], shape.position[1]), shape.radius);\n        case \"rectangle\":\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), shape.size[0], shape.size[1]);\n        default:\n            throw new Error(\"Cannot check intersection for shape of type: \" + shape.type);\n    }\n}\n\nif(left.type == \"circle\" && right.type == \"circle\") {\n    return SAT.testCircleCircle(makeSatObject(left), makeSatObject(right));\n}\nelse if (left.type == \"circle\" && right.type == \"rectangle\") {\n    return SAT.testCirclePolygon(makeSatObject(left), makeSatObject(right).toPolygon() );\n} \nelse if (left.type == \"rectangle\" && right.type == \"circle\") {\n    return SAT.testPolygonCircle(makeSatObject(left).toPolygon(), makeSatObject(right));\n} \nelse if (left.type == \"rectangle\" && right.type == \"rectangle\") {\n    return SAT.testPolygonPolygon(makeSatObject(left).toPolygon(), makeSatObject(right).toPolygon());\n}\n\nthrow new Exception(\"Cannot test intersections between shapes of types \" + left.type + \" and \" + right.type);"
+      "body": "function makeSatObject(shape) {\n    switch(shape.type) {\n        case \"circle\":\n            return new SAT.Circle(new SAT.Vector(shape.position[0], shape.position[1]), shape.radius);\n        case \"rectangle\":\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), shape.size[0], shape.size[1]).toPolygon();\n        case \"image\":\n            var img = assets[shape.asset];\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), img.naturalWidth, img.naturalHeight).toPolygon();\n        default:\n            throw new Error(\"Cannot check intersection for shape of type: \" + shape.type);\n    }\n}\n\nfunction testIntersection(left, right) {\n    var leftSat = makeSatObject(left);\n    var rightSat = makeSatObject(right); \n    \n    if(leftSat instanceof SAT.Circle && rightSat instanceof SAT.Circle) {\n        return SAT.testCircleCircle(leftSat, rightSat);\n    }\n    \n    if (leftSat instanceof SAT.Circle && rightSat instanceof SAT.Polygon) {\n        return SAT.testCirclePolygon(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Circle) {\n        return SAT.testPolygonCircle(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Polygon) {\n        return SAT.testPolygonPolygon(leftSat, rightSat);\n    }\n    \n    throw new Error(\"Cannot test intersections between shapes of types \" + left.type + \" and \" + right.type);\n}\n\n// Convert to arrays if necessary\nvar leftList = _.isArray(left) ? left : [left];\nvar rightList = _.isArray(right) ? right : [right];\n\n// Check all intersections \nfor(var i = 0; i < leftList.length; i++) {\n    for(var j = 0; j < rightList.length; j++) {\n        if(testIntersection(leftList[i], rightList[j])) return [leftList[i], rightList[j]];  \n    }\n}\nreturn null; // No intersection"
     },
     "getAssetSize": {
       "args": [
         "asset"
       ],
       "body": "return [asset.naturalWidth, asset.naturalHeight];"
+    },
+    "makeLaserShapes": {
+      "args": [
+        "lasers",
+        "asset"
+      ],
+      "body": "var shapes = []; \nfor(var key in lasers) {  \n    var laser = lasers[key]; \n    shapes.push({ \n        type: 'image', \n        asset: asset, \n        layer: 'attacks', \n        position: laser }); \n} \nreturn shapes;    "
     }
   },
   "assets": {
