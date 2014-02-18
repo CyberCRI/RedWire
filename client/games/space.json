@@ -9,8 +9,8 @@
       ]
     },
     "topLevelActiveChild": 0,
-    "enemies": [
-      {
+    "enemies": {
+      "0": {
         "type": "enemy_big",
         "position": [
           800,
@@ -18,7 +18,7 @@
         ],
         "health": 1
       }
-    ],
+    },
     "heroLasers": {},
     "lastFiringTime": 0
   },
@@ -105,7 +105,8 @@
       {
         "splitter": {
           "from": "memory.enemies",
-          "bindTo": "enemy"
+          "bindTo": "enemy",
+          "index": "enemyIndex"
         },
         "children": [
           {
@@ -156,7 +157,7 @@
               {
                 "comment": "Remove enemy",
                 "emitter": {
-                  "bindings.enemy": "null"
+                  "memory.enemies": "_.omit(memory.enemies, bindings.enemyIndex)"
                 }
               }
             ]
