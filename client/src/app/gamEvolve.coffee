@@ -160,7 +160,7 @@ GE.detectPatchConflicts = (patches) ->
     for key, value of obj when key isnt "__patchIndexes__"
       if value.__patchIndexes__ 
         childIndexes = GE.concatenate(childIndexes, value.__patchIndexes__)
-      childIndexes = GE.concatenate(findChildPatchIndexes(value))
+      childIndexes = GE.concatenate(childIndexes, findChildPatchIndexes(value))
     return childIndexes
 
   detectConflicts = (obj, prefix = "") ->
@@ -174,9 +174,10 @@ GE.detectPatchConflicts = (patches) ->
 
       # No child values should be modified
       for patchIndexes in findChildPatchIndexes(obj)
+        allPatchIndexes = GE.concatenate(obj.__patchIndexes__, patchIndexes) 
         conflicts.push
           path: prefix
-          patches: (patches[index] for index in patchIndexes)
+          patches: (patches[index] for index in allPatchIndexes)
     else
       # Recurse, looking for patches
       for key, value of obj 

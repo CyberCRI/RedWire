@@ -91,6 +91,7 @@ GE.deepFreeze = (o) ->
 GE.cloneFrozen = (o) -> return GE.deepFreeze(GE.cloneData(o))
 
 # Adds value to the given object, associating it with an unique (and meaningless) key
+# Returns 
 GE.addUnique = (obj, value) -> obj[_.uniqueId()] = value
 
 # Creates a new object based on the keys and values of the given one.
@@ -155,3 +156,10 @@ GE.addToObject = (obj, key, value) ->
 
 # Returns a new object like the old one, but with the value set at a unique key
 GE.addUniqueToObject = (obj, value) -> GE.addToObject(obj, _.uniqueId(), value)
+
+# Like _.filter(), but preserves object indexes
+GE.filterObject = (obj, predicate) ->
+  newObj = {}
+  for key, value of obj
+    if predicate(value, key) then newObj[key] = value
+  return newObj

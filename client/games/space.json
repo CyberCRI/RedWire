@@ -49,7 +49,7 @@
     "children": [
       {
         "emitter": {
-          "memory.explosions": "_.filter(memory.explosions, function(explosion) {\n    return explosion.frame < memory.explosionSprite.frameCount;   \n})"
+          "memory.explosions": "GE.filterObject(memory.explosions, function(explosion) {\n    return explosion.frame < memory.explosionSprite.frameCount;\n})"
         },
         "comment": "Clean up explosions"
       },
