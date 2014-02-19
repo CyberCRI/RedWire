@@ -26,6 +26,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.switches'
   'gamEvolve.game.transformers'
   'gamEvolve.login'
+  'gamEvolve.about'
   'gamEvolve.model.games'
   'gamEvolve.model.history'
   'gamEvolve.model.overlay'
