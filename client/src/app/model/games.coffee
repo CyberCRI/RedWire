@@ -9,8 +9,8 @@ angular.module('gamEvolve.model.games', [])
   creator: null
 
   enumeratePinDestinations: ->
-    destinations = @enumerateMemoryKeys(@version)
-    @enumerateIoKeys(GE.ios, destinations)
+    destinations = @enumerateMemoryKeys(@version.memory)
+    @enumerateIoKeys(GE.io, destinations)
     return destinations
 
   enumerateMemoryKeys: (memory, prefix = ['memory'], keys = []) ->
