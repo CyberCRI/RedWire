@@ -340,7 +340,7 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   if activeChildren is null then activeChildren = childNames
 
   # Continue with children
-  childSignals = new Array(chip.children.length)
+  childSignals = new Array(childNames.length)
   for childIndex in activeChildren
     childResult = GE.visitChip(GE.appendToArray(path, childIndex), chip.children[childIndex], constants, bindings)
     childSignals[childIndex] = childResult.result

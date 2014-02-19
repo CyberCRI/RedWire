@@ -33,20 +33,27 @@
       "frameCount": 64,
       "asset": "explosion"
     },
-    "explosions": {
-      "0": {
-        "position": [
-          200,
-          100
-        ],
-        "frame": 10
-      }
-    }
+    "explosions": {},
+    "lastEnemyCreatedAt": 0
   },
   "board": {
     "switch": "Do in Parallel",
     "comment": "",
     "children": [
+      {
+        "switch": "Limit Rate",
+        "pins": {
+          "in": {
+            "currentTime": "io.time",
+            "minTime": "2000",
+            "lastTime": "memory.lastEnemyCreatedAt"
+          },
+          "out": {
+            "memory.lastEnemyCreatedAt": "pins.lastTime"
+          }
+        },
+        "comment": "Regularly generate enemies"
+      },
       {
         "emitter": {
           "memory.explosions": "GE.filterObject(memory.explosions, function(explosion) {\n    return explosion.frame < memory.explosionSprite.frameCount;\n})"
