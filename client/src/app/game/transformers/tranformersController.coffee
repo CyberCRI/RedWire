@@ -24,6 +24,7 @@ angular.module('gamEvolve.game.transformers', [
       backdropFade: true
       backdropClick: false
       templateUrl: 'game/transformers/editTransformer.tpl.html'
+      dialogClass: "large-modal"
       controller: 'EditTransformerDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
@@ -52,6 +53,7 @@ angular.module('gamEvolve.game.transformers', [
       backdropFade: true
       backdropClick: false
       templateUrl: 'game/transformers/editTransformer.tpl.html'
+      dialogClass: "large-modal"
       controller: 'EditTransformerDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two

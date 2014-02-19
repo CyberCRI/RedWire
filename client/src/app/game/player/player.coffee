@@ -8,7 +8,7 @@ buildLogMessages = (result) ->
     { 
       path: error.path
       level: GE.logLevels.ERROR
-      message: [error.stage, GE.firstLine(error.message)] 
+      message: [error.stage, error.message] 
     }
   return errorMessages.concat(result.logMessages)
 
@@ -53,7 +53,7 @@ angular.module('gamEvolve.game.player', [])
       when "loadGameCode"
         if message.type is "error"
           $scope.$apply ->
-            gameHistory.data.compilationErrors = [GE.firstLine(message.error)]
+            gameHistory.data.compilationErrors = [message.error]
             overlay.makeNotification("error")
             gameHistory.meta.version++
         else
