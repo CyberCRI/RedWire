@@ -45,14 +45,22 @@
         "pins": {
           "in": {
             "currentTime": "io.time",
-            "minTime": "2000",
+            "minTime": "4000",
             "lastTime": "memory.lastEnemyCreatedAt"
           },
           "out": {
             "memory.lastEnemyCreatedAt": "pins.lastTime"
           }
         },
-        "comment": "Regularly generate enemies"
+        "comment": "Regularly generate enemies",
+        "children": [
+          {
+            "emitter": {
+              "memory.enemies": "GE.addUniqueToObject(memory.enemies, {\n  type: \"enemy_big\",\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  health: 1\n})"
+            },
+            "comment": "Add enemy"
+          }
+        ]
       },
       {
         "emitter": {
