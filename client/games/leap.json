@@ -1,6 +1,5 @@
 {
-  "name": "leap",
-  "fileVersion": 0.1,
+  "name": "Leap",
   "memory": {
     "blocks": [],
     "mouseDetection": {
@@ -139,36 +138,13 @@
       "minGridTranslation": 1
     }
   },
-  "io": {
-    "layers": [
-      {
-        "name": "bg",
-        "type": "canvas"
-      },
-      {
-        "name": "gallery",
-        "type": "canvas"
-      },
-      {
-        "name": "blocks",
-        "type": "canvas"
-      },
-      {
-        "name": "drag",
-        "type": "canvas"
-      },
-      {
-        "name": "html",
-        "type": "html"
-      }
-    ]
-  },
   "board": {
     "children": [
       {
         "emitter": {
           "io.canvas.shapes": "transformers.drawShape({ type: 'rectangle', layer: 'bg', position: [0, 0], size: io.canvas.size, fillStyle: 'black' })"
-        }
+        },
+        "comment": "Draw the background"
       },
       {
         "pins": {
@@ -186,13 +162,15 @@
               "memory.gallery": "[]",
               "memory.selectedGalleryIndexes": "[]",
               "memory.events": "[{ type: 'began game', time: transformers.makeTimestamp(io.time) }]"
-            }
+            },
+            "comment": "Set initial memory"
           },
           {
             "pins": {
               "in": {
                 "value": "!memory.ageForm.done"
-              }
+              },
+              "out": {}
             },
             "children": [
               {
@@ -208,21 +186,25 @@
                     "memory.ageForm": "pins.memoryValues"
                   }
                 },
-                "processor": "updateHtmlTemplate"
+                "processor": "Update HTML Template",
+                "comment": "Update the form"
               }
             ],
-            "switch": "doWhile"
+            "switch": "Do While",
+            "comment": "Until they filled in the form"
           },
           {
             "emitter": {
               "memory.events": "GE.appendToArray(memory.events, { type: 'filled form', time: transformers.makeTimestamp(io.time) })"
-            }
+            },
+            "comment": "Write filled form event"
           },
           {
             "pins": {
               "in": {
                 "value": "!io.html.receive.blocksForm || !io.html.receive.blocksForm.values.done"
-              }
+              },
+              "out": {}
             },
             "children": [
               {
@@ -236,47 +218,55 @@
                     "dragStartPosition": "memory.mouseDetection.dragStartPosition"
                   },
                   "out": {
+                    "memory.mouseDetection.shape": "pins.shape",
                     "memory.mouseDetection.state": "pins.state",
-                    "memory.mouseDetection.dragStartPosition": "pins.dragStartPosition",
-                    "memory.mouseDetection.shape": "pins.shape"
+                    "memory.mouseDetection.dragStartPosition": "pins.dragStartPosition"
                   }
                 },
-                "processor": "detectMouse"
+                "processor": "Detect Mouse",
+                "comment": "Detect mouse interaction with shapes"
               },
               {
                 "emitter": {
                   "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(memory.gridTranslation), transformers.makeBlockShapes(memory.constants.grid, GE.difference(memory.blocks, memory.highlightedBlocks), transformers.rgbColorString(memory.constants.blockColor), memory.constants.blockSize)))"
-                }
+                },
+                "comment": "Draw normal blocks"
               },
               {
                 "emitter": {
                   "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(memory.gridTranslation), transformers.makeBlockShapes(memory.constants.grid, memory.highlightedBlocks, transformers.rgbColorString(memory.constants.highlightedBlockColor), memory.constants.blockSize)))"
-                }
+                },
+                "comment": "Draw highlighted blocks"
               },
               {
                 "emitter": {
                   "io.canvas.shapes": "transformers.drawShape({ layer: 'gallery', type: 'rectangle', position: memory.constants.galleryGrid.upperLeft, size: transformers.gridSizeInPixels(memory.constants.galleryGrid), fillStyle: 'grey', strokeStyle: 'white' })"
-                }
+                },
+                "comment": "Draw gallery box"
               },
               {
                 "emitter": {
                   "memory.targetGridTranslation": "transformers.subtractVectors(transformers.meanOfCoordinates(transformers.listBlockCenters(memory.constants.grid, memory.blocks)), transformers.gridCenter(memory.constants.grid))"
-                }
+                },
+                "comment": "Update grid centering"
               },
               {
                 "pins": {
                   "in": {
                     "value": "memory.targetGridTranslation && transformers.distanceBetweenPoints(memory.gridTranslation, memory.targetGridTranslation) > memory.constants.minGridTranslation"
-                  }
+                  },
+                  "out": {}
                 },
                 "children": [
                   {
                     "emitter": {
                       "memory.gridTranslation": "transformers.interpolateVector(memory.gridTranslation, memory.targetGridTranslation, 0.5)"
-                    }
+                    },
+                    "comment": "Interpolate grid centering"
                   }
                 ],
-                "switch": "if"
+                "switch": "If",
+                "comment": "If we need to interpolate the grid centering"
               },
               {
                 "pins": {
@@ -287,6 +277,7 @@
                 "children": [
                   {
                     "name": "drag",
+                    "comment": "If the mouse position is valid",
                     "pins": {
                       "in": {
                         "value": "io.mouse.position != null"
@@ -294,6 +285,7 @@
                     },
                     "children": [
                       {
+                        "comment": "Draw the dragged shape and the 'move' mouse cursor",
                         "emitter": {
                           "io.mouse.cursor": "'move'",
                           "io.canvas.shapes": "transformers.drawShape(transformers.makeDraggedShape(memory.constants.blockSize, transformers.rgbColorString(transformers.cyclicInterpolate(memory.constants.highlightedBlockColor, memory.constants.blockColor, memory.dragFrameCounter / memory.constants.dragHighlightPeriod)), io.mouse.position))",
@@ -301,10 +293,11 @@
                         }
                       }
                     ],
-                    "switch": "if"
+                    "switch": "If"
                   },
                   {
                     "name": "startDrag",
+                    "comment": "Take the dragged block out of the list of normal blocks",
                     "emitter": {
                       "memory.blocks": "GE.removeFromArray(memory.blocks, memory.mouseDetection.shape.meta)",
                       "memory.dragFrameCounter": 0
@@ -312,6 +305,7 @@
                   },
                   {
                     "name": "endDrag",
+                    "comment": "Put the block back in place, and start the highlighting",
                     "emitter": {
                       "memory.blockGroupsToBeHighlighted": "transformers.makeBlockGroupsToBeHighlighted(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))",
                       "memory.blocks": "GE.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))",
@@ -320,84 +314,100 @@
                   },
                   {
                     "name": "hover",
+                    "comment": "Show the 'pointer' mouse cursor",
                     "emitter": {
                       "io.mouse.cursor": "'pointer'"
                     }
                   }
                 ],
-                "switch": "when"
+                "switch": "When",
+                "comment": "Depending on the mouse detection state"
               },
               {
                 "emitter": {
-                  "io.html.emitter.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: memory.gallery.length, canAddShape: memory.gallery.length < 12, ready: memory.gallery.length >= 5 } }"
-                }
+                  "io.html.send.blocksForm": "{ asset: 'blocksForm', values: { done: false, galleryShapeCount: memory.gallery.length, canAddShape: memory.gallery.length < 12, ready: memory.gallery.length >= 5 } }"
+                },
+                "comment": "Draw the HTML form"
               },
               {
                 "pins": {
                   "in": {
                     "value": "memory.blockGroupsToBeHighlighted.length > 0"
-                  }
+                  },
+                  "out": {}
                 },
                 "children": [
                   {
                     "emitter": {
                       "memory.highlightedBlocks": "_.first(memory.blockGroupsToBeHighlighted)",
                       "memory.blockGroupsToBeHighlighted": "_.rest(memory.blockGroupsToBeHighlighted)"
-                    }
+                    },
+                    "comment": "Update highlighted groups"
                   },
                   {
                     "emitter": {
                       "memory.highlightedBlocks": "[]"
-                    }
+                    },
+                    "comment": "Otherwise remove highlighting"
                   }
                 ],
-                "switch": "if"
+                "switch": "If",
+                "comment": "If groups need to be highlighted"
               },
               {
                 "pins": {
                   "in": {
                     "value": "io.html.receive.blocksForm && io.html.receive.blocksForm.values.addShape"
-                  }
+                  },
+                  "out": {}
                 },
                 "children": [
                   {
                     "emitter": {
                       "memory.gallery": "GE.appendToArray(memory.gallery, memory.blocks)",
                       "memory.events": "GE.appendToArray(memory.events, { type: 'added shape to gallery', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(memory.blocks) })"
-                    }
+                    },
+                    "comment": "Save the shape in the gallery"
                   }
                 ],
-                "switch": "if"
+                "switch": "If",
+                "comment": "If they press the add button"
               },
               {
                 "pins": {
                   "in": {
                     "value": "memory.gallery.length > 0"
-                  }
+                  },
+                  "out": {}
                 },
                 "children": [
                   {
                     "emitter": {
                       "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(transformers.findCenterOfCells(memory.constants.galleryGrid, _.last(memory.gallery))), transformers.makeBlockShapes(memory.constants.galleryGrid, _.last(memory.gallery), transformers.rgbColorString(memory.constants.blockColor), memory.constants.galleryBlockSize)))"
-                    }
+                    },
+                    "comment": "Draw the last gallery shape"
                   }
                 ],
-                "switch": "if"
+                "switch": "If",
+                "comment": "If the gallery isn't empty"
               }
             ],
-            "switch": "doWhile"
+            "switch": "Do While",
+            "comment": "Until they have created all their forms"
           },
           {
             "emitter": {
               "memory.selectionGrids": "transformers.makeSelectionGalleryGrids(memory.constants.selectionGrid, memory.constants.galleryGrid, memory.gallery)",
               "memory.events": "GE.appendToArray(memory.events, { type: 'began gallery selection', time: transformers.makeTimestamp(io.time) })"
-            }
+            },
+            "comment": "Make grids for gallery selection"
           },
           {
             "pins": {
               "in": {
                 "value": "!io.html.receive.selectionForm || !io.html.receive.selectionForm.values.done"
-              }
+              },
+              "out": {}
             },
             "children": [
               {
@@ -410,14 +420,17 @@
                   {
                     "emitter": {
                       "io.canvas.shapes": "transformers.drawShapes(transformers.makeSelectionGalleryShapes(memory.selectionGrids, memory.selectedGalleryIndexes))"
-                    }
+                    },
+                    "comment": "Draw the selection grid"
                   },
                   {
                     "emitter": {
                       "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(transformers.findCenterOfCells(bindings.selectionGrid, memory.gallery[bindings.selectionGridIndex])), transformers.makeBlockShapes(bindings.selectionGrid, memory.gallery[bindings.selectionGridIndex], transformers.rgbColorString(memory.constants.blockColor), memory.constants.galleryBlockSize)))"
-                    }
+                    },
+                    "comment": "Draw the blocks on the grid"
                   }
-                ]
+                ],
+                "comment": "For each selection grid"
               },
               {
                 "pins": {
@@ -430,12 +443,13 @@
                     "dragStartPosition": "memory.mouseDetection.dragStartPosition"
                   },
                   "out": {
+                    "memory.mouseDetection.shape": "pins.shape",
                     "memory.mouseDetection.state": "pins.state",
-                    "memory.mouseDetection.dragStartPosition": "pins.dragStartPosition",
-                    "memory.mouseDetection.shape": "pins.shape"
+                    "memory.mouseDetection.dragStartPosition": "pins.dragStartPosition"
                   }
                 },
-                "processor": "detectMouse"
+                "processor": "Detect Mouse",
+                "comment": "Listen to mouse selection"
               },
               {
                 "pins": {
@@ -446,61 +460,106 @@
                 "children": [
                   {
                     "name": "hover",
+                    "comment": "Show the 'pointer' cursor",
                     "emitter": {
                       "io.mouse.cursor": "'pointer'"
                     }
                   },
                   {
                     "name": "click",
+                    "comment": "Toggle the gallery as being selected or not",
                     "emitter": {
                       "memory.selectedGalleryIndexes": "GE.toggleValueInArray(memory.selectedGalleryIndexes, memory.mouseDetection.shape.meta)",
                       "memory.events": "GE.appendToArray(memory.events, { type: 'selected shape', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(memory.gallery[memory.mouseDetection.shape.meta]) })"
                     }
                   }
                 ],
-                "switch": "when"
+                "switch": "When",
+                "comment": "Depending on the mouse state..."
               },
               {
                 "emitter": {
-                  "io.html.emitter.selectionForm": "{ asset: 'selectionForm', values: { done: false, ready: memory.selectedGalleryIndexes.length >= 1 } }"
-                }
+                  "io.html.send.selectionForm": "{ asset: 'selectionForm', values: { done: false, ready: memory.selectedGalleryIndexes.length >= 1 } }"
+                },
+                "comment": "Draw selection HTML form"
               }
             ],
-            "switch": "doWhile"
+            "switch": "Do While",
+            "comment": "Until the selection is finished"
           },
           {
             "emitter": {
               "memory.events": "GE.appendToArray(memory.events, { type: 'completed selection', time: transformers.makeTimestamp(io.time) })"
-            }
+            },
+            "comment": "Write \"completed selection\" event"
           },
           {
             "emitter": {
               "io.http.requests.playerTracking": "{ url: 'http://localhost/', data: transformers.makeTrackingString({ age: memory.ageForm.age, gender: memory.ageForm.gender}, memory.events), method: 'POST', contentType: 'application/json; charset=UTF-8',  }"
-            }
+            },
+            "comment": "Send out the player tracking data"
           },
           {
             "pins": {
               "in": {
                 "value": "!io.html.receive.thanksForm || !io.html.receive.thanksForm.values.done"
-              }
+              },
+              "out": {}
             },
             "children": [
               {
                 "emitter": {
-                  "io.html.emitter.thanksForm": "{ asset: 'thanksForm', values: { done: false } }"
-                }
+                  "io.html.send.thanksForm": "{ asset: 'thanksForm', values: { done: false } }"
+                },
+                "comment": "Draw the thank you form"
               }
             ],
-            "switch": "doWhile"
+            "switch": "Do While",
+            "comment": "Until the player hits the button"
           }
         ],
-        "switch": "doInSequence"
+        "switch": "Do in Sequence",
+        "comment": "Step through the game"
       }
     ],
-    "switch": "doInParallel"
+    "switch": "Do in Parallel",
+    "comment": "Play the game",
+    "pins": {
+      "in": {},
+      "out": {}
+    }
+  },
+  "io": {
+    "layers": [
+      {
+        "name": "bg",
+        "type": "canvas",
+        "$$hashKey": "06L"
+      },
+      {
+        "name": "gallery",
+        "type": "canvas",
+        "$$hashKey": "06P"
+      },
+      {
+        "name": "blocks",
+        "type": "canvas",
+        "$$hashKey": "06T"
+      },
+      {
+        "name": "drag",
+        "type": "canvas",
+        "$$hashKey": "06X"
+      },
+      {
+        "name": "html",
+        "type": "html",
+        "$$hashKey": "071"
+      }
+    ]
   },
   "processors": {
-    "changeParameterThroughKeyboard": {
+    "Change Parameter through Keyboard": {
       "pinDefs": {
         "parameter": {
           "direction": "inout"
@@ -510,7 +569,24 @@
       },
       "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
     },
-    "detectMouse": {
+    "Move thing with arrow keys": {
+      "pinDefs": {
+        "keysDown": {
+          "direction": "in",
+          "default": ""
+        },
+        "position": {
+          "direction": "inout",
+          "default": null
+        },
+        "speed": {
+          "direction": "in",
+          "default": "1"
+        }
+      },
+      "update": "if(pins.keysDown[37]) pins.position[0] -= pins.speed;\nif(pins.keysDown[39]) pins.position[0] += pins.speed;\nif(pins.keysDown[38]) pins.position[1] -= pins.speed;\nif(pins.keysDown[40]) pins.position[1] += pins.speed;"
+    },
+    "Detect Mouse": {
       "pinDefs": {
         "shapes": null,
         "shape": {
@@ -530,7 +606,7 @@
       },
       "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
     },
-    "updateHtmlTemplate": {
+    "Update HTML Template": {
       "pinDefs": {
         "htmlService": {
           "direction": "inout"
@@ -545,10 +621,12 @@
     }
   },
   "switches": {
-    "doInParallel": {
-      "doc": "Just to place children under it"
+    "Do in Parallel": {
+      "doc": "Just to place children under it",
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
     },
-    "doInSequence": {
+    "Do in Sequence": {
       "pinDefs": {
         "activeChild": {
           "direction": "inout",
@@ -558,7 +636,7 @@
       "listActiveChildren": "return [pins.activeChild];",
       "handleSignals": "if (signals[pins.activeChild] == GE.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return GE.signals.DONE;\n}"
     },
-    "doForSomeTime": {
+    "Do for Some Time": {
       "pinDefs": {
         "time": null,
         "timer": {
@@ -568,26 +646,31 @@
       "listActiveChildren": "return children;",
       "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return GE.signals.DONE;\n}"
     },
-    "doWhile": {
+    "Do While": {
       "pinDefs": {
         "value": null
       },
       "listActiveChildren": "return !!pins.value ? children : [];",
       "handleSignals": "if (!pins.value)\n  return GE.signals.DONE;"
     },
-    "when": {
+    "Do Forever": {
+      "pinDefs": {},
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
+    "When": {
       "pinDefs": {
         "value": null
       },
       "listActiveChildren": "return transformers.childByName(children, pins.value);"
     },
-    "if": {
+    "If": {
       "pinDefs": {
         "value": null
       },
       "listActiveChildren": "return pins.value ? [0] : children.length > 1 ? [1] : [];"
     },
-    "sandwich": {
+    "Sandwhich": {
       "pinDefs": {
         "condition": null,
         "started": {
@@ -595,6 +678,17 @@
         }
       },
       "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
+    },
+    "Limit Rate": {
+      "pinDefs": {
+        "currentTime": null,
+        "minTime": null,
+        "lastTime": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
+      "handleSignals": "if(signals[0] == GE.signals.DONE) pins.lastTime = pins.currentTime;"
     }
   },
   "transformers": {

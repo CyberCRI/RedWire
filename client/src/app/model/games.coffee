@@ -9,24 +9,24 @@ angular.module('gamEvolve.model.games', [])
   creator: null
 
   enumeratePinDestinations: ->
-    destinations = @enumerateModelKeys(@version)
-    @enumerateServiceKeys(GE.services, destinations)
+    destinations = @enumerateMemoryKeys(@version.memory)
+    @enumerateIoKeys(GE.io, destinations)
     return destinations
 
-  enumerateModelKeys: (model, prefix = ['model'], keys = []) ->
-    for name, value of model
+  enumerateMemoryKeys: (memory, prefix = ['memory'], keys = []) ->
+    for name, value of memory
       keys.push(GE.appendToArray(prefix, name).join('.'))
-      if GE.isOnlyObject(value) then @enumerateModelKeys(value, GE.appendToArray(prefix, name), keys)
+      if GE.isOnlyObject(value) then @enumerateMemoryKeys(value, GE.appendToArray(prefix, name), keys)
     return keys
 
-  enumerateServiceKeys: (services,  keys = []) ->
-    # TODO: dig down a bit into what values the services provide
-    for name of services
-      keys.push(['services', name].join('.'))
+  enumerateIoKeys: (ioServices,  keys = []) ->
+    # TODO: dig down a bit into what values the io provides
+    for name of ioServices
+      keys.push(['io', name].join('.'))
     return keys
 
 
-.factory 'games', ($http, $q, loggedUser, currentGame, gameConverter) ->
+.factory 'games', ($http, $q, loggedUser, currentGame, gameConverter, gameHistory, gameTime) ->
 
   saveInfo = ->
     $http.post('/games', currentGame.info)
@@ -99,6 +99,10 @@ angular.module('gamEvolve.model.games', [])
 
   # Load the game content and the creator info, then put it all into currentGame
   load: (game) ->
+    # Clear the current game data
+    gameHistory.reset()
+    gameTime.reset()
+
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
     getVersion = $http.get("/game-versions?#{query}")
     getCreator = $http.get("/users?id=#{game.ownerId}")

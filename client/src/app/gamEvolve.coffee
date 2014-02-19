@@ -160,7 +160,7 @@ GE.detectPatchConflicts = (patches) ->
     for key, value of obj when key isnt "__patchIndexes__"
       if value.__patchIndexes__ 
         childIndexes = GE.concatenate(childIndexes, value.__patchIndexes__)
-      childIndexes = GE.concatenate(findChildPatchIndexes(value))
+      childIndexes = GE.concatenate(childIndexes, findChildPatchIndexes(value))
     return childIndexes
 
   detectConflicts = (obj, prefix = "") ->
@@ -174,9 +174,10 @@ GE.detectPatchConflicts = (patches) ->
 
       # No child values should be modified
       for patchIndexes in findChildPatchIndexes(obj)
+        allPatchIndexes = GE.concatenate(obj.__patchIndexes__, patchIndexes) 
         conflicts.push
           path: prefix
-          patches: (patches[index] for index in patchIndexes)
+          patches: (patches[index] for index in allPatchIndexes)
     else
       # Recurse, looking for patches
       for key, value of obj 
@@ -224,7 +225,7 @@ GE.evaluateOutputPinExpressions = (path, evaluationContext, pinDefs, pinExpressi
   # Only output pins should be accessible
   outPins = _.pick(evaluatedPins, (pinName for pinName, pinOptions of pinDefs when pinOptions.direction in ["out", "inout"]))
 
-  for pinName, pinValue of pinExpressions.out
+  for pinName, pinValue of pinExpressions?.out
     try
       outputValue = evaluationContext.evaluateExpression(pinValue, outPins)
     catch error
@@ -288,13 +289,13 @@ GE.visitProcessorChip = (path, chip, constants, bindings) ->
 
   processor = constants.processors[chip.processor]
 
+  result = new GE.ChipVisitorResult()
+  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
+
   # TODO: compile expressions ahead of time
   evaluationContext = new GE.EvaluationContext(constants, bindings)
   GE.fillPinDefDefaults(processor.pinDefs)
   evaluatedPins = GE.evaluateInputPinExpressions(path, evaluationContext, processor.pinDefs, chip.pins)
-
-  result = new GE.ChipVisitorResult()
-  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
   try
     methodResult = processor.update(evaluatedPins, constants.transformers, GE.transformersLogger)
@@ -316,13 +317,13 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   switchChip = constants.switches[chip.switch]
   childNames = if chip.children? then (child.name ? index.toString()) for index, child of chip.children else []
 
+  result = new GE.ChipVisitorResult()
+  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
+
   # TODO: compile expressions ahead of time
   evaluationContext = new GE.EvaluationContext(constants, bindings)
   GE.fillPinDefDefaults(switchChip.pinDefs)
   evaluatedPins = GE.evaluateInputPinExpressions(path, evaluationContext, switchChip.pinDefs, chip.pins)
-
-  result = new GE.ChipVisitorResult()
-  GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
   # check which children should be activated
   activeChildren = null
@@ -339,7 +340,7 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   if activeChildren is null then activeChildren = childNames
 
   # Continue with children
-  childSignals = new Array(chip.children.length)
+  childSignals = new Array(childNames.length)
   for childIndex in activeChildren
     childResult = GE.visitChip(GE.appendToArray(path, childIndex), chip.children[childIndex], constants, bindings)
     childSignals[childIndex] = childResult.result
@@ -545,13 +546,18 @@ GE.determineAssetType = (url) ->
 
 # Returns a function that adds to logMessages with the given path
 GE.makeLogFunction = (path, logMessages) ->
-  return (args...) ->
+  logFunction = (args...) ->
     if args.length == 0 then throw new Error("Log function requires one or more arguments")
  
     logMessages.push
       path: path
       level: args[0]
       message: args[1..]
+  # Create shortcut functions   
+  logFunction.info = (args...) -> logFunction(GE.logLevels.INFO, args...)
+  logFunction.warn = (args...) -> logFunction(GE.logLevels.WARN, args...)  
+  logFunction.error = (args...) -> logFunction(GE.logLevels.ERROR, args...)  
+  return logFunction
 
 # Load all the assets in the given object (name: url) and then call callback with the results, or error
 # TODO: have cache-busting be configurable

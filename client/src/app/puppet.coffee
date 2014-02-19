@@ -84,7 +84,7 @@ initializeIo = (ioConfig) ->
 destroyAssets = (oldAssets) ->
   for name, dataUrl of oldAssets.urls
     splitUrl = GE.splitDataUrl(dataUrl)
-    if splitUrl.mimeType == "application/javascript"
+    if splitUrl.mimeType in ["application/javascript", "text/javascript"]
       # Nothing to do, cannot unload JS!
     else if splitUrl.mimeType == "text/css"
       oldAssets.data[name].remove()
@@ -101,7 +101,7 @@ createAssets = (inputAssets, evaluator) ->
   # Create new assets
   for name, dataUrl of inputAssets
     splitUrl = GE.splitDataUrl(dataUrl)
-    if splitUrl.mimeType == "application/javascript"
+    if splitUrl.mimeType in ["application/javascript", "text/javascript"]
       script = atob(splitUrl.data)
       evaluator(script)
     else if splitUrl.mimeType == "text/css"
@@ -113,6 +113,7 @@ createAssets = (inputAssets, evaluator) ->
 
       image = new Image()
       image.src = objectUrl
+      
       # TODO: verify that images loaded correctly?
 
       assetNamesToObjectUrls[name] = objectUrl
@@ -169,7 +170,7 @@ onRepeatRecordFrame = ->
 
   if result.errors
     isRecording = false
-    recordFrameReporter(result.errors)
+    recordFrameReporter(new Error("Errors in recording"))
   else 
     lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatRecordFrame) # Loop!
@@ -210,6 +211,8 @@ window.addEventListener 'message', (e) ->
 
   try 
     switch message.operation
+      when "areYouAlive"
+        reporter(null) # Of course we're alive!
       when "changeScale"
         $("#gameContent").css 
           "-webkit-transform": "scale(#{message.value})"

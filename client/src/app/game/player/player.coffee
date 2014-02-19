@@ -8,7 +8,7 @@ buildLogMessages = (result) ->
     { 
       path: error.path
       level: GE.logLevels.ERROR
-      message: [error.stage, GE.firstLine(error.message)] 
+      message: [error.stage, error.message] 
     }
   return errorMessages.concat(result.logMessages)
 
@@ -23,6 +23,7 @@ extendFrameResults = (result, memory, inputIoData) ->
 angular.module('gamEvolve.game.player', [])
 .controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime, overlay) -> 
   # Globals
+  puppetIsAlive = false
   gameCode = null
   oldRoundedScale = null
 
@@ -45,10 +46,14 @@ angular.module('gamEvolve.game.player', [])
     # TODO: handle errors in recording and update
 
     switch message.operation
+      when "areYouAlive"
+        if message.type is "error" then throw new Error("Cannot deal with areYouAlive error message")
+        puppetIsAlive = true
+        onUpdateCode() # Code might be already there 
       when "loadGameCode"
         if message.type is "error"
           $scope.$apply ->
-            gameHistory.data.compilationErrors = [GE.firstLine(message.error)]
+            gameHistory.data.compilationErrors = [message.error]
             overlay.makeNotification("error")
             gameHistory.meta.version++
         else
@@ -63,7 +68,7 @@ angular.module('gamEvolve.game.player', [])
 
             # If there are already frames, then update them 
             inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
-            sendMessage("updateFrames", { memory: gameHistory.data.frames[0].memory, inputIoDataFrames })
+            sendMessage("updateFrames", { memory: gameCode.memory, inputIoDataFrames })
           else
             # Else just record the first frame
             sendMessage("recordFrame", { memory: gameCode.memory })
@@ -100,7 +105,7 @@ angular.module('gamEvolve.game.player', [])
           lastMemory = GE.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
 
           # Add in the new results
-          for results in message.value[1..]
+          for results in message.value
             gameHistory.data.frames.push(extendFrameResults(results, lastMemory))
               
             if results.errors 
@@ -128,7 +133,7 @@ angular.module('gamEvolve.game.player', [])
           metError = false
 
           # Replace existing frames by the new results, until an error is found
-          lastMemory = gameHistory.data.frames[0].memory
+          lastMemory = gameCode.memory
           for index, results of message.value
             # Copy over old inputIoData
             gameHistory.data.frames[index] = extendFrameResults(results, lastMemory, gameHistory.data.frames[index].inputIoData)
@@ -158,10 +163,11 @@ angular.module('gamEvolve.game.player', [])
     console.log("Sending #{operation} message to puppet");
     $('#gamePlayer')[0].contentWindow.postMessage({operation: operation, value: value}, '*')
 
-  onUpdateCode = (code) ->
-    if not code? then return
+  onUpdateCode = ->
+    if not currentGame.version? then return
+    if not puppetIsAlive then return
 
-    gameCode = code
+    gameCode = currentGame.version
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
   $scope.$watch('currentGame.version', onUpdateCode, true)
@@ -213,6 +219,16 @@ angular.module('gamEvolve.game.player', [])
       sendMessage("stopRecording")
   $scope.$watch('gameTime.isRecording', onUpdateRecording, true)
 
+  # Keep pinging puppet until he responds
+  checkPuppetForSignsOfLife = -> 
+    if puppetIsAlive then return # Will be set to true by message event listener
+
+    sendMessage("areYouAlive")
+    setTimeout(checkPuppetForSignsOfLife, 500)
+
+  checkPuppetForSignsOfLife()
+
   # TODO: need some kind of notification from flexy-layout when a block changes size!
   # Until then automatically resize once in a while.
-  setInterval(onResize, 1000)
+  resizeIntervalId = setInterval(onResize, 1000)
+  $scope.$on("$destroy", -> clearInterval(resizeIntervalId))

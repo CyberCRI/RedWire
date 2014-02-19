@@ -7,3 +7,8 @@ angular.module('gamEvolve.model.history', [])
     # TODO: don't store the entire model and serviceData each time! Use patches, or better yet, persistant data structures
     frames: [ ]
     compilationErrors: []
+
+  reset: ->
+    @data.frames = []
+    @data.compilationErrors = []
+    @meta.version = 0

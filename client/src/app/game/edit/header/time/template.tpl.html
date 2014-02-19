@@ -1,0 +1,27 @@
+<div ng-controller="TimeCtrl" id="timeController">
+    <div id="recordContainer">
+        <div class="btn-group">
+            <a class="btn btn-primary" href="" ng-click="triggerRecord()"><i class="icon-white" ng-class="{'icon-play-circle': !isRecording, 'icon-stop': isRecording}"></i></a>
+            <a class="btn btn-warning" href="" ng-click="reset()" ng-disabled="disableTimeControls"><i class="icon-white icon-remove"></i></a>
+        </div>
+    </div>
+    <div id="sliderContainer">
+        <input type="range" ng-model="currentFrameString" min="0" max="{{lastFrame}}" ng-disabled="disableTimeControls" />
+    </div>
+    <div id="frameNumberContainer">
+        <span>{{currentFrame + 1}}/{{lastFrame + 1}}</span>
+    </div>
+    <div id="steppingContainer">
+        <div class="btn-group">
+            <a class="btn btn" href="" ng-click="triggerPlay()" ng-disabled="disableTimeControls"><i ng-class="{'icon-play': !isPlaying, 'icon-pause': isPlaying}"></i></a>
+        </div>
+        <div class="btn-group">
+            <a class="btn" href="" ng-click="stepBackward()" ng-disabled="disableTimeControls"><i class="icon-step-backward"></i></a>
+            <a class="btn" href="" ng-click="stepForward()" ng-disabled="disableTimeControls"><i class="icon-step-forward"></i></a>
+        </div>
+        <div class="btn-group">
+            <a class="btn" href="" ng-click="jumpToStart()" ng-disabled="disableTimeControls"><i class="icon-fast-backward"></i></a>
+            <a class="btn" href="" ng-click="jumpToEnd()" ng-disabled="disableTimeControls"><i class="icon-fast-forward"></i></a>
+        </div>
+    </div>
+</div>

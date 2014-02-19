@@ -27,7 +27,7 @@
 						<input ng-model="pin.simpleDestination" ng-show="pin.linkage == 'simple' && (pin.direction == 'in' || pin.direction == 'inout')" placeholder="input/output value" class="input-small" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
 
 						<div ng-show="pin.linkage == 'custom'">
-							<div ui-ace="{ mode: 'ace/mode/javascript', theme: 'twilight', useWrapMode: true }" ng-model="pin.customDestinations.in"></div>
+							<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="pin.customDestinations.in"></div>
 						</div>
 					</td>
 					<td class="chip-inside chip-border-left"></td>
@@ -43,7 +43,7 @@
 						<div ng-show="pin.linkage == 'custom' && (pin.direction == 'out' || pin.direction == 'inout')">
 							<ul>
 								<li ng-repeat="destination in pin.customDestinations.out">
-									<div ui-ace="{ mode: 'ace/mode/javascript', theme: 'twilight', useWrapMode: true }" ng-model="destination.source"></div>
+									<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="destination.source"></div>
 									<input required ng-model="destination.drain" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
 									<a class="btn btn-small" ng-click="removeCustomDestination(pin.name, $index)"><i class="icon-trash"></i></a>
 								</li>
