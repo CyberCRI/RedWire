@@ -29,7 +29,7 @@
 						<a class="btn btn-small" ng-click="removePin($index)"><i class="icon-trash"></i></a>
 					</td>
 					<td class="chip-inside chip-border-right">
-						<div ui-ace="{ mode: 'ace/mode/javascript', theme: 'twilight', useWrapMode: true }" ng-model="pin.input"></div>
+						<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="pin.input"></div>
 					</td>
 					<td class="pin-out">
 						<input required ng-model="pin.output" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>

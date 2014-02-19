@@ -72,9 +72,18 @@ angular.module('gamEvolve.game.boardTree', [
     link: (scope, element) ->
 
       updateModel = ->
-        treeJson = $.jstree._reference(element).get_json()[0]
-        reverted = boardConverter.revert(treeJson)
-        currentGame.version.board = reverted
+        treeJson = $.jstree._reference(element).get_json()
+        if treeJson.length isnt 1
+          scope.updateTree( boardConverter.convert(currentGame.version.board) ) # Refresh display from model
+          throw Error 'Tree should have one and only one root'
+        else
+          treeJson = treeJson[0]
+          if treeJson.metadata.nodeId isnt 0
+            scope.updateTree( boardConverter.convert(currentGame.version.board) ) # Refresh display from model
+            throw Error 'Trying to replace root node'
+          else # OK
+            reverted = boardConverter.revert(treeJson)
+            currentGame.version.board = reverted
 
       scope.updateTree = (board) ->
         $(element).jstree

@@ -13,7 +13,7 @@
     <block-container init="200" id="gameLoadingControls">
         <div ng-controller="MenuCtrl">
             <div ng-show="user.isLoggedIn()">
-                Welcome, {{user.profile.username}}
+                Welcome, {{user.profile.username}} <a ng-click="user.logout()" href="">Logout</a>
             </div>
             <div class="btn-group btn-group-vertical">
                 <button ng-click="games.saveCurrent()" class="btn btn-primary"
