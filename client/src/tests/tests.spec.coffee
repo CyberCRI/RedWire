@@ -106,6 +106,28 @@ describe "gamEvolve", ->
       conflicts = GE.detectPatchConflicts(allPatches)
       expect(conflicts).toBeEmpty()
 
+    # Issue #299
+    it "detects more conflicting patches", ->
+      patches = [
+        {
+          "remove": "/explosions/0",
+          "path": [
+            "0"
+          ]
+        },
+        {
+          "replace": "/explosions/0/frame",
+          "value": 65,
+          "path": [
+            "1",
+            "0",
+            "0"
+          ]
+        }
+      ]
+
+      conflicts = GE.detectPatchConflicts(patches)
+      expect(conflicts.length).toBe(1)
 
   describe "visitChip()", ->
     it "calls processors", ->
