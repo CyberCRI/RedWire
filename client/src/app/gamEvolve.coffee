@@ -60,10 +60,10 @@ GE.EvaluationContext = class
   evaluateExpression: (expression, pins) -> @evaluateFunction(@compileExpression(expression), pins)
 
 GE.extensions =
-    IMAGE: ["png", "gif", "jpeg", "jpg"]
-    JS: ["js"]
-    CSS: ["css"]
-    HTML: ["html"]
+  IMAGE: ["png", "gif", "jpeg", "jpg"]
+  JS: ["js"]
+  CSS: ["css"]
+  HTML: ["html"]
 
 # Reject arrays as objects
 GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
