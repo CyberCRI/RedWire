@@ -105,16 +105,12 @@ angular.module('gamEvolve.game.boardTree', [
           nodes.close nodeId
 
       $(element).on 'click', 'a[editChip]', (event) ->
-        clicked = $(event.target)
-        if not clicked.attr('editChip') then clicked = $(clicked.parent()[0])
-        nodeId = clicked.attr('nodeId')
+        nodeId = $(event.currentTarget).attr('nodeId')
         scope.$emit 'editChipButtonClick', nodeId
 
-      $(element).on 'click', 'a[removeChip]', (eventObject) ->
-        clicked = $(eventObject.target)
-        if not clicked.attr('removeChip') then clicked = $(clicked.parent()[0])
-        nodeId = clicked.attr('nodeId')
-        parentNodeId = clicked.attr('parentNodeId')
+      $(element).on 'click', 'a[removeChip]', (event) ->
+        nodeId = $(event.currentTarget).attr('nodeId')
+        parentNodeId = $(event.currentTarget).attr('parentNodeId')
         scope.$emit 'removeChipButtonClick', {nodeId: nodeId, parentNodeId: parentNodeId}
 
       $(element).on 'click', 'a[muteChip]', (event) ->

@@ -20,10 +20,10 @@ generateType = (source) ->
   else if "splitter" of source then "splitter"
   else throw new Error("Cannot find type of chip #{source}")
 
-makeChipButtons = (nodeId, parentNodeId) -> """
+makeChipButtons = (nodeId, parentNodeId, muted) -> """
   <a href="" class="btn btn-small" editChip nodeId="#{nodeId}"><i class="icon-edit"></i></a>
+  <a href="" class="btn btn-small" muteChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}">#{if muted then "MUTED" else "Mute"}</a>
   <a href="" class="btn btn-small" removeChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}"><i class="icon-trash"></i></a>
-  <a href="" class="btn btn-small" muteChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}">M</a>
   """
 
 
@@ -41,7 +41,7 @@ angular.module('gamEvolve.util.boardConverter', ['gamEvolve.game.boardTree'])
       else
         nodeId = nodes.register node
       converted =
-        data: generateText(node) + makeChipButtons(nodeId, parentNodeId)
+        data: generateText(node) + makeChipButtons(nodeId, parentNodeId, node.muted)
         attr:
           rel: generateType(node)
         state: nodes.findState(nodeId)
