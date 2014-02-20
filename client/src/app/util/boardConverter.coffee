@@ -23,6 +23,7 @@ generateType = (source) ->
 makeChipButtons = (nodeId, parentNodeId) -> """
   <a href="" class="btn btn-small" editChip nodeId="#{nodeId}"><i class="icon-edit"></i></a>
   <a href="" class="btn btn-small" removeChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}"><i class="icon-trash"></i></a>
+  <a href="" class="btn btn-small" muteChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}">M</a>
   """
 
 

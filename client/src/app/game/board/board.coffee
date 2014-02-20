@@ -117,6 +117,10 @@ angular.module('gamEvolve.game.boardTree', [
         parentNodeId = clicked.attr('parentNodeId')
         scope.$emit 'removeChipButtonClick', {nodeId: nodeId, parentNodeId: parentNodeId}
 
+      $(element).on 'click', 'a[muteChip]', (event) ->
+        nodeId = $(event.currentTarget).attr('nodeId')
+        scope.$emit('muteChipButtonClick', nodeId)
+
 
 .controller 'BoardCtrl', ($scope, $dialog, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
 
@@ -186,6 +190,9 @@ angular.module('gamEvolve.game.boardTree', [
     $scope.$on 'removeChipButtonClick', (event, message) ->
       $scope.remove(message.nodeId, message.parentNodeId)
 
+    $scope.$on 'muteChipButtonClick', (event, nodeId) ->
+      chip = nodes.find(nodeId)
+      chip.muted = !chip.muted
 
 .factory 'nodes', ->
 
