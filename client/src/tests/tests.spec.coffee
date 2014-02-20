@@ -581,6 +581,40 @@ describe "gamEvolve", ->
 
       expect(newIoData.serviceA.a).toBe(2)
 
+    it "ignores muted chips", ->
+      timesCalled = 0
+
+      processors = 
+        doNothing: 
+          pinDefs: {}
+          update: -> timesCalled++
+
+      switches = 
+        doAll: 
+          pinDefs: {}
+
+      board = 
+        switch: "doAll"
+        pins: {}
+        children: [
+          {
+            processor: "doNothing"
+            pins: {}
+          },
+          {
+            processor: "doNothing"
+            pins: {}
+            muted: true
+          }
+        ]
+
+      # Only one of these chips should have been called
+      constants = new GE.ChipVisitorConstants
+        processors: processors
+        switches: switches
+      GE.visitChip([], board, constants, {})
+      expect(timesCalled).toEqual(1)
+
   describe "stepLoop()", ->
     it "sends output data directly to io", ->
       io = 

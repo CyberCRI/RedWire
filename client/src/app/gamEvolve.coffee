@@ -410,17 +410,20 @@ GE.chipVisitors =
 # The path is an array of the indices necessary to access the children
 GE.visitChip = (path, chip, constants, bindings = {}) ->
   # TODO: defer processor and call execution until whole tree is evaluated?
-  # TODO: handle children as object in addition to array
+  if chip.muted then return new GE.ChipVisitorResult()
+
+  # Dispatch to correct function
   for chipType, visitor of GE.chipVisitors
     if chipType of chip
       return visitor(path, chip, constants, bindings)
 
+  # Signal error
+  result = new GE.ChipVisitorResult()
   result.logMessages.push
     path: path
     level: GE.logLevels.ERROR
     message: ["Board item '#{JSON.stringify(chip)}' is not understood"]
-
-  return new GE.ChipVisitorResult()
+  return result
 
 # The argument "options" can values for "chip", memoryData", "assets", "processors", "switches", "transformers", "io", "ioConfig", and "evaluator".
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
