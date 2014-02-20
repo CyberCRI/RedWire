@@ -689,20 +689,20 @@ describe "gamEvolve", ->
           provideData: -> return { a: 0 }
           establishData: jasmine.createSpy()
 
-      processors = 
+      switches = 
         group:
           pinDefs: {}
-          update: ->
+
+      processors = 
         setDataTo: 
           pinDefs:
-            in: 
-              value: null
-            out:
-              var: null
-          update: -> @pins.var = @pins.value
+            value: null
+            var:
+              direction: "out"
+          update: (pins, transformers, log) -> pins.var = pins.value
 
       boardA = 
-        processor: "group"
+        switch: "group"
         children: [
           {
             processor: "setDataTo"
@@ -725,6 +725,7 @@ describe "gamEvolve", ->
       results = GE.stepLoop 
         chip: boardA
         memoryData: oldData
+        switches: switches
         processors: processors 
         evaluator: makeEvaluator()
       expect(results.errors.length).not.toBeEmpty()
