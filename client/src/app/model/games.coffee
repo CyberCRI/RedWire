@@ -26,13 +26,16 @@ angular.module('gamEvolve.model.games', [])
     return keys
 
 
-.factory 'games', ($http, $q, loggedUser, currentGame, gameConverter, gameHistory, gameTime) ->
+.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime) ->
 
   saveInfo = ->
     $http.post('/games', currentGame.info)
       .then (savedGame) ->
         currentGame.info = savedGame.data
         currentGame.version.gameId = currentGame.info.id
+        $http.get("/users?id=#{currentGame.info.ownerId}")
+      .then (creator) ->
+        currentGame.creator = creator.data.username
 
   updateInfo = ->
     $http.put('/games', currentGame.info)
@@ -42,22 +45,21 @@ angular.module('gamEvolve.model.games', [])
     $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
       .then (savedGameVersion) -> currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)
 
-  # TODO: shouldn't this just define an object rather than returning an object? What's the role of the names?
   saveActions:
     none:
       name: 'No Action'
       execute: -> console.log 'games.saveActions.none executed'
-    createFromScratch:
-      name: 'Create'
-      execute: -> saveInfo().then(saveVersion)
     saveNewVersion:
       name: 'Save'
       execute: -> updateInfo().then(saveVersion)
     fork:
       name: 'Fork'
       execute: ->
+        # Removing the game ID will make the server provide a new one
         delete currentGame.info.id
-        saveInfo().then(saveVersion)
+        saveInfo().then -> 
+          $location.path("/game/#{currentGame.version.gameId}/edit")
+          saveVersion()
 
   loadJson: (gameName) ->
     deferred = $q.defer()
@@ -65,7 +67,6 @@ angular.module('gamEvolve.model.games', [])
     propertyNames = @propertyNames
     $http.get("/assets/games/#{gameName}.json")
       .error((error) ->
-          # TODO Where does this line go ? showMessage(MessageType.Error, "Cannot load game files")
           deferred.reject error
         )
       .success((game) ->
@@ -85,10 +86,8 @@ angular.module('gamEvolve.model.games', [])
       return @saveActions.none
     if currentGame.info.id and currentGame.info.ownerId is loggedUser.profile.id
       return @saveActions.saveNewVersion
-    else if currentGame.info.ownerId
+    else 
       return @saveActions.fork
-    else
-      return @saveActions.createFromScratch
 
   loadAll: ->
     allGames = []
