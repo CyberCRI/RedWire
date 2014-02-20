@@ -166,9 +166,9 @@
         "comment": "Move the hero with arrow keys",
         "pins": {
           "in": {
-            "position": "memory.hero.position",
             "keysDown": "io.keyboard.keysDown",
-            "speed": "2"
+            "position": "memory.hero.position",
+            "speed": "5"
           },
           "out": {
             "memory.hero.position": "pins.position"
@@ -539,7 +539,7 @@
         "lasers",
         "screenSize"
       ],
-      "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[0]) laser[0] = laser[0] + 10;\n    else delete lasers[key]; \n}\nreturn lasers;"
+      "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[0]) laser[0] = laser[0] + 20;\n    else delete lasers[key]; \n}\nreturn lasers;"
     },
     "moveEnemy": {
       "args": [
