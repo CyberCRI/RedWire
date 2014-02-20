@@ -1,6 +1,7 @@
 {
   "name": "Stupendous Side-Scrolling Space Shooter",
   "memory": {
+    "frameNumber": 0,
     "starfield": [],
     "hero": {
       "position": [
@@ -16,7 +17,11 @@
           800,
           270
         ],
-        "health": 1
+        "health": 1,
+        "startingPosition": [
+          800,
+          270
+        ]
       }
     },
     "heroLasers": {},
@@ -41,11 +46,17 @@
     "comment": "",
     "children": [
       {
+        "emitter": {
+          "memory.frameNumber": "memory.frameNumber + 1"
+        },
+        "comment": "Increment frame number"
+      },
+      {
         "switch": "Limit Rate",
         "pins": {
           "in": {
-            "currentTime": "io.time",
-            "minTime": "4000",
+            "currentTime": "memory.frameNumber",
+            "minTime": "180",
             "lastTime": "memory.lastEnemyCreatedAt"
           },
           "out": {
@@ -56,7 +67,7 @@
         "children": [
           {
             "emitter": {
-              "memory.enemies": "GE.addUniqueToObject(memory.enemies, {\n  type: \"enemy_big\",\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  health: 1\n})"
+              "memory.enemies": "GE.addUniqueToObject(memory.enemies, {\n  type: \"enemy_big\",\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  health: 1,\n  startingPosition: [io.canvas.size[0], Math.random() * io.canvas.size[1]],\n})"
             },
             "comment": "Add enemy"
           }
@@ -204,7 +215,7 @@
                   {
                     "comment": "Move enemy",
                     "emitter": {
-                      "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy, io.time, io.canvas.size)"
+                      "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy, memory.frameNumber)"
                     }
                   },
                   {
@@ -544,10 +555,9 @@
     "moveEnemy": {
       "args": [
         "enemy",
-        "time",
-        "screenSize"
+        "frameNumber"
       ],
-      "body": "var halfY = screenSize[1] / 2;\nreturn [ \n    enemy.position[0] - 1, \n    halfY + halfY * Math.sin(time / 1000) \n];"
+      "body": "return [ \n    enemy.position[0] - 3, \n    enemy.startingPosition[1] + 100 * Math.sin(frameNumber / 20) \n];"
     },
     "shapesIntersect": {
       "args": [
