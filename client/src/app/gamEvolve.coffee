@@ -449,6 +449,7 @@ GE.stepLoop = (options) ->
     evaluator: eval
     inputIoData: null
     outputIoData: null 
+    establishOutput: true
 
   # Initialize return data
   memoryPatches = []
@@ -493,11 +494,13 @@ GE.stepLoop = (options) ->
 
     logMessages = result.logMessages
 
-  try
-    for ioName, io of options.io
-      io.establishData(options.outputIoData[ioName], options.ioConfig, options.assets)
-  catch e 
-    return makeErrorResponse("writeIo", e)
+  # TODO: check the output even if isn't established, in order to catch errors
+  if options.establishOutput
+    try
+      for ioName, io of options.io
+        io.establishData(options.outputIoData[ioName], options.ioConfig, options.assets)
+    catch e 
+      return makeErrorResponse("writeIo", e)
 
   return { memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
 
