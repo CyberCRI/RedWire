@@ -20,14 +20,14 @@
                         ng-show="user.isLoggedIn() && currentGame.version">
                     {{games.getSaveAction().name}}
                 </button>
-                <button ng-click="loginDialog.open();" class="btn btn-small" ng-show="user.isNotLoggedIn()">
-                    Login
+                <button ng-click="loginDialog.open();" class="buttonheader" ng-show="user.isNotLoggedIn()">
+                    <span>Login</span>
                 </button>
-                <button ng-click="loadGame()" class="btn btn-small">
-                    Load
+                <button ng-click="loadGame()" class="buttonheader">
+                    <span>Load</span>
                 </button>
-                <button ng-click="importExportDialog.open();" class="btn btn-small">
-                    Import/Export
+                <button ng-click="importExportDialog.open();" class="buttonheader">
+                    <span>Import/Export</span>
                 </button>
             </div>
         </div>
