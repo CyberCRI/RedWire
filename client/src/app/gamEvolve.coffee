@@ -60,10 +60,10 @@ GE.EvaluationContext = class
   evaluateExpression: (expression, pins) -> @evaluateFunction(@compileExpression(expression), pins)
 
 GE.extensions =
-    IMAGE: ["png", "gif", "jpeg", "jpg"]
-    JS: ["js"]
-    CSS: ["css"]
-    HTML: ["html"]
+  IMAGE: ["png", "gif", "jpeg", "jpg"]
+  JS: ["js"]
+  CSS: ["css"]
+  HTML: ["html"]
 
 # Reject arrays as objects
 GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
@@ -410,17 +410,20 @@ GE.chipVisitors =
 # The path is an array of the indices necessary to access the children
 GE.visitChip = (path, chip, constants, bindings = {}) ->
   # TODO: defer processor and call execution until whole tree is evaluated?
-  # TODO: handle children as object in addition to array
+  if chip.muted then return new GE.ChipVisitorResult()
+
+  # Dispatch to correct function
   for chipType, visitor of GE.chipVisitors
     if chipType of chip
       return visitor(path, chip, constants, bindings)
 
+  # Signal error
+  result = new GE.ChipVisitorResult()
   result.logMessages.push
     path: path
     level: GE.logLevels.ERROR
     message: ["Board item '#{JSON.stringify(chip)}' is not understood"]
-
-  return new GE.ChipVisitorResult()
+  return result
 
 # The argument "options" can values for "chip", memoryData", "assets", "processors", "switches", "transformers", "io", "ioConfig", and "evaluator".
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
@@ -449,6 +452,7 @@ GE.stepLoop = (options) ->
     evaluator: eval
     inputIoData: null
     outputIoData: null 
+    establishOutput: true
 
   # Initialize return data
   memoryPatches = []
@@ -493,11 +497,13 @@ GE.stepLoop = (options) ->
 
     logMessages = result.logMessages
 
-  try
-    for ioName, io of options.io
-      io.establishData(options.outputIoData[ioName], options.ioConfig, options.assets)
-  catch e 
-    return makeErrorResponse("writeIo", e)
+  # TODO: check the output even if isn't established, in order to catch errors
+  if options.establishOutput
+    try
+      for ioName, io of options.io
+        io.establishData(options.outputIoData[ioName], options.ioConfig, options.assets)
+    catch e 
+      return makeErrorResponse("writeIo", e)
 
   return { memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
 

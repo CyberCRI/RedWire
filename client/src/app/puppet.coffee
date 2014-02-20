@@ -146,7 +146,7 @@ makeReporter = (destinationWindow, destinationOrigin, operation) ->
     else
       destinationWindow.postMessage({ type: "success", operation: operation, value: value }, destinationOrigin)
 
-onRecordFrame = (memory, inputIoData = null) ->
+onRecordFrame = (memory) ->
   return GE.stepLoop
     chip: loadedGame.board
     memoryData: memory
@@ -155,11 +155,6 @@ onRecordFrame = (memory, inputIoData = null) ->
     switches: loadedGame.switches
     io: loadedGame.io
     transformers: loadedGame.transformers
-    evaluator: eval
-    ioConfig: {}
-    log: null
-    inputIoData: inputIoData
-    outputIoData: null 
 
 onRepeatRecordFrame = ->
   if !isRecording then return  # Stop when requested
@@ -186,13 +181,24 @@ onPlayFrame = (outputIoData) ->
     ioConfig: {}
     outputIoData: outputIoData 
 
+updateFrame = (memory, inputIoData) ->
+  return GE.stepLoop
+    chip: loadedGame.board
+    memoryData: memory
+    assets: loadedGame.assets.data
+    processors: loadedGame.processors
+    switches: loadedGame.switches
+    io: loadedGame.io
+    transformers: loadedGame.transformers
+    inputIoData: inputIoData
+
 # Recalculate frames with different code but the same inputIoData
 # TODO: don't have stepLoop() send the output data, as an optimization
 onUpdateFrames = (memory, inputIoDataFrames) ->
   results = []
   lastMemory = memory
   for inputIoData in inputIoDataFrames
-    result = onRecordFrame(lastMemory, inputIoData)
+    result = updateFrame(lastMemory, inputIoData)
     results.push(result)
     if results.errors then return results # Return right away
 

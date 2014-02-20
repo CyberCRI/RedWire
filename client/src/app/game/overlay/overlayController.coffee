@@ -1,4 +1,4 @@
-NOTIFICATION_TIME = 3000 # in ms
+NOTIFICATION_TIME = 1500 # in ms
 
 
 angular.module('gamEvolve.game.overlay', [])

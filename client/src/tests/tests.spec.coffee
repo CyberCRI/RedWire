@@ -581,6 +581,40 @@ describe "gamEvolve", ->
 
       expect(newIoData.serviceA.a).toBe(2)
 
+    it "ignores muted chips", ->
+      timesCalled = 0
+
+      processors = 
+        doNothing: 
+          pinDefs: {}
+          update: -> timesCalled++
+
+      switches = 
+        doAll: 
+          pinDefs: {}
+
+      board = 
+        switch: "doAll"
+        pins: {}
+        children: [
+          {
+            processor: "doNothing"
+            pins: {}
+          },
+          {
+            processor: "doNothing"
+            pins: {}
+            muted: true
+          }
+        ]
+
+      # Only one of these chips should have been called
+      constants = new GE.ChipVisitorConstants
+        processors: processors
+        switches: switches
+      GE.visitChip([], board, constants, {})
+      expect(timesCalled).toEqual(1)
+
   describe "stepLoop()", ->
     it "sends output data directly to io", ->
       io = 
@@ -689,20 +723,20 @@ describe "gamEvolve", ->
           provideData: -> return { a: 0 }
           establishData: jasmine.createSpy()
 
-      processors = 
+      switches = 
         group:
           pinDefs: {}
-          update: ->
+
+      processors = 
         setDataTo: 
           pinDefs:
-            in: 
-              value: null
-            out:
-              var: null
-          update: -> @pins.var = @pins.value
+            value: null
+            var:
+              direction: "out"
+          update: (pins, transformers, log) -> pins.var = pins.value
 
       boardA = 
-        processor: "group"
+        switch: "group"
         children: [
           {
             processor: "setDataTo"
@@ -725,6 +759,7 @@ describe "gamEvolve", ->
       results = GE.stepLoop 
         chip: boardA
         memoryData: oldData
+        switches: switches
         processors: processors 
         evaluator: makeEvaluator()
       expect(results.errors.length).not.toBeEmpty()

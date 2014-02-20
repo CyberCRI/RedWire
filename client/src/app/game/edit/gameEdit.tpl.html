@@ -37,7 +37,8 @@
             <block-container>
                 <flexy-layout orientation="vertical">
                     <block-container id="gamePlayerContainer">
-                        <div id="gameOverlay" ng-controller="OverlayCtrl" ng-hide="!showOverlay">
+                        <div id="overlayContainer" ng-controller="OverlayCtrl">
+                            <div id="gameOverlay" ng-hide="!isDraggingBorders"></div>
                             <div id="notification" ng-hide="!notification">
                                 <i ng-class="notification.icon"></i>
                                 <p>{{notification.text}}</p>

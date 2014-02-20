@@ -4,6 +4,7 @@
         <div ng-controller="GameInfoCtrl">
             <h4 id="title">
                 <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a>
+                (version {{ currentGame.version.versionNumber }})
                 by
                 <a>{{ currentGame.creator }}</a>
             </h4>
@@ -29,7 +30,7 @@
                 <button ng-click="loadGame()" class="btn btn-small">
                     Load
                 </button>
-                <button ng-click="importExportDialog.open();" class="btn btn-small">
+                <button id= "importExportButton" ng-click="importExportDialog.open();" class="btn btn-small">
                     Import/Export
                 </button>
             </div>

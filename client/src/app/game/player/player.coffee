@@ -27,6 +27,10 @@ angular.module('gamEvolve.game.player', [])
   gameCode = null
   oldRoundedScale = null
 
+  timing = 
+    updateFrames: null
+    stopRecording: null
+
   # Bring services into the scope
   $scope.currentGame = currentGame
   $scope.gameTime = gameTime
@@ -68,6 +72,7 @@ angular.module('gamEvolve.game.player', [])
 
             # If there are already frames, then update them 
             inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
+            timing.updateFrames = Date.now()
             sendMessage("updateFrames", { memory: gameCode.memory, inputIoDataFrames })
           else
             # Else just record the first frame
@@ -94,6 +99,8 @@ angular.module('gamEvolve.game.player', [])
           hadRecordingErrors = true # Used to notify the user 
           gameTime.isRecording = false
       when "stopRecording" 
+        console.log("Stop recording took puppet #{Date.now() - timing.stopRecording} ms")
+
         $scope.$apply ->
           metError = false
 
@@ -128,6 +135,7 @@ angular.module('gamEvolve.game.player', [])
           gameHistory.meta.version++
       when "updateFrames" 
         if message.type is "error" then throw new Error("Cannot deal with updateFrames error")
+        console.log("Update frames took puppet #{Date.now() - timing.updateFrames} ms")
 
         $scope.$apply ->
           metError = false
@@ -211,11 +219,13 @@ angular.module('gamEvolve.game.player', [])
       # Start recording on next frame
       lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
       nextMemory = GE.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+
       sendMessage("startRecording", { memory: nextMemory })
     else
       # Notify the user
       overlay.makeNotification("updating", true)
 
+      timing.stopRecording = Date.now()
       sendMessage("stopRecording")
   $scope.$watch('gameTime.isRecording', onUpdateRecording, true)
 
