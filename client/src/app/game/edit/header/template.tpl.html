@@ -4,6 +4,7 @@
         <div ng-controller="GameInfoCtrl">
             <h4 id="title">
                 <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a>
+                (version {{ currentGame.version.versionNumber }})
                 by
                 <a>{{ currentGame.creator }}</a>
             </h4>
