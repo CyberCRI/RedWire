@@ -6,7 +6,7 @@
     <block-container>
         <flexy-layout>
             <!-- West Column-->
-            <block-container init="400">
+            <block-container init="340">
                 <flexy-layout orientation="vertical">
                     <block-container style="overflow:scroll; font-size:13px;">
                         <div id="memoryEditor" ng-class="{ notEditable: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl"></div>
@@ -46,7 +46,7 @@
                         <iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
                     </block-container>
                     <block-splitter></block-splitter>
-                    <block-container init="200" style="overflow:scroll;">
+                    <block-container style="overflow:scroll;">
                         <h4>Board</h4>
                         <board-tree></board-tree>
                     </block-container>
