@@ -19,10 +19,6 @@ body {
     border: 0; 
 }
 
-#headerBar {
-    border-bottom: 1px @red solid 
-}
-
 .splitter{
     background: @red;
 }
@@ -32,24 +28,6 @@ body {
     opacity: 0.5;
 }
 
-div.logo {
-    background-image: url(images/logo.png);
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-#title {
-    text-align: center;
-}
-
-#gameLoadingControls {
-    text-align: right;
-
-    button {
-        margin-left: auto;
-        margin-right: 0;
-    }
-}
 
 
 /* Import child LESS files */
@@ -58,6 +36,7 @@ div.logo {
 @import 'assets/assets.less';
 @import 'board/board.less';
 @import 'edit/gameEdit.less';
+@import 'edit/header/header.less';
 @import 'import/import.less';
 @import 'layers/layers.less';
 @import 'log/log.less';

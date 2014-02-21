@@ -1,13 +1,12 @@
-<flexy-layout orientation="vertical">
-    <!-- Header -->
-    <block-container ng-include src="'game/edit/header/template.tpl.html'" init="80" id="headerBar"></block-container>
+<!-- Header -->
+<div ng-include src="'game/edit/header/header.tpl.html'" id="headerBar"></div>
 
-    <!-- Main -->
+<!-- Main -->
+<flexy-layout orientation="vertical">
     <block-container>
         <flexy-layout>
-
             <!-- West Column-->
-            <block-container init="400">
+            <block-container init="340">
                 <flexy-layout orientation="vertical">
                     <block-container style="overflow:scroll; font-size:13px;">
                         <div id="memoryEditor" ng-class="{ notEditable: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl"></div>
@@ -47,7 +46,7 @@
                         <iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
                     </block-container>
                     <block-splitter></block-splitter>
-                    <block-container init="200" style="overflow:scroll;">
+                    <block-container style="overflow:scroll;">
                         <h4>Board</h4>
                         <board-tree></board-tree>
                     </block-container>
@@ -127,7 +126,8 @@
     <block-splitter></block-splitter>
 
     <!-- Footer -->
-    <block-container id="logWindow" init="60">
+    <!-- TODO: the bar is not really 150 pixels big, there must be a problem in the CSS -->
+    <block-container id="logWindow" init="150">
         <div ui-ace="{ useWrapMode: true }" readonly="true" ng-controller="LogCtrl" ng-model="text"></div>
     </block-container>
 

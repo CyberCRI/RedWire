@@ -49,6 +49,12 @@
       "src": "fontawesome"
     },
     {
+      "uid": "0d20938846444af8deb1920dc85a29fb",
+      "css": "logout",
+      "code": 59409,
+      "src": "fontawesome"
+    },
+    {
       "uid": "a73c5deb486c8d66249811642e5d719a",
       "css": "arrows-cw",
       "code": 59400,
@@ -100,6 +106,12 @@
       "uid": "3c0ef77f5fbb5c933c23f2c437d8cab8",
       "css": "error-alt",
       "code": 59396,
+      "src": "elusive"
+    },
+    {
+      "uid": "1e394b6cd5e0da3e10d8e4f3fe355960",
+      "css": "head",
+      "code": 59408,
       "src": "elusive"
     }
   ]

@@ -1,0 +1,39 @@
+<div>
+    <div id="logo" ng-controller="LogoCtrl" ng-click="aboutDialog.open()"></div>
+    <div id="center">
+        <div ng-controller="GameInfoCtrl">
+            <h4 id="title">
+                <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a>
+                (version {{ currentGame.version.versionNumber }})
+                by
+                <a>{{ currentGame.creator }}</a>
+            </h4>
+            <ng-include src="'game/edit/header/time/time.tpl.html'"></ng-include>
+        </div>
+    </div>
+    <div id="gameLoadingControls">
+        <div ng-controller="MenuCtrl">
+            <div id="loggedInInfo" ng-show="user.isLoggedIn()">
+                <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" href=""><i class="font-icon-logout"></i></a>
+            </div>
+            <div>
+                <button ng-click="games.saveCurrent()" class="btn btn-small btn-primary"
+                        ng-show="user.isLoggedIn() && currentGame.version">
+                    {{games.getSaveAction().name}}
+                </button>
+                <button ng-click="loginDialog.open();" class="btn btn-small btn-primary" ng-show="user.isNotLoggedIn()">
+                    Login
+                </button>
+                <button id="importExportButton" title="Import/Export" ng-click="importExportDialog.open();" class="btn btn-small">
+                    <i class="icon-file"></i>
+                </button>
+                <button ng-click="loadGame()" title="Show Games" class="btn btn-small">
+                    <i class="icon-home"></i>
+                </button>
+                <button ng-click="aboutDialog.open()" title="About RedWire" class="btn btn-small">
+                    <i class="icon-question-sign"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
