@@ -5,7 +5,8 @@ angular.module('gamEvolve.game.edit.header.time', [])
   $scope.currentFrameString = "0" # Needed by the input range element in the template
   $scope.lastFrame = 100
   $scope.isPlayingBack = false
-  $scope.isRecording = false
+  $scope.inRecordMode = false
+  $scope.isPlaying = false
   $scope.disableTimeControls = true
 
   $scope.jumpToStart = -> $scope.currentFrame = 0
@@ -13,7 +14,7 @@ angular.module('gamEvolve.game.edit.header.time', [])
   $scope.stepForward = -> if $scope.currentFrame < $scope.lastFrame then $scope.currentFrame++
   $scope.stepBackward = -> if $scope.currentFrame > 0 then $scope.currentFrame--
   $scope.triggerPlayBack = -> $scope.isPlayingBack = !$scope.isPlayingBack
-  $scope.triggerRecord = -> $scope.isRecording = !$scope.isRecording
+  $scope.triggerPlay = -> $scope.isPlaying = !$scope.isPlaying
 
   $scope.reset = -> 
     frameCount = gameHistory.data.frames.length
@@ -25,8 +26,8 @@ angular.module('gamEvolve.game.edit.header.time', [])
   onUpdateModel = ->
     $scope.currentFrame = gameTime.currentFrameNumber
     $scope.lastFrame = Math.max(0, gameHistory.data.frames.length - 1)
-    $scope.isRecording = gameTime.isRecording
-    $scope.disableTimeControls = gameHistory.data.frames.length < 2 or $scope.isRecording
+    $scope.isPlaying = gameTime.isPlaying
+    $scope.disableTimeControls = gameHistory.data.frames.length < 2 or $scope.isPlaying
 
   onPlayBackFrame = ->
     if not $scope.isPlayingBack then return
@@ -52,6 +53,7 @@ angular.module('gamEvolve.game.edit.header.time', [])
   onUpdateModel()
 
   # Copy certain attributes back to the service
-  $scope.$watch "isRecording", (isRecording) -> gameTime.isRecording = isRecording
+  $scope.$watch "isPlaying", (isPlaying) -> gameTime.isPlaying = isPlaying
+  $scope.$watch "inRecordMode", (inRecordMode) -> gameTime.inRecordMode = inRecordMode
   $scope.$watch("currentFrame", (currentFrame) -> gameTime.currentFrameNumber = currentFrame)
 

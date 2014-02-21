@@ -1,9 +1,11 @@
 <div ng-controller="TimeCtrl" id="timeController">
     <div id="recordContainer">
         <div class="btn-group">
-            <a class="btn btn-primary" href="" ng-click="triggerRecord()"><i class="icon-white" ng-class="{'icon-play-circle': !isRecording, 'icon-stop': isRecording}"></i></a>
-            <a class="btn btn-warning" href="" ng-click="reset()" ng-disabled="disableTimeControls"><i class="icon-white icon-remove"></i></a>
+            <a title="Play" class="btn btn-small btn-primary" href="" ng-click="triggerPlay()"><i class="icon-white" ng-class="{'icon-play': !isPlaying, 'icon-stop': isPlaying}"></i></a>
+            <a title="Record" class="btn btn-small btn-danger" href="" ng-model="inRecordMode" btn-checkbox><i class="font-icon-record"></i></a>
         </div>
+
+        <a title="Reset" class="btn btn-small btn-warning" href="" ng-click="reset()" ng-disabled="disableTimeControls"><i class="icon-white icon-remove"></i></a>
     </div>
     <div id="sliderContainer">
         <input type="range" ng-model="currentFrameString" min="0" max="{{lastFrame}}" ng-disabled="disableTimeControls" />
@@ -13,7 +15,7 @@
     </div>
     <div id="steppingContainer">
         <div class="btn-group">
-            <a class="btn btn-small" href="" ng-click="triggerPlayBack()" ng-disabled="disableTimeControls"><i ng-class="{'icon-play': !isPlayingBack, 'icon-pause': isPlayingBack}"></i></a>
+            <a class="btn btn-small" href="" ng-click="triggerPlayBack()" ng-disabled="disableTimeControls"><i ng-class="{'icon-chevron-right': !isPlayingBack, 'icon-pause': isPlayingBack}"></i></a>
         </div>
         <div class="btn-group">
             <a class="btn btn-small" href="" ng-click="stepBackward()" ng-disabled="disableTimeControls"><i class="icon-step-backward"></i></a>

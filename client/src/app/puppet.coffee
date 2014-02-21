@@ -7,10 +7,15 @@ GAME_DIMENSIONS = [960, 540]
 # GLOBALS
 
 loadedGame = null
-isRecording = false
 lastMemory = null
+
+isRecording = false
 recordedFrames = [] # Contains objects like {memoryPatches: [], inputIoData: {}, ioPatches: []}
-recordFrameReporter = null # Callback function for onRecordFrame
+recordFrameReporter = null # Callback function for recording
+
+isPlaying = false
+lastPlayedFrame = null
+playFrameReporter = null # Callback function for playing
 
 # FUNCTIONS
 
@@ -170,6 +175,19 @@ onRepeatRecordFrame = ->
     lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatRecordFrame) # Loop!
 
+onRepeatPlayFrame = ->
+  if !isPlaying then return  # Stop when requested
+
+  # Keep result for stopPlaying message
+  lastPlayedFrame = onRecordFrame(lastMemory)
+
+  if lastPlayedFrame.errors
+    isPlaying = false
+    recordFrameReporter(new Error("Errors in playing"))
+  else 
+    lastMemory = GE.applyPatches(lastPlayedFrame.memoryPatches, lastMemory)
+    requestAnimationFrame(onRepeatPlayFrame) # Loop!
+
 playBackFrame = (outputIoData) ->
   GE.stepLoop
     chip: loadedGame.board
@@ -238,6 +256,18 @@ window.addEventListener 'message', (e) ->
       when "stopRecording"
         isRecording = false
         reporter(null, recordedFrames)
+      when "startPlaying"
+        lastMemory = message.value.memory
+        lastPlayedFrame = null
+        playFrameReporter = makeReporter(e.source, e.origin, "playing")
+        isPlaying = true
+        requestAnimationFrame(onRepeatPlayFrame)
+        reporter(null)
+      when "stopPlaying"
+        isPlaying = false
+        # Send back just the last frame
+        lastPlayedFrame.memory = lastMemory
+        reporter(null, lastPlayedFrame)
       when "recordFrame"
         results = onRecordFrame(message.value.memory)
         reporter(null, results)
