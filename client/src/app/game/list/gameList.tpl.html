@@ -1,15 +1,52 @@
-<table class="table">
-    <tr>
-        <th>
-            <span ng-click="orderedProperty = 'name'; orderedDirection = !orderedDirection"
-                  style="cursor: pointer;">
-                Name
-            </span>
-        </th>
-    </tr>
-    <tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
-        <td style="cursor: pointer;">
-            <a ng-click="select(game)" style="cursor: pointer;">{{ game.name }}</a>
-        </td>
-    </tr>
-</table>
+<div id="gameList" class="container">
+	<div class="row">
+		<div class="span12" id="logoContainer">
+			<img src="assets/images/logo_big.png" ng-controller="LogoCtrl" ng-click="aboutDialog.open()"></img>
+		</div>
+	</div>
+
+	<h2>Choose a game to play or fork</h2>
+
+	<table class="table">
+		<tr>
+			<th>
+				<span ng-click="orderedProperty = 'name'; orderedDirection = !orderedDirection"
+					  style="cursor: pointer;">
+					Name
+				</span>
+			</th>
+			<th>
+				<span ng-click="orderedProperty = 'author'; orderedDirection = !orderedDirection"
+					  style="cursor: pointer;">
+					Author
+				</span>
+			</th>
+			<th>
+				<span ng-click="orderedProperty = 'version'; orderedDirection = !orderedDirection"
+					  style="cursor: pointer;">
+					Version
+				</span>
+			</th>
+			<th>
+				<span ng-click="orderedProperty = 'date'; orderedDirection = !orderedDirection"
+					  style="cursor: pointer;">
+					Last Saved At
+				</span>
+			</th>
+		</tr>
+		<tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
+			<td style="cursor: pointer;">
+				<a ng-click="select(game)" style="cursor: pointer;">{{ game.name }}</a>
+			</td>
+			<td>
+				author
+			</td>
+			<td>
+				version
+			</td>
+			<td>
+				date
+			</td>
+		</tr>
+	</table>
+</div>
