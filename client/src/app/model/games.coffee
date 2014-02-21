@@ -90,11 +90,14 @@ angular.module('gamEvolve.model.games', [])
       return @saveActions.fork
 
   loadAll: ->
-    allGames = []
-    $http.get('/games')
-      .success( (result) -> allGames.push game for game in result )
-      .error (error) -> console.log error
-    allGames
+    gamesQuery = $http.get('/games')
+    usersQuery = $http.get("/users") #?{fields={id: 1, username: 1}
+    fillGamesList = ([gamesResult, usersResult]) -> 
+      for game in gamesResult.data
+        name: game.name
+        author: _.findWhere(usersResult.data, { id: game.ownerId }).username
+    # This promise will be returned
+    $q.all([gamesQuery, usersQuery]).then(fillGamesList, -> alert("Can't load games"))
 
   # Load the game content and the creator info, then put it all into currentGame
   load: (game) ->
