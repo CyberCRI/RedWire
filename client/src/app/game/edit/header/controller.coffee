@@ -15,3 +15,6 @@ angular.module('gamEvolve.game.edit.header', [
     $scope.aboutDialog = aboutDialog
     $scope.importExportDialog = importExportDialog
     $scope.loadGame = -> $location.path('/game/list')
+
+.controller 'LogoCtrl', ($scope, aboutDialog) ->
+    $scope.aboutDialog = aboutDialog

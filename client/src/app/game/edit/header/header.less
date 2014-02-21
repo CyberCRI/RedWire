@@ -1,26 +1,42 @@
 #headerBar {
-	border-bottom: 1px @red solid;
+	display: table;
 	height: 80px;
 	width: 100%;
+	border-bottom: 1px @red solid;
 
-	div.logo {
-		width: 150;
-		height: 100%;
+	#logo {
+		display: table-cell;
+		min-width: 150px;
+		height: 78px;
 		background-image: url(images/logo.png);
 		background-position: center;
 		background-repeat: no-repeat;
+		cursor: help;
 	}
 
-	#title {
-		text-align: center;
+	#center {
+		display: table-cell;
+		width: 99%;
+
+		#title {
+			text-align: center;
+		}
 	}
 
 	#gameLoadingControls {
+		display: table-cell;
+		vertical-align: middle;
+		min-width: 200px;
 		text-align: right;
+		padding-right: 10px;
 
 		button {
 			margin-left: auto;
 			margin-right: 0;
+		}
+
+		#loggedInInfo {
+			padding-bottom: 10px;
 		}
 	}
 }

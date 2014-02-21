@@ -1,11 +1,10 @@
 <!-- Header -->
-<div ng-include src="'game/edit/header/template.tpl.html'" id="headerBar"></div>
+<div ng-include src="'game/edit/header/header.tpl.html'" id="headerBar"></div>
 
 <!-- Main -->
 <flexy-layout orientation="vertical">
     <block-container>
         <flexy-layout>
-
             <!-- West Column-->
             <block-container init="400">
                 <flexy-layout orientation="vertical">
@@ -127,7 +126,8 @@
     <block-splitter></block-splitter>
 
     <!-- Footer -->
-    <block-container id="logWindow" init="60">
+    <!-- TODO: the bar is not really 150 pixels big, there must be a problem in the CSS -->
+    <block-container id="logWindow" init="150">
         <div ui-ace="{ useWrapMode: true }" readonly="true" ng-controller="LogCtrl" ng-model="text"></div>
     </block-container>
 
