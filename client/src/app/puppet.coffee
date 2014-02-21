@@ -183,7 +183,7 @@ onRepeatPlayFrame = ->
 
   if lastPlayedFrame.errors
     isPlaying = false
-    recordFrameReporter(new Error("Errors in playing"))
+    playFrameReporter(new Error("Errors in playing"))
   else 
     lastMemory = GE.applyPatches(lastPlayedFrame.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatPlayFrame) # Loop!
