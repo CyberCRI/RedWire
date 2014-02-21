@@ -21,31 +21,13 @@
 					Author
 				</span>
 			</th>
-			<th>
-				<span ng-click="orderedProperty = 'version'; orderedDirection = !orderedDirection"
-					  style="cursor: pointer;">
-					Version
-				</span>
-			</th>
-			<th>
-				<span ng-click="orderedProperty = 'date'; orderedDirection = !orderedDirection"
-					  style="cursor: pointer;">
-					Last Saved At
-				</span>
-			</th>
 		</tr>
 		<tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
 			<td style="cursor: pointer;">
 				<a ng-click="select(game)" style="cursor: pointer;">{{ game.name }}</a>
 			</td>
 			<td>
-				author
-			</td>
-			<td>
-				version
-			</td>
-			<td>
-				date
+				{{ game.author }}
 			</td>
 		</tr>
 	</table>
