@@ -170,7 +170,7 @@ onRepeatRecordFrame = ->
     lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatRecordFrame) # Loop!
 
-onPlayFrame = (outputIoData) ->
+playBackFrame = (outputIoData) ->
   GE.stepLoop
     chip: loadedGame.board
     assets: loadedGame.assets.data
@@ -241,8 +241,8 @@ window.addEventListener 'message', (e) ->
       when "recordFrame"
         results = onRecordFrame(message.value.memory)
         reporter(null, results)
-      when "playFrame"
-        onPlayFrame(message.value.outputIoData)
+      when "playBackFrame"
+        playBackFrame(message.value.outputIoData)
         reporter(null)
       when "updateFrames"
         results = onUpdateFrames(message.value.memory, message.value.inputIoDataFrames)

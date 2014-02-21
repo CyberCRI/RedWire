@@ -207,7 +207,7 @@ angular.module('gamEvolve.game.player', [])
     if not gameCode? then return
     frameResult = gameHistory.data.frames[frameNumber]
     outputIoData = GE.applyPatches(frameResult.ioPatches, frameResult.inputIoData)
-    sendMessage("playFrame", { outputIoData: outputIoData })
+    sendMessage("playBackFrame", { outputIoData: outputIoData })
   $scope.$watch('gameTime.currentFrameNumber', onUpdateFrame, true)
 
   onUpdateRecording = (isRecording) ->

@@ -4,7 +4,7 @@ angular.module('gamEvolve.game.edit.header.time', [])
   $scope.currentFrame = 0
   $scope.currentFrameString = "0" # Needed by the input range element in the template
   $scope.lastFrame = 100
-  $scope.isPlaying = false
+  $scope.isPlayingBack = false
   $scope.isRecording = false
   $scope.disableTimeControls = true
 
@@ -12,7 +12,7 @@ angular.module('gamEvolve.game.edit.header.time', [])
   $scope.jumpToEnd = -> $scope.currentFrame = $scope.lastFrame
   $scope.stepForward = -> if $scope.currentFrame < $scope.lastFrame then $scope.currentFrame++
   $scope.stepBackward = -> if $scope.currentFrame > 0 then $scope.currentFrame--
-  $scope.triggerPlay = -> $scope.isPlaying = !$scope.isPlaying
+  $scope.triggerPlayBack = -> $scope.isPlayingBack = !$scope.isPlayingBack
   $scope.triggerRecord = -> $scope.isRecording = !$scope.isRecording
 
   $scope.reset = -> 
@@ -28,16 +28,16 @@ angular.module('gamEvolve.game.edit.header.time', [])
     $scope.isRecording = gameTime.isRecording
     $scope.disableTimeControls = gameHistory.data.frames.length < 2 or $scope.isRecording
 
-  onPlayFrame = ->
-    if not $scope.isPlaying then return
+  onPlayBackFrame = ->
+    if not $scope.isPlayingBack then return
 
     if $scope.currentFrame < $scope.lastFrame 
       $scope.currentFrame++
-      $timeout(onPlayFrame, 1/60)
+      $timeout(onPlayBackFrame, 1/60)
     else
-      $scope.isPlaying = false
+      $scope.isPlayingBack = false
 
-  $scope.$watch("isPlaying", (isPlaying) -> if isPlaying then onPlayFrame())
+  $scope.$watch("isPlayingBack", (isPlayingBack) -> if isPlayingBack then onPlayBackFrame())
 
   $scope.$watch("currentFrame", -> $scope.currentFrameString = $scope.currentFrame.toString())
   $scope.$watch("currentFrameString", -> $scope.currentFrame = parseInt($scope.currentFrameString))
