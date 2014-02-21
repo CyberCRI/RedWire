@@ -1,6 +1,6 @@
-<flexy-layout orientation="horizontal">
-    <block-container init="150" class="logo"></block-container>
-    <block-container>
+<div>
+    <div init="150" class="logo"></div>
+    <div>
         <div ng-controller="GameInfoCtrl">
             <h4 id="title">
                 <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a>
@@ -10,8 +10,8 @@
             </h4>
             <ng-include src="'game/edit/header/time/template.tpl.html'"></ng-include>
         </div>
-    </block-container>
-    <block-container init="200" id="gameLoadingControls">
+    </div>
+    <div init="200" id="gameLoadingControls">
         <div ng-controller="MenuCtrl">
             <div ng-show="user.isLoggedIn()">
                 Welcome, {{user.profile.username}} <a ng-click="user.logout()" href="">Logout</a>
@@ -35,5 +35,5 @@
                 </button>
             </div>
         </div>
-    </block-container>
-</flexy-layout>
+    </div>
+</div>
