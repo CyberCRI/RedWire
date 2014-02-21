@@ -15,5 +15,5 @@ angular.module('gamEvolve.game.list', [])
 
     $scope.games = games.loadAll()
 
-    $scope.select = (game) ->
-      $state.transitionTo('game-edit', {gameId: game.id})
+    $scope.select = (gameId) ->
+      $state.transitionTo('game-edit', {gameId: gameId})

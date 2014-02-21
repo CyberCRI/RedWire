@@ -24,7 +24,7 @@
 		</tr>
 		<tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
 			<td style="cursor: pointer;">
-				<a ng-click="select(game)" style="cursor: pointer;">{{ game.name }}</a>
+				<a ng-click="select(game.id)" style="cursor: pointer;">{{ game.name }}</a>
 			</td>
 			<td>
 				{{ game.author }}

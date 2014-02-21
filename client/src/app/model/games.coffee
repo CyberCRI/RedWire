@@ -94,6 +94,7 @@ angular.module('gamEvolve.model.games', [])
     usersQuery = $http.get("/users") #?{fields={id: 1, username: 1}
     fillGamesList = ([gamesResult, usersResult]) -> 
       for game in gamesResult.data
+        id: game.id
         name: game.name
         author: _.findWhere(usersResult.data, { id: game.ownerId }).username
     # This promise will be returned
