@@ -121,4 +121,5 @@ angular.module('gamEvolve.model.games', [])
       .success(@load)
       .error (error) ->
         console.log error
-        window.alert "Incorrect URL : Are you sure #{gameId} is a valid game ID ?"
+        window.alert "Hmmm, that game doesn't seem to exist"
+        $location.path("/")

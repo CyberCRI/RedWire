@@ -2,7 +2,7 @@
     <div id="recordContainer">
         <div class="btn-group">
             <a title="Play" class="btn btn-small btn-primary" href="" ng-click="triggerPlay()"><i class="icon-white" ng-class="{'icon-play': !isPlaying, 'icon-stop': isPlaying}"></i></a>
-            <a title="Record" class="btn btn-small btn-danger" href="" ng-model="inRecordMode" btn-checkbox><i class="font-icon-record"></i></a>
+            <a title="Record" class="btn btn-small btn-danger" href="" ng-model="inRecordMode" btn-checkbox ng-disabled="isPlaying"><i class="font-icon-record"></i></a>
         </div>
 
         <a title="Reset" class="btn btn-small btn-warning" href="" ng-click="reset()" ng-disabled="disableTimeControls"><i class="icon-white icon-remove"></i></a>

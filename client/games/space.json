@@ -215,7 +215,7 @@
                   {
                     "comment": "Move enemy",
                     "emitter": {
-                      "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy, memory.frameNumber)"
+                      "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy, memory.frameNumber, 3)"
                     }
                   },
                   {
@@ -555,9 +555,10 @@
     "moveEnemy": {
       "args": [
         "enemy",
-        "frameNumber"
+        "frameNumber",
+        "enemySpeed"
       ],
-      "body": "return [ \n    enemy.position[0] - 3, \n    enemy.startingPosition[1] + 100 * Math.sin(frameNumber / 20) \n];"
+      "body": "return [ \n    enemy.position[0] - enemySpeed, \n    enemy.startingPosition[1] + 100 * Math.sin(frameNumber / 20) \n];"
     },
     "shapesIntersect": {
       "args": [
