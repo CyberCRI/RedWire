@@ -47,8 +47,6 @@ angular.module('gamEvolve.game.player', [])
     else
       console.log("Puppet reported success on operation #{message.operation}.", message)
 
-    # TODO: handle errors in recording and update
-
     switch message.operation
       when "areYouAlive"
         if message.type is "error" then throw new Error("Cannot deal with areYouAlive error message")
@@ -66,11 +64,13 @@ angular.module('gamEvolve.game.player', [])
             gameHistory.data.compilationErrors = []
             gameHistory.meta.version++
 
+          # Don't bother updating if we're playing right now
+          if gameTime.isPlaying then return
+
           if gameHistory.data.frames.length > 0 and gameHistory.data.frames[0].inputIoData
+            # If there are already frames, then update them 
             # Notify the user
             overlay.makeNotification("updating", true)
-
-            # If there are already frames, then update them 
             inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
             timing.updateFrames = Date.now()
             sendMessage("updateFrames", { memory: gameCode.memory, inputIoDataFrames })
@@ -97,7 +97,7 @@ angular.module('gamEvolve.game.player', [])
         console.log("Recording met with error. Stopping it")
         $scope.$apply ->
           hadRecordingErrors = true # Used to notify the user 
-          gameTime.isRecording = false
+          gameTime.isPlaying = false
       when "stopRecording" 
         console.log("Stop recording took puppet #{Date.now() - timing.stopRecording} ms")
 
@@ -124,6 +124,39 @@ angular.module('gamEvolve.game.player', [])
             lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
 
           if metError 
+            overlay.makeNotification("error")
+          else
+            overlay.clearNotification() # Clear "updating" status
+
+          # Go the the last frame
+          gameTime.currentFrameNumber = gameHistory.data.frames.length - 1
+
+          # Update the version
+          gameHistory.meta.version++
+      when "playing"
+        if message.type isnt "error" then new Error("Cannot deal with playing success message")
+
+        console.log("Playing met with error. Stopping it")
+        $scope.$apply ->
+          hadRecordingErrors = true # Used to notify the user 
+          gameTime.isPlaying = false
+      when "stopPlaying" 
+        console.log("Stop playing took puppet #{Date.now() - timing.stopRecording} ms")
+
+        $scope.$apply ->
+          metError = false
+
+          # Remove frames including the current one
+          gameHistory.data.frames.length = gameTime.currentFrameNumber + 1
+
+          # Calculate memory going into the next frame
+          lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
+
+          results = message.value
+          gameHistory.data.frames.push(extendFrameResults(results))
+            
+          if results.errors 
+            console.error("Stop recording frames errors", results.errors)
             overlay.makeNotification("error")
           else
             overlay.clearNotification() # Clear "updating" status
@@ -207,27 +240,33 @@ angular.module('gamEvolve.game.player', [])
     if not gameCode? then return
     frameResult = gameHistory.data.frames[frameNumber]
     outputIoData = GE.applyPatches(frameResult.ioPatches, frameResult.inputIoData)
-    sendMessage("playFrame", { outputIoData: outputIoData })
+    sendMessage("playBackFrame", { outputIoData: outputIoData })
   $scope.$watch('gameTime.currentFrameNumber', onUpdateFrame, true)
 
-  onUpdateRecording = (isRecording) ->
+  onUpdatePlaying = ->
     if not gameCode? then return
-    if isRecording 
-      # Notify the user
-      overlay.makeNotification("recording")
-
-      # Start recording on next frame
+    if gameTime.isPlaying 
+      # Start playing on next frame
       lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
       nextMemory = GE.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
 
-      sendMessage("startRecording", { memory: nextMemory })
+      if gameTime.inRecordMode
+        # Notify the user
+        overlay.makeNotification("recording")
+        sendMessage("startRecording", { memory: nextMemory })
+      else
+        # Notify the user
+        overlay.makeNotification("playing")
+        sendMessage("startPlaying", { memory: nextMemory })
     else
-      # Notify the user
-      overlay.makeNotification("updating", true)
-
-      timing.stopRecording = Date.now()
-      sendMessage("stopRecording")
-  $scope.$watch('gameTime.isRecording', onUpdateRecording, true)
+      timing.stopPlaying = Date.now()
+      if gameTime.inRecordMode
+        # Notify the user
+        overlay.makeNotification("updating", true) # This could take a while...
+        sendMessage("stopRecording")
+      else 
+        sendMessage("stopPlaying")
+  $scope.$watch('gameTime.isPlaying', onUpdatePlaying, true)
 
   # Keep pinging puppet until he responds
   checkPuppetForSignsOfLife = -> 

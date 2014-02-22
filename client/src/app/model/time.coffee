@@ -1,8 +1,10 @@
 angular.module('gamEvolve.model.time', [])
 .factory 'gameTime', ->
   currentFrameNumber: 0
-  isRecording: false
+  isPlaying: false
+  inRecordMode: false
 
   reset: ->
     @currentFrameNumber = 0
-    @isRecording = false
+    @isPlaying = false
+    @inRecordMode = false
