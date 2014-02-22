@@ -64,11 +64,13 @@ angular.module('gamEvolve.game.player', [])
             gameHistory.data.compilationErrors = []
             gameHistory.meta.version++
 
+          # Don't bother updating if we're playing right now
+          if gameTime.isPlaying then return
+
           if gameHistory.data.frames.length > 0 and gameHistory.data.frames[0].inputIoData
+            # If there are already frames, then update them 
             # Notify the user
             overlay.makeNotification("updating", true)
-
-            # If there are already frames, then update them 
             inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
             timing.updateFrames = Date.now()
             sendMessage("updateFrames", { memory: gameCode.memory, inputIoDataFrames })

@@ -69,7 +69,8 @@
             "emitter": {
               "memory.enemies": "GE.addUniqueToObject(memory.enemies, {\n  type: \"enemy_big\",\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  health: 1,\n  startingPosition: [io.canvas.size[0], Math.random() * io.canvas.size[1]],\n})"
             },
-            "comment": "Add enemy"
+            "comment": "Add enemy",
+            "muted": false
           }
         ]
       },
@@ -179,7 +180,7 @@
           "in": {
             "keysDown": "io.keyboard.keysDown",
             "position": "memory.hero.position",
-            "speed": "5"
+            "speed": "10"
           },
           "out": {
             "memory.hero.position": "pins.position"
@@ -530,7 +531,7 @@
         "count",
         "screenSize"
       ],
-      "body": "var stars = []; \nfor(var i = 0; i < count; i++) { \n    stars.push({ \n        position: [Math.random()*screenSize[0], \n        Math.random()*screenSize[1]], \n        velocity: 5 \n    }); \n} \nreturn stars;"
+      "body": "var stars = []; \nfor(var i = 0; i < count; i++) { \n    stars.push({ \n        position: [Math.random()*screenSize[0], \n        Math.random()*screenSize[1]], \n        velocity: 1 + Math.random() * 5 \n    }); \n} \nreturn stars;"
     },
     "updateStarfield": {
       "args": [
