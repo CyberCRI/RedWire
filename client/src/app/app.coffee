@@ -40,7 +40,18 @@ angular.module( 'gamEvolve', [
   $urlRouterProvider.otherwise( '/game/list' )
 )
 
-.controller('AppCtrl', ( $scope, $location ) ->
+.controller('AppCtrl', ( $scope, $location, $window ) ->
+  $scope.$on '$stateChangeStart', (event, toState, toParams, fromState, fromParams) ->
+    console.log("fromState", fromState, "toState", toState)
+
+    # Warn about losing changes if the leaves the edit game screen
+    if fromState.name is "game-edit" and not window.confirm("You will lose all your changes. Are you sure?")
+      event.preventDefault()
+      $window.history.back()
+
+    # Warn about losing editing changes when the user navigates away to a different site
+    window.onbeforeunload = if toState.name is "game-edit" then -> "You will lose all your changes. Are you sure?"
+
   $scope.$on '$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) ->
     if angular.isDefined( toState.data.pageTitle )
       $scope.pageTitle = toState.data.pageTitle + ' | RedWire'
