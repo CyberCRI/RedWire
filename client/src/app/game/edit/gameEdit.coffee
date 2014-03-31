@@ -30,5 +30,5 @@ angular.module('gamEvolve.game.edit', [
   updateBoard = -> 
     if currentGame.version?.board
       $scope.board = boardConverter.convert(currentGame.version.board)
-  $scope.$watch('currentGame.version.board', updateBoard, true)
+  $scope.$watch('currentGame', updateBoard, true)
 

@@ -126,7 +126,7 @@ angular.module('gamEvolve.game.boardTree', [
     updateBoard = ->
       if currentGame.version?.board
         $scope.updateTree( boardConverter.convert(currentGame.version.board) )
-    $scope.$watch('game.version.board', updateBoard, true)
+    $scope.$watch("game", updateBoard, true)
 
     # Update from gameHistory
     onUpdateGameHistory = ->
