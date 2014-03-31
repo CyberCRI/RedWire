@@ -341,7 +341,10 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
 
   # Continue with children
   childSignals = new Array(childNames.length)
-  for childIndex in activeChildren
+  for childName in activeChildren
+    # TODO: child names should be expressions, not necessarily strings. That means evaluating them
+    childName = childName.toString() # Cast child name to a string
+    childIndex = childNames.indexOf(childName)
     childResult = GE.visitChip(GE.appendToArray(path, childIndex), chip.children[childIndex], constants, bindings)
     childSignals[childIndex] = childResult.result
     result = result.appendWith(childResult)
