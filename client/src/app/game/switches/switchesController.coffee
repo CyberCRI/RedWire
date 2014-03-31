@@ -104,7 +104,7 @@ angular.module('gamEvolve.game.switches', [
   $scope.handleSignalsText = switchIntermediary.model.handleSignals
 
   $scope.addPin = -> $scope.pins.push({ name: "", direction: "in" })
-  $scope.removePin = (index) -> $scope.arguments.splice(index, 1)
+  $scope.removePin = (index) -> $scope.pins.splice(index, 1)
 
   # Reply with the new data
   $scope.done = -> switchIntermediary.done 
