@@ -21,7 +21,7 @@
                                 <ul>
                                     <li ng-repeat="asset in assets">
                                         <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
-                                        <div class="assetThumbnail" style="background-image: url({{ asset.data }})" file-dropzone file="file"></div>
+                                        <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
                                         <a class="btn" ng-click="remove(asset.name)"><i class="icon-trash"></i></a>
                                     </li>
                                 </ul>

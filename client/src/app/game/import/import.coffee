@@ -22,7 +22,8 @@ angular.module('gamEvolve.game.import', [
 
               # Don't lose existing meta-info, but change the game code completely
               _.extend(currentGame.info, newGame.info)
-              currentGame.version = newGame.version 
+              # TODO: check that the import doesn't overwrite internal properties (versionNumber, id, etc.)
+              _.extend(currentGame.version, newGame.version)
 
               dialog.close()
             cancel: ->
