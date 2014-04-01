@@ -23,6 +23,20 @@ playFrameReporter = null # Callback function for playing
 requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
   window.webkitRequestAnimationFrame || window.msRequestAnimationFrame
 
+# Converts pin default values (with code as strings) to compiled form with code as functions.
+# Leaves non-code values as they were
+compilePinDefs = (pinDefs, evaluator) ->
+  return GE.mapObject pinDefs, (value, key) ->
+    compiledPinParams = {}
+    try
+      for pinParamKey, pinParamValue of value
+        compiledPinParams[pinParamKey] = switch pinParamKey
+          when "default" then GE.compileExpression(pinParamValue, evaluator)
+          else pinParamValue
+      return compiledPinParams
+    catch compilationError
+      throw new Error("Error compiling pin defaults for '#{key}'. #{compilationError}")
+
 # Converts input processors (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were
 compileProcessors = (inputProcessors, evaluator) ->
@@ -32,6 +46,7 @@ compileProcessors = (inputProcessors, evaluator) ->
       for processorKey, processorValue of value
         compiledProcessor[processorKey] = switch processorKey
           when "update" then GE.compileUpdate(processorValue, evaluator)
+          when "pinDefs" then compilePinDefs(processorValue, evaluator)
           else processorValue
       return compiledProcessor
     catch compilationError
@@ -47,6 +62,7 @@ compileSwitches = (inputSwitches, evaluator) ->
         compiledSwitch[switchKey] = switch switchKey
           when "listActiveChildren" then GE.compileListActiveChildren(switchValue, evaluator)
           when "handleSignals" then GE.compileHandleSignals(switchValue, evaluator)
+          when "pinDefs" then compilePinDefs(switchValue, evaluator)
           else switchValue
       return compiledSwitch
     catch compilationError
@@ -65,6 +81,18 @@ compileTransformers = (inputTransformers, evaluator) ->
       throw new Error("Error compiling transformer '#{key}'. #{compilationError}")
   transformersContext.transformers = compiledTransformers
   return compiledTransformers
+
+# Converts board expressions (with code as strings) to compiled form with code as functions.
+# Leaves non-code values as they were.
+compileBoard = (board, evaluator) ->
+  return GE.mapObject board, (value, key) ->
+    switch key
+      when "emitter" then GE.mapObject(value, (expression, dest) -> GE.compileExpression(expression, evaluator))
+      when "pins" 
+        in: if value.in then GE.mapObject(value.in, (expression, pinName) -> GE.compileExpression(expression, evaluator)) else {}
+        out: if value.out then GE.mapObject(value.out, (expression, dest) -> GE.compileExpression(expression, evaluator)) else {}
+      when "children" then _.map(value, (child) -> compileBoard(child, evaluator))
+      else value
 
 destroyIo = (currentIo) ->
   for ioName, io of currentIo
@@ -134,7 +162,7 @@ loadGameCode = (gameCode, logFunction) ->
     processors: compileProcessors(gameCode.processors, evaluator)
     switches: compileSwitches(gameCode.switches, evaluator)
     transformers: compileTransformers(gameCode.transformers, evaluator, logFunction)
-    board: gameCode.board
+    board: compileBoard(gameCode.board, evaluator)
     io: initializeIo(gameCode.io)
     assets: createAssets(gameCode.assets, evaluator)
     evaluator: evaluator
