@@ -375,7 +375,7 @@
           "default": 0
         }
       },
-      "listActiveChildren": "return [pins.activeChild];",
+      "listActiveChildren": "return [children[pins.activeChild]];",
       "handleSignals": "if (signals[pins.activeChild] == GE.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return GE.signals.DONE;\n}"
     },
     "Do for Some Time": {
@@ -404,13 +404,13 @@
       "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "return transformers.childByName(children, pins.value);"
+      "listActiveChildren": "if(GE.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
     },
     "If": {
       "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "return pins.value ? [0] : children.length > 1 ? [1] : [];"
+      "listActiveChildren": "return pins.value ? [children[0]] : children.length > 1 ? [children[1]] : [];"
     },
     "Sandwhich": {
       "pinDefs": {
@@ -419,7 +419,7 @@
           "direction": "inout"
         }
       },
-      "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
+      "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [children[0]];\n  } else {\n    pins.track = true;\n    return [children[1]];\n  }\n} else {\n  if (pins.condition) {\n    return [children[1]];\n  } else {\n    pins.track = false;\n    return [children[2]];\n  }\n}"
     },
     "Limit Rate": {
       "pinDefs": {
