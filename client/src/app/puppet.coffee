@@ -91,6 +91,10 @@ compileBoard = (board, evaluator) ->
       when "pins" 
         in: if value.in then GE.mapObject(value.in, (expression, pinName) -> GE.compileExpression(expression, evaluator)) else {}
         out: if value.out then GE.mapObject(value.out, (expression, dest) -> GE.compileExpression(expression, evaluator)) else {}
+      when "splitter" then GE.mapObject value, (splitterValue, splitterKey) -> 
+        switch splitterKey
+          when "where" then GE.compileExpression(splitterValue, evaluator)
+          else splitterValue
       when "children" then _.map(value, (child) -> compileBoard(child, evaluator))
       else value
 

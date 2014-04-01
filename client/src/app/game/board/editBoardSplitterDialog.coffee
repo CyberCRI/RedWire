@@ -10,6 +10,7 @@ angular.module('gamEvolve.game.board.editSplitterDialog', [
   $scope.from = liaison.model.splitter.from
   $scope.bindTo = liaison.model.splitter.bindTo
   $scope.index = liaison.model.splitter.index
+  $scope.where = liaison.model.splitter.where
 
   # Reply with the new data
   $scope.done = -> liaison.done
@@ -19,4 +20,5 @@ angular.module('gamEvolve.game.board.editSplitterDialog', [
       from: $scope.from
       bindTo: $scope.bindTo
       index: $scope.index
+      where: $scope.where
   $scope.cancel = -> liaison.cancel()
