@@ -315,7 +315,8 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   if chip.switch not of constants.switches then throw GE.makeExecutionError("Cannot find switch '#{chip.switch}'", path)
 
   switchChip = constants.switches[chip.switch]
-  childNames = if chip.children? then (child.name ? index.toString()) for index, child of chip.children else []
+  # Keys of arrays are given as strings, so we need to convert them back to numbers
+  childNames = if chip.children? then (child.name ? parseInt(index)) for index, child of chip.children else []
 
   result = new GE.ChipVisitorResult()
   GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
@@ -337,15 +338,14 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
       GE.transformersLogger(GE.logLevels.ERROR, "Calling switch #{chip.switch}.listActiveChildren raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
  
   # By default, all children are considered active
-  if activeChildren is null then activeChildren = childNames
+  if activeChildren is null then activeChildren = _.range(childNames.length)
 
   # Continue with children
   childSignals = new Array(childNames.length)
-  for childName in activeChildren
-    # TODO: child names should be expressions, not necessarily strings. That means evaluating them
-    childName = childName.toString() # Cast child name to a string
-    childIndex = childNames.indexOf(childName)
-    childResult = GE.visitChip(GE.appendToArray(path, childIndex), chip.children[childIndex], constants, bindings)
+  for activeChildName in activeChildren
+    childIndex = GE.indexOf(childNames, activeChildName)
+    if childIndex is -1 then throw new GE.makeExecutionError("Switch referenced a child '#{activeChildName}' that doesn't exist", path)
+    childResult = GE.visitChip(GE.appendToArray(path, childIndex.toString()), chip.children[childIndex], constants, bindings)
     childSignals[childIndex] = childResult.result
     result = result.appendWith(childResult)
 

@@ -379,7 +379,7 @@ describe "gamEvolve", ->
       expect(newIoData.s.a).toBe(-5)
 
     it "checks and adjusts activation", ->
-      memorys = [
+      memories = [
         {
           activeChild: 0
           child0TimesCalled: 0
@@ -394,10 +394,10 @@ describe "gamEvolve", ->
               direction: "inout"
               default: 0
           listActiveChildren: (pins, children, transformers, log) -> 
-            expect(children).toDeeplyEqual(["0", "2nd"])
-            return [pins.activeChild]
+            expect(children).toDeeplyEqual([0, "2nd"])
+            return [children[pins.activeChild]]
           handleSignals: (pins, children, activeChildren, signals, transformers, log) ->
-            expect(children).toDeeplyEqual(["0", "2nd"])
+            expect(children).toDeeplyEqual([0, "2nd"])
             if signals[pins.activeChild] == GE.signals.DONE 
               pins.activeChild++
             if pins.activeChild >= children.length - 1
@@ -440,28 +440,28 @@ describe "gamEvolve", ->
         ]
 
       constants = new GE.ChipVisitorConstants
-        memoryData: memorys[0]
+        memoryData: memories[0]
         processors: processors
         switches: switches
         evaluator: makeEvaluator()
       results = GE.visitChip([], board, constants, {})
-      memorys[1] = GE.applyPatches(results.memoryPatches, memorys[0])
+      memories[1] = GE.applyPatches(results.memoryPatches, memories[0])
 
-      expect(memorys[1].child0TimesCalled).toBe(1)
-      expect(memorys[1].child1TimesCalled).toBe(0)
-      expect(memorys[1].activeChild).toBe(1)
+      expect(memories[1].child0TimesCalled).toBe(1)
+      expect(memories[1].child1TimesCalled).toBe(0)
+      expect(memories[1].activeChild).toBe(1)
       
       constants = new GE.ChipVisitorConstants
-        memoryData: memorys[1]
+        memoryData: memories[1]
         processors: processors
         switches: switches
         evaluator: makeEvaluator()
       results = GE.visitChip([], board, constants, {})
-      memorys[2] = GE.applyPatches(results.memoryPatches, memorys[1])
+      memories[2] = GE.applyPatches(results.memoryPatches, memories[1])
 
-      expect(memorys[2].child0TimesCalled).toBe(1)
-      expect(memorys[2].child1TimesCalled).toBe(1)
-      expect(memorys[2].activeChild).toBe(2)
+      expect(memories[2].child0TimesCalled).toBe(1)
+      expect(memories[2].child1TimesCalled).toBe(1)
+      expect(memories[2].activeChild).toBe(2)
 
     it "binds across constant arrays", ->
       people = [
