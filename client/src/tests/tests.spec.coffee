@@ -3,6 +3,9 @@ globals = @
 
 makeEvaluator = -> eval
 
+compileExpression = (expression) -> GE.compileExpression(expression, eval)
+
+
 describe "gamEvolve", ->
   beforeEach ->
     @addMatchers 
@@ -138,10 +141,10 @@ describe "gamEvolve", ->
           pinDefs:
             x: 
               direction: "in" 
-              default: "1"
+              default: compileExpression("1")
             y: 
               direction: "in"
-              default: "'z'"
+              default: compileExpression("'z'")
           update: (pins, transformers, log) ->
             isCalled = true
             expect(pins).toDeeplyEqual
@@ -152,7 +155,7 @@ describe "gamEvolve", ->
         processor: "doNothing"
         pins: 
           in: 
-            x: "1 + 1"
+            x: compileExpression("1 + 1")
 
       constants = new GE.ChipVisitorConstants
         processors: processors
