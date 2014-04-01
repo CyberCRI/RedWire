@@ -138,7 +138,7 @@ describe "gamEvolve", ->
 
       processors = 
         doNothing: 
-          pinDefs:
+          pinDefs: 
             x: 
               direction: "in" 
               default: compileExpression("1")
@@ -233,35 +233,35 @@ describe "gamEvolve", ->
             processor: "increment"
             pins: 
               in:
-                "value": "memory.a"
+                "value": compileExpression("memory.a")
               out:
-                "memory.a": "pins.value"
+                "memory.a": compileExpression("pins.value")
           },
           {
             processor: "increment"
             pins: 
               in:
-                "value": "memory.b"
+                "value": compileExpression("memory.b")
               out:
-                "memory.b": "pins.value"
+                "memory.b": compileExpression("pins.value")
           },
           {
             processor: "increment"
             pins: 
               in:
-                "value": "io.c"
+                "value": compileExpression("io.c")
               out:
-                "io.c": "pins.value"
+                "io.c": compileExpression("pins.value")
           },
           {
             processor: "log"
             pins: 
               in:
-                "message": "'hi'"
+                "message": compileExpression("'hi'")
           },
           { 
             emitter: 
-              "memory.message": "transformers.logIt('hi')"
+              "memory.message": compileExpression("transformers.logIt('hi')")
           }
         ]
 
@@ -310,7 +310,7 @@ describe "gamEvolve", ->
             z:
               direction: "out"
             d: 
-              default: "2"
+              default: compileExpression("2")
             e: {}
           update: (pins, transformers, log) ->
             pins.x++
@@ -323,13 +323,13 @@ describe "gamEvolve", ->
         processor: "adjustMemory"
         pins:
           in:  
-            x: "memory.a"
-            y: "memory.b"
-            e: "assets.image"
+            x: compileExpression("memory.a")
+            y: compileExpression("memory.b")
+            e: compileExpression("assets.image")
           out:
-            "memory.a": "pins.x"
-            "memory.b": "pins.y"
-            "memory.c": "pins.z"
+            "memory.a": compileExpression("pins.x")
+            "memory.b": compileExpression("pins.y")
+            "memory.c": compileExpression("pins.z")
 
       constants = new GE.ChipVisitorConstants 
         memoryData: oldMemory, 
@@ -360,9 +360,9 @@ describe "gamEvolve", ->
 
       board = 
         emitter: 
-          "memory.a.a1": 2
-          "memory.b": "memory.c"
-          "io.s.a": -5
+          "memory.a.a1": compileExpression("2")
+          "memory.b": compileExpression("memory.c")
+          "io.s.a": compileExpression("-5")
 
       constants = new GE.ChipVisitorConstants
         memoryData: oldMemory
@@ -395,7 +395,7 @@ describe "gamEvolve", ->
           pinDefs: 
             activeChild: 
               direction: "inout"
-              default: 0
+              default: compileExpression("0")
           listActiveChildren: (pins, children, transformers, log) -> 
             expect(children).toDeeplyEqual(["0", "2nd"])
             return [pins.activeChild]
@@ -419,26 +419,26 @@ describe "gamEvolve", ->
         switch: "nextOnDone"
         pins: 
           in:
-            activeChild: "memory.activeChild"
+            activeChild: compileExpression("memory.activeChild")
           out: 
-            "memory.activeChild": "pins.activeChild"
+            "memory.activeChild": compileExpression("pins.activeChild")
         children: [
           {
             processor: "reportDone"
             pins: 
               in:
-                timesCalled: "memory.child0TimesCalled"
+                timesCalled: compileExpression("memory.child0TimesCalled")
               out:
-                "memory.child0TimesCalled": "pins.timesCalled"
+                "memory.child0TimesCalled": compileExpression("pins.timesCalled")
           },
           {
             name: "2nd"
             processor: "reportDone"
             pins: 
               in:
-                timesCalled: "memory.child1TimesCalled"
+                timesCalled: compileExpression("memory.child1TimesCalled")
               out:
-                "memory.child1TimesCalled": "pins.timesCalled"
+                "memory.child1TimesCalled": compileExpression("pins.timesCalled")
           }
         ]
 
@@ -494,8 +494,8 @@ describe "gamEvolve", ->
             processor: "getName"
             pins: 
               in: 
-                name: "bindings.person.first"
-                index: "bindings.personIndex"
+                name: compileExpression("bindings.person.first")
+                index: compileExpression("bindings.personIndex")
           }
         ]
 
@@ -536,10 +536,10 @@ describe "gamEvolve", ->
             processor: "changeName"
             pins: 
               in: 
-                newName: "bindings.person.first"
-                index: "bindings.personIndex"
+                newName: compileExpression("bindings.person.first")
+                index: compileExpression("bindings.personIndex")
               out:
-                "bindings.person.last": "pins.toChange"
+                "bindings.person.last": compileExpression("pins.toChange")
           }
         ]
 
@@ -571,9 +571,9 @@ describe "gamEvolve", ->
         processor: "incrementIoData"
         pins:
           in:
-            service: "io.serviceA"
+            service: compileExpression("io.serviceA")
           out:
-            "io.serviceA": "pins.service"
+            "io.serviceA": compileExpression("pins.service")
 
       constants = new GE.ChipVisitorConstants
         ioData: oldIoData
@@ -658,9 +658,9 @@ describe "gamEvolve", ->
         processor: "incrementIoData"
         pins:
           in: 
-            service: "io.myService"
+            service: compileExpression("io.myService")
           out: 
-            "io.myService": "pins.service" 
+            "io.myService": compileExpression("pins.service")
 
       result = GE.stepLoop 
         chip: board
@@ -698,9 +698,9 @@ describe "gamEvolve", ->
         processor: "incrementIoData"
         pins:
           in:
-            service: "io.myService"
+            service: compileExpression("io.myService")
           out:
-            "io.myService": "pins.service"
+            "io.myService": compileExpression("pins.service")
 
       ioConfig = { configA: 1 }
 
@@ -747,7 +747,7 @@ describe "gamEvolve", ->
               in:
                value: 1
               out:
-                "memory.a": "pins.var"
+                "memory.a": compileExpression("pins.var")
           },
           {
             processor: "setDataTo"
@@ -755,7 +755,7 @@ describe "gamEvolve", ->
               in:
                value: 2
               out:
-                "memory.a": "pins.var"
+                "memory.a": compileExpression("pins.var")
           }
         ]
 
@@ -774,17 +774,17 @@ describe "gamEvolve", ->
             processor: "setDataTo"
             pins:
              in:
-               value: 2
+               value: compileExpression("2")
               out:
-                "io.myService.a": "pins.var"
+                "io.myService.a": compileExpression("pins.var")
           },
           {
             processor: "setDataTo"
             pins:
              in:
-               value: 2
+               value: compileExpression(2)
               out:
-                "io.myService.a": "pins.var"
+                "io.myService.a": compileExpression("pins.var")
           }
         ]
 

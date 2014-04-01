@@ -191,46 +191,22 @@ GE.fillPinDefDefaults = (pinDefs) ->
       direction: "in"
   return pinDefs
 
-# Returns an object mapping pin expression names to their functions 
-GE.compileInputPinExpressions = (path, evaluationContext, pinDefs, inputPinExpressions) ->
-  compiledPins = {}
-
-  for pinName, pinOptions of pinDefs
-    # Resolve pin expression value. If the board doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
-    if pinOptions.direction not in ["in", "inout"] then continue
-
-    if inputPinExpressions?[pinName] 
-      pinExpression = pinExpressions.in[pinName]
-    else if pinOptions.default? 
-      pinExpression = pinOptions.default
-    else 
-      throw GE.makeExecutionError("Missing input pin expression for pin '#{pinName}'", path)
-    
-    try
-      compiledPins[pinName] = evaluationContext.compileExpression(pinExpression)
-    catch error
-      throw GE.makeExecutionError("Error compiling the input pin expression expression '#{pinExpression}' for pin '#{pinName}': #{error.stack}", path)
-
-  return compiledPins
-
-# Returns an object mapping pin expression names to their functions 
-GE.compileOutputPinExpressions = (path, evaluationContext, pinDefs, outputPinExpressions) ->
-  compiledPins = {}
-
-  for destination, pinExpression of outputPinExpressions
-    try
-      compiledPins[pinName] = evaluationContext.compileExpression(pinExpression)
-    catch error
-      throw GE.makeExecutionError("Error compiling the output pin expression expression '#{pinExpression}' for pin '#{pinName}': #{error.stack}", path)
-
-  return compiledPins
-
 # Returns an object mapping pin expression names to their values 
 # pinFunctions is an object that contains 'in' and 'out' attributes
 GE.evaluateInputPinExpressions = (path, evaluationContext, pinDefs, pinFunctions) ->
   evaluatedPins = {}
 
-  for pinName, pinFunction of pinFunctions?.in
+  for pinName, pinOptions of pinDefs
+    # Resolve pin expression value. If the board doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
+    if pinOptions.direction not in ["in", "inout"] then continue
+
+    if pinFunctions.in?[pinName] 
+      pinFunction = pinFunctions.in[pinName]
+    else if pinOptions.default? 
+      pinFunction = pinOptions.default
+    else 
+      throw GE.makeExecutionError("Missing input pin expression function for pin '#{pinName}'", path)
+    
     try
       evaluatedPins[pinName] = evaluationContext.evaluateExpressionFunction(pinFunction)
     catch error
