@@ -240,7 +240,6 @@ GE.calculateBindingSet = (path, chip, constants, oldBindings) ->
       if chip.splitter.index? then newBindings["#{chip.splitter.index}"] = key
 
       if chip.splitter.where?
-        # TODO: compile expressions ahead of time
         evaluationContext = new GE.EvaluationContext(constants, newBindings)
         try
           # If the where clause evaluates to false, don't add it
@@ -268,7 +267,7 @@ GE.calculateBindingSet = (path, chip, constants, oldBindings) ->
         evaluationContext = new GE.EvaluationContext(constants, newBindings)
         try
           # If the where clause evaluates to false, don't add it
-          if evaluationContext.evaluateExpression(chip.splitter.where) then bindingSet.push(newBindings)
+          if evaluationContext.evaluateExpressionFunction(chip.splitter.where) then bindingSet.push(newBindings)
         catch error
           throw GE.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{error.stack}", path)
       else
