@@ -51,13 +51,8 @@ GE.EvaluationContext = class
       else
         @bindings[bindingName] = bindingValue
 
-  compileExpression: (expression) -> GE.compileExpression(expression, @constants.evaluator)
-
   # Pins are optional
-  evaluateFunction: (f, pins) -> f(@memory, @io, @constants.assets, @constants.transformers, @bindings, pins)
-
-  # Pins are optional
-  evaluateExpression: (expression, pins) -> @evaluateFunction(@compileExpression(expression), pins)
+  evaluateExpressionFunction: (f, pins) -> f(@memory, @io, @constants.assets, @constants.transformers, @bindings, pins)
 
 GE.extensions =
   IMAGE: ["png", "gif", "jpeg", "jpg"]
@@ -197,39 +192,38 @@ GE.fillPinDefDefaults = (pinDefs) ->
   return pinDefs
 
 # Returns an object mapping pin expression names to their values 
-# Pin expressions is an object that contains 'in' and 'out' attributes
-GE.evaluateInputPinExpressions = (path, evaluationContext, pinDefs, pinExpressions) ->
+# pinFunctions is an object that contains 'in' and 'out' attributes
+GE.evaluateInputPinExpressions = (path, evaluationContext, pinDefs, pinFunctions) ->
   evaluatedPins = {}
 
-  # TODO: don't evaluate output pinexpressions here!
   for pinName, pinOptions of pinDefs
     # Resolve pin expression value. If the board doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
-    if pinOptions.direction in ["in", "inout"] and pinExpressions.in?[pinName] 
-      pinValue = pinExpressions.in[pinName]
-    else if pinOptions.direction in ["out", "inout"] and pinExpressions.out?[pinName] 
-      pinValue = pinExpressions.out[pinName]
-    else if pinOptions.default? 
-      pinValue = pinOptions.default
-    else if pinOptions.direction in ["in", "inout"]
-      throw GE.makeExecutionError("Missing input pin expression for pin '#{pinName}'", path)
+    if pinOptions.direction not in ["in", "inout"] then continue
 
+    if pinFunctions.in?[pinName] 
+      pinFunction = pinFunctions.in[pinName]
+    else if pinOptions.default? 
+      pinFunction = pinOptions.default
+    else 
+      throw GE.makeExecutionError("Missing input pin expression function for pin '#{pinName}'", path)
+    
     try
-      evaluatedPins[pinName] = evaluationContext.evaluateExpression(pinValue)
+      evaluatedPins[pinName] = evaluationContext.evaluateExpressionFunction(pinFunction)
     catch error
-      throw GE.makeExecutionError("Error evaluating the input pin expression expression '#{pinValue}' for pin '#{pinName}': #{error.stack}", path)
+      throw GE.makeExecutionError("Error evaluating the input pin expression expression '#{pinFunction}' for pin '#{pinName}': #{error.stack}", path)
   return evaluatedPins
 
 # Updates the evaluation context by evaluating the output pin expressions
-# Pin expressions is an object that contains 'in' and 'out' attributes
-GE.evaluateOutputPinExpressions = (path, evaluationContext, pinDefs, pinExpressions, evaluatedPins) ->
+# pinFunctions is an object that contains 'in' and 'out' attributes
+GE.evaluateOutputPinExpressions = (path, evaluationContext, pinDefs, pinFunctions, evaluatedPins) ->
   # Only output pins should be accessible
   outPins = _.pick(evaluatedPins, (pinName for pinName, pinOptions of pinDefs when pinOptions.direction in ["out", "inout"]))
 
-  for pinName, pinValue of pinExpressions?.out
+  for pinName, pinFunction of pinFunctions?.out
     try
-      outputValue = evaluationContext.evaluateExpression(pinValue, outPins)
+      outputValue = evaluationContext.evaluateExpressionFunction(pinFunction, outPins)
     catch error
-      throw GE.makeExecutionError("Error evaluating the output pin expression '#{pinValue}' for pin '#{pinName}': #{error.stack}\nOutput pins were #{JSON.stringify(outPins)}.", path)
+      throw GE.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{error.stack}\nOutput pins were #{JSON.stringify(outPins)}.", path)
 
     [parent, key] = GE.getParentAndKey(evaluationContext, pinName.split("."))
     parent[key] = outputValue
@@ -385,13 +379,13 @@ GE.visitEmitterChip = (path, chip, constants, bindings) ->
   result = new GE.ChipVisitorResult(GE.signals.DONE)
   GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
-  for dest, src of chip.emitter  
+  for dest, expressionFunction of chip.emitter  
     evaluationContext = new GE.EvaluationContext(constants, bindings)
 
     try
-      outputValue = evaluationContext.evaluateExpression(src)
+      outputValue = evaluationContext.evaluateExpressionFunction(expressionFunction)
     catch error
-      throw GE.makeExecutionError("Error evaluating the output pin expression value expression '#{src}' for emitter chip: #{error.stack}", path)
+      throw GE.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{error.stack}", path)
 
     [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
     parent[key] = outputValue
