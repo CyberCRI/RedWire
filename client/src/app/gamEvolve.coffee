@@ -51,13 +51,8 @@ GE.EvaluationContext = class
       else
         @bindings[bindingName] = bindingValue
 
-  compileExpression: (expression) -> GE.compileExpression(expression, @constants.evaluator)
-
   # Pins are optional
-  evaluateFunction: (f, pins) -> f(@memory, @io, @constants.assets, @constants.transformers, @bindings, pins)
-
-  # Pins are optional
-  evaluateExpression: (expression, pins) -> @evaluateFunction(@compileExpression(expression), pins)
+  evaluateExpressionFunction: (f, pins) -> f(@memory, @io, @constants.assets, @constants.transformers, @bindings, pins)
 
 GE.extensions =
   IMAGE: ["png", "gif", "jpeg", "jpg"]
@@ -196,12 +191,12 @@ GE.fillPinDefDefaults = (pinDefs) ->
       direction: "in"
   return pinDefs
 
-# Returns an object mapping pin expression names to their values 
+# Returns an object mapping pin expression names to their functions 
 # Pin expressions is an object that contains 'in' and 'out' attributes
-GE.evaluateInputPinExpressions = (path, evaluationContext, pinDefs, pinExpressions) ->
-  evaluatedPins = {}
+GE.compileInputPinExpressions = (path, evaluationContext, pinDefs, pinExpressions) ->
+  compiledPins = {}
 
-  # TODO: don't evaluate output pinexpressions here!
+  # TODO: don't compile output pin expressions here!
   for pinName, pinOptions of pinDefs
     # Resolve pin expression value. If the board doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
     if pinOptions.direction in ["in", "inout"] and pinExpressions.in?[pinName] 
@@ -213,6 +208,19 @@ GE.evaluateInputPinExpressions = (path, evaluationContext, pinDefs, pinExpressio
     else if pinOptions.direction in ["in", "inout"]
       throw GE.makeExecutionError("Missing input pin expression for pin '#{pinName}'", path)
 
+    try
+      compiledPins[pinName] = evaluationContext.compileExpression(pinValue)
+    catch error
+      throw GE.makeExecutionError("Error compiling the input pin expression expression '#{pinValue}' for pin '#{pinName}': #{error.stack}", path)
+  return compiledPins
+
+# Returns an object mapping pin expression names to their values 
+# Pin expressions is an object that contains 'in' and 'out' attributes
+GE.evaluateInputPinExpressions = (path, pinFunctions) ->
+  evaluatedPins = {}
+
+  # TODO: don't evaluate output pin expressions here!
+  for pinName, pinFunction of pinFunctions
     try
       evaluatedPins[pinName] = evaluationContext.evaluateExpression(pinValue)
     catch error
@@ -382,13 +390,13 @@ GE.visitEmitterChip = (path, chip, constants, bindings) ->
   result = new GE.ChipVisitorResult(GE.signals.DONE)
   GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
-  for dest, src of chip.emitter  
+  for dest, expressionFunction of chip.emitter  
     evaluationContext = new GE.EvaluationContext(constants, bindings)
 
     try
-      outputValue = evaluationContext.evaluateExpression(src)
+      outputValue = evaluationContext.evaluateExpressionFunction(expressionFunction)
     catch error
-      throw GE.makeExecutionError("Error evaluating the output pin expression value expression '#{src}' for emitter chip: #{error.stack}", path)
+      throw GE.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{error.stack}", path)
 
     [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
     parent[key] = outputValue
