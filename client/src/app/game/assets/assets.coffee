@@ -13,6 +13,7 @@ angular.module('gamEvolve.game.assets', [
   copyFromGameToScope = -> 
     if currentGame.version?.assets
       $scope.assets = ({ name: name, data: data } for name, data of currentGame.version.assets)
+      console.log("updated assets:", $scope.assets)
 
   # Bring currentGame into scope so we can watch it 
   $scope.currentGame = currentGame
