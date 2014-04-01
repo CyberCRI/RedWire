@@ -2,15 +2,19 @@ String::capitalize = ->
   @replace /(^|\s)([a-z])/g, (m, p1, p2) ->
     p1 + p2.toUpperCase()
 
-generateName = (source) -> source.comment || 'Untitled'
+generateHeading = (source) -> if source.name then "<b>#{source.name}:</b>" else ""
 
-generateText = (source) -> 
+generateTitle = (source) -> source.comment || 'Untitled'
+
+generateComment = (source) ->
   switch generateType(source)
-    when "switch" then "#{generateName(source)} (#{source.switch})"
-    when "processor" then "#{generateName(source)} (#{source.processor})"
-    when "emitter" then "#{generateName(source)} (Emitter)"
-    when "splitter" then "#{generateName(source)} (Splitter)"
+    when "switch" then "Switch #{source.switch}"
+    when "processor" then "Processor #{source.processor}"
+    when "emitter" then "Emitter"
+    when "splitter" then "Splitter"
     else throw new Error("Unknown type of chip #{source}")
+
+generateText = (source) -> "#{generateHeading(source)} #{generateTitle(source)} (#{generateComment(source)})"
 
 # TODO: expand this list
 generateType = (source) ->
@@ -28,7 +32,6 @@ makeChipButtons = (nodeId, parentNodeId, muted) -> """
 
 
 angular.module('gamEvolve.util.boardConverter', ['gamEvolve.game.boardTree'])
-
 
 .factory 'boardConverter', (nodes) ->
 

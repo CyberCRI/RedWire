@@ -21,7 +21,7 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
   # Only valid if determineLinkage() returns 'simple'
   getSimpleDestination = (name, direction, inValues, outValues) ->
     if direction in ['in', 'inout'] then return inValues[name]
-    for destination, expression in outValues
+    for destination, expression of outValues
       if expression is "pins.#{name}" then return destination
     throw new Error("Cannot find simple destination for pin '#{name}'")
 
@@ -46,6 +46,7 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
   $scope.LINKAGES = ['simple', 'custom']
   $scope.DESTINATIONS = currentGame.enumeratePinDestinations()
   $scope.name = liaison.model.comment
+  $scope.childName = liaison.model.name
 
   # Depending on if this is an processor or a switch, get the right kind of data
   # TODO: move this to calling controller?
@@ -90,5 +91,6 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
   # Reply with the new data
   $scope.done = -> liaison.done
     comment: $scope.name
+    name: $scope.childName
     pins: convertPinsToModel($scope.pins)
   $scope.cancel = -> liaison.cancel()
