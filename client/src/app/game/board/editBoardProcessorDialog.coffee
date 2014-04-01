@@ -21,7 +21,7 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
   # Only valid if determineLinkage() returns 'simple'
   getSimpleDestination = (name, direction, inValues, outValues) ->
     if direction in ['in', 'inout'] then return inValues[name]
-    for destination, expression in outValues
+    for destination, expression of outValues
       if expression is "pins.#{name}" then return destination
     throw new Error("Cannot find simple destination for pin '#{name}'")
 
