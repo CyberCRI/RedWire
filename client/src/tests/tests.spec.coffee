@@ -553,6 +553,44 @@ describe "gamEvolve", ->
       expect(newMemory.people[0].last).toBe("bill")
       expect(newMemory.people[1].last).toBe("joe")
 
+    it "binds with where guard", ->
+      oldMemory = 
+        people: [
+          { first: "bill", last: "bobson" }
+          { first: "joe", last: "johnson" }
+        ]
+
+      processors = 
+        getName: 
+          pinDefs:
+            lastName: null
+          update: (pins, transformers, log) -> 
+            expect(pins.lastName).toEqual("bobson")
+
+      board = 
+        splitter:
+          from: "memory.people"
+          bindTo: "person"
+          where: compileExpression("bindings.person.first == 'bill'")
+        children: [
+          { 
+            processor: "getName"
+            pins: 
+              in: 
+                lastName: compileExpression("bindings.person.last")
+          }
+        ]
+
+      spyOn(processors.getName, "update").andCallThrough()
+
+      constants = new GE.ChipVisitorConstants
+        memoryData: oldMemory
+        processors: processors
+        evaluator: makeEvaluator()
+      results = GE.visitChip([], board, constants, {})
+
+      expect(processors.getName.update).toHaveBeenCalled()
+
     it "communicates with io", ->
       oldIoData = 
         serviceA: 
