@@ -5,7 +5,7 @@ angular.module('gamEvolve.game.board.editEmitterDialog', [
 
 .controller 'EditBoardEmitterDialogCtrl', ($scope, liaison, currentGame) ->
   $scope.DESTINATIONS = currentGame.enumeratePinDestinations()
-  $scope.childName = if liaison.model.name then JSON.stringify(liaison.model.name) else ""
+  $scope.childName = if liaison.model.name? then JSON.stringify(liaison.model.name) else ""
   $scope.name = liaison.model.comment
   # Convert between 'pinDef form' used in game serialization and 'pin form' used in GUI
   $scope.pins = ({ input: input, output: output } for output, input of liaison.model.emitter)

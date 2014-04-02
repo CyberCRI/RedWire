@@ -82,20 +82,26 @@ compileTransformers = (inputTransformers, evaluator) ->
   transformersContext.transformers = compiledTransformers
   return compiledTransformers
 
+compileExpression = (expression, evaluator, path) ->
+  try 
+    return GE.compileExpression(expression, evaluator)
+  catch error
+    throw new Error("Error compiling expression '#{expression}' for chip [#{path.join(', ')}]. #{error}")
+
 # Converts board expressions (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were.
-compileBoard = (board, evaluator) ->
+compileBoard = (board, evaluator, path = []) ->
   return GE.mapObject board, (value, key) ->
     switch key
-      when "emitter" then GE.mapObject(value, (expression, dest) -> GE.compileExpression(expression, evaluator))
+      when "emitter" then GE.mapObject(value, (expression, dest) -> compileExpression(expression, evaluator, path))
       when "pins" 
-        in: if value.in then GE.mapObject(value.in, (expression, pinName) -> GE.compileExpression(expression, evaluator)) else {}
-        out: if value.out then GE.mapObject(value.out, (expression, dest) -> GE.compileExpression(expression, evaluator)) else {}
+        in: if value.in then GE.mapObject(value.in, (expression, pinName) -> compileExpression(expression, evaluator, path)) else {}
+        out: if value.out then GE.mapObject(value.out, (expression, dest) -> compileExpression(expression, evaluator, path)) else {}
       when "splitter" then GE.mapObject value, (splitterValue, splitterKey) -> 
         switch splitterKey
-          when "where" then GE.compileExpression(splitterValue, evaluator)
+          when "where" then compileExpression(splitterValue, evaluator, path)
           else splitterValue
-      when "children" then _.map(value, (child) -> compileBoard(child, evaluator))
+      when "children" then _.map(value, (child, key) -> compileBoard(child, evaluator, GE.appendToArray(path, key)))
       else value
 
 destroyIo = (currentIo) ->
