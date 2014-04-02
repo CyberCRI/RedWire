@@ -46,7 +46,7 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
   $scope.LINKAGES = ['simple', 'custom']
   $scope.DESTINATIONS = currentGame.enumeratePinDestinations()
   $scope.name = liaison.model.comment
-  $scope.childName = if liaison.model.name then JSON.stringify(liaison.model.name) else ""
+  $scope.childName = if liaison.model.name? then JSON.stringify(liaison.model.name) else ""
 
   # Depending on if this is an processor or a switch, get the right kind of data
   # TODO: move this to calling controller?
