@@ -66,8 +66,8 @@ GE.resolveBindingAddresses = (bindings, pathParts) ->
   if pathParts[0] is "bindings"
     bindingValue = bindings[pathParts[1]]
     if bindingValue instanceof GE.BindingReference
-      replacedAddress = pathParts[2..].concat(GE.splitAddress(bindingValue.ref))
-      return GE.resolveBindingAddresses(replacedAddress)
+      replacedAddress = GE.splitAddress(bindingValue.ref).concat(pathParts[2..])
+      return GE.resolveBindingAddresses(bindings, replacedAddress)
     else
       throw new Error("Cannot write to constant bindings such as '#{JSON.stringify(bindingValue)}'")
   else throw new Error("Cannot resolve address '#{GE.joinPathParts(pathParts)}'")
@@ -246,12 +246,12 @@ GE.evaluateInputPinExpressions = (path, constants, evaluationContext, pinDefs, p
 
 # Updates the evaluation context by evaluating the output pin expressions
 # pinFunctions is an object that contains 'in' and 'out' attributes
-GE.evaluateOutputPinExpressions = (path, bindings, evaluationContext, memoryPatches, ioPatches, pinDefs, pinFunctions, evaluatedPins) ->
+GE.evaluateOutputPinExpressions = (path, constants, bindings, evaluationContext, memoryPatches, ioPatches, pinDefs, pinFunctions, evaluatedPins) ->
   for pinName, pinFunction of pinFunctions?.out
     try
-      outputValue = evaluationContext.evaluateExpressionFunction(pinFunction, evaluatedPins)
+      outputValue = GE.evaluateExpressionFunction(constants, evaluationContext, pinFunction, evaluatedPins)
     catch error
-      throw GE.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{error.stack}\nOutput pins were #{JSON.stringify(outPins)}.", path)
+      throw GE.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{error.stack}\nPin values were #{JSON.stringify(evaluatedPins)}.", path)
 
     GE.derivePatches(bindings, path, evaluationContext, memoryPatches, ioPatches, pinName, outputValue)
 
@@ -323,7 +323,7 @@ GE.visitProcessorChip = (path, chip, constants, bindings) ->
     GE.transformersLogger(GE.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{e.stack}")
 
   result.result = methodResult
-  GE.evaluateOutputPinExpressions(path, bindings, evaluationContext, result.memoryPatches, result.ioPatches, processor.pinDefs, chip.pins, evaluatedPins)
+  GE.evaluateOutputPinExpressions(path, constants, bindings, evaluationContext, result.memoryPatches, result.ioPatches, processor.pinDefs, chip.pins, evaluatedPins)
 
   return result
 
@@ -337,8 +337,7 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   result = new GE.ChipVisitorResult()
   GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
-  # TODO: compile expressions ahead of time
-  evaluationContext = new GE.EvaluationContext(constants, bindings)
+  evaluationContext = new GE.makeEvaluationContext(constants, bindings)
   GE.fillPinDefDefaults(switchChip.pinDefs)
   evaluatedPins = GE.evaluateInputPinExpressions(path, constants, evaluationContext, switchChip.pinDefs, chip.pins)
 
@@ -355,7 +354,7 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
  
   # By default, all children are considered active
   if activeChildren is null then activeChildren = _.range(childNames.length)
-
+ 
   # Continue with children
   childSignals = new Array(childNames.length)
   for activeChildName in activeChildren
@@ -370,12 +369,11 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   if "handleSignals" of switchChip
     try
       signalsResult = switchChip.handleSignals(evaluatedPins, childNames, activeChildren, childSignals, constants.transformers, GE.transformersLogger)
+      temporaryResult = new GE.ChipVisitorResult(signalsResult)
 
-      GE.evaluateOutputPinExpressions(path, evaluationContext, switchChip.pinDefs, chip.pins, evaluatedPins)
-      memoryPatches = GE.makePatches(constants.memoryData, evaluationContext.memory, path)
-      ioPatches = GE.makePatches(constants.ioData, evaluationContext.io, path)
+      GE.evaluateOutputPinExpressions(path, constants, bindings, evaluationContext, result.memoryPatches, result.ioPatches, switchChip.pinDefs, chip.pins, evaluatedPins)
 
-      result = result.appendWith(new GE.ChipVisitorResult(signalsResult, memoryPatches, ioPatches))
+      result = result.appendWith(temporaryResult)
       result.result = signalsResult # appendWith() does not affect result
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
