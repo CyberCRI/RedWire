@@ -6,7 +6,7 @@ makeEvaluator = -> eval
 compileExpression = (expression) -> RW.compileExpression(expression, eval)
 
 
-describe "gamEvolve", ->
+describe "RedWire", ->
   beforeEach ->
     @addMatchers 
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
