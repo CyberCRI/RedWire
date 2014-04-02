@@ -190,6 +190,9 @@ makeReporter = (destinationWindow, destinationOrigin, operation) ->
       destinationWindow.postMessage({ type: "success", operation: operation, value: value }, destinationOrigin)
 
 onRecordFrame = (memory) ->
+  # Freeze memory so that game code can't effect it
+  GE.deepFreeze(memory) 
+
   return GE.stepLoop
     chip: loadedGame.board
     memoryData: memory
@@ -238,6 +241,10 @@ playBackFrame = (outputIoData) ->
     outputIoData: outputIoData 
 
 updateFrame = (memory, inputIoData) ->
+  # Freeze memory so that game code can't effect it
+  GE.deepFreeze(memory)
+  GE.deepFreeze(inputIoData)
+
   return GE.stepLoop
     chip: loadedGame.board
     memoryData: memory

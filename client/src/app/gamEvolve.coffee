@@ -35,30 +35,42 @@ GE.ChipVisitorResult = class
 GE.BindingReference = class 
   constructor: (@ref) ->
 
-# Used to compile expressions into executable functions, and to call these functions in the correct context.
-GE.EvaluationContext = class 
-  constructor: (@constants, bindings) ->
-    @memory = GE.cloneData(@constants.memoryData)
-    @io = GE.cloneData(@constants.ioData)
-    @bindings = {}
-    @setupBindings(bindings)
-
-  setupBindings: (bindings) ->
-    for bindingName, bindingValue of bindings
-      if bindingValue instanceof GE.BindingReference
-        [parent, key] = GE.getParentAndKey(@, GE.splitAddress(bindingValue.ref))
-        @bindings[bindingName] = parent[key]
-      else
-        @bindings[bindingName] = bindingValue
-
-  # Pins are optional
-  evaluateExpressionFunction: (f, pins) -> f(@memory, @io, @constants.assets, @constants.transformers, @bindings, pins)
-
 GE.extensions =
   IMAGE: ["png", "gif", "jpeg", "jpg"]
   JS: ["js"]
   CSS: ["css"]
   HTML: ["html"]
+
+# Used to evaluate expressions against with GE.evaluateExpressionFunction
+GE.makeEvaluationContext = (constants, bindings) ->
+  context = 
+    memory: constants.memoryData
+    io: constants.ioData
+    bindings: {}
+  for bindingName, bindingValue of bindings
+    if bindingValue instanceof GE.BindingReference
+      [parent, key] = GE.getParentAndKey(context, GE.splitAddress(bindingValue.ref))
+      context.bindings[bindingName] = parent[key]
+    else
+      context.bindings[bindingName] = bindingValue
+  return context
+
+# context is created with GE.makeEvaluationContext()
+# pins are optional
+GE.evaluateExpressionFunction = (constants, context, f, pins) ->
+  f(context.memory, context.io, constants.assets, constants.transformers, context.bindings, pins)
+
+# Returns address as array (like pathParts) with binding refs replaced with their full addresses (to memory or io) 
+GE.resolveBindingAddresses = (bindings, pathParts) ->
+  if pathParts[0] in ["memory", "io"] then return pathParts
+  if pathParts[0] is "bindings"
+    bindingValue = bindings[pathParts[1]]
+    if bindingValue instanceof GE.BindingReference
+      replacedAddress = pathParts[2..].concat(GE.splitAddress(bindingValue.ref))
+      return GE.resolveBindingAddresses(replacedAddress)
+    else
+      throw new Error("Cannot write to constant bindings such as '#{JSON.stringify(bindingValue)}'")
+  else throw new Error("Cannot resolve address '#{GE.joinPathParts(pathParts)}'")
 
 # Reject arrays as objects
 GE.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
@@ -373,24 +385,27 @@ GE.visitSplitterChip = (path, chip, constants, oldBindings) ->
 GE.visitEmitterChip = (path, chip, constants, bindings) ->
   memoryPatches = []
   ioPatches = []
+  evaluationContext = GE.makeEvaluationContext(constants, bindings)
 
   # Return "DONE" signal, so it can be put in sequences
-  result = new GE.ChipVisitorResult(GE.signals.DONE)
+  result = new GE.ChipVisitorResult(GE.signals.DONE)  
   GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
   for dest, expressionFunction of chip.emitter  
-    evaluationContext = new GE.EvaluationContext(constants, bindings)
-
     try
-      outputValue = evaluationContext.evaluateExpressionFunction(expressionFunction)
+      outputValue = GE.evaluateExpressionFunction(constants, evaluationContext, expressionFunction)
     catch error
       throw GE.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{error.stack}", path)
 
-    [parent, key] = GE.getParentAndKey(evaluationContext, GE.splitAddress(dest))
-    parent[key] = outputValue
-
-    memoryPatches = GE.concatenate(memoryPatches, GE.makePatches(constants.memoryData, evaluationContext.memory, path))
-    ioPatches = GE.concatenate(ioPatches, GE.makePatches(constants.ioData, evaluationContext.io, path))
+    pathParts = GE.resolveBindingAddresses(bindings, GE.splitAddress(dest))
+    # Get the original value to compare the output against
+    [parent, key] = GE.getParentAndKey(evaluationContext, pathParts)
+    # Find which list to apply patches to (memory or io)
+    destinationList = if pathParts[0] is "memory" then memoryPatches else ioPatches
+    # Drop "memory" or "io" off the prefix for patches
+    prefix = GE.joinPathParts(pathParts[1..])
+    # Obtain patches and append them to the destination list
+    GE.makePatches(parent[key], outputValue, path, prefix, destinationList)
   
   result.memoryPatches = memoryPatches
   result.ioPatches = ioPatches
@@ -425,6 +440,7 @@ GE.visitChip = (path, chip, constants, bindings = {}) ->
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
 # If outputIoData is not null, the loop is not stepped, and the data is sent directly to the io. In this case, no memory patches are returned.
 # Otherwise, if inputIoData is not null, this data is used instead of asking the io.
+# The options memoryData and inputIoData should be frozen with GE.deepFreeze() before being sent.
 # Rather than throwing errors, this function attempts to trap errors internally and return them as an "errors" attribute.
 # The errors have a "stage" attribute that is "readIo", "executeChips", "patchMemory", "patchIo", and "writeIo"
 # Returns { memoryPatches: [...], inputIoData: {...}, ioPatches: [...], logMessages: [...], errors: [...] }
@@ -563,6 +579,9 @@ GE.makeLogFunction = (path, logMessages) ->
 
 # Split address like "a.b[1].2" into ["a", "b", 1, 2]
 GE.splitAddress = (address) -> _.reject(address.split(/[\.\[\]]/), (part) -> part is "")
+
+# Combine a path like ["a", "b", 1, 2] into "a/b/1/2
+GE.joinPathParts = (pathParts) -> "/#{pathParts.join('/')}"
 
 # Load all the assets in the given object (name: url) and then call callback with the results, or error
 # TODO: have cache-busting be configurable
