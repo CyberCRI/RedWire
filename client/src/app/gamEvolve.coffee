@@ -194,6 +194,19 @@ GE.detectPatchConflicts = (patches) ->
 
   return detectConflicts(affectedKeys)
 
+# Creates a patch to the outputAddress of the given outputValue and appends it to either memoryPatches or ioPatches
+# TODO: what an unweildy function, with more parameters than lines! Need to refactor it somehow
+GE.derivePatches = (bindings, path, evaluationContext, memoryPatches, ioPatches, outputAddress, outputValue) -> 
+  pathParts = GE.resolveBindingAddresses(bindings, GE.splitAddress(outputAddress))
+  # Get the original value to compare the output against
+  [parent, key] = GE.getParentAndKey(evaluationContext, pathParts)
+  # Find which list to apply patches to (memory or io)
+  destinationList = if pathParts[0] is "memory" then memoryPatches else ioPatches
+  # Drop "memory" or "io" off the prefix for patches
+  prefix = GE.joinPathParts(pathParts[1..])
+  # Obtain patches and append them to the destination list
+  GE.makePatches(parent[key], outputValue, path, prefix, destinationList)
+
 # Set default values in pinDefs
 GE.fillPinDefDefaults = (pinDefs) ->
   # Cannot use normal "for key, value of" loop because cannot handle replace null values
@@ -205,13 +218,14 @@ GE.fillPinDefDefaults = (pinDefs) ->
 
 # Returns an object mapping pin expression names to their values 
 # pinFunctions is an object that contains 'in' and 'out' attributes
-GE.evaluateInputPinExpressions = (path, evaluationContext, pinDefs, pinFunctions) ->
+GE.evaluateInputPinExpressions = (path, constants, evaluationContext, pinDefs, pinFunctions) ->
   evaluatedPins = {}
 
   for pinName, pinOptions of pinDefs
     # Resolve pin expression value. If the board doesn't specify a value, use the default, it it exists. Otherwise, throw exception for input values
     if pinOptions.direction not in ["in", "inout"] then continue
 
+    # Use default functions if no other is provided
     if pinFunctions.in?[pinName] 
       pinFunction = pinFunctions.in[pinName]
     else if pinOptions.default? 
@@ -220,25 +234,26 @@ GE.evaluateInputPinExpressions = (path, evaluationContext, pinDefs, pinFunctions
       throw GE.makeExecutionError("Missing input pin expression function for pin '#{pinName}'", path)
     
     try
-      evaluatedPins[pinName] = evaluationContext.evaluateExpressionFunction(pinFunction)
+      # Get the value
+      evaluatedPins[pinName] = GE.evaluateExpressionFunction(constants, evaluationContext, pinFunction)
+      
+      # Protect inout pins from changing buffer values directly by cloning the data
+      if pinOptions.direction is "inout"
+        evaluatedPins[pinName] = GE.cloneData(evaluatedPins[pinName]) 
     catch error
       throw GE.makeExecutionError("Error evaluating the input pin expression expression '#{pinFunction}' for pin '#{pinName}': #{error.stack}", path)
   return evaluatedPins
 
 # Updates the evaluation context by evaluating the output pin expressions
 # pinFunctions is an object that contains 'in' and 'out' attributes
-GE.evaluateOutputPinExpressions = (path, evaluationContext, pinDefs, pinFunctions, evaluatedPins) ->
-  # Only output pins should be accessible
-  outPins = _.pick(evaluatedPins, (pinName for pinName, pinOptions of pinDefs when pinOptions.direction in ["out", "inout"]))
-
+GE.evaluateOutputPinExpressions = (path, bindings, evaluationContext, memoryPatches, ioPatches, pinDefs, pinFunctions, evaluatedPins) ->
   for pinName, pinFunction of pinFunctions?.out
     try
-      outputValue = evaluationContext.evaluateExpressionFunction(pinFunction, outPins)
+      outputValue = evaluationContext.evaluateExpressionFunction(pinFunction, evaluatedPins)
     catch error
       throw GE.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{error.stack}\nOutput pins were #{JSON.stringify(outPins)}.", path)
 
-    [parent, key] = GE.getParentAndKey(evaluationContext, GE.splitAddress(pinName))
-    parent[key] = outputValue
+    GE.derivePatches(bindings, path, evaluationContext, memoryPatches, ioPatches, pinName, outputValue)
 
 GE.calculateBindingSet = (path, chip, constants, oldBindings) ->
   bindingSet = []
@@ -297,10 +312,9 @@ GE.visitProcessorChip = (path, chip, constants, bindings) ->
   result = new GE.ChipVisitorResult()
   GE.transformersLogger = GE.makeLogFunction(path, result.logMessages)
 
-  # TODO: compile expressions ahead of time
-  evaluationContext = new GE.EvaluationContext(constants, bindings)
+  evaluationContext = GE.makeEvaluationContext(constants, bindings)
   GE.fillPinDefDefaults(processor.pinDefs)
-  evaluatedPins = GE.evaluateInputPinExpressions(path, evaluationContext, processor.pinDefs, chip.pins)
+  evaluatedPins = GE.evaluateInputPinExpressions(path, constants, evaluationContext, processor.pinDefs, chip.pins)
 
   try
     methodResult = processor.update(evaluatedPins, constants.transformers, GE.transformersLogger)
@@ -308,11 +322,8 @@ GE.visitProcessorChip = (path, chip, constants, bindings) ->
     # TODO: convert exceptions to error sigals that do not create patches
     GE.transformersLogger(GE.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{e.stack}")
 
-  GE.evaluateOutputPinExpressions(path, evaluationContext, processor.pinDefs, chip.pins, evaluatedPins)
-
   result.result = methodResult
-  result.memoryPatches = GE.makePatches(constants.memoryData, evaluationContext.memory, path)
-  result.ioPatches = GE.makePatches(constants.ioData, evaluationContext.io, path)
+  GE.evaluateOutputPinExpressions(path, bindings, evaluationContext, result.memoryPatches, result.ioPatches, processor.pinDefs, chip.pins, evaluatedPins)
 
   return result
 
@@ -329,7 +340,7 @@ GE.visitSwitchChip = (path, chip, constants, bindings) ->
   # TODO: compile expressions ahead of time
   evaluationContext = new GE.EvaluationContext(constants, bindings)
   GE.fillPinDefDefaults(switchChip.pinDefs)
-  evaluatedPins = GE.evaluateInputPinExpressions(path, evaluationContext, switchChip.pinDefs, chip.pins)
+  evaluatedPins = GE.evaluateInputPinExpressions(path, constants, evaluationContext, switchChip.pinDefs, chip.pins)
 
   # check which children should be activated
   activeChildren = null
@@ -383,8 +394,6 @@ GE.visitSplitterChip = (path, chip, constants, oldBindings) ->
   return result
 
 GE.visitEmitterChip = (path, chip, constants, bindings) ->
-  memoryPatches = []
-  ioPatches = []
   evaluationContext = GE.makeEvaluationContext(constants, bindings)
 
   # Return "DONE" signal, so it can be put in sequences
@@ -397,18 +406,8 @@ GE.visitEmitterChip = (path, chip, constants, bindings) ->
     catch error
       throw GE.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{error.stack}", path)
 
-    pathParts = GE.resolveBindingAddresses(bindings, GE.splitAddress(dest))
-    # Get the original value to compare the output against
-    [parent, key] = GE.getParentAndKey(evaluationContext, pathParts)
-    # Find which list to apply patches to (memory or io)
-    destinationList = if pathParts[0] is "memory" then memoryPatches else ioPatches
-    # Drop "memory" or "io" off the prefix for patches
-    prefix = GE.joinPathParts(pathParts[1..])
-    # Obtain patches and append them to the destination list
-    GE.makePatches(parent[key], outputValue, path, prefix, destinationList)
+    GE.derivePatches(bindings, path, evaluationContext, result.memoryPatches, result.ioPatches, dest, outputValue)
   
-  result.memoryPatches = memoryPatches
-  result.ioPatches = ioPatches
   return result
 
 GE.chipVisitors =
