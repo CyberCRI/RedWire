@@ -78,7 +78,7 @@
         "children": [
           {
             "emitter": {
-              "memory.enemies": "GE.addUniqueToObject(memory.enemies, {\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  health: 1,\n  startingPosition: [io.canvas.size[0], Math.random() * io.canvas.size[1]],\n})"
+              "memory.enemies": "RW.addUniqueToObject(memory.enemies, {\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  health: 1,\n  startingPosition: [io.canvas.size[0], Math.random() * io.canvas.size[1]],\n})"
             },
             "comment": "Add enemy"
           }
@@ -86,7 +86,7 @@
       },
       {
         "emitter": {
-          "memory.explosions": "GE.filterObject(memory.explosions, function(explosion) {\n    return explosion.frame < memory.explosionSprite.frameCount;\n})"
+          "memory.explosions": "RW.filterObject(memory.explosions, function(explosion) {\n    return explosion.frame < memory.explosionSprite.frameCount;\n})"
         },
         "comment": "Clean up explosions"
       },
@@ -242,7 +242,7 @@
                 "comment": "Remove enemy and create explosion",
                 "emitter": {
                   "memory.enemies": "_.omit(memory.enemies, bindings.enemyIndex)",
-                  "memory.explosions": "GE.addUniqueToObject(memory.explosions, {\n    position: bindings.enemy.position,\n    frame: 0\n})"
+                  "memory.explosions": "RW.addUniqueToObject(memory.explosions, {\n    position: bindings.enemy.position,\n    frame: 0\n})"
                 }
               }
             ]
@@ -275,7 +275,7 @@
               {
                 "comment": "Fire",
                 "emitter": {
-                  "memory.heroLasers": "GE.addUniqueToObject(memory.heroLasers, [memory.hero.position[0] + 40, memory.hero.position[1]])"
+                  "memory.heroLasers": "RW.addUniqueToObject(memory.heroLasers, [memory.hero.position[0] + 40, memory.hero.position[1]])"
                 }
               }
             ]
@@ -359,7 +359,7 @@
           "default": "5"
         }
       },
-      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
     }
   },
   "switches": {
@@ -376,7 +376,7 @@
         }
       },
       "listActiveChildren": "return [children[pins.activeChild]];",
-      "handleSignals": "if (signals[pins.activeChild] == GE.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return GE.signals.DONE;\n}"
+      "handleSignals": "if (signals[pins.activeChild] == RW.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return RW.signals.DONE;\n}"
     },
     "Do for Some Time": {
       "pinDefs": {
@@ -386,14 +386,14 @@
         }
       },
       "listActiveChildren": "return children;",
-      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return GE.signals.DONE;\n}"
+      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return RW.signals.DONE;\n}"
     },
     "Do While": {
       "pinDefs": {
         "value": null
       },
       "listActiveChildren": "return !!pins.value ? children : [];",
-      "handleSignals": "if (!pins.value)\n  return GE.signals.DONE;"
+      "handleSignals": "if (!pins.value)\n  return RW.signals.DONE;"
     },
     "Do Forever": {
       "pinDefs": {},
@@ -404,7 +404,7 @@
       "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "if(GE.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
+      "listActiveChildren": "if(RW.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
     },
     "If": {
       "pinDefs": {
@@ -430,7 +430,7 @@
         }
       },
       "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
-      "handleSignals": "if(signals[0] == GE.signals.DONE) pins.lastTime = pins.currentTime;"
+      "handleSignals": "if(signals[0] == RW.signals.DONE) pins.lastTime = pins.currentTime;"
     }
   },
   "transformers": {
@@ -522,7 +522,7 @@
         "children",
         "value"
       ],
-      "body": "var childIndex = GE.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
+      "body": "var childIndex = RW.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
     },
     "initializeStarfield": {
       "args": [
@@ -549,7 +549,7 @@
         "lasers",
         "screenSize"
       ],
-      "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[0]) laser[0] = laser[0] + 20;\n    else delete lasers[key]; \n}\nreturn lasers;"
+      "body": "lasers = RW.cloneData(lasers);\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[0]) laser[0] = laser[0] + 20;\n    else delete lasers[key]; \n}\nreturn lasers;"
     },
     "moveEnemy": {
       "args": [

@@ -46,7 +46,7 @@ angular.module('gamEvolve.game.memory', [])
     save = saveExpandedNodes(editor.node)
 
     # Clone so that the editor doesn't modify our recorded data directly
-    editor.set(GE.cloneData(memoryModel))
+    editor.set(RW.cloneData(memoryModel))
 
     restoreExpandedNodes(editor.node, save)
 
@@ -59,4 +59,4 @@ angular.module('gamEvolve.game.memory', [])
 
     # If we are on the first frame, update the game memory
     if gameTime.currentFrameNumber == 0 
-      currentGame.version.memory = GE.cloneData(editor.get())
+      currentGame.version.memory = RW.cloneData(editor.get())

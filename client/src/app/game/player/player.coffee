@@ -7,7 +7,7 @@ buildLogMessages = (result) ->
   errorMessages = for error in result.errors
     { 
       path: error.path
-      level: GE.logLevels.ERROR
+      level: RW.logLevels.ERROR
       message: [error.stage, error.message] 
     }
   return errorMessages.concat(result.logMessages)
@@ -109,7 +109,7 @@ angular.module('gamEvolve.game.player', [])
 
           # Calculate memory going into the next frame
           lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
-          lastMemory = GE.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+          lastMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
 
           # Add in the new results
           for results in message.value
@@ -121,7 +121,7 @@ angular.module('gamEvolve.game.player', [])
               break
 
             # Calcuate the next memory to be used
-            lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
+            lastMemory = RW.applyPatches(results.memoryPatches, lastMemory)
 
           if metError 
             overlay.makeNotification("error")
@@ -185,7 +185,7 @@ angular.module('gamEvolve.game.player', [])
               break # Stop updating when error is found
 
             # Calcuate the next memory to be used
-            lastMemory = GE.applyPatches(results.memoryPatches, lastMemory)
+            lastMemory = RW.applyPatches(results.memoryPatches, lastMemory)
 
           if metError 
             overlay.makeNotification("error")
@@ -239,7 +239,7 @@ angular.module('gamEvolve.game.player', [])
   onUpdateFrame = (frameNumber) ->
     if not gameCode? then return
     frameResult = gameHistory.data.frames[frameNumber]
-    outputIoData = GE.applyPatches(frameResult.ioPatches, frameResult.inputIoData)
+    outputIoData = RW.applyPatches(frameResult.ioPatches, frameResult.inputIoData)
     sendMessage("playBackFrame", { outputIoData: outputIoData })
   $scope.$watch('gameTime.currentFrameNumber', onUpdateFrame, true)
 
@@ -248,7 +248,7 @@ angular.module('gamEvolve.game.player', [])
     if gameTime.isPlaying 
       # Start playing on next frame
       lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
-      nextMemory = GE.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+      nextMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
 
       if gameTime.inRecordMode
         # Notify the user

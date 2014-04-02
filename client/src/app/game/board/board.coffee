@@ -149,7 +149,7 @@ angular.module('gamEvolve.game.boardTree', [
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
           liaison: ->
             {
-            model: GE.cloneData(model)
+            model: RW.cloneData(model)
             done: (newModel) ->
               onDone(newModel)
               dialog.close()

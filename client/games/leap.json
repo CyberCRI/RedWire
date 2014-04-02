@@ -196,7 +196,7 @@
           },
           {
             "emitter": {
-              "memory.events": "GE.appendToArray(memory.events, { type: 'filled form', time: transformers.makeTimestamp(io.time) })"
+              "memory.events": "RW.appendToArray(memory.events, { type: 'filled form', time: transformers.makeTimestamp(io.time) })"
             },
             "comment": "Write filled form event"
           },
@@ -229,7 +229,7 @@
               },
               {
                 "emitter": {
-                  "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(memory.gridTranslation), transformers.makeBlockShapes(memory.constants.grid, GE.difference(memory.blocks, memory.highlightedBlocks), transformers.rgbColorString(memory.constants.blockColor), memory.constants.blockSize)))"
+                  "io.canvas.shapes": "transformers.drawShapes(transformers.translateShapes(transformers.inverseVector(memory.gridTranslation), transformers.makeBlockShapes(memory.constants.grid, RW.difference(memory.blocks, memory.highlightedBlocks), transformers.rgbColorString(memory.constants.blockColor), memory.constants.blockSize)))"
                 },
                 "comment": "Draw normal blocks"
               },
@@ -300,7 +300,7 @@
                     "name": "startDrag",
                     "comment": "Take the dragged block out of the list of normal blocks",
                     "emitter": {
-                      "memory.blocks": "GE.removeFromArray(memory.blocks, memory.mouseDetection.shape.meta)",
+                      "memory.blocks": "RW.removeFromArray(memory.blocks, memory.mouseDetection.shape.meta)",
                       "memory.dragFrameCounter": 0
                     }
                   },
@@ -309,8 +309,8 @@
                     "comment": "Put the block back in place, and start the highlighting",
                     "emitter": {
                       "memory.blockGroupsToBeHighlighted": "transformers.makeBlockGroupsToBeHighlighted(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))",
-                      "memory.blocks": "GE.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))",
-                      "memory.events": "GE.appendToArray(memory.events, { type: 'moved tile', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(GE.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))) })"
+                      "memory.blocks": "RW.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))",
+                      "memory.events": "RW.appendToArray(memory.events, { type: 'moved tile', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(RW.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))) })"
                     }
                   },
                   {
@@ -365,8 +365,8 @@
                 "children": [
                   {
                     "emitter": {
-                      "memory.gallery": "GE.appendToArray(memory.gallery, memory.blocks)",
-                      "memory.events": "GE.appendToArray(memory.events, { type: 'added shape to gallery', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(memory.blocks) })"
+                      "memory.gallery": "RW.appendToArray(memory.gallery, memory.blocks)",
+                      "memory.events": "RW.appendToArray(memory.events, { type: 'added shape to gallery', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(memory.blocks) })"
                     },
                     "comment": "Save the shape in the gallery"
                   }
@@ -399,7 +399,7 @@
           {
             "emitter": {
               "memory.selectionGrids": "transformers.makeSelectionGalleryGrids(memory.constants.selectionGrid, memory.constants.galleryGrid, memory.gallery)",
-              "memory.events": "GE.appendToArray(memory.events, { type: 'began gallery selection', time: transformers.makeTimestamp(io.time) })"
+              "memory.events": "RW.appendToArray(memory.events, { type: 'began gallery selection', time: transformers.makeTimestamp(io.time) })"
             },
             "comment": "Make grids for gallery selection"
           },
@@ -470,8 +470,8 @@
                     "name": "click",
                     "comment": "Toggle the gallery as being selected or not",
                     "emitter": {
-                      "memory.selectedGalleryIndexes": "GE.toggleValueInArray(memory.selectedGalleryIndexes, memory.mouseDetection.shape.meta)",
-                      "memory.events": "GE.appendToArray(memory.events, { type: 'selected shape', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(memory.gallery[memory.mouseDetection.shape.meta]) })"
+                      "memory.selectedGalleryIndexes": "RW.toggleValueInArray(memory.selectedGalleryIndexes, memory.mouseDetection.shape.meta)",
+                      "memory.events": "RW.appendToArray(memory.events, { type: 'selected shape', time: transformers.makeTimestamp(io.time), shape: transformers.serializeBlocks(memory.gallery[memory.mouseDetection.shape.meta]) })"
                     }
                   }
                 ],
@@ -490,7 +490,7 @@
           },
           {
             "emitter": {
-              "memory.events": "GE.appendToArray(memory.events, { type: 'completed selection', time: transformers.makeTimestamp(io.time) })"
+              "memory.events": "RW.appendToArray(memory.events, { type: 'completed selection', time: transformers.makeTimestamp(io.time) })"
             },
             "comment": "Write \"completed selection\" event"
           },
@@ -605,7 +605,7 @@
           "default": "5"
         }
       },
-      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
     },
     "Update HTML Template": {
       "pinDefs": {
@@ -635,7 +635,7 @@
         }
       },
       "listActiveChildren": "return [children[pins.activeChild]];",
-      "handleSignals": "if (signals[pins.activeChild] == GE.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return GE.signals.DONE;\n}"
+      "handleSignals": "if (signals[pins.activeChild] == RW.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return RW.signals.DONE;\n}"
     },
     "Do for Some Time": {
       "pinDefs": {
@@ -645,14 +645,14 @@
         }
       },
       "listActiveChildren": "return children;",
-      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return GE.signals.DONE;\n}"
+      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return RW.signals.DONE;\n}"
     },
     "Do While": {
       "pinDefs": {
         "value": null
       },
       "listActiveChildren": "return !!pins.value ? children : [];",
-      "handleSignals": "if (!pins.value)\n  return GE.signals.DONE;"
+      "handleSignals": "if (!pins.value)\n  return RW.signals.DONE;"
     },
     "Do Forever": {
       "pinDefs": {},
@@ -663,7 +663,7 @@
       "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "if(GE.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
+      "listActiveChildren": "if(RW.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
     },
     "If": {
       "pinDefs": {
@@ -689,7 +689,7 @@
         }
       },
       "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
-      "handleSignals": "if(signals[0] == GE.signals.DONE) pins.lastTime = pins.currentTime;"
+      "handleSignals": "if(signals[0] == RW.signals.DONE) pins.lastTime = pins.currentTime;"
     }
   },
   "transformers": {
@@ -792,7 +792,7 @@
         "children",
         "value"
       ],
-      "body": "var childIndex = GE.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
+      "body": "var childIndex = RW.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
     },
     "makeFilledRectangle": {
       "args": [
@@ -892,13 +892,13 @@
         "blocks",
         "block"
       ],
-      "body": "var blocksWithout = transformers.removeElement(blocks, GE.indexOf(blocks, block));\nvar adjList = transformers.makeAdjacencyList(blocksWithout);\nvar visited = transformers.visitBlocks(adjList, [0]);\nreturn _.flatten(visited).length == blocksWithout.length;"
+      "body": "var blocksWithout = transformers.removeElement(blocks, RW.indexOf(blocks, block));\nvar adjList = transformers.makeAdjacencyList(blocksWithout);\nvar visited = transformers.visitBlocks(adjList, [0]);\nreturn _.flatten(visited).length == blocksWithout.length;"
     },
     "findFreeBlockPositions": {
       "args": [
         "blocks"
       ],
-      "body": "var freePositions = [];\n_.each(blocks, function (block) {\n  freePositions.push([\n    block[0] + 1,\n    block[1]\n  ]);\n  freePositions.push([\n    block[0] - 1,\n    block[1]\n  ]);\n  freePositions.push([\n    block[0],\n    block[1] + 1\n  ]);\n  freePositions.push([\n    block[0],\n    block[1] - 1\n  ]);\n});\nfreePositions = GE.uniq(freePositions);\nreturn GE.difference(freePositions, blocks);"
+      "body": "var freePositions = [];\n_.each(blocks, function (block) {\n  freePositions.push([\n    block[0] + 1,\n    block[1]\n  ]);\n  freePositions.push([\n    block[0] - 1,\n    block[1]\n  ]);\n  freePositions.push([\n    block[0],\n    block[1] + 1\n  ]);\n  freePositions.push([\n    block[0],\n    block[1] - 1\n  ]);\n});\nfreePositions = RW.uniq(freePositions);\nreturn RW.difference(freePositions, blocks);"
     },
     "distanceBetweenPoints": {
       "args": [
@@ -947,7 +947,7 @@
         "selectionGrids",
         "selectedGalleryIndexes"
       ],
-      "body": "var that = transformers;\nreturn _.map(selectionGrids, function (selectionGrid, index) {\n  return _.extend(that.makeGridCoveringRectangle(selectionGrid, index), {\n    fillStyle: GE.contains(selectedGalleryIndexes, index) ? 'red' : 'grey',\n    strokeStyle: 'white',\n    layer: 'gallery'\n  });\n});"
+      "body": "var that = transformers;\nreturn _.map(selectionGrids, function (selectionGrid, index) {\n  return _.extend(that.makeGridCoveringRectangle(selectionGrid, index), {\n    fillStyle: RW.contains(selectedGalleryIndexes, index) ? 'red' : 'grey',\n    strokeStyle: 'white',\n    layer: 'gallery'\n  });\n});"
     },
     "serializeBlocks": {
       "args": [
@@ -974,7 +974,7 @@
         "blocks",
         "newPosition"
       ],
-      "body": "log(GE.logLevels.INFO, 'makeBlockGroupsToBeHighlighted', arguments);\nvar newBlocks = GE.appendToArray(blocks, newPosition);\nvar adjList = transformers.makeAdjacencyList(newBlocks);\nvar visitedBlockIndexes = _.rest(transformers.visitBlocks(adjList, [newBlocks.length - 1]));\nreturn _.map(visitedBlockIndexes, function (blockIndexes) {\n  return _.map(blockIndexes, function (index) {\n    return newBlocks[index];\n  });\n});"
+      "body": "log(RW.logLevels.INFO, 'makeBlockGroupsToBeHighlighted', arguments);\nvar newBlocks = RW.appendToArray(blocks, newPosition);\nvar adjList = transformers.makeAdjacencyList(newBlocks);\nvar visitedBlockIndexes = _.rest(transformers.visitBlocks(adjList, [newBlocks.length - 1]));\nreturn _.map(visitedBlockIndexes, function (blockIndexes) {\n  return _.map(blockIndexes, function (index) {\n    return newBlocks[index];\n  });\n});"
     },
     "adjustShapesByMeta": {
       "args": [
@@ -982,7 +982,7 @@
         "meta",
         "properties"
       ],
-      "body": "return _.map(shapes, function (shape) {\n  if (_.isEqual(shape.meta, meta)) {\n    return _.extend(GE.clone(shape), properties);\n  } else {\n    return shape;\n  }\n});"
+      "body": "return _.map(shapes, function (shape) {\n  if (_.isEqual(shape.meta, meta)) {\n    return _.extend(RW.clone(shape), properties);\n  } else {\n    return shape;\n  }\n});"
     },
     "interpolateVector": {
       "args": [

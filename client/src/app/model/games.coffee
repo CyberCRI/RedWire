@@ -10,13 +10,13 @@ angular.module('gamEvolve.model.games', [])
 
   enumeratePinDestinations: ->
     destinations = @enumerateMemoryKeys(@version.memory)
-    @enumerateIoKeys(GE.io, destinations)
+    @enumerateIoKeys(RW.io, destinations)
     return destinations
 
   enumerateMemoryKeys: (memory, prefix = ['memory'], keys = []) ->
     for name, value of memory
-      keys.push(GE.appendToArray(prefix, name).join('.'))
-      if GE.isOnlyObject(value) then @enumerateMemoryKeys(value, GE.appendToArray(prefix, name), keys)
+      keys.push(RW.appendToArray(prefix, name).join('.'))
+      if RW.isOnlyObject(value) then @enumerateMemoryKeys(value, RW.appendToArray(prefix, name), keys)
     return keys
 
   enumerateIoKeys: (ioServices,  keys = []) ->

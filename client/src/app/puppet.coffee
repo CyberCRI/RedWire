@@ -26,12 +26,12 @@ requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimati
 # Converts pin default values (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were
 compilePinDefs = (pinDefs, evaluator) ->
-  return GE.mapObject pinDefs, (value, key) ->
+  return RW.mapObject pinDefs, (value, key) ->
     compiledPinParams = {}
     try
       for pinParamKey, pinParamValue of value
         compiledPinParams[pinParamKey] = switch pinParamKey
-          when "default" then GE.compileExpression(pinParamValue, evaluator)
+          when "default" then RW.compileExpression(pinParamValue, evaluator)
           else pinParamValue
       return compiledPinParams
     catch compilationError
@@ -40,12 +40,12 @@ compilePinDefs = (pinDefs, evaluator) ->
 # Converts input processors (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were
 compileProcessors = (inputProcessors, evaluator) ->
-  return GE.mapObject inputProcessors, (value, key) ->
+  return RW.mapObject inputProcessors, (value, key) ->
     compiledProcessor = {}
     try
       for processorKey, processorValue of value
         compiledProcessor[processorKey] = switch processorKey
-          when "update" then GE.compileUpdate(processorValue, evaluator)
+          when "update" then RW.compileUpdate(processorValue, evaluator)
           when "pinDefs" then compilePinDefs(processorValue, evaluator)
           else processorValue
       return compiledProcessor
@@ -55,13 +55,13 @@ compileProcessors = (inputProcessors, evaluator) ->
 # Converts input processors (with code as strings) to compiled form with code as functions
 # Leaves non-code values as they were
 compileSwitches = (inputSwitches, evaluator) ->
-  return GE.mapObject inputSwitches, (value, key) ->
+  return RW.mapObject inputSwitches, (value, key) ->
     compiledSwitch = {}
     try
       for switchKey, switchValue of value
         compiledSwitch[switchKey] = switch switchKey
-          when "listActiveChildren" then GE.compileListActiveChildren(switchValue, evaluator)
-          when "handleSignals" then GE.compileHandleSignals(switchValue, evaluator)
+          when "listActiveChildren" then RW.compileListActiveChildren(switchValue, evaluator)
+          when "handleSignals" then RW.compileHandleSignals(switchValue, evaluator)
           when "pinDefs" then compilePinDefs(switchValue, evaluator)
           else switchValue
       return compiledSwitch
@@ -73,9 +73,9 @@ compileSwitches = (inputSwitches, evaluator) ->
 compileTransformers = (inputTransformers, evaluator) ->
   transformersContext = 
     transformers: null
-  compiledTransformers = GE.mapObject inputTransformers, (value, key) -> 
+  compiledTransformers = RW.mapObject inputTransformers, (value, key) -> 
     try
-      transformerFactory = GE.compileTransformer(value.body, value.args, evaluator)
+      transformerFactory = RW.compileTransformer(value.body, value.args, evaluator)
       return transformerFactory(transformersContext)
     catch compilationError
       throw new Error("Error compiling transformer '#{key}'. #{compilationError}")
@@ -84,24 +84,24 @@ compileTransformers = (inputTransformers, evaluator) ->
 
 compileExpression = (expression, evaluator, path) ->
   try 
-    return GE.compileExpression(expression, evaluator)
+    return RW.compileExpression(expression, evaluator)
   catch error
     throw new Error("Error compiling expression '#{expression}' for chip [#{path.join(', ')}]. #{error}")
 
 # Converts board expressions (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were.
 compileBoard = (board, evaluator, path = []) ->
-  return GE.mapObject board, (value, key) ->
+  return RW.mapObject board, (value, key) ->
     switch key
-      when "emitter" then GE.mapObject(value, (expression, dest) -> compileExpression(expression, evaluator, path))
+      when "emitter" then RW.mapObject(value, (expression, dest) -> compileExpression(expression, evaluator, path))
       when "pins" 
-        in: if value.in then GE.mapObject(value.in, (expression, pinName) -> compileExpression(expression, evaluator, path)) else {}
-        out: if value.out then GE.mapObject(value.out, (expression, dest) -> compileExpression(expression, evaluator, path)) else {}
-      when "splitter" then GE.mapObject value, (splitterValue, splitterKey) -> 
+        in: if value.in then RW.mapObject(value.in, (expression, pinName) -> compileExpression(expression, evaluator, path)) else {}
+        out: if value.out then RW.mapObject(value.out, (expression, dest) -> compileExpression(expression, evaluator, path)) else {}
+      when "splitter" then RW.mapObject value, (splitterValue, splitterKey) -> 
         switch splitterKey
           when "where" then compileExpression(splitterValue, evaluator, path)
           else splitterValue
-      when "children" then _.map(value, (child, key) -> compileBoard(child, evaluator, GE.appendToArray(path, key)))
+      when "children" then _.map(value, (child, key) -> compileBoard(child, evaluator, RW.appendToArray(path, key)))
       else value
 
 destroyIo = (currentIo) ->
@@ -111,7 +111,7 @@ destroyIo = (currentIo) ->
 initializeIo = (ioConfig) ->
   # Create new io
   currentIo = {}
-  for ioName, ioData of GE.io
+  for ioName, ioData of RW.io
     try
       options = 
         elementSelector: '#gameContent'
@@ -126,7 +126,7 @@ initializeIo = (ioConfig) ->
 
 destroyAssets = (oldAssets) ->
   for name, dataUrl of oldAssets.urls
-    splitUrl = GE.splitDataUrl(dataUrl)
+    splitUrl = RW.splitDataUrl(dataUrl)
     if splitUrl.mimeType in ["application/javascript", "text/javascript"]
       # Nothing to do, cannot unload JS!
     else if splitUrl.mimeType == "text/css"
@@ -143,7 +143,7 @@ createAssets = (inputAssets, evaluator) ->
 
   # Create new assets
   for name, dataUrl of inputAssets
-    splitUrl = GE.splitDataUrl(dataUrl)
+    splitUrl = RW.splitDataUrl(dataUrl)
     if splitUrl.mimeType in ["application/javascript", "text/javascript"]
       script = atob(splitUrl.data)
       evaluator(script)
@@ -151,7 +151,7 @@ createAssets = (inputAssets, evaluator) ->
       css = atob(splitUrl.data)
       assetNamesToData[name] = $('<style type="text/css"></style>').html(css).appendTo("head")
     else if splitUrl.mimeType.indexOf("image/") == 0
-      blob = GE.dataURLToBlob(dataUrl)
+      blob = RW.dataURLToBlob(dataUrl)
       objectUrl = URL.createObjectURL(blob)
 
       image = new Image()
@@ -191,9 +191,9 @@ makeReporter = (destinationWindow, destinationOrigin, operation) ->
 
 onRecordFrame = (memory) ->
   # Freeze memory so that game code can't effect it
-  GE.deepFreeze(memory) 
+  RW.deepFreeze(memory) 
 
-  return GE.stepLoop
+  return RW.stepLoop
     chip: loadedGame.board
     memoryData: memory
     assets: loadedGame.assets.data
@@ -213,7 +213,7 @@ onRepeatRecordFrame = ->
     isRecording = false
     recordFrameReporter(new Error("Errors in recording"))
   else 
-    lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
+    lastMemory = RW.applyPatches(result.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatRecordFrame) # Loop!
 
 onRepeatPlayFrame = ->
@@ -226,11 +226,11 @@ onRepeatPlayFrame = ->
     isPlaying = false
     playFrameReporter(new Error("Errors in playing"))
   else 
-    lastMemory = GE.applyPatches(lastPlayedFrame.memoryPatches, lastMemory)
+    lastMemory = RW.applyPatches(lastPlayedFrame.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatPlayFrame) # Loop!
 
 playBackFrame = (outputIoData) ->
-  GE.stepLoop
+  RW.stepLoop
     chip: loadedGame.board
     assets: loadedGame.assets.data
     processors: loadedGame.processors
@@ -242,10 +242,10 @@ playBackFrame = (outputIoData) ->
 
 updateFrame = (memory, inputIoData) ->
   # Freeze memory so that game code can't effect it
-  GE.deepFreeze(memory)
-  GE.deepFreeze(inputIoData)
+  RW.deepFreeze(memory)
+  RW.deepFreeze(inputIoData)
 
-  return GE.stepLoop
+  return RW.stepLoop
     chip: loadedGame.board
     memoryData: memory
     assets: loadedGame.assets.data
@@ -265,7 +265,7 @@ onUpdateFrames = (memory, inputIoDataFrames) ->
     results.push(result)
     if results.errors then return results # Return right away
 
-    lastMemory = GE.applyPatches(result.memoryPatches, lastMemory)
+    lastMemory = RW.applyPatches(result.memoryPatches, lastMemory)
   return results
 
 # MAIN
