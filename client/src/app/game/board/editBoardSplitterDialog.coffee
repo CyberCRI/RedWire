@@ -6,7 +6,7 @@ angular.module('gamEvolve.game.board.editSplitterDialog', [
 .controller 'EditBoardSplitterDialogCtrl', ($scope, liaison, currentGame) ->
   $scope.DESTINATIONS = currentGame.enumeratePinDestinations()
   $scope.name = liaison.model.comment
-  $scope.childName = if liaison.model.name then JSON.stringify(liaison.model.name) else ""
+  $scope.childName = if liaison.model.name? then JSON.stringify(liaison.model.name) else ""
   $scope.from = liaison.model.splitter.from
   $scope.bindTo = liaison.model.splitter.bindTo
   $scope.index = liaison.model.splitter.index
