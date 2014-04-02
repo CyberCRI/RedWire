@@ -46,7 +46,7 @@ GE.EvaluationContext = class
   setupBindings: (bindings) ->
     for bindingName, bindingValue of bindings
       if bindingValue instanceof GE.BindingReference
-        [parent, key] = GE.getParentAndKey(@, bindingValue.ref.split("."))
+        [parent, key] = GE.getParentAndKey(@, GE.splitAddress(bindingValue.ref))
         @bindings[bindingName] = parent[key]
       else
         @bindings[bindingName] = bindingValue
@@ -225,7 +225,7 @@ GE.evaluateOutputPinExpressions = (path, evaluationContext, pinDefs, pinFunction
     catch error
       throw GE.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{error.stack}\nOutput pins were #{JSON.stringify(outPins)}.", path)
 
-    [parent, key] = GE.getParentAndKey(evaluationContext, pinName.split("."))
+    [parent, key] = GE.getParentAndKey(evaluationContext, GE.splitAddress(pinName))
     parent[key] = outputValue
 
 GE.calculateBindingSet = (path, chip, constants, oldBindings) ->
@@ -253,7 +253,7 @@ GE.calculateBindingSet = (path, chip, constants, oldBindings) ->
       memory: GE.cloneData(constants.memoryData)
       io: GE.cloneData(constants.ioData)
 
-    [parent, key] = GE.getParentAndKey(inputContext, chip.splitter.from.split("."))
+    [parent, key] = GE.getParentAndKey(inputContext, GE.splitAddress(chip.splitter.from))
     boundValue = parent[key]
 
     for key of boundValue
@@ -386,7 +386,7 @@ GE.visitEmitterChip = (path, chip, constants, bindings) ->
     catch error
       throw GE.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{error.stack}", path)
 
-    [parent, key] = GE.getParentAndKey(evaluationContext, dest.split("."))
+    [parent, key] = GE.getParentAndKey(evaluationContext, GE.splitAddress(dest))
     parent[key] = outputValue
 
     memoryPatches = GE.concatenate(memoryPatches, GE.makePatches(constants.memoryData, evaluationContext.memory, path))
@@ -560,6 +560,9 @@ GE.makeLogFunction = (path, logMessages) ->
   logFunction.warn = (args...) -> logFunction(GE.logLevels.WARN, args...)  
   logFunction.error = (args...) -> logFunction(GE.logLevels.ERROR, args...)  
   return logFunction
+
+# Split address like "a.b[1].2" into ["a", "b", 1, 2]
+GE.splitAddress = (address) -> _.reject(address.split(/[\.\[\]]/), (part) -> part is "")
 
 # Load all the assets in the given object (name: url) and then call callback with the results, or error
 # TODO: have cache-busting be configurable
