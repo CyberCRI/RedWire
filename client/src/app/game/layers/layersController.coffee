@@ -2,7 +2,7 @@ angular.module('gamEvolve.game.layers', [
   'ui.sortable',
 ])
 .controller 'LayersCtrl', ($scope, currentGame) ->
-  $scope.TYPES = (name for name, io of GE.io when io.meta.visual)
+  $scope.TYPES = (name for name, io of RW.io when io.meta.visual)
 
   # Get the actions object from the currentGame service, and keep it updated
   $scope.layers = []

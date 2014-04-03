@@ -1,14 +1,14 @@
 # Get alias for the global scope
 globals = @
 
-# All will be in the "GE" namespace
-GE = globals.GE ? {}
-globals.GE = GE
+# All will be in the "RW" namespace
+RW = globals.RW ? {}
+globals.RW = RW
 
-GE.io = {}
+RW.io = {}
 
 # Define keyboard input io
-GE.io.keyboard = 
+RW.io.keyboard = 
   meta:
     visual: false
   factory: (options = {}) ->
@@ -36,7 +36,7 @@ GE.io.keyboard =
     }
 
 # Define mouse input/output io
-GE.io.mouse = 
+RW.io.mouse = 
   meta:
     visual: false
   factory: (options = {}) ->
@@ -75,7 +75,7 @@ GE.io.mouse =
     }
 
 # Define canvas output io
-GE.io.canvas =  
+RW.io.canvas =  
   meta:
     visual: true
   factory: (options = {}) ->
@@ -225,7 +225,7 @@ GE.io.canvas =
     }
 
 # Define HTML input io
-GE.io.html =  
+RW.io.html =  
   meta:
     visual: true
   factory: (options = {}) ->
@@ -311,7 +311,7 @@ GE.io.html =
     }
 
 # Define time io, that provides the current time in ms
-GE.io.time =  
+RW.io.time =  
   meta:
     visual: false
   factory: ->
@@ -320,7 +320,7 @@ GE.io.time =
     destroy: -> # NOP
 
 # The HTTP io makes AJAX requests 
-GE.io.http =  
+RW.io.http =  
   meta:
     visual: false
   factory: ->
@@ -365,7 +365,7 @@ GE.io.http =
     return io
 
 # Define chart output io
-GE.io.charts =  
+RW.io.charts =  
   meta:
     visual: true
   factory: (options = {}) ->

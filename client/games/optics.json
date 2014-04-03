@@ -1,6 +1,5 @@
 {
-  "name": "Optics",
-  "fileVersion": 0.1,
+  "name": "optics",
   "memory": {
     "leftMouseDown": false,
     "selectedPiece": null,
@@ -250,42 +249,6 @@
         ]
       }
     }
-  },
-  "io": {
-    "layers": [
-      {
-        "name": "bg",
-        "type": "canvas"
-      },
-      {
-        "name": "pieces",
-        "type": "canvas"
-      },
-      {
-        "name": "light",
-        "type": "canvas"
-      },
-      {
-        "name": "mask",
-        "type": "canvas"
-      },
-      {
-        "name": "rotating",
-        "type": "canvas"
-      },
-      {
-        "name": "drag",
-        "type": "canvas"
-      },
-      {
-        "name": "selection",
-        "type": "canvas"
-      },
-      {
-        "name": "text",
-        "type": "canvas"
-      }
-    ]
   },
   "board": {
     "children": [
@@ -596,6 +559,50 @@
     ],
     "switch": "Do in Parallel"
   },
+  "io": {
+    "layers": [
+      {
+        "name": "bg",
+        "type": "canvas",
+        "$$hashKey": "083"
+      },
+      {
+        "name": "pieces",
+        "type": "canvas",
+        "$$hashKey": "087"
+      },
+      {
+        "name": "light",
+        "type": "canvas",
+        "$$hashKey": "08B"
+      },
+      {
+        "name": "mask",
+        "type": "canvas",
+        "$$hashKey": "08F"
+      },
+      {
+        "name": "rotating",
+        "type": "canvas",
+        "$$hashKey": "08J"
+      },
+      {
+        "name": "drag",
+        "type": "canvas",
+        "$$hashKey": "08N"
+      },
+      {
+        "name": "selection",
+        "type": "canvas",
+        "$$hashKey": "08R"
+      },
+      {
+        "name": "text",
+        "type": "canvas",
+        "$$hashKey": "08V"
+      }
+    ]
+  },
   "processors": {
     "clickListener": {
       "pinDefs": {
@@ -672,7 +679,7 @@
           "default": "5"
         }
       },
-      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(GE.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(GE.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(GE.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(GE.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
     }
   },
   "switches": {
@@ -689,7 +696,7 @@
         }
       },
       "listActiveChildren": "return [children[pins.activeChild]];",
-      "handleSignals": "if (signals[pins.activeChild] == GE.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return GE.signals.DONE;\n}"
+      "handleSignals": "if (signals[pins.activeChild] == RW.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return RW.signals.DONE;\n}"
     },
     "Do for Some Time": {
       "pinDefs": {
@@ -699,14 +706,14 @@
         }
       },
       "listActiveChildren": "return children;",
-      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return GE.signals.DONE;\n}"
+      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return RW.signals.DONE;\n}"
     },
     "Do While": {
       "pinDefs": {
         "value": null
       },
       "listActiveChildren": "return !!pins.value ? children : [];",
-      "handleSignals": "if (!pins.value)\n  return GE.signals.DONE;"
+      "handleSignals": "if (!pins.value)\n  return RW.signals.DONE;"
     },
     "Do Forever": {
       "pinDefs": {},
@@ -717,7 +724,7 @@
       "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "if(GE.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
+      "listActiveChildren": "if(RW.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
     },
     "If": {
       "pinDefs": {
@@ -743,7 +750,7 @@
         }
       },
       "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
-      "handleSignals": "if(signals[0] == GE.signals.DONE) pins.lastTime = pins.currentTime;"
+      "handleSignals": "if(signals[0] == RW.signals.DONE) pins.lastTime = pins.currentTime;"
     }
   },
   "transformers": {
@@ -815,7 +822,7 @@
         "gridSize",
         "unmovablePieces"
       ],
-      "body": "var newPiece = GE.cloneData(piece);\nvar newPieces = GE.cloneData(pieces);\nvar newBoxedPieces = GE.cloneData(boxedPieces);\nif (transformers.isMovable(piece, unmovablePieces)) {\n  if (newSquare != null) {\n    if (transformers.findGridElement(newSquare, pieces) == null) {\n      if (piece.col !== undefined && piece.row !== undefined) {\n        newPiece.col = newSquare[0];\n        newPiece.row = newSquare[1];\n        newPieces = transformers.replace(piece, newPiece, pieces);\n      } else {\n        newBoxedPieces = transformers.takePieceOutOfBox(piece.type, boxedPieces);\n        newPiece = {\n          'col': newSquare[0],\n          'row': newSquare[1],\n          'type': piece.type,\n          'rotation': 0\n        };\n        newPieces = pieces.concat([newPiece]);\n      }\n    }\n  } else {\n    var put = transformers.putPieceIntoBox(piece, pieces, boxedPieces);\n    newPiece = put.piece;\n    newPieces = put.pieces;\n    newBoxedPieces = put.boxedPieces;\n  }\n} else {\n}\nvar toReturn = {};\ntoReturn.piece = newPiece;\ntoReturn.pieces = newPieces;\ntoReturn.boxedPieces = newBoxedPieces;\ntoReturn.selectedPiece = null;\ntoReturn.draggedPiece = null;\ntoReturn.rotating = false;\ntoReturn.originalRotation = null;\ntoReturn.originalPieceRotation = null;\nreturn toReturn;"
+      "body": "var newPiece = RW.cloneData(piece);\nvar newPieces = RW.cloneData(pieces);\nvar newBoxedPieces = RW.cloneData(boxedPieces);\nif (transformers.isMovable(piece, unmovablePieces)) {\n  if (newSquare != null) {\n    if (transformers.findGridElement(newSquare, pieces) == null) {\n      if (piece.col !== undefined && piece.row !== undefined) {\n        newPiece.col = newSquare[0];\n        newPiece.row = newSquare[1];\n        newPieces = transformers.replace(piece, newPiece, pieces);\n      } else {\n        newBoxedPieces = transformers.takePieceOutOfBox(piece.type, boxedPieces);\n        newPiece = {\n          'col': newSquare[0],\n          'row': newSquare[1],\n          'type': piece.type,\n          'rotation': 0\n        };\n        newPieces = pieces.concat([newPiece]);\n      }\n    }\n  } else {\n    var put = transformers.putPieceIntoBox(piece, pieces, boxedPieces);\n    newPiece = put.piece;\n    newPieces = put.pieces;\n    newBoxedPieces = put.boxedPieces;\n  }\n} else {\n}\nvar toReturn = {};\ntoReturn.piece = newPiece;\ntoReturn.pieces = newPieces;\ntoReturn.boxedPieces = newBoxedPieces;\ntoReturn.selectedPiece = null;\ntoReturn.draggedPiece = null;\ntoReturn.rotating = false;\ntoReturn.originalRotation = null;\ntoReturn.originalPieceRotation = null;\nreturn toReturn;"
     },
     "takePieceOutOfBox": {
       "args": [
@@ -830,7 +837,7 @@
         "pieces",
         "boxedPieces"
       ],
-      "body": "var res = {};\nif (piece.row !== undefined) {\n  res.boxedPiece = { 'type': piece.type };\n  res.boxedPieces = boxedPieces.concat(res.boxedPiece);\n  res.pieces = transformers.removeElement(pieces, GE.indexOf(pieces, piece));\n} else {\n  res.boxedPiece = piece;\n  res.pieces = pieces;\n  res.boxedPieces = boxedPieces;\n}\nreturn res;"
+      "body": "var res = {};\nif (piece.row !== undefined) {\n  res.boxedPiece = { 'type': piece.type };\n  res.boxedPieces = boxedPieces.concat(res.boxedPiece);\n  res.pieces = transformers.removeElement(pieces, RW.indexOf(pieces, piece));\n} else {\n  res.boxedPiece = piece;\n  res.pieces = pieces;\n  res.boxedPieces = boxedPieces;\n}\nreturn res;"
     },
     "getIndexInBox": {
       "args": [
@@ -1030,7 +1037,7 @@
         "children",
         "value"
       ],
-      "body": "var childIndex = GE.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
+      "body": "var childIndex = RW.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
     },
     "pieceIsMovable": {
       "args": [
@@ -1091,7 +1098,7 @@
         "selectedCell",
         "unrotatablePieceTypes"
       ],
-      "body": "var shapes = GE.concatenate(transformers.makeBoardShapes(boardGrid, boardPieces), transformers.makeBoxShapes(boxGrid, boxedPieces));\nif (selectedCell) {\n  var selectedPiece = transformers.findPieceAtCell(boardPieces, selectedCell);\n  if (selectedPiece && transformers.pieceIsRotatable(selectedPiece, unrotatablePieceTypes))\n    shapes.push(transformers.makeRotateShape(boardGrid, selectedCell));\n}\nreturn shapes;"
+      "body": "var shapes = RW.concatenate(transformers.makeBoardShapes(boardGrid, boardPieces), transformers.makeBoxShapes(boxGrid, boxedPieces));\nif (selectedCell) {\n  var selectedPiece = transformers.findPieceAtCell(boardPieces, selectedCell);\n  if (selectedPiece && transformers.pieceIsRotatable(selectedPiece, unrotatablePieceTypes))\n    shapes.push(transformers.makeRotateShape(boardGrid, selectedCell));\n}\nreturn shapes;"
     }
   },
   "assets": {

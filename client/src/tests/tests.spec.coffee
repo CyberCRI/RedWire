@@ -3,10 +3,10 @@ globals = @
 
 makeEvaluator = -> eval
 
-compileExpression = (expression) -> GE.compileExpression(expression, eval)
+compileExpression = (expression) -> RW.compileExpression(expression, eval)
 
 
-describe "gamEvolve", ->
+describe "RedWire", ->
   beforeEach ->
     @addMatchers 
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
@@ -19,8 +19,8 @@ describe "gamEvolve", ->
       b = 
         v: [10, 12, 13, 14, 15] # Missing 11
 
-      patches = GE.makePatches(a, b)
-      patchResult = GE.applyPatches(patches, a)
+      patches = RW.makePatches(a, b)
+      patchResult = RW.applyPatches(patches, a)
 
       expect(patchResult).toDeeplyEqual(b)
 
@@ -39,8 +39,8 @@ describe "gamEvolve", ->
           bob: "is cool"
 
       # Create the result via patches
-      patches = GE.makePatches(oldData, newData)
-      result = GE.applyPatches(patches, oldData)
+      patches = RW.makePatches(oldData, newData)
+      result = RW.applyPatches(patches, oldData)
 
       # The new data and old data should still be valid and different
       expect(oldData).not.toDeeplyEqual(newData)
@@ -60,11 +60,11 @@ describe "gamEvolve", ->
           b: 3
         c: 2
       
-      patchesA = GE.makePatches(oldData, newDataA, "a")
-      patchesB = GE.makePatches(oldData, newDataB, "b")
-      allPatches = GE.concatenate(patchesA, patchesB)
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
 
-      conflicts = GE.detectPatchConflicts(allPatches)
+      conflicts = RW.detectPatchConflicts(allPatches)
       expect(conflicts.length).toBe(1)
       expect(conflicts[0].path).toBe("/a/b")
 
@@ -80,11 +80,11 @@ describe "gamEvolve", ->
         a:
           b: 3
       
-      patchesA = GE.makePatches(oldData, newDataA, "a")
-      patchesB = GE.makePatches(oldData, newDataB, "b")
-      allPatches = GE.concatenate(patchesA, patchesB)
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
 
-      conflicts = GE.detectPatchConflicts(allPatches)
+      conflicts = RW.detectPatchConflicts(allPatches)
       expect(conflicts.length).toBe(1)
       expect(conflicts[0].path).toBe("/a/b")
 
@@ -102,11 +102,11 @@ describe "gamEvolve", ->
           b: 1
         c: 3
       
-      patchesA = GE.makePatches(oldData, newDataA, "a")
-      patchesB = GE.makePatches(oldData, newDataB, "b")
-      allPatches = GE.concatenate(patchesA, patchesB)
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
 
-      conflicts = GE.detectPatchConflicts(allPatches)
+      conflicts = RW.detectPatchConflicts(allPatches)
       expect(conflicts).toBeEmpty()
 
     # Issue #299
@@ -129,7 +129,7 @@ describe "gamEvolve", ->
         }
       ]
 
-      conflicts = GE.detectPatchConflicts(patches)
+      conflicts = RW.detectPatchConflicts(patches)
       expect(conflicts.length).toBe(1)
 
   describe "visitChip()", ->
@@ -157,10 +157,10 @@ describe "gamEvolve", ->
           in: 
             x: compileExpression("1 + 1")
 
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         processors: processors
         evaluator: makeEvaluator()
-      GE.visitChip([], board, constants, {})
+      RW.visitChip([], board, constants, {})
       expect(isCalled).toBeTruthy()
 
     it "calls children of switches", ->
@@ -190,10 +190,10 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         processors: processors
         switches: switches
-      GE.visitChip([], board, constants, {})
+      RW.visitChip([], board, constants, {})
       expect(timesCalled).toEqual(3)
 
     it "returns the path for patches", ->
@@ -214,7 +214,7 @@ describe "gamEvolve", ->
         log: 
           pinDefs: 
             message: null
-          update: (pins, transformers, log) -> log(GE.logLevels.INFO, pins.message)
+          update: (pins, transformers, log) -> log(RW.logLevels.INFO, pins.message)
 
       switches = 
         doAll: 
@@ -223,7 +223,7 @@ describe "gamEvolve", ->
       # Transformers must be compiled this way
       # TODO: create function that does this work for us
       transformers = {}
-      transformers.logIt = GE.compileTransformer("log(GE.logLevels.INFO, msg); return msg;", ["msg"], eval)(transformers)
+      transformers.logIt = RW.compileTransformer("log(RW.logLevels.INFO, msg); return msg;", ["msg"], eval)(transformers)
 
       board = 
         switch: "doAll"
@@ -265,14 +265,14 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         memoryData: memoryData
         ioData: ioData
         processors: processors
         switches: switches
         evaluator: eval
         transformers: transformers
-      results = GE.visitChip([], board, constants, {})
+      results = RW.visitChip([], board, constants, {})
 
       expect(results.memoryPatches.length).toBe(3)
       for memoryPatch in results.memoryPatches
@@ -331,13 +331,13 @@ describe "gamEvolve", ->
             "memory.b": compileExpression("pins.y")
             "memory.c": compileExpression("pins.z")
 
-      constants = new GE.ChipVisitorConstants 
+      constants = new RW.ChipVisitorConstants 
         memoryData: oldMemory, 
         assets: assets
         processors: processors
         evaluator: makeEvaluator()
-      results = GE.visitChip([], board, constants, {})
-      newMemory = GE.applyPatches(results.memoryPatches, oldMemory)
+      results = RW.visitChip([], board, constants, {})
+      newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
 
       # The new memory should be changed, but the old one shouldn't be
       expect(oldMemory.a).toBe(1)
@@ -364,13 +364,13 @@ describe "gamEvolve", ->
           "memory.b": compileExpression("memory.c")
           "io.s.a": compileExpression("-5")
 
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         memoryData: oldMemory
         ioData: oldIoData
         evaluator: makeEvaluator()
-      results = GE.visitChip([], board, constants, {})
-      newMemory = GE.applyPatches(results.memoryPatches, oldMemory)
-      newIoData = GE.applyPatches(results.ioPatches, oldIoData)
+      results = RW.visitChip([], board, constants, {})
+      newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
+      newIoData = RW.applyPatches(results.ioPatches, oldIoData)
 
       # The new memory and io should be changed, but the old ones shouldn't be
       expect(oldMemory.a.a1).toBe(1)
@@ -401,10 +401,10 @@ describe "gamEvolve", ->
             return [children[pins.activeChild]]
           handleSignals: (pins, children, activeChildren, signals, transformers, log) ->
             expect(children).toDeeplyEqual([0, "2nd"])
-            if signals[pins.activeChild] == GE.signals.DONE 
+            if signals[pins.activeChild] == RW.signals.DONE 
               pins.activeChild++
             if pins.activeChild >= children.length - 1
-              return GE.signals.DONE
+              return RW.signals.DONE
 
       processors =
         reportDone:
@@ -413,7 +413,7 @@ describe "gamEvolve", ->
               direction: "inout"
           update: (pins, transformers, log) -> 
             pins.timesCalled++
-            return GE.signals.DONE
+            return RW.signals.DONE
 
       board = 
         switch: "nextOnDone"
@@ -442,25 +442,25 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         memoryData: memories[0]
         processors: processors
         switches: switches
         evaluator: makeEvaluator()
-      results = GE.visitChip([], board, constants, {})
-      memories[1] = GE.applyPatches(results.memoryPatches, memories[0])
+      results = RW.visitChip([], board, constants, {})
+      memories[1] = RW.applyPatches(results.memoryPatches, memories[0])
 
       expect(memories[1].child0TimesCalled).toBe(1)
       expect(memories[1].child1TimesCalled).toBe(0)
       expect(memories[1].activeChild).toBe(1)
       
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         memoryData: memories[1]
         processors: processors
         switches: switches
         evaluator: makeEvaluator()
-      results = GE.visitChip([], board, constants, {})
-      memories[2] = GE.applyPatches(results.memoryPatches, memories[1])
+      results = RW.visitChip([], board, constants, {})
+      memories[2] = RW.applyPatches(results.memoryPatches, memories[1])
 
       expect(memories[2].child0TimesCalled).toBe(1)
       expect(memories[2].child1TimesCalled).toBe(1)
@@ -499,10 +499,10 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         processors: processors
         evaluator: makeEvaluator()
-      GE.visitChip([], board, constants, {})
+      RW.visitChip([], board, constants, {})
 
       expect(processors.getName.update).toHaveBeenCalled()
 
@@ -543,15 +543,53 @@ describe "gamEvolve", ->
           }
         ]
 
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         memoryData: oldMemory
         processors: processors
         evaluator: makeEvaluator()
-      results = GE.visitChip([], board, constants, {})
-      newMemory = GE.applyPatches(results.memoryPatches, oldMemory)
+      results = RW.visitChip([], board, constants, {})
+      newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
 
       expect(newMemory.people[0].last).toBe("bill")
       expect(newMemory.people[1].last).toBe("joe")
+
+    it "binds with where guard", ->
+      oldMemory = 
+        people: [
+          { first: "bill", last: "bobson" }
+          { first: "joe", last: "johnson" }
+        ]
+
+      processors = 
+        getName: 
+          pinDefs:
+            lastName: null
+          update: (pins, transformers, log) -> 
+            expect(pins.lastName).toEqual("bobson")
+
+      board = 
+        splitter:
+          from: "memory.people"
+          bindTo: "person"
+          where: compileExpression("bindings.person.first == 'bill'")
+        children: [
+          { 
+            processor: "getName"
+            pins: 
+              in: 
+                lastName: compileExpression("bindings.person.last")
+          }
+        ]
+
+      spyOn(processors.getName, "update").andCallThrough()
+
+      constants = new RW.ChipVisitorConstants
+        memoryData: oldMemory
+        processors: processors
+        evaluator: makeEvaluator()
+      results = RW.visitChip([], board, constants, {})
+
+      expect(processors.getName.update).toHaveBeenCalled()
 
     it "communicates with io", ->
       oldIoData = 
@@ -575,12 +613,12 @@ describe "gamEvolve", ->
           out:
             "io.serviceA": compileExpression("pins.service")
 
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         ioData: oldIoData
         processors: processors
         evaluator: makeEvaluator()
-      results = GE.visitChip([], board, constants, {})
-      newIoData = GE.applyPatches(results.ioPatches, oldIoData)
+      results = RW.visitChip([], board, constants, {})
+      newIoData = RW.applyPatches(results.ioPatches, oldIoData)
 
       expect(newIoData.serviceA.a).toBe(2)
 
@@ -612,10 +650,10 @@ describe "gamEvolve", ->
         ]
 
       # Only one of these chips should have been called
-      constants = new GE.ChipVisitorConstants
+      constants = new RW.ChipVisitorConstants
         processors: processors
         switches: switches
-      GE.visitChip([], board, constants, {})
+      RW.visitChip([], board, constants, {})
       expect(timesCalled).toEqual(1)
 
   describe "stepLoop()", ->
@@ -628,7 +666,7 @@ describe "gamEvolve", ->
         myService:
           a = 1
 
-      result = GE.stepLoop 
+      result = RW.stepLoop 
         io: io
         outputIoData: outputIoData
 
@@ -662,7 +700,7 @@ describe "gamEvolve", ->
           out: 
             "io.myService": compileExpression("pins.service")
 
-      result = GE.stepLoop 
+      result = RW.stepLoop 
         chip: board
         processors: processors 
         io: io
@@ -704,7 +742,7 @@ describe "gamEvolve", ->
 
       ioConfig = { configA: 1 }
 
-      result = GE.stepLoop 
+      result = RW.stepLoop 
         chip: board
         processors: processors 
         transformers: transformers
@@ -759,7 +797,7 @@ describe "gamEvolve", ->
           }
         ]
 
-      results = GE.stepLoop 
+      results = RW.stepLoop 
         chip: boardA
         memoryData: oldData
         switches: switches
@@ -788,7 +826,7 @@ describe "gamEvolve", ->
           }
         ]
 
-      results = GE.stepLoop 
+      results = RW.stepLoop 
         chip: boardB 
         processors: processors 
         io: io
