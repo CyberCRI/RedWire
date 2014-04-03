@@ -26,9 +26,9 @@ RW.ChipVisitorResult = class
   # Return new results with combination of this and other
   appendWith: (other) ->
     # Don't touch @result
-    newMemoryPatches = RW.concatenate(@memoryPatches, other.memoryPatches)
-    newIoPatches = RW.concatenate(@ioPatches, other.ioPatches)
-    newLogMessages = RW.concatenate(@logMessages, other.logMessages)
+    newMemoryPatches = @memoryPatches.concat(other.memoryPatches)
+    newIoPatches = @ioPatches.concat(other.ioPatches)
+    newLogMessages = @logMessages.concat(other.logMessages)
     return new RW.ChipVisitorResult(@result, newMemoryPatches, newIoPatches, newLogMessages)
 
 # Class used just to "tag" a string as being a reference rather than a JSON value
@@ -102,14 +102,14 @@ RW.makePatches = (oldValue, newValue, path = null, prefix = "", patches = []) ->
   if _.isEqual(newValue, oldValue) then return patches
 
   if oldValue is undefined
-    patches.push { add: prefix, value: RW.cloneData(newValue), path: path }
+    patches.push { add: prefix, value: newValue, path: path }
   else if newValue is undefined 
     patches.push { remove: prefix, path: path }
   else if not _.isObject(newValue) or not _.isObject(oldValue) or typeof(oldValue) != typeof(newValue)
-    patches.push { replace: prefix, value: RW.cloneData(newValue), path: path }
+    patches.push { replace: prefix, value: newValue, path: path }
   else if _.isArray(oldValue) and oldValue.length != newValue.length
     # In the case that we modified an array, we need to replace the whole thing  
-    patches.push { replace: prefix, value: RW.cloneData(newValue), path: path }
+    patches.push { replace: prefix, value: newValue, path: path }
   else 
     # both elements are objects or arrays
     keys = _.union(_.keys(oldValue), _.keys(newValue))
@@ -278,8 +278,8 @@ RW.calculateBindingSet = (path, chip, constants, oldBindings) ->
         bindingSet.push(newBindings)
   else if _.isString(chip.splitter.from)
     inputContext = 
-      memory: RW.cloneData(constants.memoryData)
-      io: RW.cloneData(constants.ioData)
+      memory: constants.memoryData
+      io: constants.ioData
 
     [parent, key] = RW.getParentAndKey(inputContext, RW.splitAddress(chip.splitter.from))
     boundValue = parent[key]
