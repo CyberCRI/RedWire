@@ -10,7 +10,7 @@ angular.module('gamEvolve.game.play', [])
     data:
       pageTitle: 'Play Game'
 
-.controller 'PlayCtrl', ($scope, games, gameTime, gameHistory, $stateParams) ->
+.controller 'PlayCtrl', ($scope, $state, games, gameTime, gameHistory, currentGame, $stateParams) ->
   onUpdateGameHistory = -> 
     if gameHistory.meta.version is 1 then gameTime.isPlaying = true
 
@@ -18,4 +18,7 @@ angular.module('gamEvolve.game.play', [])
   $scope.gameHistoryMeta = gameHistory.meta
   $scope.$watch("gameHistoryMeta", onUpdateGameHistory, true)
 
-  games.loadFromId($stateParams.gameId)
+  $scope.remix = -> $state.transitionTo('game-edit', { gameId: $stateParams.gameId }) 
+
+  games.loadFromId($stateParams.gameId).then ->
+    $scope.title = currentGame.info.name

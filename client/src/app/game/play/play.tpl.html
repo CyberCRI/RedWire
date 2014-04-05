@@ -1,5 +1,12 @@
 <div id="playOnly">
-	<div id="gamePlayerContainer">
-		<iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
+	<div id="gameBox"> 
+		<div id="gamePlayerContainer">
+			<iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
+		</div>
+	</div>
+
+	<div>
+		<h1>{{title}}</h1>
+		<a href="" ng-click="remix()">Remix</a>
 	</div>
 </div>
