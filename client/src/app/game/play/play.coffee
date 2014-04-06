@@ -19,6 +19,15 @@ angular.module('gamEvolve.game.play', [])
   $scope.$watch("gameHistoryMeta", onUpdateGameHistory, true)
 
   $scope.remix = -> $state.transitionTo('game-edit', { gameId: $stateParams.gameId }) 
+  $scope.listGames = -> $state.transitionTo('game-list') 
 
-  games.loadFromId($stateParams.gameId).then ->
-    $scope.title = currentGame.info.name
+  games.loadFromId($stateParams.gameId)
+
+  $scope.title = ""
+  $scope.author = ""
+  onUpdateCurrentGame = -> 
+    $scope.title = currentGame.info?.name
+    $scope.author = currentGame.creator
+
+  $scope.currentGame = currentGame
+  $scope.$watch("currentGame", onUpdateCurrentGame, true)

@@ -14,26 +14,26 @@
 					Name
 				</span>
 			</th>
-			<th></th>
-			<th></th>
 			<th>
 				<span ng-click="orderedProperty = 'author'; orderedDirection = !orderedDirection">
 					Author
 				</span>
 			</th>
+			<th></th>
+			<th></th>
 		</tr>
 		<tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
 			<td>
 				{{ game.name }} 
 			</td>
 			<td>
+				{{ game.author }}
+			</td>
+			<td>
 				<a ng-click="play(game.id)" >Play</a>
 			</td>
 			<td>
 				<a ng-click="remix(game.id)" >Remix</a>
-			</td>
-			<td>
-				{{ game.author }}
 			</td>
 		</tr>
 	</table>

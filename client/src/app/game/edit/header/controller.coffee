@@ -7,7 +7,7 @@ angular.module('gamEvolve.game.edit.header', [
     $scope.currentGame = currentGame
     $scope.gameTime = gameTime
 
-.controller 'MenuCtrl', ($scope, $location, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog) ->
+.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog) ->
     $scope.user = loggedUser
     $scope.games = games
     $scope.currentGame = currentGame
@@ -15,6 +15,7 @@ angular.module('gamEvolve.game.edit.header', [
     $scope.aboutDialog = aboutDialog
     $scope.importExportDialog = importExportDialog
     $scope.loadGame = -> $location.path('/game/list')
+    $scope.gotoPlayScreen = -> $state.transitionTo('play', { gameId: $stateParams.gameId })
 
 .controller 'LogoCtrl', ($scope, aboutDialog) ->
     $scope.aboutDialog = aboutDialog
