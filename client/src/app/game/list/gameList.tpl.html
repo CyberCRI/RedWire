@@ -5,29 +5,35 @@
 		</div>
 	</div>
 
-	<h2>Choose a game to play or fork</h2>
+	<h2>Games on RedWire</h2>
 
 	<table class="table">
 		<tr>
 			<th>
-				<span ng-click="orderedProperty = 'name'; orderedDirection = !orderedDirection"
-					  style="cursor: pointer;">
+				<span ng-click="orderedProperty = 'name'; orderedDirection = !orderedDirection">
 					Name
 				</span>
 			</th>
 			<th>
-				<span ng-click="orderedProperty = 'author'; orderedDirection = !orderedDirection"
-					  style="cursor: pointer;">
+				<span ng-click="orderedProperty = 'author'; orderedDirection = !orderedDirection">
 					Author
 				</span>
 			</th>
+			<th></th>
+			<th></th>
 		</tr>
 		<tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
-			<td style="cursor: pointer;">
-				<a ng-click="select(game.id)" style="cursor: pointer;">{{ game.name }}</a>
+			<td>
+				{{ game.name }} 
 			</td>
 			<td>
 				{{ game.author }}
+			</td>
+			<td>
+				<a ng-click="play(game.id)" >Play</a>
+			</td>
+			<td>
+				<a ng-click="remix(game.id)" >Remix</a>
 			</td>
 		</tr>
 	</table>

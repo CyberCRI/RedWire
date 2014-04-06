@@ -246,9 +246,13 @@ angular.module('gamEvolve.game.player', [])
   onUpdatePlaying = ->
     if not gameCode? then return
     if gameTime.isPlaying 
-      # Start playing on next frame
-      lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
-      nextMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+      if gameTime.currentFrameNumber < gameHistory.data.frames.length
+        # Start playing on next frame (assumes recordFrame() has been done in editor)
+        lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
+        nextMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+      else
+        # Just start with initial memory (like in play-only mode)
+        nextMemory = gameCode.memory
 
       if gameTime.inRecordMode
         # Notify the user

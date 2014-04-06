@@ -21,6 +21,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.log'
   'gamEvolve.game.memory'
   'gamEvolve.game.overlay'
+  'gamEvolve.game.play'
   'gamEvolve.game.player'
   'gamEvolve.game.processors'
   'gamEvolve.game.switches'

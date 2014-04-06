@@ -1,1 +1,13 @@
-PLAY GAME
+<div id="playOnly">
+	<div id="gameBox"> 
+		<div id="gamePlayerContainer">
+			<iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
+		</div>
+	</div>
+
+	<div>
+		<h1>{{title}} by {{author}}</h1>
+		<a href="" ng-click="remix()"><img src="assets/images/ribbon.png"></a>
+		<br><a href="" ng-click="listGames()">See other games</a>
+	</div>
+</div>
