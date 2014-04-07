@@ -571,7 +571,7 @@ module.exports = function ( grunt ) {
     },
 
     docco: {
-      debug: {
+      all: {
         src: ['src/**/*.coffee'],
         options: {
           output: '<%= build_dir %>/docs/'
@@ -604,7 +604,7 @@ module.exports = function ( grunt ) {
     'clean', 'html2js', 'coffee', 'recess:build',
     'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_images', 'copy:build_vendor_images_samedir',
     'copy:build_appjs', 'copy:build_vendorjs', 'copy:build_vendorcss',
-    'index:build', 'copy:build_tests_runner', 'copy:build_tests_vendor', 'copy:build_sandbox'
+    'index:build', 'copy:build_tests_runner', 'copy:build_tests_vendor', 'copy:build_sandbox', 'docco'
   ]);
 
   /**
