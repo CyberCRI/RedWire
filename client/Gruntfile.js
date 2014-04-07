@@ -17,6 +17,7 @@ module.exports = function ( grunt ) {
   grunt.loadNpmTasks('grunt-html2js');
   grunt.loadNpmTasks('grunt-ssh');
   grunt.loadNpmTasks('grunt-rsync');
+  grunt.loadNpmTasks('grunt-docco');
 
   /**
    * Load in our build configuration files.
@@ -568,6 +569,15 @@ module.exports = function ( grunt ) {
         }
       }
     },
+
+    docco: {
+      debug: {
+        src: ['src/**/*.coffee'],
+        options: {
+          output: '<%= build_dir %>/docs/'
+        }
+      }
+    }
   };
 
   grunt.initConfig( grunt.util._.extend( taskConfig, userConfig ) );
