@@ -17,13 +17,17 @@ module.exports = function ( grunt ) {
   grunt.loadNpmTasks('grunt-html2js');
   grunt.loadNpmTasks('grunt-ssh');
   grunt.loadNpmTasks('grunt-rsync');
+<<<<<<< HEAD
   grunt.loadNpmTasks('grunt-docco');
+=======
+  grunt.loadNpmTasks('grunt-exec');
+>>>>>>> f3d51de356104080d5e3199a7b526bee419416fc
 
   /**
    * Load in our build configuration files.
    */
   var userConfig = require( './build.config.js' );
-
+  var dumpName = new Date().getTime();
   var deployConfig = {};
   try {
     deployConfig = grunt.file.readJSON('deployConfig.json');
@@ -513,7 +517,7 @@ module.exports = function ( grunt ) {
       html: {
         files: [ 'src/sandbox.html' ],
         tasks: [ 'copy:build_sandbox' ]
-      },
+      }
     },
 
     sshconfig: {
@@ -555,8 +559,52 @@ module.exports = function ( grunt ) {
           config: "prod"
         }
       },
+        dumpdb : {
+            command : "mongodump --db redwire --out "+deployConfig.path+"mongoDump/temp/"+dumpName,
+            options: {
+                config: "prod"
+            }
+        },
+        restoreDb : {
+            command : 'mongorestore --db redwire '+deployConfig.path+'mongoDump',
+            options :{
+                config : "prod"
+            }
+        },
+        compress : {
+            command : "tar -cvf "+deployConfig.path+"mongoDump/mongoDump_"+dumpName+".tar "+deployConfig.path+"mongoDump/temp/"+dumpName,
+            options: {
+                config: "prod"
+            }
+        },
+        //probleme avec le nom du fichier je ne trouve pas de solution du coup l'upload nest pas fonctionnel
+        uncompress : {
+            command : "tar -vxf "+deployConfig.path+"mongoDump/mongoDump_"+dumpName+".tar "+deployConfig.path+"mongoDump/temp/",
+            options: {
+                config: "prod"
+            }
+        },
+        removeDumpFile : {
+            command : "rm "+deployConfig.path+"mongoDump/temp/ -r",
+            options: {
+                config: "prod"
+            }
+        },
+        cleanDumpDir : {
+            command : "rm "+deployConfig.path+"mongoDump/ -r",
+            options: {
+                config: "prod"
+            }
+        }
     },
-
+    exec: {
+        downloadDump: {
+            cmd: "scp -r -p "+deployConfig.username+"@"+deployConfig.host+":"+deployConfig.path+"mongoDump "+deployConfig.localPath
+        },
+        uploadDump : {
+            cmd: "scp -r -p "+deployConfig.localPath+" "+deployConfig.username+"@"+deployConfig.host+":"+deployConfig.path+"mongoDump"
+        }
+    },
     rsync: {
       prod: {
         options: {
@@ -569,7 +617,6 @@ module.exports = function ( grunt ) {
         }
       }
     },
-
     docco: {
       all: {
         src: ['src/**/*.coffee'],
@@ -611,6 +658,21 @@ module.exports = function ( grunt ) {
    * The `compile` task gets your app ready for deployment by concatenating and
    * minifying your code.
    */
+
+  grunt.registerTask('dumpdb',[
+     'sshexec:dumpdb',
+     'sshexec:compress',
+     'sshexec:removeDumpFile',
+     'exec:downloadDump'
+  ]);
+
+grunt.registerTask('restoredb',[
+    'exec:upload',
+    'sshexec:uncompress',
+    'sshexec:restoredb',
+    'sshexec:removeDumpFile',
+]);
+
   grunt.registerTask( 'compile', [
     'recess:compile', 'copy:compile_assets', 'ngmin', 'concat:compile_js', 'uglify', 'index:compile'
   ]);
