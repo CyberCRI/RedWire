@@ -33,7 +33,8 @@
     "mime": "~1.2.11",
     "grunt-ssh": "~0.10.0",
     "grunt-rsync": "~0.2.1",
-    "request": "~2.33.0"
+    "request": "~2.33.0",
+    "grunt-docco": "~0.3.3"
   },
   "licenses": {
     "type": "MIT",
