@@ -99,7 +99,7 @@ compileBoard = (board, evaluator, path = []) ->
         out: if value.out then RW.mapObject(value.out, (expression, dest) -> compileExpression(expression, evaluator, path)) else {}
       when "splitter" then RW.mapObject value, (splitterValue, splitterKey) -> 
         switch splitterKey
-          when "where" then compileExpression(splitterValue, evaluator, path)
+          when "where" and splitterValue? then compileExpression(splitterValue, evaluator, path)
           else splitterValue
       when "children" then _.map(value, (child, key) -> compileBoard(child, evaluator, RW.appendToArray(path, key)))
       else value

@@ -46,6 +46,7 @@ RW.io.mouse =
       down: false
       position: [0, 0]
       cursor: null
+    lastMouse = RW.cloneData(mouse)
 
     # This disables selection, which allows the cursor to change in Chrome
     $(options.elementSelector).on("selectstart.#{eventNamespace}", -> false)
@@ -65,7 +66,16 @@ RW.io.mouse =
           ]
 
     return {
-      provideData: -> return mouse
+      provideData: -> 
+        # Calculate justDown and justUp in terms of previous data
+        info = 
+          down: mouse.down
+          position: mouse.position
+          cursor: mouse.cursor
+          justDown: mouse.down and not lastMouse.down
+          justUp: not mouse.down and lastMouse.down
+        lastMouse = RW.cloneData(mouse)
+        return info
 
       establishData: (data) -> 
         $(options.elementSelector).css("cursor", data.cursor || "")

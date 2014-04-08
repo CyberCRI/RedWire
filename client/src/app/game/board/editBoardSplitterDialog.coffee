@@ -1,3 +1,4 @@
+valueOrNull = (value) -> if value then value else null 
 
 angular.module('gamEvolve.game.board.editSplitterDialog', [
   'ui.bootstrap',
@@ -19,6 +20,6 @@ angular.module('gamEvolve.game.board.editSplitterDialog', [
     splitter:
       from: $scope.from
       bindTo: $scope.bindTo
-      index: $scope.index
-      where: $scope.where
+      index: valueOrNull($scope.index)
+      where: valueOrNull($scope.where)
   $scope.cancel = -> liaison.cancel()
