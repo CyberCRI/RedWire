@@ -39,6 +39,9 @@ module.exports = function ( grunt ) {
   var dumpFilename = dumpName + ".tgz";
   var dumpDirectory = "mongoDump";
 
+  // This is used in the restoreDb task
+  var inputDumpFilename = grunt.option("dump") || "";
+
   /**
    * This is the configuration object Grunt uses to give each plugin its
    * instructions.
@@ -586,7 +589,7 @@ module.exports = function ( grunt ) {
       },
 
       decompress : {
-          command : "tar -vxzf " + path.join(deployConfig.path, dumpDirectory, grunt.option("dump")) + " -C" + path.join(deployConfig.path, dumpDirectory),
+          command : "tar -vxzf " + path.join(deployConfig.path, dumpDirectory, inputDumpFilename) + " -C" + path.join(deployConfig.path, dumpDirectory),
           options: {
               config: "prod"
           }
@@ -605,7 +608,7 @@ module.exports = function ( grunt ) {
             cmd: "scp "+deployConfig.username+"@"+deployConfig.host+":"+path.join(deployConfig.path, dumpDirectory, dumpFilename)+" ."
         },
         uploadDump : {
-            cmd: "scp "+grunt.option("dump")+" "+deployConfig.username+"@"+deployConfig.host+":"+path.join(deployConfig.path, dumpDirectory)
+            cmd: "scp "+inputDumpFilename+" "+deployConfig.username+"@"+deployConfig.host+":"+path.join(deployConfig.path, dumpDirectory)
         }
     },
 
@@ -672,7 +675,7 @@ module.exports = function ( grunt ) {
   ]);
 
   grunt.registerTask('restoreDb', function() {
-    if(!grunt.option("dump")) throw new Error("Missing 'dump' command-line option");
+    if(!inputDumpFilename) throw new Error("Missing 'dump' command-line option");
 
     grunt.task.run([
       'exec:uploadDump',
