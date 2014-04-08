@@ -1,4 +1,7 @@
 module.exports = function ( grunt ) {
+  // Dependencies
+  var moment = require('moment');
+  var path = require("path");
 
   /**
    * Load required Grunt tasks. These are installed based on the versions listed
@@ -18,18 +21,23 @@ module.exports = function ( grunt ) {
   grunt.loadNpmTasks('grunt-ssh');
   grunt.loadNpmTasks('grunt-rsync');
   grunt.loadNpmTasks('grunt-docco');
+  grunt.loadNpmTasks('grunt-exec');
 
   /**
    * Load in our build configuration files.
    */
   var userConfig = require( './build.config.js' );
-
   var deployConfig = {};
   try {
     deployConfig = grunt.file.readJSON('deployConfig.json');
   } catch(err) {
     console.warn("*** WARNING: Cannot load deployment config ***\n");
   } 
+
+  // Generate the name of the dump file
+  var dumpName = moment.utc().format("YYYYMMDD-HHMMSS");
+  var dumpFilename = dumpName + ".tgz";
+  var dumpDirectory = "mongoDump";
 
   /**
    * This is the configuration object Grunt uses to give each plugin its
@@ -513,7 +521,7 @@ module.exports = function ( grunt ) {
       html: {
         files: [ 'src/sandbox.html' ],
         tasks: [ 'copy:build_sandbox' ]
-      },
+      }
     },
 
     sshconfig: {
@@ -555,6 +563,50 @@ module.exports = function ( grunt ) {
           config: "prod"
         }
       },
+
+      dumpDb : {
+          command : "mongodump --db redwire --out " + path.join(deployConfig.path, dumpDirectory, dumpName),
+          options: {
+              config: "prod"
+          }
+      },
+
+      restoreDb : {
+          command : 'mongorestore --db redwire '+ path.join(deployConfig.path, dumpDirectory, "redwire"),
+          options :{
+              config : "prod"
+          }
+      },
+
+      compress : {
+          command : "tar -C " + path.join(deployConfig.path, dumpDirectory, dumpName) + " -cvzf " + path.join(deployConfig.path, dumpDirectory, dumpFilename) + " .",
+          options: {
+              config: "prod"
+          }
+      },
+
+      decompress : {
+          command : "tar -vxzf " + path.join(deployConfig.path, dumpDirectory, grunt.option("dump")) + " -C" + path.join(deployConfig.path, dumpDirectory),
+          options: {
+              config: "prod"
+          }
+      },
+
+      cleanDumpDir : {
+          command : "rm -r " + path.join(deployConfig.path, dumpDirectory, "*"),
+          options: {
+              config: "prod"
+          }
+      }
+    },
+
+    exec: {
+        downloadDump: {
+            cmd: "scp "+deployConfig.username+"@"+deployConfig.host+":"+path.join(deployConfig.path, dumpDirectory, dumpFilename)+" ."
+        },
+        uploadDump : {
+            cmd: "scp "+grunt.option("dump")+" "+deployConfig.username+"@"+deployConfig.host+":"+path.join(deployConfig.path, dumpDirectory)
+        }
     },
 
     rsync: {
@@ -611,6 +663,25 @@ module.exports = function ( grunt ) {
    * The `compile` task gets your app ready for deployment by concatenating and
    * minifying your code.
    */
+
+  grunt.registerTask('dumpDb',[
+     'sshexec:dumpDb',
+     'sshexec:compress',
+     'exec:downloadDump',
+     'sshexec:cleanDumpDir'
+  ]);
+
+  grunt.registerTask('restoreDb', function() {
+    if(!grunt.option("dump")) throw new Error("Missing 'dump' command-line option");
+
+    grunt.task.run([
+      'exec:uploadDump',
+      'sshexec:decompress',
+      'sshexec:restoreDb',
+      'sshexec:cleanDumpDir',
+    ]);
+  });
+
   grunt.registerTask( 'compile', [
     'recess:compile', 'copy:compile_assets', 'ngmin', 'concat:compile_js', 'uglify', 'index:compile'
   ]);
@@ -676,5 +747,4 @@ module.exports = function ( grunt ) {
       }
     });
   });
-
 };
