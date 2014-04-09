@@ -15,7 +15,8 @@ angular.module('gamEvolve.game.processors', [
   $scope.$watch('currentGame', updateProcessors, true)
 
   $scope.remove = (name) ->
-    delete currentGame.version.processors[name]
+    if window.confirm("Are you sure you want to delete this processor?")
+      delete currentGame.version.processors[name]
 
   $scope.add = () ->
     addProcessorDialog = $dialog.dialog

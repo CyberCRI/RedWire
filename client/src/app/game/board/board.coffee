@@ -184,7 +184,8 @@ angular.module('gamEvolve.game.boardTree', [
       $scope.edit(nodeId)
 
     $scope.$on 'removeChipButtonClick', (event, message) ->
-      $scope.remove(message.nodeId, message.parentNodeId)
+      if window.confirm("Are you sure you want to delete this chip?")
+        $scope.remove(message.nodeId, message.parentNodeId)
 
     $scope.$on 'muteChipButtonClick', (event, nodeId) ->
       chip = nodes.find(nodeId)

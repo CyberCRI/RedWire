@@ -25,7 +25,9 @@ angular.module('gamEvolve.game.assets', [
       currentGame.version.assets = _.object( ([asset.name, asset.data] for asset in $scope.assets) )
   $scope.$watch('assets', copyFromScopeToGames, true)
 
-  $scope.remove = (name) -> delete currentGame.version.assets[name]
+  $scope.remove = (name) -> 
+    if window.confirm("Are you sure you want to delete this asset?")
+      delete currentGame.version.assets[name]
 
   $scope.$watch "file", ->
     currentGame.version?.assets[$scope.fileName] = $scope.file

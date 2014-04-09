@@ -15,7 +15,8 @@ angular.module('gamEvolve.game.transformers', [
   $scope.$watch('currentGame', updateTransformers, true)
 
   $scope.remove = (transformerName) ->
-    delete currentGame.version.transformers[transformerName]
+    if window.confirm("Are you sure you want to delete this transformer?")
+      delete currentGame.version.transformers[transformerName]
 
   $scope.add = () ->
     addTransformerDialog = $dialog.dialog

@@ -15,7 +15,8 @@ angular.module('gamEvolve.game.switches', [
   $scope.$watch('currentGame', updateSwitches, true)
 
   $scope.remove = (name) ->
-    delete currentGame.version.switches[name]
+    if window.confirm("Are you sure you want to delete this switch?")
+      delete currentGame.version.switches[name]
 
   $scope.add = () ->
     addSwitchDialog = $dialog.dialog
