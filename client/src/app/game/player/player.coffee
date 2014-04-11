@@ -182,7 +182,7 @@ angular.module('gamEvolve.game.player', [])
           for index, results of message.value
             # Copy over old inputIoData
             frameIndex = gameTime.currentFrameNumber + parseInt(index)
-            gameHistory.data.frames[frameIndex] = extendFrameResults(results, lastMemory, gameHistory.data.frames[index].inputIoData)
+            gameHistory.data.frames[frameIndex] = extendFrameResults(results, lastMemory, gameHistory.data.frames[frameIndex].inputIoData)
 
             if results.errors 
               console.error("Update frames errors", results.errors)
