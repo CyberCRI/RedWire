@@ -12,7 +12,7 @@ angular.module('gamEvolve.game.transformers', [
       $scope.transformers = currentGame.version.transformers
       $scope.transformerNames = _.keys(currentGame.version.transformers)
   $scope.currentGame = currentGame
-  $scope.$watch('currentGame', updateTransformers, true)
+  $scope.$watch("currentGame.localVersion", updateTransformers, true)
 
   $scope.remove = (transformerName) ->
     if window.confirm("Are you sure you want to delete this transformer?")

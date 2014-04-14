@@ -120,13 +120,13 @@ angular.module('gamEvolve.game.boardTree', [
 
 .controller 'BoardCtrl', ($scope, $dialog, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
 
-    $scope.game = currentGame
+    $scope.currentGame = currentGame
 
     # When the board changes, update in scope
     updateBoard = ->
       if currentGame.version?.board
         $scope.updateTree( boardConverter.convert(currentGame.version.board) )
-    $scope.$watch("game", updateBoard, true)
+    $scope.$watch("currentGame.localVersion", updateBoard, true)
 
     # Update from gameHistory
     onUpdateGameHistory = ->
@@ -170,15 +170,19 @@ angular.module('gamEvolve.game.boardTree', [
       if 'processor' of chip
         showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+          currentGame.updateLocalVersion()
       else if 'switch' of chip
         showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+          currentGame.updateLocalVersion()
       else if 'splitter' of chip
         showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+          currentGame.updateLocalVersion()
       else if 'emitter' of chip
         showDialog 'game/board/editBoardEmitterDialog.tpl.html', 'EditBoardEmitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+          currentGame.updateLocalVersion()
 
     $scope.$on 'editChipButtonClick', (event, nodeId) ->
       $scope.edit(nodeId)
@@ -190,9 +194,9 @@ angular.module('gamEvolve.game.boardTree', [
     $scope.$on 'muteChipButtonClick', (event, nodeId) ->
       chip = nodes.find(nodeId)
       chip.muted = !chip.muted
+      currentGame.updateLocalVersion()
 
 .factory 'nodes', ->
-
     nodes = []
     states = [0] # Root tree is open by default
 

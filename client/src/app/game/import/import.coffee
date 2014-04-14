@@ -24,6 +24,7 @@ angular.module('gamEvolve.game.import', [
               _.extend(currentGame.info, newGame.info)
               # TODO: check that the import doesn't overwrite internal properties (versionNumber, id, etc.)
               _.extend(currentGame.version, newGame.version)
+              currentGame.updateLocalVersion() # Increment local version of code
 
               dialog.close()
             cancel: ->

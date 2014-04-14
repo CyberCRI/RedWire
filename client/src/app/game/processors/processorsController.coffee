@@ -12,7 +12,7 @@ angular.module('gamEvolve.game.processors', [
       $scope.processors = currentGame.version.processors
       $scope.processorNames = _.keys(currentGame.version.processors)
   $scope.currentGame = currentGame
-  $scope.$watch('currentGame', updateProcessors, true)
+  $scope.$watch("currentGame.localVersion", updateProcessors, true)
 
   $scope.remove = (name) ->
     if window.confirm("Are you sure you want to delete this processor?")

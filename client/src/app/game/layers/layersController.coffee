@@ -16,4 +16,4 @@ angular.module('gamEvolve.game.layers', [
   updateLayers = -> $scope.layers = currentGame.version?.io?.layers
 
   $scope.currentGame = currentGame
-  $scope.$watch('currentGame', updateLayers, true)
+  $scope.$watch("currentGame.localVersion", updateLayers, true)

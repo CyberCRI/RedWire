@@ -3,10 +3,12 @@ angular.module('gamEvolve.model.games', [])
 
 
 .factory 'currentGame', ->
-
   info: null
   version: null
   creator: null
+  localVersion: 0
+
+  updateLocalVersion: -> @localVersion++
 
   enumeratePinDestinations: ->
     destinations = @enumerateMemoryKeys(@version.memory)
@@ -26,7 +28,7 @@ angular.module('gamEvolve.model.games', [])
     return keys
 
 
-.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime) ->
+.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo) ->
 
   saveInfo = ->
     $http.post('/games', currentGame.info)
@@ -61,23 +63,6 @@ angular.module('gamEvolve.model.games', [])
           $location.path("/game/#{currentGame.version.gameId}/edit")
           saveVersion()
 
-  loadJson: (gameName) ->
-    deferred = $q.defer()
-    promise = deferred.promise
-    propertyNames = @propertyNames
-    $http.get("/assets/games/#{gameName}.json")
-      .error((error) ->
-          deferred.reject error
-        )
-      .success((game) ->
-          for propertyName in propertyNames
-            game[propertyName] = JSON.stringify(game[propertyName], null, 2)
-          currentGame.info = game
-          currentGame.version = game
-          deferred.resolve game
-        )
-    promise
-
   saveCurrent: ->
     @getSaveAction().execute()
 
@@ -103,8 +88,10 @@ angular.module('gamEvolve.model.games', [])
   # Load the game content and the creator info, then put it all into currentGame
   load: (game) ->
     # Clear the current game data
+    # TODO: have each service detect this event rather than hard coding it here?
     gameHistory.reset()
     gameTime.reset()
+    undo.reset()
 
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
     getVersion = $http.get("/game-versions?#{query}")
@@ -112,6 +99,7 @@ angular.module('gamEvolve.model.games', [])
     updateCurrentGame = ([version, creator]) ->
       currentGame.info = game
       currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(version.data[0])
+      currentGame.updateLocalVersion()
       currentGame.creator = creator.data.username
     onError = (error) -> console.log("Error loading game", error) # TODO: notify the user of the error
     $q.all([getVersion, getCreator]).then(updateCurrentGame, onError)
