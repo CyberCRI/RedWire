@@ -11,10 +11,12 @@
             </span>
             <span class="label"
                  ng-class="{folder: node.children && node.children.length > 0}"
-                 ng-bind="node.comment">
+                 ng-bind="node.comment"
+                 ng-click="nodeClick(node)">
             </span>
         </div>
         <ul ng-if="!node.collapsed && node.children && node.children.length > 0"
-            frang-tree-insert-children="node.children"></ul>
+            frang-tree-insert-children="node.children">
+        </ul>
     </li>
 </ul>
