@@ -128,19 +128,14 @@ initializeIo = (ioConfig) ->
 destroyAssets = (oldAssets) ->
   for name, dataUrl of oldAssets.urls
     splitUrl = RW.splitDataUrl(dataUrl)
-    if splitUrl.mimeType in ["application/javascript", "text/javascript"]
-      # Nothing to do, cannot unload JS!
-    else if splitUrl.mimeType == "text/css"
-      oldAssets.data[name].remove()
-    else if splitUrl.mimeType.indexOf("image/") == 0
-      URL.revokeObjectURL(oldAssets.objectUrls[name])
+    # Cannot unload JS or images
+    if splitUrl.mimeType == "text/css" then oldAssets.data[name].remove()
 
 # The evaluator is initialized with any JS assets.
-# Returns object containing three maps: { urls: , data: , objectUrls: }
+# Returns object containing two maps: { urls: , data: }
 # TODO: move asset handling into gamEvolve.coffee. CSS could be handled by the HTML io. JS is harder.
 createAssets = (inputAssets, evaluator) ->
   assetNamesToData = {}
-  assetNamesToObjectUrls = {}
 
   # Create new assets
   for name, dataUrl of inputAssets
@@ -153,20 +148,15 @@ createAssets = (inputAssets, evaluator) ->
         css = atob(splitUrl.data)
         assetNamesToData[name] = $('<style type="text/css"></style>').html(css).appendTo("head")
       else if splitUrl.mimeType.indexOf("image/") == 0
-        blob = RW.dataURLToBlob(dataUrl)
-        objectUrl = URL.createObjectURL(blob)
-
         image = new Image()
-        image.src = objectUrl
-        image.onload = -> console.log("Image '#{name}' loaded")
+        image.src = dataUrl 
         image.onerror = -> console.error("Cannot load image '#{name}'")
         
-        assetNamesToObjectUrls[name] = objectUrl
         assetNamesToData[name] = image
       else
         assetNamesToData[name] = atob(splitUrl.data)
 
-  return { urls: inputAssets, data: assetNamesToData, objectUrls: assetNamesToObjectUrls }
+  return { urls: inputAssets, data: assetNamesToData }
 
 loadGameCode = (gameCode, logFunction) ->
   evaluator = eval
