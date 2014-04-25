@@ -114,25 +114,21 @@ RW.splitDataUrl = (url) ->
 # Creates and returns a blob from a data URL (either base64 encoded or not).
 # Adopted from filer.js by Eric Bidelman (ebidel@gmail.com)
 RW.dataURLToBlob = (dataURL) ->
-  BASE64_MARKER = 'base64,'
-  if dataURL.indexOf(BASE64_MARKER) == -1
-    parts = dataURL.split(',')
-    contentType = parts[0].split(':')[1]
-    raw = parts[1]
+  splitUrl = RW.splitDataUrl(dataURL)
+  if not splitUrl.base64
+    # Easy case when not Base64 encoded
+    return new Blob([splitUrl.data], {type: splitUrl.mimeType})
+  else
+    # Decode from Base64
+    raw = window.atob(splitUrl.data)
+    rawLength = raw.length
 
-    return new Blob([raw], {type: contentType})
+    uInt8Array = new Uint8Array(rawLength)
 
-  parts = dataURL.split(BASE64_MARKER)
-  contentType = parts[0].split(':')[1]
-  raw = window.atob(parts[1])
-  rawLength = raw.length
+    for i in [0..rawLength - 1] 
+      uInt8Array[i] = raw.charCodeAt(i)
 
-  uInt8Array = new Uint8Array(rawLength)
-
-  for i in [0..rawLength - 1] 
-    uInt8Array[i] = raw.charCodeAt(i)
-
-  return new Blob([uInt8Array], {type: contentType})
+    return new Blob([uInt8Array], {type: splitUrl.mimeType})
 
 # For accessing a value within an embedded object or array
 # Takes a parent object/array and the "path" as an array

@@ -444,11 +444,13 @@ RW.visitChip = (path, chip, constants, bindings = {}) ->
 # Returns { memoryPatches: [...], inputIoData: {...}, ioPatches: [...], logMessages: [...], errors: [...] }
 RW.stepLoop = (options) ->  
   makeErrorResponse = (stage, err) -> 
+    console.error("ERROR IN STEP LOOP", stage, err)
+    # Some Firefox errors have name, filename, lineNumber, and columnNumber exceptions
     errorDescription = 
       stage: stage
-      message: err.message
-      path: err.path
-      stack: err.stack
+      message: err.message || err.name
+      path: err.path 
+      stack: err.stack || { file: err.filename, line: err.lineNumber, column: err.columnNumber} 
     return { errors: [errorDescription], memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
 
   _.defaults options, 
