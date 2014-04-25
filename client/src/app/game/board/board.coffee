@@ -117,6 +117,10 @@ angular.module('gamEvolve.game.boardTree', [
         nodeId = $(event.currentTarget).attr('nodeId')
         scope.$emit('muteChipButtonClick', nodeId)
 
+.controller 'BoardTreeCtrl', ($scope, $dialog, currentGame, gameHistory, gameTime) ->
+
+    $scope.currentGame = currentGame
+
 
 .controller 'BoardCtrl', ($scope, $dialog, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
 

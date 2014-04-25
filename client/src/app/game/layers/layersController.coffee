@@ -1,6 +1,5 @@
-angular.module('gamEvolve.game.layers', [
-  'ui.sortable',
-])
+angular.module('gamEvolve.game.layers', [])
+
 .controller 'LayersCtrl', ($scope, currentGame) ->
   $scope.TYPES = (name for name, io of RW.io when io.meta.visual)
 

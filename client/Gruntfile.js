@@ -1,7 +1,7 @@
 module.exports = function ( grunt ) {
   // Dependencies
   var moment = require('moment');
-  var path = require("path");
+  var path = require('path');
 
   /**
    * Load required Grunt tasks. These are installed based on the versions listed
@@ -620,7 +620,7 @@ module.exports = function ( grunt ) {
             exclude: ["node_modules", "data"],
             dest: deployConfig.path,
             recursive: true,
-            syncDestIgnoreExcl: true,
+            syncDestIgnoreExcl: true
         }
       }
     },
@@ -681,7 +681,7 @@ module.exports = function ( grunt ) {
       'exec:uploadDump',
       'sshexec:decompress',
       'sshexec:restoreDb',
-      'sshexec:cleanDumpDir',
+      'sshexec:cleanDumpDir'
     ]);
   });
 

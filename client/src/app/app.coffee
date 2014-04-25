@@ -36,6 +36,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
   'xeditable'
+  'treeRepeat'
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->

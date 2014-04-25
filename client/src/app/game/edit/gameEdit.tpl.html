@@ -1,4 +1,4 @@
-<div id="gameEditor"> 
+<div id="gameEditor">
 
     <!-- Header -->
     <div ng-include src="'game/edit/header/header.tpl.html'" id="headerBar"></div>
@@ -50,7 +50,7 @@
                         <block-splitter></block-splitter>
                         <block-container class="scrollable">
                             <h4>Board</h4>
-                            <board-tree></board-tree>
+                            <ng-include src="'game/board/boardTree.tpl.html'" ng-controller="BoardTreeCtrl"></ng-include>
                         </block-container>
                     </flexy-layout>
                 </block-container>
@@ -104,7 +104,7 @@
                             </accordion>
                         </block-container>
                         <block-splitter></block-splitter>
-                        <block-container class="scrollable"> 
+                        <block-container class="scrollable">
                             <div ng-controller="LayersCtrl" id="layersList">
                                 <h4>Layers</h4>
                                 <ul ui-sortable ng-model="layers">
