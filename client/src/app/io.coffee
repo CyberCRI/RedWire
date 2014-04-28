@@ -161,7 +161,7 @@ RW.io.canvas =
             # drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
             ctx.drawImage(img, offset[0], offset[1], size[0], size[1], shape.position[0], shape.position[1], size[0], size[1])
           catch error
-            throw new Error("Error drawing image shape #{JSON.stringify(shape)}: #{error.stack}")
+            throw new Error("Error drawing image shape #{JSON.stringify(shape)}: #{RW.formatStackTrace(error)}")
         when 'text'
           text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
           ctx.font = shape.font
