@@ -159,3 +159,14 @@ RW.filterObject = (obj, predicate) ->
   for key, value of obj
     if predicate(value, key) then newObj[key] = value
   return newObj
+
+# Returns a string representation of the exception, including stacktrace if available
+RW.formatStackTrace = (error) ->
+  # On Chrome, the stack trace contains everything
+  if window.chrome then return error.stack
+
+  # Otherwise break it down
+  stack = "#{error.name}: #{error.message}" 
+  if error.stack then stack += "\n" + error.stack
+  else if error.fileName then stack += " (#{error.fileName}:#{error.lineNumber}.#{error.columnNumber})"
+  return stack

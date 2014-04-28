@@ -177,7 +177,7 @@ unloadGame = (loadedGame) ->
 makeReporter = (destinationWindow, destinationOrigin, operation) ->
   return (err, value) ->
     if err 
-      destinationWindow.postMessage({ type: "error", operation: operation, error: err.stack, path: err.path }, destinationOrigin)
+      destinationWindow.postMessage({ type: "error", operation: operation, error: RW.formatStackTrace(err), path: err.path }, destinationOrigin)
     else
       destinationWindow.postMessage({ type: "success", operation: operation, value: value }, destinationOrigin)
 
