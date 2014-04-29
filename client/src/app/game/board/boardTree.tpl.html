@@ -1,5 +1,5 @@
 <ul frang-tree>
-    <li frang-tree-repeat="node in currentGame.version.board.children"
+    <li frang-tree-repeat="node in [currentGame.version.board]"
         frang-tree-drag="{node: node, parent: $parent.node}"
         frang-tree-drop="drop(node, dragData.node, dragData.parent)"
         frang-tree-allow-drop="true">
@@ -10,7 +10,7 @@
                    ng-click="node.collapsed = !node.collapsed">
             </span>
             <span class="label"
-                 ng-class="{folder: node.children && node.children.length > 0}"
+                 ng-class=""
                  ng-bind="node.comment"
                  ng-click="nodeClick(node)">
             </span>

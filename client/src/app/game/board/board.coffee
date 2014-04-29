@@ -5,6 +5,64 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.game.board.editSplitterDialog'
 ])
 
+
+.controller 'BoardTreeCtrl', ($scope, $dialog, currentGame, gameHistory, gameTime) ->
+
+  $scope.currentGame = currentGame
+
+  $scope.nodeClick = (chip) ->
+    # Determine type of chip
+    if 'processor' of chip
+      showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
+        _.extend(chip, model)
+    else if 'switch' of chip
+      showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
+        _.extend(chip, model)
+    else if 'splitter' of chip
+      showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
+        _.extend(chip, model)
+    else if 'emitter' of chip
+      showDialog 'game/board/editBoardEmitterDialog.tpl.html', 'EditBoardEmitterDialogCtrl', chip, (model) ->
+        _.extend(chip, model)
+
+  showDialog = (templateUrl, controller, model, onDone) ->
+    dialog = $dialog.dialog
+      backdrop: true
+      dialogFade: true
+      backdropFade: true
+      backdropClick: false
+      templateUrl: templateUrl
+      controller: controller
+      dialogClass: "large-modal"
+      resolve:
+      # This object will be provided to the dialog as a dependency, and serves to communicate between the two
+        liaison: ->
+          {
+          model: RW.cloneData(model)
+          done: (newModel) ->
+            onDone(newModel)
+            dialog.close()
+          cancel: ->
+            dialog.close()
+          }
+    dialog.open()
+
+  $scope.drop = (targetNode, sourceNode, sourceParentNode) ->
+    console.log 'Drop', targetNode, sourceNode, sourceParentNode
+    return if sourceNode is currentGame.version.board # Ignore Main node DnD
+    return unless targetNode.children? # Target must accept children
+    # Remove source from parent
+    if sourceParentNode
+      children = sourceParentNode.children
+      for child, i in children
+        if child is sourceNode
+          children.splice i, 1
+          break
+    if !targetNode.children
+      targetNode.children = []
+    targetNode.children.push sourceNode
+
+
 .directive 'boardTree', (currentGame, boardConverter, nodes) ->
   dnd =
 
@@ -114,24 +172,6 @@ angular.module('gamEvolve.game.boardTree', [
       nodeId = $(event.currentTarget).attr('nodeId')
       scope.$emit('muteChipButtonClick', nodeId)
 
-.controller 'BoardTreeCtrl', ($scope, $dialog, currentGame, gameHistory, gameTime) ->
-
-  $scope.currentGame = currentGame
-
-  $scope.nodeClick = (node) ->
-    alert("Click on node : " + node.comment)
-
-  $scope.drop = (targetNode, sourceNode, sourceParentNode) ->
-    console.log 'Drop', targetNode, sourceNode, sourceParentNode
-    children = sourceParentNode.children
-    for child, i in children
-      if child is sourceNode
-        children.splice i, 1
-        if !targetNode.children
-          targetNode.children = []
-        targetNode.children.push sourceNode
-        break
-
 
 .controller 'BoardCtrl', ($scope, $dialog, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
   $scope.game = currentGame
@@ -150,28 +190,6 @@ angular.module('gamEvolve.game.boardTree', [
       $scope.memory = newMemory
   $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)
 
-  showDialog = (templateUrl, controller, model, onDone) ->
-    dialog = $dialog.dialog
-      backdrop: true
-      dialogFade: true
-      backdropFade: true
-      backdropClick: false
-      templateUrl: templateUrl
-      controller: controller
-      dialogClass: "large-modal"
-      resolve:
-      # This object will be provided to the dialog as a dependency, and serves to communicate between the two
-        liaison: ->
-          {
-          model: RW.cloneData(model)
-          done: (newModel) ->
-            onDone(newModel)
-            dialog.close()
-          cancel: ->
-            dialog.close()
-          }
-    dialog.open()
-
   $scope.remove = (nodeId, parentNodeId) ->
     node = nodes.find(nodeId)
     parent = nodes.find(parentNodeId)
@@ -180,19 +198,6 @@ angular.module('gamEvolve.game.boardTree', [
 
   $scope.edit = (nodeId) ->
     chip = nodes.find(nodeId)
-    # Determine type of chip
-    if 'processor' of chip
-      showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
-        _.extend(chip, model)
-    else if 'switch' of chip
-      showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
-        _.extend(chip, model)
-    else if 'splitter' of chip
-      showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
-        _.extend(chip, model)
-    else if 'emitter' of chip
-      showDialog 'game/board/editBoardEmitterDialog.tpl.html', 'EditBoardEmitterDialogCtrl', chip, (model) ->
-        _.extend(chip, model)
 
   $scope.$on 'editChipButtonClick', (event, nodeId) ->
     $scope.edit(nodeId)

@@ -2,6 +2,14 @@
 
 angular.module('treeRepeat', ['ngAnimate'])
 
+    .factory('treeDrag', function() {
+        return {
+
+            data: null
+
+        };
+    })
+
     // Main directive, that just publish a controller
     .directive('frangTree', function () {
         return {
@@ -382,11 +390,10 @@ angular.module('treeRepeat', ['ngAnimate'])
         };
     })
 
-    .directive('frangTreeDrag', function($parse) {
+    .directive('frangTreeDrag', function($parse, treeDrag) {
         return {
             restrict: 'A',
-            require: '^frangTree',
-            link: function(scope, element, attrs, ctrl) {
+            link: function(scope, element, attrs) {
                 var el = element[0];
                 var parsedDrag = $parse(attrs.frangTreeDrag);
                 el.draggable = true;
@@ -397,7 +404,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                         e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('Text', 'nothing'); // Firefox requires some data
                         element.addClass('tree-drag');
-                        ctrl.dragData = parsedDrag(scope);
+                        treeDrag.data = parsedDrag(scope);
                         return false;
                     },
                     false
@@ -407,7 +414,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (e.stopPropagation) e.stopPropagation();
                         element.removeClass('tree-drag');
-                        ctrl.dragData = null;
+                        treeDrag.data = null;
                         return false;
                     },
                     false
@@ -416,18 +423,18 @@ angular.module('treeRepeat', ['ngAnimate'])
         };
     })
 
-    .directive('frangTreeDrop', function($parse) {
+    .directive('frangTreeDrop', function($parse, treeDrag) {
         return {
             restrict: 'A',
             require: '^frangTree',
-            link: function(scope, element, attrs, ctrl) {
+            link: function(scope, element, attrs) {
                 var el = element[0];
                 var parsedDrop = $parse(attrs.frangTreeDrop);
                 var parsedAllowDrop = $parse(attrs.frangTreeAllowDrop || 'true');
                 el.addEventListener(
                     'dragover',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: ctrl.dragData})) {
+                        if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             e.dataTransfer.dropEffect = 'move';
                             element.addClass('tree-drag-over');
@@ -441,7 +448,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragenter',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: ctrl.dragData})) {
+                        if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             element.addClass('tree-drag-over');
                             // allow drop
@@ -454,7 +461,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragleave',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: ctrl.dragData})) {
+                        if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             element.removeClass('tree-drag-over');
                         }
@@ -465,13 +472,13 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'drop',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: ctrl.dragData})) {
+                        if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             element.removeClass('tree-drag-over');
                             scope.$apply(function () {
-                                parsedDrop(scope, {dragData: ctrl.dragData});
+                                parsedDrop(scope, {dragData: treeDrag.data});
                             });
-                            ctrl.dragData = null;
+                            treeDrag.data = null;
                             if (e.preventDefault) { e.preventDefault(); }
                         }
                         return false;
