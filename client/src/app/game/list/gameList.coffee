@@ -13,7 +13,7 @@ angular.module('gamEvolve.game.list', [])
 
 .controller 'GameListCtrl', ($scope, games, $state) ->
 
-    $scope.games = games.loadAll()
+    games.loadAll().then (games) -> $scope.games = games
 
     $scope.remix = (gameId) -> $state.transitionTo('game-edit', {gameId: gameId})
     $scope.play = (gameId) -> $state.transitionTo('play', {gameId: gameId})
