@@ -11,8 +11,12 @@ angular.module('gamEvolve.game.play', [])
       pageTitle: 'Play Game'
 
 .controller 'PlayCtrl', ($scope, $state, games, gameTime, gameHistory, currentGame, $stateParams) ->
+  $scope.isLoading = true
+
   onUpdateGameHistory = -> 
-    if gameHistory.meta.version is 1 then gameTime.isPlaying = true
+    if gameHistory.meta.version is 1 
+      gameTime.isPlaying = true
+      $scope.isLoading = false
 
   # Bring gameHistory into scope so we can watch it
   $scope.gameHistoryMeta = gameHistory.meta

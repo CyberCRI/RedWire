@@ -241,7 +241,7 @@ RW.evaluateInputPinExpressions = (path, constants, evaluationContext, pinDefs, p
       if pinOptions.direction is "inout"
         evaluatedPins[pinName] = RW.cloneData(evaluatedPins[pinName]) 
     catch error
-      throw RW.makeExecutionError("Error evaluating the input pin expression expression '#{pinFunction}' for pin '#{pinName}': #{error.stack}", path)
+      throw RW.makeExecutionError("Error evaluating the input pin expression expression '#{pinFunction}' for pin '#{pinName}': #{RW.formatStackTrace(error)}", path)
   return evaluatedPins
 
 # Updates the evaluation context by evaluating the output pin expressions
@@ -251,7 +251,7 @@ RW.evaluateOutputPinExpressions = (path, constants, bindings, evaluationContext,
     try
       outputValue = RW.evaluateExpressionFunction(constants, evaluationContext, pinFunction, evaluatedPins)
     catch error
-      throw RW.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{error.stack}\nPin values were #{JSON.stringify(evaluatedPins)}.", path)
+      throw RW.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{RW.formatStackTrace(error)}\nPin values were #{JSON.stringify(evaluatedPins)}.", path)
 
     RW.derivePatches(bindings, path, evaluationContext, memoryPatches, ioPatches, pinName, outputValue)
 
@@ -273,7 +273,7 @@ RW.calculateBindingSet = (path, chip, constants, oldBindings) ->
           # If the where clause evaluates to false, don't add it
           if RW.evaluateExpressionFunction(constants, evaluationContext, chip.splitter.where) then bindingSet.push(newBindings)
         catch error
-          throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{error.stack}", path)
+          throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{RW.formatStackTrace(error)}", path)
       else
         bindingSet.push(newBindings)
   else if _.isString(chip.splitter.from)
@@ -297,7 +297,7 @@ RW.calculateBindingSet = (path, chip, constants, oldBindings) ->
           # If the where clause evaluates to false, don't add it
           if RW.evaluateExpressionFunction(constants, evaluationContext, chip.splitter.where) then bindingSet.push(newBindings)
         catch error
-          throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{error.stack}", path)
+          throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{RW.formatStackTrace(error)}", path)
       else
         bindingSet.push(newBindings)
   else
@@ -321,7 +321,7 @@ RW.visitProcessorChip = (path, chip, constants, bindings) ->
     methodResult = processor.update(evaluatedPins, constants.transformers, RW.transformersLogger)
   catch e
     # TODO: convert exceptions to error sigals that do not create patches
-    RW.transformersLogger(RW.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{e.stack}")
+    RW.transformersLogger(RW.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{RW.formatStackTrace(e)}")
 
   result.result = methodResult
   RW.evaluateOutputPinExpressions(path, constants, bindings, evaluationContext, result.memoryPatches, result.ioPatches, processor.pinDefs, chip.pins, evaluatedPins)
@@ -351,7 +351,7 @@ RW.visitSwitchChip = (path, chip, constants, bindings) ->
         throw RW.makeExecutionError("Calling listActiveChildren() on chip '#{chip.switch}' did not return an array", path)
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      RW.transformersLogger(RW.logLevels.ERROR, "Calling switch #{chip.switch}.listActiveChildren raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+      RW.transformersLogger(RW.logLevels.ERROR, "Calling switch #{chip.switch}.listActiveChildren raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{RW.formatStackTrace(e)}")
  
   # By default, all children are considered active
   if activeChildren is null then activeChildren = _.range(childNames.length)
@@ -378,7 +378,7 @@ RW.visitSwitchChip = (path, chip, constants, bindings) ->
       result.result = signalsResult # appendWith() does not affect result
     catch e
       # TODO: convert exceptions to error sigals that do not create patches
-      RW.transformersLogger(RW.logLevels.ERROR, "Calling switch #{chip.switch}.handleSignals raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{e.stack}")
+      RW.transformersLogger(RW.logLevels.ERROR, "Calling switch #{chip.switch}.handleSignals raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{RW.formatStackTrace(e)}")
 
   return result
 
@@ -403,7 +403,7 @@ RW.visitEmitterChip = (path, chip, constants, bindings) ->
     try
       outputValue = RW.evaluateExpressionFunction(constants, evaluationContext, expressionFunction)
     catch error
-      throw RW.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{error.stack}", path)
+      throw RW.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{RW.formatStackTrace(error)}", path)
 
     RW.derivePatches(bindings, path, evaluationContext, result.memoryPatches, result.ioPatches, dest, outputValue)
   
@@ -444,11 +444,13 @@ RW.visitChip = (path, chip, constants, bindings = {}) ->
 # Returns { memoryPatches: [...], inputIoData: {...}, ioPatches: [...], logMessages: [...], errors: [...] }
 RW.stepLoop = (options) ->  
   makeErrorResponse = (stage, err) -> 
+    console.error("ERROR IN STEP LOOP", stage, err)
+    # Some Firefox errors have name, filename, lineNumber, and columnNumber exceptions
     errorDescription = 
       stage: stage
-      message: err.message
-      path: err.path
-      stack: err.stack
+      message: err.message || err.name
+      path: err.path 
+      stack: RW.formatStackTrace(err)
     return { errors: [errorDescription], memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
 
   _.defaults options, 
