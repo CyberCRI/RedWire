@@ -11,8 +11,8 @@
             </span>
             <span class="label"
                  ng-class=""
-                 ng-bind="node.comment"
                  ng-click="nodeClick(node)">
+                 {{node.comment || "Untitled"}} ({{getNodeType(node)}})
             </span>
         </div>
         <ul ng-if="!node.collapsed && node.children && node.children.length > 0"

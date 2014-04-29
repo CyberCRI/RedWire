@@ -62,6 +62,15 @@ angular.module('gamEvolve.game.boardTree', [
       targetNode.children = []
     targetNode.children.push sourceNode
 
+  $scope.getNodeType = (node) ->
+    if not node
+      return ""
+    if "switch" of node then node.switch
+    else if "processor" of node then "#{node.processor} Processor"
+    else if "emitter" of node then "Emitter"
+    else if "splitter" of node then "Splitter"
+    else "Unknown Type"
+
 
 .directive 'boardTree', (currentGame, boardConverter, nodes) ->
   dnd =
