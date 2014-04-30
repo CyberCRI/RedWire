@@ -1,17 +1,16 @@
-<ul frang-tree>
+<ul frang-tree class="board">
     <li frang-tree-repeat="node in [currentGame.version.board]"
         frang-tree-drag="{node: node, parent: $parent.node}"
         frang-tree-drop="drop(dragData.node, node, dragData.parent, $parent.node)"
-        frang-tree-allow-drop="true"
-        style="list-style-type:none;">
+        frang-tree-allow-drop="true">
         <div>
-            <span ng-show="node.children && node.children.length > 0"
-                  ng-click="node.collapsed = !node.collapsed"
-                  ng-init="node.collapsed = false; node.muted = false;">
-                {{node.collapsed ? '+' : '-'}}
-            </span>
+            <span class="icon"
+                  ng-class="{collapsed: node.collapsed, expanded: !node.collapsed}"
+                  ng-show="node.children && node.children.length > 0"
+                  ng-click="node.collapsed = !node.collapsed"></span>
             <img ng-src="/assets/images/{{getChipType(node)}}.png" />
-            <span>
+            <span class="label"
+                  ng-class="{folder: acceptsChildren(node)}">
                 {{node.comment || "Untitled"}} ({{getChipDescription(node)}})
             </span>
             <a href="" class="btn btn-small" ng-click="edit(node)"><i class="icon-edit"></i></a>

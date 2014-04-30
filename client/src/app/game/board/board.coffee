@@ -26,6 +26,7 @@ angular.module('gamEvolve.game.boardTree', [
           _.extend(chip, model)
 
   $scope.getChipType = (chip) ->
+    return "null" unless chip
     if "switch" of chip then "switch"
     else if "processor" of chip then "processor"
     else if "emitter" of chip then "emitter"
@@ -65,12 +66,13 @@ angular.module('gamEvolve.game.boardTree', [
 #    console.log 'Target', target
 #    console.log 'Source Parent', sourceParent
     return if source is currentGame.version.board # Ignore Main node DnD
-    if acceptsChildren(target)
+    if $scope.acceptsChildren(target)
       moveInsideTarget(source, target, sourceParent)
     else
       moveBeforeTarget(source, target, sourceParent, targetParent)
 
-  acceptsChildren = (node) ->
+  $scope.acceptsChildren = (node) ->
+    return false unless node
     if node.switch or node.processor or node.splitter
       if not node.children
         node.children = []
