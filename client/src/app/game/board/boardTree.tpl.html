@@ -10,8 +10,9 @@
                   ng-init="node.collapsed = false; node.muted = false;">
                 {{node.collapsed ? '+' : '-'}}
             </span>
+            <img ng-src="/assets/images/{{getChipType(node)}}.png" />
             <span>
-                {{node.comment || "Untitled"}} ({{getNodeType(node)}})
+                {{node.comment || "Untitled"}} ({{getChipDescription(node)}})
             </span>
             <a href="" class="btn btn-small" ng-click="edit(node)"><i class="icon-edit"></i></a>
             <a href="" class="btn btn-small" ng-click="node.muted = !node.muted">{{node.muted ? 'MUTED' : 'Mute'}}</a>
