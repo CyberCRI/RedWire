@@ -47,20 +47,41 @@ angular.module('gamEvolve.game.boardTree', [
           }
     dialog.open()
 
-  $scope.drop = (targetNode, sourceNode, sourceParentNode) ->
-    console.log 'Drop', targetNode, sourceNode, sourceParentNode
-    return if sourceNode is currentGame.version.board # Ignore Main node DnD
-    return unless targetNode.children? # Target must accept children
-    # Remove source from parent
-    if sourceParentNode
-      children = sourceParentNode.children
-      for child, i in children
-        if child is sourceNode
-          children.splice i, 1
+  $scope.drop = (source, target, sourceParent, targetParent) ->
+    console.log 'Drop'
+    console.log 'Source', source
+    console.log 'Target', target
+    console.log 'Source Parent', sourceParent
+    return if source is currentGame.version.board # Ignore Main node DnD
+    if acceptsChildren(target)
+      moveInsideTarget(source, target, sourceParent)
+    else
+      moveBeforeTarget(source, target, sourceParent, targetParent)
+
+  acceptsChildren = (node) ->
+    if node.switch or node.processor or node.splitter
+      if not node.children
+        node.children = []
+      true
+    else
+      false
+
+  moveInsideTarget = (source, target, sourceParent) ->
+    removeSourceFromParent(source, sourceParent)
+    target.children.push source
+    target.collapsed = false # Make sure user can see added node
+
+  removeSourceFromParent = (source, parent) ->
+    if parent
+      for child, i in parent.children
+        if child is source
+          parent.children.splice i, 1
           break
-    if !targetNode.children
-      targetNode.children = []
-    targetNode.children.push sourceNode
+
+  moveBeforeTarget = (source, target, sourceParent, targetParent) ->
+    removeSourceFromParent(source, sourceParent)
+    targetIndex = targetParent.children.indexOf(target)
+    targetParent.children.splice targetIndex, 0, source
 
   $scope.getNodeType = (node) ->
     if not node

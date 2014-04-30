@@ -1,18 +1,18 @@
 <ul frang-tree>
     <li frang-tree-repeat="node in [currentGame.version.board]"
         frang-tree-drag="{node: node, parent: $parent.node}"
-        frang-tree-drop="drop(node, dragData.node, dragData.parent)"
-        frang-tree-allow-drop="true">
+        frang-tree-drop="drop(dragData.node, node, dragData.parent, $parent.node)"
+        frang-tree-allow-drop="true"
+        style="list-style-type:none;">
         <div>
-            <span class="icon"
-                   ng-class="{collapsed: node.collapsed, expanded: !node.collapsed}"
-                   ng-show="node.children && node.children.length > 0"
-                   ng-click="node.collapsed = !node.collapsed">
+            <span ng-show="node.children && node.children.length > 0"
+                  ng-click="node.collapsed = !node.collapsed"
+                  ng-init="node.collapsed = false">
+                {{node.collapsed ? '+' : '-'}}
             </span>
             <span class="label"
-                 ng-class=""
-                 ng-click="nodeClick(node)">
-                 {{node.comment || "Untitled"}} ({{getNodeType(node)}})
+                  ng-click="nodeClick(node)">
+                {{node.comment || "Untitled"}} ({{getNodeType(node)}})
             </span>
         </div>
         <ul ng-if="!node.collapsed && node.children && node.children.length > 0"
