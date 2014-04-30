@@ -25,15 +25,8 @@ angular.module('gamEvolve.game.edit', [
 
 
 .controller 'GameEditCtrl', ($scope, $stateParams, games, $filter, gameHistory, currentGame, boardConverter, gameTime) ->
-  games.loadFromId $stateParams.gameId
-  $scope.currentGame = currentGame;
-  $scope.board = {}
 
-  # When the board changes, update in scope
-  updateBoard = -> 
-    if currentGame.version?.board
-      $scope.board = boardConverter.convert(currentGame.version.board)
-  $scope.$watch('currentGame', updateBoard, true)
+  games.loadFromId $stateParams.gameId
 
 
 .controller 'BasicChipLibraryCtrl', ($scope) ->

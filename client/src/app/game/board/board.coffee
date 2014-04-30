@@ -10,8 +10,8 @@ angular.module('gamEvolve.game.boardTree', [
 
   $scope.currentGame = currentGame
 
-  $scope.nodeClick = (chip) ->
-    # Determine type of chip
+  $scope.edit = (chip) ->
+    # Type of dialog depends on type of chip
     if 'processor' of chip
       showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
         _.extend(chip, model)
@@ -47,6 +47,11 @@ angular.module('gamEvolve.game.boardTree', [
           }
     dialog.open()
 
+  $scope.remove = (node, parent) ->
+    if window.confirm("Are you sure you want to delete this chip?")
+      index = parent.children.indexOf node
+      parent.children.splice(index, 1) # Remove that child
+
   $scope.drop = (source, target, sourceParent, targetParent) ->
     console.log 'Drop'
     console.log 'Source', source
@@ -68,7 +73,7 @@ angular.module('gamEvolve.game.boardTree', [
 
   moveInsideTarget = (source, target, sourceParent) ->
     removeSourceFromParent(source, sourceParent)
-    target.children.push source
+    target.children.push source # TODO push or unshift ?
     target.collapsed = false # Make sure user can see added node
 
   removeSourceFromParent = (source, parent) ->
@@ -92,49 +97,7 @@ angular.module('gamEvolve.game.boardTree', [
     else if "splitter" of node then "Splitter"
     else "Unknown Type"
 
-
-.directive 'boardTree', (currentGame, boardConverter, nodes) ->
-  dnd =
-
-    drag_check: (data) ->
-      # No dropping in processors or emitters
-      if data.r.attr('rel') in ['processor', 'emitter'] then return false
-
-      # TODO: allow adding nodes before and after, not just inside
-      result =
-        after: false
-        before: false
-        inside: true
-      return result
-
-    drag_finish: (data) ->
-      source = if 'processor-id' of data.o.attributes
-        processor: data.o.attributes['processor-id'].nodeValue
-        pins:
-          in: {}
-          out: {}
-      else if 'switch-id' of data.o.attributes
-        switch: data.o.attributes['switch-id'].nodeValue
-        pins:
-          in: {}
-          out: {}
-      else if 'emitter' of data.o.attributes
-        emitter: {}
-      else if 'splitter' of data.o.attributes
-        splitter:
-          from: ''
-          bindTo: ''
-          index: ''
-      else
-        throw new Error("Unknown element #{data.o} accepted for drag and drop")
-
-      nodeId = data.r.data('nodeId')
-      target = nodes.find nodeId
-
-      # If the target doesn't have children, it needs an empty list
-      if not target.children? then target.children = []
-      target.children.unshift source
-
+  # TODO Delete
   types =
     switch:
       icon:
@@ -151,67 +114,7 @@ angular.module('gamEvolve.game.boardTree', [
       icon:
         image: '/assets/images/splitter.png'
 
-  restrict: 'E'
-  scope: {}
-  controller: 'BoardCtrl'
-
-  link: (scope, element) ->
-    updateModel = ->
-      treeJson = $.jstree._reference(element).get_json()
-      if treeJson.length isnt 1
-        scope.updateTree(boardConverter.convert(currentGame.version.board)) # Refresh display from model
-        throw Error 'Tree should have one and only one root'
-      else
-        treeJson = treeJson[0]
-        if treeJson.metadata.nodeId isnt 0
-          scope.updateTree(boardConverter.convert(currentGame.version.board)) # Refresh display from model
-          throw Error 'Trying to replace root node'
-        else # OK
-          reverted = boardConverter.revert(treeJson)
-          currentGame.version.board = reverted
-
-    scope.updateTree = (board) ->
-      $(element).jstree
-        json_data:
-          data: board
-        dnd: dnd
-        types:
-          types: types
-        core:
-          html_titles: true
-        plugins: ['themes', 'ui', 'json_data', 'dnd', 'types', 'wholerow', 'crrm']
-      .bind "move_node.jstree", ->
-        updateModel()
-      .bind "open_node.jstree", (event, data) ->
-        nodeId = data.rslt.obj.data().nodeId
-        nodes.open nodeId
-      .bind "close_node.jstree", (event, data) ->
-        nodeId = data.rslt.obj.data().nodeId
-        nodes.close nodeId
-
-    $(element).on 'click', 'a[editChip]', (event) ->
-      nodeId = $(event.currentTarget).attr('nodeId')
-      scope.$emit 'editChipButtonClick', nodeId
-
-    $(element).on 'click', 'a[removeChip]', (event) ->
-      nodeId = $(event.currentTarget).attr('nodeId')
-      parentNodeId = $(event.currentTarget).attr('parentNodeId')
-      scope.$emit 'removeChipButtonClick', {nodeId: nodeId, parentNodeId: parentNodeId}
-
-    $(element).on 'click', 'a[muteChip]', (event) ->
-      nodeId = $(event.currentTarget).attr('nodeId')
-      scope.$emit('muteChipButtonClick', nodeId)
-
-
-.controller 'BoardCtrl', ($scope, $dialog, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
-  $scope.game = currentGame
-
-  # When the board changes, update in scope
-  updateBoard = ->
-    if currentGame.version?.board
-      $scope.updateTree(boardConverter.convert(currentGame.version.board))
-  $scope.$watch("game", updateBoard, true)
-
+  # TODO Remove or move to right place
   # Update from gameHistory
   onUpdateGameHistory = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return
@@ -220,26 +123,8 @@ angular.module('gamEvolve.game.boardTree', [
       $scope.memory = newMemory
   $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)
 
-  $scope.remove = (nodeId, parentNodeId) ->
-    node = nodes.find(nodeId)
-    parent = nodes.find(parentNodeId)
-    index = parent.children.indexOf node
-    parent.children.splice(index, 1) # Remove that child
 
-  $scope.edit = (nodeId) ->
-    chip = nodes.find(nodeId)
-
-  $scope.$on 'editChipButtonClick', (event, nodeId) ->
-    $scope.edit(nodeId)
-
-  $scope.$on 'removeChipButtonClick', (event, message) ->
-    if window.confirm("Are you sure you want to delete this chip?")
-      $scope.remove(message.nodeId, message.parentNodeId)
-
-  $scope.$on 'muteChipButtonClick', (event, nodeId) ->
-    chip = nodes.find(nodeId)
-    chip.muted = !chip.muted
-
+# TODO Use this to keep info on collapsed and/or muted nodes ?
 .factory 'nodes', ->
   nodes = []
   states = [0] # Root tree is open by default
