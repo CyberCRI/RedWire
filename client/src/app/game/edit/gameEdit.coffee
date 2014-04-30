@@ -5,11 +5,13 @@ filterOutHashKey = (obj) ->
     if _.isObject(value) then filterOutHashKey(value)
   return obj
 
+
 angular.module('gamEvolve.game.edit', [
   'flexyLayout'
   'gamEvolve.game.memory'
   'gamEvolve.game.edit.header'
 ])
+
 
 .config ($stateProvider) ->
   $stateProvider.state 'game-edit',
@@ -20,6 +22,7 @@ angular.module('gamEvolve.game.edit', [
         templateUrl: 'game/edit/gameEdit.tpl.html'
     data: 
       pageTitle: 'Edit Game'
+
 
 .controller 'GameEditCtrl', ($scope, $stateParams, games, $filter, gameHistory, currentGame, boardConverter, gameTime) ->
   games.loadFromId $stateParams.gameId
@@ -32,3 +35,11 @@ angular.module('gamEvolve.game.edit', [
       $scope.board = boardConverter.convert(currentGame.version.board)
   $scope.$watch('currentGame', updateBoard, true)
 
+
+.controller 'BasicChipLibraryCtrl', ($scope) ->
+
+  $scope.newSplitter = ->
+    splitter:
+      from: ''
+      bindTo: ''
+      index: ''

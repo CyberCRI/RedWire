@@ -66,7 +66,7 @@ angular.module('gamEvolve.game.boardTree', [
     if not node
       return ""
     if "switch" of node then node.switch
-    else if "processor" of node then "#{node.processor} Processor"
+    else if "processor" of node then node.processor
     else if "emitter" of node then "Emitter"
     else if "splitter" of node then "Splitter"
     else "Unknown Type"
