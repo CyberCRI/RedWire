@@ -60,11 +60,15 @@ angular.module('gamEvolve.game.boardTree', [
       index = parent.children.indexOf node
       parent.children.splice(index, 1) # Remove that child
 
+  $scope.enter = (node) ->
+    node.collapsed = false
+
   $scope.drop = (source, target, sourceParent, targetParent) ->
 #    console.log 'Drop'
 #    console.log 'Source', source
 #    console.log 'Target', target
 #    console.log 'Source Parent', sourceParent
+    return if source is target
     return if source is currentGame.version.board # Ignore Main node DnD
     if $scope.acceptsChildren(target)
       moveInsideTarget(source, target, sourceParent)

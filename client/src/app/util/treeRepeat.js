@@ -5,7 +5,8 @@ angular.module('treeRepeat', ['ngAnimate'])
     .factory('treeDrag', function() {
         return {
 
-            data: null
+            data: null,
+            currentTarget: null
 
         };
     })
@@ -423,7 +424,7 @@ angular.module('treeRepeat', ['ngAnimate'])
         };
     })
 
-    .directive('frangTreeDrop', function($parse, treeDrag) {
+    .directive('frangTreeDrop', function($parse, $timeout, treeDrag) {
         return {
             restrict: 'A',
             require: '^frangTree',
@@ -431,6 +432,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 var el = element[0];
                 var parsedDrop = $parse(attrs.frangTreeDrop);
                 var parsedAllowDrop = $parse(attrs.frangTreeAllowDrop || 'true');
+                var parsedEnter = $parse(attrs.frangTreeEnter);
                 el.addEventListener(
                     'dragover',
                     function(e) {
@@ -451,6 +453,14 @@ angular.module('treeRepeat', ['ngAnimate'])
                         if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             element.addClass('tree-drag-over');
+                            scope.$apply(function () {
+                                treeDrag.lastEnterTime = new Date().getTime();
+                                $timeout(function() {
+                                    if (treeDrag.lastEnterTime + 499 < new Date().getTime()) {
+                                        parsedEnter(scope);
+                                    }
+                                }, 500);
+                            });
                             // allow drop
                             if (e.preventDefault) { e.preventDefault(); }
                         }

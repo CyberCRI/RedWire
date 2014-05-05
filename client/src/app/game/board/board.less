@@ -2,33 +2,40 @@
 
 .board {
 
+  ul {
+    margin-left: 18px;
+
+    .tree-drag > div > span.label {
+      background-color: lightsalmon;
+    }
+    .tree-drag-over > div > span.label {
+      background-color: darkseagreen;
+    }
+    .label.folder {
+      color: lightgreen;
+    }
+
+  }
+
   li {
     list-style-type: none;
   }
 
-  .icon {
+  .arrow {
     display: block;
     float: left;
     width: 16px;
     height: 16px;
+    margin-top: 5px;
   }
-
   .expanded {
     background-image: url(/assets/images/expanded.png);
   }
   .collapsed {
     background-image: url(/assets/images/collapsed.png);
   }
-
-  ul .tree-drag > div > span.label {
-    background-color: lightsalmon;
-  }
-  .tree-drag-over > div > span.label {
-    background-color: darkseagreen;
-  }
-
-  .label.folder {
-    color: lightgreen;
+  .hidden {
+    background-image: none;
   }
 
 }
