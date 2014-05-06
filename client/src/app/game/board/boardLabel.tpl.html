@@ -1,0 +1,6 @@
+<img ng-src="/assets/images/{{chips.getType(node)}}.png"/>
+<span class="label"
+      ng-class="{folder: chips.acceptsChildren(node)}"
+      ng-click="node.collapsed = !node.collapsed">
+    {{node.comment || "Untitled"}} ({{getChipDescription(node)}})
+</span>

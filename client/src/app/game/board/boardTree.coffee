@@ -3,15 +3,20 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.game.board.editEmitterDialog'
   'gamEvolve.game.board.editProcessorDialog'
   'gamEvolve.game.board.editSplitterDialog'
+  'treeRepeat'
+  'gamEvolve.game.boardLabel'
+  'gamEvolve.model.chips'
+  'gamEvolve.game.boardLabel'
 ])
 
-
-.controller 'BoardTreeCtrl', ($scope, $dialog, currentGame, gameHistory, gameTime) ->
+.controller 'BoardTreeCtrl', ($scope, $dialog, currentGame, gameHistory, gameTime, treeDrag, chips) ->
 
   $scope.currentGame = currentGame
+  $scope.treeDrag = treeDrag
+  $scope.chips = chips
 
   $scope.edit = (chip) ->
-    switch $scope.getChipType(chip) # Type of dialog depends on type of chip
+    switch chips.getType(chip) # Type of dialog depends on type of chip
       when "switch"
         showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
           _.extend(chip, model)
@@ -24,14 +29,6 @@ angular.module('gamEvolve.game.boardTree', [
       when "splitter"
         showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
-
-  $scope.getChipType = (chip) ->
-    return "null" unless chip
-    if "switch" of chip then "switch"
-    else if "processor" of chip then "processor"
-    else if "emitter" of chip then "emitter"
-    else if "splitter" of chip then "splitter"
-    else "unknown"
 
   showDialog = (templateUrl, controller, model, onDone) ->
     dialog = $dialog.dialog
@@ -70,19 +67,10 @@ angular.module('gamEvolve.game.boardTree', [
 #    console.log 'Source Parent', sourceParent
     return if source is target
     return if source is currentGame.version.board # Ignore Main node DnD
-    if $scope.acceptsChildren(target)
+    if chips.acceptsChildren(target)
       moveInsideTarget(source, target, sourceParent)
     else
-      moveBeforeTarget(source, target, sourceParent, targetParent)
-
-  $scope.acceptsChildren = (node) ->
-    return false unless node
-    if node.switch or node.processor or node.splitter
-      if not node.children
-        node.children = []
-      true
-    else
-      false
+      moveAfterTarget(source, target, sourceParent, targetParent)
 
   moveInsideTarget = (source, target, sourceParent) ->
     removeSourceFromParent(source, sourceParent)
@@ -96,18 +84,10 @@ angular.module('gamEvolve.game.boardTree', [
           parent.children.splice i, 1
           break
 
-  moveBeforeTarget = (source, target, sourceParent, targetParent) ->
+  moveAfterTarget = (source, target, sourceParent, targetParent) ->
     removeSourceFromParent(source, sourceParent)
-    targetIndex = targetParent.children.indexOf(target)
+    targetIndex = 1 + targetParent.children.indexOf(target)
     targetParent.children.splice targetIndex, 0, source
-
-  $scope.getChipDescription = (chip) ->
-    switch $scope.getChipType(chip)
-      when "switch" then chip.switch
-      when "processor" then chip.processor
-      when "emitter" then "Emitter"
-      when "splitter" then "Splitter"
-      else "Unknown Type"
 
   # TODO Remove or move to right place
   # Update from gameHistory

@@ -5,8 +5,9 @@ angular.module('treeRepeat', ['ngAnimate'])
     .factory('treeDrag', function() {
         return {
 
-            data: null,
-            currentTarget: null
+            // data
+            // lastEnterTime
+            // lastHovered
 
         };
     })
@@ -438,9 +439,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
-                            e.dataTransfer.dropEffect = 'move';
-                            element.addClass('tree-drag-over');
-                            // allow drop
+                            e.dataTransfer.dropEffect = 'move'; // allow drop
                             if (e.preventDefault) { e.preventDefault(); }
                         }
                         return false;
@@ -452,8 +451,8 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
-                            element.addClass('tree-drag-over');
                             scope.$apply(function () {
+                                treeDrag.lastHovered = scope.node;
                                 treeDrag.lastEnterTime = new Date().getTime();
                                 $timeout(function() {
                                     if (treeDrag.lastEnterTime + 499 < new Date().getTime()) {
@@ -473,7 +472,6 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
-                            element.removeClass('tree-drag-over');
                         }
                         return false;
                     },
@@ -484,11 +482,11 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
-                            element.removeClass('tree-drag-over');
                             scope.$apply(function () {
                                 parsedDrop(scope, {dragData: treeDrag.data});
                             });
                             treeDrag.data = null;
+                            treeDrag.lastHovered = null;
                             if (e.preventDefault) { e.preventDefault(); }
                         }
                         return false;
