@@ -417,6 +417,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                         if (e.stopPropagation) e.stopPropagation();
                         element.removeClass('tree-drag');
                         treeDrag.data = null;
+                        treeDrag.lastHovered = null;
                         return false;
                     },
                     false

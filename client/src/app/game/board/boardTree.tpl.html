@@ -4,7 +4,7 @@
         frang-tree-drop="drop(dragData.node, node, dragData.parent, $parent.node)"
         frang-tree-enter="enter(node)"
         frang-tree-allow-drop="true">
-        <div>
+        <div ng-hide="treeDrag.data.node === node && treeDrag.lastHovered != node && treeDrag.lastHovered.children[0] != node">
             <span class="arrow"
                   ng-class="{collapsed: node.collapsed, expanded: !node.collapsed, hidden: !node.children || node.children.length === 0}"
                   ng-click="node.collapsed = !node.collapsed"></span>
@@ -15,7 +15,7 @@
         </div>
         <div class="empty-slot"
              ng-class="{child: chips.acceptsChildren(node)}"
-             ng-if="treeDrag.lastHovered == node && treeDrag.data.node != node && node.children[0] != treeDrag.data.node">
+             ng-if="treeDrag.lastHovered === node && treeDrag.data.node != node && node.children[0] != treeDrag.data.node">
             <board-label node="treeDrag.data.node"></board-label>
         </div>
         <ul ng-if="!node.collapsed && node.children && node.children.length > 0"

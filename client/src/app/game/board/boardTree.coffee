@@ -74,7 +74,7 @@ angular.module('gamEvolve.game.boardTree', [
 
   moveInsideTarget = (source, target, sourceParent) ->
     removeSourceFromParent(source, sourceParent)
-    target.children.push source # TODO push or unshift ?
+    target.children.unshift source
     target.collapsed = false # Make sure user can see added node
 
   removeSourceFromParent = (source, parent) ->
