@@ -68,7 +68,7 @@ module.exports = {
       'vendor/underscore.string/lib/underscore.string.js',
       'vendor/flexy-layout/flexy-layout.debug.js',
       'vendor/jquery-ui/ui/jquery-ui.custom.js',
-      'vendor/angular-ui-sortable/src/sortable.js',
+      'vendor/angular-ui-sortable/sortable.js',
       'vendor/angular-file-dnd/dist/angular-file-dnd.js',
       'vendor/angular-xeditable/dist/js/xeditable.js',
       'vendor/jstree/jquery.jstree.js',
