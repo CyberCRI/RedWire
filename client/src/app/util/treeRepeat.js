@@ -8,6 +8,7 @@ angular.module('treeRepeat', ['ngAnimate'])
             // data
             // lastEnterTime
             // lastHovered
+            // dropBefore
 
         };
     })
@@ -392,7 +393,7 @@ angular.module('treeRepeat', ['ngAnimate'])
         };
     })
 
-    .directive('frangTreeDrag', function($parse, treeDrag) {
+    .directive('frangTreeDrag', function($parse, treeDrag, boardNodes) {
         return {
             restrict: 'A',
             link: function(scope, element, attrs) {
@@ -407,6 +408,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                         e.dataTransfer.setData('Text', 'nothing'); // Firefox requires some data
                         element.addClass('tree-drag');
                         treeDrag.data = parsedDrag(scope);
+                        boardNodes.close(treeDrag.data.node);
                         return false;
                     },
                     false
@@ -437,7 +439,6 @@ angular.module('treeRepeat', ['ngAnimate'])
                 dropBeforeElm.addEventListener(
                     'dragenter',
                     function(event) {
-                        console.log('enter');
                         scope.$apply(function () {
                             treeDrag.dropBefore = true;
                         });
@@ -447,7 +448,6 @@ angular.module('treeRepeat', ['ngAnimate'])
                 dropBeforeElm.addEventListener(
                     'dragleave',
                     function(event) {
-                        console.log('leave');
                         scope.$apply(function () {
                             treeDrag.dropBefore = false;
                         });

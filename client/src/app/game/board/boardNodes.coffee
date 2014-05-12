@@ -22,7 +22,7 @@ angular.module('gamEvolve.game.boardNodes', [])
     else
       openNodeKeys[node.$$hashKey] = false
 
-  clicked: (node) =>
+  labelClicked: (node) =>
     return if node is currentGame.version.board # Ignore clicks on root node
     if isOpen(node)
       close(node)
@@ -31,3 +31,4 @@ angular.module('gamEvolve.game.boardNodes', [])
 
   isOpen: isOpen
   open: open
+  close: close

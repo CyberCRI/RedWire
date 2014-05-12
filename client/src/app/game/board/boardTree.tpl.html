@@ -4,13 +4,13 @@
         frang-tree-drop="drop(dragData.node, node, dragData.parent, $parent.node)"
         frang-tree-enter="enter(node)"
         frang-tree-allow-drop="true">
-        <div class="drop-before" ng-hide="treeDrag.data.node === node && treeDrag.lastHovered != node && treeDrag.lastHovered.children[0] != node"></div>
-        <div class="empty-slot before"
-             ng-if="treeDrag.lastHovered === node && treeDrag.data.node != node && node.children[0] != treeDrag.data.node && treeDrag.dropBefore">
+        <div class="drop-before" ng-hide="isPreviewedAsSource(node)"></div>
+        <div class="preview before" ng-if="isPreviewedAsTarget(node) && treeDrag.dropBefore">
             <board-label node="treeDrag.data.node"></board-label>
         </div>
-        <div ng-hide="treeDrag.data.node === node && treeDrag.lastHovered != node && treeDrag.lastHovered.children[0] != node">
-            <span ng-click="boardNodes.clicked(node)">
+        <div ng-hide="isPreviewedAsSource(node)">
+                <!--ng-hide="treeDrag.data.node === node && treeDrag.lastHovered != node && treeDrag.lastHovered.children[0] != node">-->
+            <span ng-click="boardNodes.labelClicked(node)">
                 <span class="arrow"
                       ng-class="{collapsed: !boardNodes.isOpen(node), expanded: boardNodes.isOpen(node), hidden: !chips.hasChildren(node) || chips.isRoot(node)}"></span>
                 <board-label node="node" ></board-label>
@@ -21,9 +21,9 @@
                 <a href="" class="btn btn-small" ng-click="remove(node, $parent.node)"><i class="icon-trash"></i></a>
             </span>
         </div>
-        <div class="empty-slot after"
+        <div class="preview after"
              ng-class="{child: chips.acceptsChildren(node)}"
-             ng-if="treeDrag.lastHovered === node && treeDrag.data.node != node && node.children[0] != treeDrag.data.node && !treeDrag.dropBefore">
+             ng-if="isPreviewedAsTarget(node) && !treeDrag.dropBefore">
             <board-label node="treeDrag.data.node"></board-label>
         </div>
         <ul ng-if="chips.hasChildren(node) && boardNodes.isOpen(node)"
