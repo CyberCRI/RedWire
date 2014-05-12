@@ -2,7 +2,7 @@
 angular.module('gamEvolve.model.chips', [])
 
 
-.factory 'chips', ->
+.factory 'chips', (currentGame) ->
 
   getType: (chip) ->
     return "null" unless chip
@@ -20,3 +20,9 @@ angular.module('gamEvolve.model.chips', [])
       true
     else
       false
+
+  hasChildren: (chip) ->
+    return chip && chip.children && chip.children.length > 0
+
+  isRoot: (chip) ->
+    return currentGame.version && currentGame.version.board is chip

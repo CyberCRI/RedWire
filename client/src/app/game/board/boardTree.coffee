@@ -9,11 +9,12 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.game.boardLabel'
 ])
 
-.controller 'BoardTreeCtrl', ($scope, $dialog, currentGame, gameHistory, gameTime, treeDrag, chips) ->
+.controller 'BoardTreeCtrl', ($scope, $dialog, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes) ->
 
   $scope.currentGame = currentGame
   $scope.treeDrag = treeDrag
   $scope.chips = chips
+  $scope.boardNodes = boardNodes
 
   $scope.edit = (chip) ->
     switch chips.getType(chip) # Type of dialog depends on type of chip
@@ -58,13 +59,9 @@ angular.module('gamEvolve.game.boardTree', [
       parent.children.splice(index, 1) # Remove that child
 
   $scope.enter = (node) ->
-    node.collapsed = false
+    boardNodes.open(node)
 
   $scope.drop = (source, target, sourceParent, targetParent) ->
-#    console.log 'Drop'
-#    console.log 'Source', source
-#    console.log 'Target', target
-#    console.log 'Source Parent', sourceParent
     return if source is target
     return if source is currentGame.version.board # Ignore Main node DnD
     if chips.acceptsChildren(target)
@@ -75,7 +72,7 @@ angular.module('gamEvolve.game.boardTree', [
   moveInsideTarget = (source, target, sourceParent) ->
     removeSourceFromParent(source, sourceParent)
     target.children.unshift source
-    target.collapsed = false # Make sure user can see added node
+    boardNodes.open(target) # Make sure user can see added node
 
   removeSourceFromParent = (source, parent) ->
     if parent
@@ -97,37 +94,3 @@ angular.module('gamEvolve.game.boardTree', [
     if not _.isEqual($scope.memory, newMemory)
       $scope.memory = newMemory
   $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)
-
-
-# TODO Use this to keep info on collapsed and/or muted nodes ?
-.factory 'nodes', ->
-  nodes = []
-  states = [0] # Root tree is open by default
-
-  registerRoot: (newRoot) ->
-    if nodes.length is 0 or nodes[0] isnt newRoot
-      # Reset nodes
-      nodes = [newRoot]
-      states = [0] # Root tree is open by default
-    0
-
-  register: (node) ->
-    # nodeId is actually the index in the nodes array
-    for registeredNode, index in nodes
-      if registeredNode is node then return index
-    # Not registered yet
-    nodes.push node
-
-  find: (id) ->
-    node = nodes[id]
-    if not node then console.log "No node found for ID #{id}"
-    node
-
-  open: (nodeId) ->
-    states[nodeId] = 'open'
-
-  close: (nodeId) ->
-    states[nodeId] = 'closed'
-
-  findState: (nodeId) ->
-    if nodeId is 0 then 'open' else states[nodeId]

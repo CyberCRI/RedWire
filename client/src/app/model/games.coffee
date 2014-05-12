@@ -4,8 +4,10 @@ angular.module('gamEvolve.model.games', [])
 
 .factory 'currentGame', ->
 
-  info: null
   version: null
+  setVersion: (newVersion) ->
+    @version = newVersion
+  info: null
   creator: null
 
   enumeratePinDestinations: ->
@@ -43,7 +45,7 @@ angular.module('gamEvolve.model.games', [])
   saveVersion = ->
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
     $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
-      .then (savedGameVersion) -> currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)
+      .then (savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data))
 
   saveActions:
     none:
@@ -73,7 +75,7 @@ angular.module('gamEvolve.model.games', [])
           for propertyName in propertyNames
             game[propertyName] = JSON.stringify(game[propertyName], null, 2)
           currentGame.info = game
-          currentGame.version = game
+          currentGame.setVersion(game)
           deferred.resolve game
         )
     promise
@@ -111,7 +113,7 @@ angular.module('gamEvolve.model.games', [])
     getCreator = $http.get("/users?id=#{game.ownerId}")
     updateCurrentGame = ([version, creator]) ->
       currentGame.info = game
-      currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(version.data[0])
+      currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(version.data[0]))
       currentGame.creator = creator.data.username
     onError = (error) -> console.log("Error loading game", error) # TODO: notify the user of the error
     $q.all([getVersion, getCreator]).then(updateCurrentGame, onError)
