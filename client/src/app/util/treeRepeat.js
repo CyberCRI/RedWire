@@ -431,6 +431,30 @@ angular.module('treeRepeat', ['ngAnimate'])
             restrict: 'A',
             require: '^frangTree',
             link: function(scope, element, attrs) {
+
+                // DROP BEFORE
+                var dropBeforeElm = element[0].children[0];
+                dropBeforeElm.addEventListener(
+                    'dragenter',
+                    function(event) {
+                        console.log('enter');
+                        scope.$apply(function () {
+                            treeDrag.dropBefore = true;
+                        });
+                    },
+                    false
+                );
+                dropBeforeElm.addEventListener(
+                    'dragleave',
+                    function(event) {
+                        console.log('leave');
+                        scope.$apply(function () {
+                            treeDrag.dropBefore = false;
+                        });
+                    },
+                    false
+                );
+
                 var el = element[0];
                 var parsedDrop = $parse(attrs.frangTreeDrop);
                 var parsedAllowDrop = $parse(attrs.frangTreeAllowDrop || 'true');

@@ -64,15 +64,17 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.drop = (source, target, sourceParent, targetParent) ->
     return if source is target
     return if source is currentGame.version.board # Ignore Main node DnD
-    if chips.acceptsChildren(target)
+    if treeDrag.dropBefore
+      moveBeforeTarget(source, target, sourceParent, targetParent)
+    else if chips.acceptsChildren(target)
       moveInsideTarget(source, target, sourceParent)
     else
       moveAfterTarget(source, target, sourceParent, targetParent)
 
-  moveInsideTarget = (source, target, sourceParent) ->
+  moveBeforeTarget = (source, target, sourceParent, targetParent) ->
     removeSourceFromParent(source, sourceParent)
-    target.children.unshift source
-    boardNodes.open(target) # Make sure user can see added node
+    targetIndex = targetParent.children.indexOf(target)
+    targetParent.children.splice targetIndex, 0, source
 
   removeSourceFromParent = (source, parent) ->
     if parent
@@ -81,10 +83,15 @@ angular.module('gamEvolve.game.boardTree', [
           parent.children.splice i, 1
           break
 
+  moveInsideTarget = (source, target, sourceParent) ->
+    removeSourceFromParent(source, sourceParent)
+    target.children.unshift source
+    boardNodes.open(target) # Make sure user can see added node
+
   moveAfterTarget = (source, target, sourceParent, targetParent) ->
     removeSourceFromParent(source, sourceParent)
-    targetIndex = 1 + targetParent.children.indexOf(target)
-    targetParent.children.splice targetIndex, 0, source
+    targetIndex = targetParent.children.indexOf(target)
+    targetParent.children.splice targetIndex+1, 0, source
 
   # TODO Remove or move to right place
   # Update from gameHistory
