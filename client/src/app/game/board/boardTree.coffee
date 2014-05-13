@@ -83,7 +83,7 @@ angular.module('gamEvolve.game.boardTree', [
       parent.children.splice(index, 1) # Remove that child
 
   $scope.enter = (node) ->
-    boardNodes.open(node)
+    boardNodes.open(node) unless treeDrag.dropBefore
 
   $scope.drop = (source, target, sourceParent, targetParent) ->
     return if source is target
