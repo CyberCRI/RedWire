@@ -17,16 +17,28 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.boardNodes = boardNodes
 
   $scope.isPreviewedAsSource = (chip) ->
-    isDraggedAsSource(chip) && !isDraggedAsTarget(chip)
+    return false unless chip
+    isDraggedAsSource(chip) && !isDraggedOverItself()
 
   isDraggedAsSource = (chip) ->
-    treeDrag.data && treeDrag.data.node is chip
+    source = treeDrag.data?.node
+    chip is source
+
+  isDraggedOverItself = ->
+    source = treeDrag.data?.node
+    target = treeDrag.lastHovered
+    source is target or isFirstChildOf(source, target)
+
+  isFirstChildOf = (chip, suspectedParent) ->
+    chip is suspectedParent?.children?[0]
 
   isDraggedAsTarget = (chip) ->
-    chip is treeDrag.lastHovered
+    target = treeDrag.lastHovered
+    chip is target
 
   $scope.isPreviewedAsTarget = (chip) ->
-    isDraggedAsTarget(chip) && !isDraggedAsSource(chip)
+    return false unless chip
+    isDraggedAsTarget(chip) && !isDraggedOverItself()
 
   $scope.edit = (chip) ->
     switch chips.getType(chip) # Type of dialog depends on type of chip
