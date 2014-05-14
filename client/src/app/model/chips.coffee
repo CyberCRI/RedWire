@@ -13,6 +13,13 @@ angular.module('gamEvolve.model.chips', [])
       if _.isObject(value) then removeHashKeys(value)
     return node
 
+  types: [
+    "switch"
+    "processor"
+    "emitter"
+    "splitter"
+  ]
+
   getType: (chip) ->
     return "null" unless chip
     if "switch" of chip then "switch"

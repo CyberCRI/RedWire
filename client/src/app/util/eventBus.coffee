@@ -1,10 +1,8 @@
 
-GameVersionUpdatedEvent = 'GameVersionUpdatedEvent'
-
-angular.module('gamEvolve.util.eventBus', [])
+module = angular.module('gamEvolve.util.eventBus', [])
 
 
-.factory 'eventBus', ($rootScope) ->
+module.factory 'eventBus', ($rootScope) ->
 
   listen: (eventName, callback) ->
     $rootScope.$on eventName, callback
@@ -13,11 +11,16 @@ angular.module('gamEvolve.util.eventBus', [])
     $rootScope.$emit.apply($rootScope, arguments)
 
 
-.factory GameVersionUpdatedEvent, (eventBus) ->
+createEventType = (name) ->
 
-  listen: (listener) ->
-    eventBus.listen GameVersionUpdatedEvent, (event, newVersion) ->
-      listener(newVersion)
+  module.factory name, (eventBus) ->
 
-  send: (gameVersion) ->
-    eventBus.send(GameVersionUpdatedEvent, gameVersion)
+    listen: (listener) ->
+      eventBus.listen name, (event, data) ->
+        listener(data)
+
+    send: (data) ->
+      eventBus.send(name, data)
+
+
+createEventType('GameVersionUpdatedEvent')

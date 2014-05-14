@@ -3,9 +3,9 @@
         frang-tree-drag="{node: node, parent: $parent.node}"
         frang-tree-drop="drop(dragData.node, node, dragData.parent, $parent.node)"
         frang-tree-enter="enter(node)"
-        frang-tree-allow-drop="true">
+        frang-tree-allow-drop="allowDrop(dragData.node)">
         <div class="drop-before" ng-hide="isPreviewedAsSource(node)"></div>
-        <div class="preview before" ng-if="isPreviewedAsTarget(node) && treeDrag.dropBefore">
+        <div class="preview before" ng-if="isPreviewedAsTarget(node) && treeDrag.dropBefore && !chips.isRoot(node)">
             <board-label node="treeDrag.data.node"></board-label>
         </div>
         <div ng-hide="isPreviewedAsSource(node)">

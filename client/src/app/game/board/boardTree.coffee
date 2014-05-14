@@ -18,6 +18,7 @@ angular.module('gamEvolve.game.boardTree', [
 
   $scope.isPreviewedAsSource = (chip) ->
     return false unless chip
+    return false if chips.isRoot(chip)
     isDraggedAsSource(chip) && !isDraggedOverItself()
 
   isDraggedAsSource = (chip) ->
@@ -39,6 +40,11 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.isPreviewedAsTarget = (chip) ->
     return false unless chip
     isDraggedAsTarget(chip) && !isDraggedOverItself()
+
+  $scope.allowDrop = (source) ->
+    return false if chips.isRoot(source)
+    chipType = chips.getType source
+    return chipType in chips.types
 
   $scope.edit = (chip) ->
     switch chips.getType(chip) # Type of dialog depends on type of chip

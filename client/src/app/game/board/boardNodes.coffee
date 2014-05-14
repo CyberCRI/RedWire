@@ -11,15 +11,11 @@ angular.module('gamEvolve.game.boardNodes', [])
     else return openNodeKeys[node.$$hashKey] is true
 
   open = (node) ->
-    if not node.$$hashKey
-      console.error 'No $$hashKey found for node :', node
-    else
+    if node.$$hashKey
       openNodeKeys[node.$$hashKey] = true
 
   close = (node) ->
-    if not node.$$hashKey
-      console.error 'No $$hashKey found for node :', node
-    else
+    if node.$$hashKey
       openNodeKeys[node.$$hashKey] = false
 
   labelClicked: (node) =>
