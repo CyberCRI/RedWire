@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.switches', [
   'ui.bootstrap',
 ])
-.controller 'SwitchesListCtrl', ($scope, $dialog, currentGame) ->
+.controller 'SwitchesListCtrl', ($scope, $dialog, currentGame, SwitchRenamedEvent) ->
   # Get the switches object from the currentGame service, and keep it updated
   $scope.switches = {}
   $scope.switchNames = []
@@ -43,7 +43,7 @@ angular.module('gamEvolve.game.switches', [
               listActiveChildren: ""
               handleSignals: ""
             done: (model) ->
-              currentGame.version.switches[model.name] = 
+              currentGame.version.switches[model.name] =
                 pinDefs: model.pinDefs
                 listActiveChildren: model.listActiveChildren
                 handleSignals: model.handleSignals
@@ -76,6 +76,9 @@ angular.module('gamEvolve.game.switches', [
             done: (model) ->
               # Handle rename case
               if model.name isnt switchName
+                SwitchRenamedEvent.send
+                  oldName: switchName
+                  newName: model.name
                 delete currentGame.version.switches[switchName]
 
               currentGame.version.switches[model.name] = 

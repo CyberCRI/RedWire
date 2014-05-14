@@ -1,7 +1,18 @@
 angular.module('gamEvolve.game.boardNodes', [])
 
 
-.factory 'boardNodes', (currentGame) ->
+.factory 'boardNodes', (currentGame, ProcessorRenamedEvent, SwitchRenamedEvent) ->
+
+  ProcessorRenamedEvent.listen (event) ->
+    renameChips(currentGame.version.board, 'processor', event.oldName, event.newName)
+
+  SwitchRenamedEvent.listen (event) ->
+    renameChips(currentGame.version.board, 'switch', event.oldName, event.newName)
+
+  renameChips = (chip, chipType, oldName, newName) ->
+    if chip[chipType] is oldName
+      chip[chipType] = newName
+    angular.forEach(chip.children, (child) -> renameChips(child, chipType, oldName, newName))
 
   openNodeKeys = {}
 

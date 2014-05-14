@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.processors', [
   'ui.bootstrap',
 ])
-.controller 'ProcessorsListCtrl', ($scope, $dialog, currentGame) ->
+.controller 'ProcessorsListCtrl', ($scope, $dialog, currentGame, ProcessorRenamedEvent) ->
   # Get the processors object from the currentGame service, and keep it updated
   $scope.processors = {}
   $scope.processorNames = []
@@ -73,6 +73,9 @@ angular.module('gamEvolve.game.processors', [
             done: (model) ->
               # Handle rename case
               if model.name isnt processorName
+                ProcessorRenamedEvent.send
+                  oldName: processorName
+                  newName: model.name
                 delete currentGame.version.processors[processorName]
 
               currentGame.version.processors[model.name] = 
