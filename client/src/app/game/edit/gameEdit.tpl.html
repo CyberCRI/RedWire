@@ -22,7 +22,7 @@
                                     <li ng-repeat="asset in assets">
                                         <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
                                         <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
-                                        <a class="btn" ng-click="remove(asset.name)"><i class="icon-trash"></i></a>
+                                        <a class="btn" ng-click="remove($index)"><i class="icon-trash"></i></a>
                                     </li>
                                 </ul>
 

@@ -129,14 +129,6 @@ angular.module('gamEvolve.game.boardTree', [
         $scope.updateTree( boardConverter.convert(currentGame.version.board) )
     $scope.$watch("currentGame.localVersion", updateBoard, true)
 
-    # Update from gameHistory
-    onUpdateGameHistory = ->
-      if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return
-      newMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
-      if not _.isEqual($scope.memory, newMemory)
-        $scope.memory = newMemory
-    $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)
-
     showDialog = (templateUrl, controller, model, onDone) ->
       dialog = $dialog.dialog
         backdrop: true
@@ -164,6 +156,7 @@ angular.module('gamEvolve.game.boardTree', [
       parent = nodes.find(parentNodeId)
       index = parent.children.indexOf node
       parent.children.splice(index, 1) # Remove that child
+      currentGame.updateLocalVersion()
 
     $scope.edit = (nodeId) ->
       chip = nodes.find(nodeId)

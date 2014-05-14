@@ -5,7 +5,7 @@ angular.module('gamEvolve.game.assets', [
 ])
 .controller 'AssetsCtrl', ($scope, currentGame) ->
   # Get the actions object from the currentGame service, and keep it updated
-  $scope.assets = []
+  $scope.assets = null
   $scope.fileName = ""
   $scope.file = null
 
@@ -18,17 +18,25 @@ angular.module('gamEvolve.game.assets', [
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", copyFromGameToScope, true)
 
-  $scope.remove = (name) -> 
+  # Transform assets back to object so we can loop over it easier
+  copyFromScopeToGame = -> 
+    if $scope.assets == null then return 
+
+    assetsAsObject = _.object(([asset.name, asset.data] for asset in $scope.assets))
+    if _.isEqual(assetsAsObject, currentGame.version.assets) then return 
+
+    currentGame.version.assets = assetsAsObject
+    currentGame.updateLocalVersion()
+  $scope.$watch("assets", copyFromScopeToGame, true)
+
+  $scope.remove = (index) -> 
     if window.confirm("Are you sure you want to delete this asset?")
-      delete currentGame.version.assets[name]
-      currentGame.updateLocalVersion()
+      $scope.assets.splice(index, 1)
 
   $scope.$watch "file", ->
     if $scope.fileName is "" then return 
 
-    currentGame.version?.assets[$scope.fileName] = $scope.file
-    currentGame.updateLocalVersion()
-
+    $scope.assets.push({ name: $scope.fileName, data: $scope.file })
     # Reset this so that the same filename dragged twice in a row will be taken into account
     $scope.fileName = ""  
     $scope.file = null
