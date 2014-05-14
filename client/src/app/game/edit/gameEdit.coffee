@@ -1,10 +1,3 @@
-# Modifies the object by taking out the "$$hashKey" property put in by AngularJS
-filterOutHashKey = (obj) ->
-  if "$$hashKey" of obj then delete obj["$$hashKey"]
-  for key, value of obj
-    if _.isObject(value) then filterOutHashKey(value)
-  return obj
-
 
 angular.module('gamEvolve.game.edit', [
   'flexyLayout'

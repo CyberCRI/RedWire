@@ -2,11 +2,12 @@
 angular.module('gamEvolve.model.games', [])
 
 
-.factory 'currentGame', ->
+.factory 'currentGame', (GameVersionUpdatedEvent) ->
 
   version: null
   setVersion: (newVersion) ->
     @version = newVersion
+    GameVersionUpdatedEvent.send(newVersion)
   info: null
   creator: null
 

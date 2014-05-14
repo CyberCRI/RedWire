@@ -133,7 +133,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                     return match;
                 });
 
-                message = message + '\nhttp://errors.angularjs.org/' + version.full + '/' +
+                message = message + '\nhttp://errors.angularjs.org/' + angular.version.full + '/' +
                     (module ? module + '/' : '') + code;
                 for (i = 2; i < arguments.length; i++) {
                     message = message + (i == 2 ? '?' : '&') + 'p' + (i-2) + '=' +

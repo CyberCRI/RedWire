@@ -2,7 +2,16 @@
 angular.module('gamEvolve.model.chips', [])
 
 
-.factory 'chips', (currentGame) ->
+.factory 'chips', (currentGame, GameVersionUpdatedEvent) ->
+
+  GameVersionUpdatedEvent.listen (newVersion) ->
+    removeHashKeys(newVersion.board)
+
+  removeHashKeys = (node) ->
+    if "$$hashKey" of node then delete node["$$hashKey"]
+    for key, value of node
+      if _.isObject(value) then removeHashKeys(value)
+    return node
 
   getType: (chip) ->
     return "null" unless chip
