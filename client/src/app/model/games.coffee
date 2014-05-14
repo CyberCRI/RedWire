@@ -6,9 +6,9 @@ angular.module('gamEvolve.model.games', [])
   info: null
   version: null
   creator: null
-  localVersion: 0
+  localVersion: _.uniqueId("v")
 
-  updateLocalVersion: -> @localVersion++
+  updateLocalVersion: -> @localVersion = _.uniqueId("v")
 
   enumeratePinDestinations: ->
     destinations = @enumerateMemoryKeys(@version.memory)

@@ -17,6 +17,7 @@ angular.module('gamEvolve.game.transformers', [
   $scope.remove = (transformerName) ->
     if window.confirm("Are you sure you want to delete this transformer?")
       delete currentGame.version.transformers[transformerName]
+      currentGame.updateLocalVersion()
 
   $scope.add = () ->
     addTransformerDialog = $dialog.dialog
@@ -39,6 +40,7 @@ angular.module('gamEvolve.game.transformers', [
               currentGame.version.transformers[model.name] = 
                 args: model.arguments
                 body: model.body
+              currentGame.updateLocalVersion()
 
               addTransformerDialog.close()
             cancel: ->
@@ -73,6 +75,7 @@ angular.module('gamEvolve.game.transformers', [
                 args: model.arguments
                 body: model.body
 
+              currentGame.updateLocalVersion()
               editTransformerDialog.close()
             cancel: ->
               editTransformerDialog.close()

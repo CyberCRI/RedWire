@@ -1,6 +1,7 @@
 angular.module('gamEvolve.model.undo', [])
 .factory 'undo', ->
   # TODO: backup data by localstorage
+  # TODO: store diffs to save space?
 
   # TODO: remove the meta and data portions?
   meta:
@@ -12,27 +13,29 @@ angular.module('gamEvolve.model.undo', [])
 
   reset: ->
     @data.stack = []
-    @data.index = 0
+    @data.index = -1 # The index points to the current version on the stack, so it will go to 0 on the first push
 
     @meta.version = 0
 
-  currentValue: -> if @data.index < @data.stack.length then @data.stack[@data.index] else null
+  # Returns [id, data]
+  getCurrent: -> 
+    if @data.index < @data.stack.length then @data.stack[@data.index] else null
 
   canUndo: -> @data.index > 0
   undo: -> 
     @data.index--
-    return currentData()
+    return @getCurrent()
 
   canRedo: -> @data.index < @data.stack.length - 1
   redo: -> 
     @data.index++
-    return currentData()
+    return @getCurrent()
 
-  changeValue: (value) ->
+  changeValue: (id, data) ->
     # Remove any redos
     if @canRedo()
       @data.stack.splice(@data.index, @data.stack.length - @data.index)
 
     # Push the new value onto the stack
-    @data.stack.push(value)
+    @data.stack.push([id, RW.cloneData(data)])
     @data.index++

@@ -84,6 +84,7 @@ angular.module('gamEvolve.game.boardTree', [
           else # OK
             reverted = boardConverter.revert(treeJson)
             currentGame.version.board = reverted
+            currentGame.updateLocalVersion()
 
       scope.updateTree = (board) ->
         $(element).jstree

@@ -17,6 +17,7 @@ angular.module('gamEvolve.game.processors', [
   $scope.remove = (name) ->
     if window.confirm("Are you sure you want to delete this processor?")
       delete currentGame.version.processors[name]
+      currentGame.updateLocalVersion()
 
   $scope.add = () ->
     addProcessorDialog = $dialog.dialog
@@ -39,6 +40,7 @@ angular.module('gamEvolve.game.processors', [
               currentGame.version.processors[model.name] = 
                 pinDefs: model.pinDefs
                 update: model.update
+              currentGame.updateLocalVersion()
 
               addProcessorDialog.close()
             cancel: ->
@@ -72,7 +74,8 @@ angular.module('gamEvolve.game.processors', [
               currentGame.version.processors[model.name] = 
                 pinDefs: model.pinDefs
                 update: model.update
-
+                
+              currentGame.updateLocalVersion()
               editProcessorDialog.close()
             cancel: ->
               editProcessorDialog.close()

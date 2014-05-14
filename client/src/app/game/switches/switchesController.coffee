@@ -17,6 +17,7 @@ angular.module('gamEvolve.game.switches', [
   $scope.remove = (name) ->
     if window.confirm("Are you sure you want to delete this switch?")
       delete currentGame.version.switches[name]
+      currentGame.updateLocalVersion()
 
   $scope.add = () ->
     addSwitchDialog = $dialog.dialog
@@ -41,6 +42,7 @@ angular.module('gamEvolve.game.switches', [
                 pinDefs: model.pinDefs
                 listActiveChildren: model.listActiveChildren
                 handleSignals: model.handleSignals
+              currentGame.updateLocalVersion()
 
               addSwitchDialog.close()
             cancel: ->
@@ -77,6 +79,7 @@ angular.module('gamEvolve.game.switches', [
                 listActiveChildren: model.listActiveChildren
                 handleSignals: model.handleSignals
 
+              currentGame.updateLocalVersion()
               editSwitchDialog.close()
             cancel: ->
               editSwitchDialog.close()

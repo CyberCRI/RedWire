@@ -60,3 +60,4 @@ angular.module('gamEvolve.game.memory', [])
     # If we are on the first frame, update the game memory
     if gameTime.currentFrameNumber == 0 
       currentGame.version.memory = RW.cloneData(editor.get())
+      currentGame.updateLocalVersion()
