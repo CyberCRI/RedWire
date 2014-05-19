@@ -1,4 +1,5 @@
-<div ng-controller="UndoCtrl" id="undoController">
+<div ng-controller="UndoCtrl" id="undoControls">
     <a title="Undo" class="btn btn-small" href="" ng-click="undo()" ng-disabled="!canUndo()">Undo</i></a>
+    <span>{{ text }}</span>
     <a title="Redo" class="btn btn-small" href="" ng-click="redo()" ng-disabled="!canRedo()">Redo</i></a>
 </div> 

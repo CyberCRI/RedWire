@@ -19,7 +19,7 @@ angular.module('gamEvolve.model.undo', [])
 
   # Returns [id, data]
   getCurrent: -> 
-    if @data.index < @data.stack.length then @data.stack[@data.index] else null
+    RW.cloneData(if @data.index < @data.stack.length then @data.stack[@data.index] else null)
 
   canUndo: -> @data.index > 0
   undo: -> 
@@ -32,9 +32,10 @@ angular.module('gamEvolve.model.undo', [])
     return @getCurrent()
 
   changeValue: (id, data) ->
-    # Remove any redos
     if @canRedo()
-      @data.stack.splice(@data.index, @data.stack.length - @data.index)
+      # Remove any redos
+      # Start at the element following the index, and remove to the end of the array
+      @data.stack.splice(@data.index + 1, @data.stack.length - @data.index - 1)
 
     # Push the new value onto the stack
     @data.stack.push([id, RW.cloneData(data)])

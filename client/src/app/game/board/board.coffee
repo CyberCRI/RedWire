@@ -48,6 +48,7 @@ angular.module('gamEvolve.game.boardTree', [
         # If the target doesn't have children, it needs an empty list
         if not target.children? then target.children = []
         target.children.unshift source
+        currentGame.updateLocalVersion()
 
     types =
       switch:
