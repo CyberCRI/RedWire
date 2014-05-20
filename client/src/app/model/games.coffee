@@ -47,17 +47,21 @@ angular.module('gamEvolve.model.games', [])
     $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
       .then (savedGameVersion) -> currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)
 
+  operationInProgress: false
+
   saveActions:
     none:
       name: 'No Action'
       execute: -> console.log 'games.saveActions.none executed'
     saveNewVersion:
       name: 'Publish'
-      icons: "font-icon-upload"
-      execute: -> updateInfo().then(saveVersion)
+      classes: "font-icon-upload"
+      execute: -> 
+        @operationInProgress = true 
+        updateInfo().then(saveVersion).finally(-> @operationInProgress = false)
     fork:
       name: 'Fork'
-      icons: "font-icon-fork"
+      classes: "font-icon-fork"
       execute: ->
         # Removing the game ID will make the server provide a new one
         delete currentGame.info.id
