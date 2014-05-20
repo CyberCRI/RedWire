@@ -53,9 +53,11 @@ angular.module('gamEvolve.model.games', [])
       execute: -> console.log 'games.saveActions.none executed'
     saveNewVersion:
       name: 'Publish'
+      icons: "font-icon-upload"
       execute: -> updateInfo().then(saveVersion)
     fork:
       name: 'Fork'
+      icons: "font-icon-fork"
       execute: ->
         # Removing the game ID will make the server provide a new one
         delete currentGame.info.id
