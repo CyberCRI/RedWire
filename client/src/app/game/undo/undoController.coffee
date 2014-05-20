@@ -53,4 +53,3 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", onUpdateCurrentGame, true)
-

@@ -52,7 +52,7 @@ angular.module('gamEvolve.model.games', [])
       name: 'No Action'
       execute: -> console.log 'games.saveActions.none executed'
     saveNewVersion:
-      name: 'Save'
+      name: 'Publish'
       execute: -> updateInfo().then(saveVersion)
     fork:
       name: 'Fork'
