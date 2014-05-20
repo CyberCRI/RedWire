@@ -76,6 +76,7 @@ module.exports = {
       'vendor/sylvester/sylvester.src.js',
       'vendor/Chart.js/Chart.js',
       'vendor/jsoneditor/jsoneditor.js',
+      'vendor/moment/moment.js',
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',

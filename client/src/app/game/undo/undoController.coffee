@@ -1,6 +1,4 @@
-formatDate = ->
-  d = new Date()
-  return "#{d.getHours()}:#{d.getMinutes()}:#{d.getSeconds()}"
+formatDate = -> moment().format("HH:MM:SS")
 
 # Saves code to LocalStorage
 saveCodeToCache = (programId, data) -> localStorage.setItem(programId, JSON.stringify(data))

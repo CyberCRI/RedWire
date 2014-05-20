@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'font-icon';
-  src: url('../font/font-icon.eot?28481256');
-  src: url('../font/font-icon.eot?28481256#iefix') format('embedded-opentype'),
-       url('../font/font-icon.woff?28481256') format('woff'),
-       url('../font/font-icon.ttf?28481256') format('truetype'),
-       url('../font/font-icon.svg?28481256#font-icon') format('svg');
+  src: url('../font/font-icon.eot?22691321');
+  src: url('../font/font-icon.eot?22691321#iefix') format('embedded-opentype'),
+       url('../font/font-icon.woff?22691321') format('woff'),
+       url('../font/font-icon.ttf?22691321') format('truetype'),
+       url('../font/font-icon.svg?22691321#font-icon') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -14,7 +14,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'font-icon';
-    src: url('../font/font-icon.svg?28481256#font-icon') format('svg');
+    src: url('../font/font-icon.svg?22691321#font-icon') format('svg');
   }
 }
 */
@@ -58,13 +58,16 @@
 .font-icon-download-cloud:before { content: '\e80a'; } /* '' */
 .font-icon-upload-cloud:before { content: '\e80b'; } /* '' */
 .font-icon-logout:before { content: '\e811'; } /* '' */
-.font-icon-arrows-cw:before { content: '\e808'; } /* '' */
+.font-icon-cw:before { content: '\e813'; } /* '' */
+.font-icon-ccw:before { content: '\e812'; } /* '' */
 .font-icon-spin5:before { content: '\e80e'; } /* '' */
+.font-icon-play:before { content: '\e800'; } /* '' */
 .font-icon-stop:before { content: '\e802'; } /* '' */
 .font-icon-pause:before { content: '\e803'; } /* '' */
+.font-icon-fork:before { content: '\e814'; } /* '' */
 .font-icon-back:before { content: '\e807'; } /* '' */
 .font-icon-hourglass:before { content: '\e80f'; } /* '' */
 .font-icon-record:before { content: '\e801'; } /* '' */
 .font-icon-erase:before { content: '\e806'; } /* '' */
 .font-icon-error-alt:before { content: '\e804'; } /* '' */
-.font-icon-play:before { content: '\e800'; } /* '' */
+.font-icon-arrows-cw:before { content: '\e808'; } /* '' */

@@ -55,6 +55,18 @@
       "src": "fontawesome"
     },
     {
+      "uid": "bc71f4c6e53394d5ba46b063040014f1",
+      "css": "cw",
+      "code": 59411,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "f9c3205df26e7778abac86183aefdc99",
+      "css": "ccw",
+      "code": 59410,
+      "src": "fontawesome"
+    },
+    {
       "uid": "a73c5deb486c8d66249811642e5d719a",
       "css": "arrows-cw",
       "code": 59400,
@@ -76,6 +88,12 @@
       "uid": "0b28050bac9d3facf2f0226db643ece0",
       "css": "pause",
       "code": 59395,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "bc4b94dd7a9a1dd2e02f9e4648062596",
+      "css": "fork",
+      "code": 59412,
       "src": "fontawesome"
     },
     {

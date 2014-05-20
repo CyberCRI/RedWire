@@ -21,7 +21,8 @@
     "Chart.js": "git://github.com/CyberCRI/Chart.js",
     "angular-ui-ace": "git://github.com/angular-ui/ui-ace.git#b2024c14dc6336bc232e1bb0b124b6be26f2bbee",
     "jsoneditor": "~2.3.6",
-    "angular-ui-sortable": "~0.12.6"
+    "angular-ui-sortable": "~0.12.6",
+    "moment": "~2.6.0"
   },
   "dependencies": {},
   "resolutions": {
