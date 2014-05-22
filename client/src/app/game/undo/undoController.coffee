@@ -1,19 +1,10 @@
 formatDate = -> moment().format("HH:MM:SS")
 
-# Saves code to LocalStorage
-saveCodeToCache = (programId, data) -> localStorage.setItem(programId, JSON.stringify(data))
-
-# Returns code from LocalStorage or NULL
-loadCodeFromCache = (programId) -> return JSON.parse(localStorage.getItem(programId))
-
-# Remove code in LocalStorage
-clearCodeInCache = (programId) -> localStorage.removeItem(programId)
-
 isModalShowing = -> $(".modal, .large-modal").length > 0
 
 
 angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
-.controller "UndoCtrl", ($scope, $window, undo, currentGame) -> 
+.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache) -> 
   currentLocalVersion = 0
 
   # Bring canUndo() and canRedo() into scope
@@ -36,22 +27,36 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
   onUpdateCurrentGame = ->
     if not currentGame.version then return 
 
-    # Check if this the first time the code is load
+    # If this the first time the code is loaded (ie. the controller just started)
     if not currentLocalVersion
       # Check if code exists in offline cache
-      cachedCode = loadCodeFromCache(currentGame.info.id)
-      if cachedCode and not _.isEqual(currentGame.version, cachedCode)
-        if window.confirm("You have some changes saved offline. Restore your offline version?")
-          currentGame.version = cachedCode
-          currentGame.updateLocalVersion()
+      try 
+        cachedCode = cache.load(currentGame.info.id)
+        if cachedCode and not _.isEqual(currentGame.version, cachedCode)
+          if window.confirm("You have some changes saved offline. Restore your offline version?")
+            # Put the old version as the first in the undo stack
+            undo.changeValue(currentGame.localVersion, currentGame.version)
+            
+            # Now update with the new version
+            currentGame.version = cachedCode
+            currentGame.updateLocalVersion()
+          else
+            cache.remove(currentGame.info.id)
+      catch error
+        $scope.text = "Offline saving unavailable"
+        console.error(error)
 
-    # Check that this service didn't create the notification
+    # Check that we're not already updated
     if currentLocalVersion isnt currentGame.localVersion 
       # Store the change in the undo stack
       undo.changeValue(currentGame.localVersion, currentGame.version)
       currentLocalVersion = currentGame.localVersion
-      saveCodeToCache(currentGame.info.id, currentGame.version)
-      $scope.text = "Saved at #{formatDate()}"
+      try 
+        cache.save(currentGame.info.id, currentGame.version)
+        $scope.text = "Saved at #{formatDate()}"
+      catch error
+        $scope.text = "Offline saving unavailable"
+        console.error(error)
 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", onUpdateCurrentGame, true)

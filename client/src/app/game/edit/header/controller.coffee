@@ -1,4 +1,3 @@
-
 angular.module('gamEvolve.game.edit.header', [
   'gamEvolve.game.edit.header.time'
 ])
