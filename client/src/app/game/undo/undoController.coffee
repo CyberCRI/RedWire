@@ -9,6 +9,8 @@ loadCodeFromCache = (programId) -> return JSON.parse(localStorage.getItem(progra
 # Remove code in LocalStorage
 clearCodeInCache = (programId) -> localStorage.removeItem(programId)
 
+isModalShowing = -> $(".modal, .large-modal").length > 0
+
 
 angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
 .controller "UndoCtrl", ($scope, $window, undo, currentGame) -> 
@@ -60,12 +62,12 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
   else
     ["ctrl+z", "ctrl+y"]
   Mousetrap.bind undoKey, -> 
-    $scope.$apply -> 
-      console.log "Starting undo"
-      $scope.undo()
+    if isModalShowing() then return false
+
+    $scope.$apply(-> $scope.undo())
     return false # Block "normal" browser undo
   Mousetrap.bind redoKey, ->
-    $scope.$apply -> 
-      console.log "Starting redo"
-      $scope.redo()
+    if isModalShowing() then return false
+
+    $scope.$apply(-> $scope.redo())
     return false # Block "normal" browser redo
