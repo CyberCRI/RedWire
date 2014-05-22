@@ -47,18 +47,15 @@ angular.module('gamEvolve.model.games', [])
     $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
       .then (savedGameVersion) -> currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)
 
-  operationInProgress: false
-
   saveActions:
     none:
       name: 'No Action'
-      execute: -> console.log 'games.saveActions.none executed'
+      execute: -> 
     saveNewVersion:
       name: 'Publish'
       classes: "font-icon-upload"
       execute: -> 
-        @operationInProgress = true 
-        updateInfo().then(saveVersion).finally(-> @operationInProgress = false)
+        updateInfo().then(saveVersion)
     fork:
       name: 'Fork'
       classes: "font-icon-fork"

@@ -11,7 +11,7 @@ clearCodeInCache = (programId) -> localStorage.removeItem(programId)
 
 
 angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
-.controller "UndoCtrl", ($scope, undo, currentGame) -> 
+.controller "UndoCtrl", ($scope, $window, undo, currentGame) -> 
   currentLocalVersion = 0
 
   # Bring canUndo() and canRedo() into scope
@@ -53,3 +53,19 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", onUpdateCurrentGame, true)
+
+  # Hotkeys
+  [undoKey, redoKey] = if $window.navigator and $window.navigator.platform.indexOf("Mac") != -1
+    ["command+z", "command+shift+z"]
+  else
+    ["ctrl+z", "ctrl+y"]
+  Mousetrap.bind undoKey, -> 
+    $scope.$apply -> 
+      console.log "Starting undo"
+      $scope.undo()
+    return false # Block "normal" browser undo
+  Mousetrap.bind redoKey, ->
+    $scope.$apply -> 
+      console.log "Starting redo"
+      $scope.redo()
+    return false # Block "normal" browser redo

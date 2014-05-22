@@ -17,14 +17,16 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.gotoPlayScreen = -> $state.transitionTo('play', { gameId: $stateParams.gameId })
 
   $scope.saveButtonDisabled = false
+  lastSaveActionName = null
   $scope.getSaveButtonName = -> 
-    if $scope.saveButtonDisabled then ""
+    if $scope.saveButtonDisabled then lastSaveActionName
     else games.getSaveAction().name
   $scope.getSaveButtonClasses = -> 
     if $scope.saveButtonDisabled then "font-icon-spin5 animate-spin"
     else games.getSaveAction().classes
   $scope.doSaveAction = ->
-    $scope.saveButtonDisabled = true 
+    lastSaveActionName = $scope.getSaveButtonName()
+    $scope.saveButtonDisabled = true
     games.saveCurrent().finally ->
       $scope.saveButtonDisabled = false 
 
