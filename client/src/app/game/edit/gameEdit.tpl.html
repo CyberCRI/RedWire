@@ -22,7 +22,7 @@
                                     <li ng-repeat="asset in assets">
                                         <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
                                         <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
-                                        <a class="btn" ng-click="remove($index)"><i class="icon-trash"></i></a>
+                                        <a class="btn btn-default" ng-click="remove($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                     </li>
                                 </ul>
 
@@ -109,7 +109,7 @@
                                 <h4>Layers</h4>
                                 <ul ui-sortable ng-model="layers">
                                     <li ng-repeat="layer in layers">
-                                        <i class="icon-align-justify"></i>
+                                        <span class="glyphicon glyphicon-align-justify"></span>
                                         <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
                                         -
                                         <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
