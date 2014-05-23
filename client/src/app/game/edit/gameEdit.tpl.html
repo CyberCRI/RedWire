@@ -73,10 +73,10 @@
                                         <ul>
                                             <li ng-repeat="processorName in processorNames">
                                                 <a href="" ng-click="edit(processorName)" class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</a>
-                                                <a class="btn btn-sm" ng-click="remove(processorName)"><i class="icon-trash"></i></a>
+                                                <a class="btn btn-default btn-sm" ng-click="remove(processorName)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </li>
                                         </ul>
-                                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                                        <a class="btn btn-default" ng-click="add()"><i class="glyphicon glyphicon-plus"></i></a>
                                     </div>
                                 </accordion-group>
                                 <accordion-group heading="Switches">
@@ -84,10 +84,10 @@
                                         <ul>
                                             <li ng-repeat="switchName in switchNames">
                                                 <a href="" ng-click="edit(switchName)" class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</a>
-                                                <a class="btn btn-sm" ng-click="remove(switchName)"><i class="icon-trash"></i></a>
+                                                <a class="btn btn-default btn-sm" ng-click="remove(switchName)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </li>
                                         </ul>
-                                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                                        <a class="btn btn-default" ng-click="add()"><i class="glyphicon glyphicon-plus"></i></a>
                                     </div>
                                 </accordion-group>
                                 <accordion-group heading="Transformers">
@@ -95,10 +95,10 @@
                                         <ul>
                                             <li ng-repeat="transformerName in transformerNames">
                                                 <a href="" ng-click="edit(transformerName)">{{transformerName}}</a>
-                                                <a class="btn btn-sm" ng-click="remove(transformerName)"><i class="icon-trash"></i></a>
+                                                <a class="btn btn-default btn-sm" ng-click="remove(transformerName)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </li>
                                         </ul>
-                                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                                        <a class="btn btn-default" ng-click="add()"><i class="glyphicon glyphicon-plus"></i></a>
                                     </div>
                                 </accordion-group>
                             </accordion>
@@ -113,11 +113,11 @@
                                         <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
                                         -
                                         <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
-                                        <a class="btn btn-sm" ng-click="removeLayer($index)"><i class="icon-trash"></i></a>
+                                        <a class="btn btn-default btn-sm" ng-click="removeLayer($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                     </li>
                                 </ul>
 
-                                <a class="btn" ng-click="addLayer()"><i class="icon-plus"></i></a>
+                                <a class="btn btn-default" ng-click="addLayer()"><i class="glyphicon glyphicon-plus"></i></a>
                             </div>
                         </block-container>
                     </flexy-layout>
