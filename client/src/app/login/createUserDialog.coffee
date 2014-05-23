@@ -10,7 +10,6 @@ angular.module('gamEvolve.login.createUser', [
     open: ->
       options =
         backdrop: true
-        dialogFade: true
         backdrop: true
         templateUrl: 'login/createUserDialog.tpl.html'
         controller: 'createUserDialogCtrl'
