@@ -35,7 +35,7 @@
 					<td class="chip-inside">
 						<span>{{pin.name}}</span>
 						<select ng-model="pin.linkage" ng-options="linkage for linkage in LINKAGES" class="input-small"></select>
-						<a class="btn btn-small" ng-click="removePin($index)"><i class="icon-trash"></i></a>
+						<a class="btn btn-sm" ng-click="removePin($index)"><i class="icon-trash"></i></a>
 					</td>
 					<td class="chip-inside chip-border-right"></td>
 					<td class="pin-out">
@@ -46,7 +46,7 @@
 								<li ng-repeat="destination in pin.customDestinations.out">
 									<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="destination.source"></div>
 									<input required ng-model="destination.drain" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
-									<a class="btn btn-small" ng-click="removeCustomDestination(pin.name, $index)"><i class="icon-trash"></i></a>
+									<a class="btn btn-sm" ng-click="removeCustomDestination(pin.name, $index)"><i class="icon-trash"></i></a>
 								</li>
 							</ul>
 		

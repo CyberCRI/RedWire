@@ -1,11 +1,11 @@
 <div ng-controller="TimeCtrl" id="timeController">
     <div id="recordContainer">
         <div class="btn-group">
-            <a title="Play" class="btn btn-small btn-primary" href="" ng-click="triggerPlay()"><i class="icon-white" ng-class="{'icon-play': !isPlaying, 'icon-stop': isPlaying}"></i></a>
-            <a title="Record" class="btn btn-small btn-danger" href="" ng-model="inRecordMode" btn-checkbox ng-disabled="isPlaying"><i class="font-icon-record"></i></a>
+            <a title="Play" class="btn btn-sm btn-primary" href="" ng-click="triggerPlay()"><i class="glyphicon glyphicon-white" ng-class="{'glyphicon-play': !isPlaying, 'glyphicon-stop': isPlaying}"></i></a>
+            <a title="Record" class="btn btn-sm btn-danger" href="" ng-model="inRecordMode" btn-checkbox ng-disabled="isPlaying"><i class="font-icon-record"></i></a>
         </div>
 
-        <a title="Reset" class="btn btn-small btn-warning" href="" ng-click="reset()" ng-disabled="disableTimeControls"><i class="icon-white icon-remove"></i></a>
+        <a title="Reset" class="btn btn-sm btn-warning" href="" ng-click="reset()" ng-disabled="disableTimeControls"><i class="glyphicon glyphicon-white glyphicon-remove"></i></a>
     </div>
     <div id="sliderContainer">
         <input type="range" ng-model="currentFrameString" min="0" max="{{lastFrame}}" ng-disabled="disableTimeControls" />
@@ -15,15 +15,15 @@
     </div>
     <div id="steppingContainer">
         <div class="btn-group">
-            <a class="btn btn-mini" href="" ng-click="triggerPlayBack()" ng-disabled="disableTimeControls"><i ng-class="{'icon-chevron-right': !isPlayingBack, 'icon-pause': isPlayingBack}"></i></a>
+            <a class="btn btn-default btn-xs" href="" ng-click="triggerPlayBack()" ng-disabled="disableTimeControls"><i class="glyphicon" ng-class="{'glyphicon-chevron-right': !isPlayingBack, 'glyphicon-pause': isPlayingBack}"></i></a>
         </div>
         <div class="btn-group">
-            <a class="btn btn-mini" href="" ng-click="stepBackward()" ng-disabled="disableTimeControls"><i class="icon-step-backward"></i></a>
-            <a class="btn btn-mini" href="" ng-click="stepForward()" ng-disabled="disableTimeControls"><i class="icon-step-forward"></i></a>
+            <a class="btn btn-default btn-xs" href="" ng-click="stepBackward()" ng-disabled="disableTimeControls"><i class="glyphicon glyphicon-step-backward"></i></a>
+            <a class="btn btn-default btn-xs" href="" ng-click="stepForward()" ng-disabled="disableTimeControls"><i class="glyphicon glyphicon-step-forward"></i></a>
         </div>
         <div class="btn-group">
-            <a class="btn btn-mini" href="" ng-click="jumpToStart()" ng-disabled="disableTimeControls"><i class="icon-fast-backward"></i></a>
-            <a class="btn btn-mini" href="" ng-click="jumpToEnd()" ng-disabled="disableTimeControls"><i class="icon-fast-forward"></i></a>
+            <a class="btn btn-default btn-xs" href="" ng-click="jumpToStart()" ng-disabled="disableTimeControls"><i class="glyphicon glyphicon-fast-backward"></i></a>
+            <a class="btn btn-default btn-xs" href="" ng-click="jumpToEnd()" ng-disabled="disableTimeControls"><i class="glyphicon glyphicon-fast-forward"></i></a>
         </div>
     </div>
 </div>

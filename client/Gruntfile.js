@@ -139,6 +139,18 @@ module.exports = function ( grunt ) {
           }
        ]
       },
+      // TODO: find non-hardcoded system to replace this
+      build_vendor_fonts: {
+        files: [
+          {
+            src: [ 'vendor/bootstrap/fonts/*' ],
+            dest: '<%= build_dir %>/assets/fonts/bootstrap',
+            cwd: '.',
+            expand: true,
+            flatten: true
+          }
+       ]
+      },
       build_vendor_images_samedir: {
         files: [
           {
@@ -233,9 +245,9 @@ module.exports = function ( grunt ) {
       build_css: {
         src: [
           '<%= vendor_files.css %>',
-          '<%= less.build.dest %>'
+          '<%= build_dir %>/assets/<%= pkg.name %>-<%= pkg.version %>.css'
         ],
-        dest: '<%= less.build.dest %>'
+        dest: '<%= build_dir %>/assets/<%= pkg.name %>-<%= pkg.version %>.css'
       },
       /**
        * The `compile_js` target is the concatenation of our application source
@@ -314,31 +326,23 @@ module.exports = function ( grunt ) {
     },
 
     /**
-     * `less` handles our LESS compilation and uglification automatically.
+     * `grunt-contrib-less` handles our LESS compilation and uglification automatically.
      * Only our `main.less` file is included in compilation; all other files
      * must be imported from this file.
      */
     less: {
       build: {
-        src: [ '<%= app_files.less %>' ],
-        dest: '<%= build_dir %>/assets/<%= pkg.name %>-<%= pkg.version %>.css',
-        options: {
-          compile: true,
-          compress: false,
-          noUnderscores: false,
-          noIDs: false,
-          zeroUnits: false
+        files: {
+          '<%= build_dir %>/assets/<%= pkg.name %>-<%= pkg.version %>.css': '<%= app_files.less %>'
         }
       },
       compile: {
-        src: [ '<%= less.build.dest %>' ],
-        dest: '<%= less.build.dest %>',
+        files: {
+          '<%= build_dir %>/assets/<%= pkg.name %>-<%= pkg.version %>.css': '<%= app_files.less %>'
+        },
         options: {
-          compile: true,
-          compress: true,
-          noUnderscores: false,
-          noIDs: false,
-          zeroUnits: false
+          cleancss: true,
+          compress: true
         }
       }
     },
@@ -393,7 +397,7 @@ module.exports = function ( grunt ) {
           '<%= html2js.common.dest %>',
           '<%= html2js.app.dest %>',
           '<%= vendor_files.css %>',
-          '<%= less.build.dest %>'
+          '<%= build_dir %>/assets/<%= pkg.name %>-<%= pkg.version %>.css'
         ]
       },
 
@@ -657,7 +661,7 @@ module.exports = function ( grunt ) {
    */
   grunt.registerTask( 'build', [
     'clean', 'html2js', 'coffee', 'less:build',
-    'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_images', 'copy:build_vendor_images_samedir',
+    'concat:build_css', 'copy:build_app_assets', 'copy:build_vendor_images', 'copy:build_vendor_images_samedir', 'copy:build_vendor_fonts',
     'copy:build_appjs', 'copy:build_vendorjs', 'copy:build_vendorcss',
     'index:build', 'copy:build_tests_runner', 'copy:build_tests_vendor', 'copy:build_sandbox', 'docco'
   ]);

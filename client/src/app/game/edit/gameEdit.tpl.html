@@ -73,7 +73,7 @@
                                         <ul>
                                             <li ng-repeat="processorName in processorNames">
                                                 <a href="" ng-click="edit(processorName)" class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</a>
-                                                <a class="btn btn-small" ng-click="remove(processorName)"><i class="icon-trash"></i></a>
+                                                <a class="btn btn-sm" ng-click="remove(processorName)"><i class="icon-trash"></i></a>
                                             </li>
                                         </ul>
                                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
@@ -84,7 +84,7 @@
                                         <ul>
                                             <li ng-repeat="switchName in switchNames">
                                                 <a href="" ng-click="edit(switchName)" class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</a>
-                                                <a class="btn btn-small" ng-click="remove(switchName)"><i class="icon-trash"></i></a>
+                                                <a class="btn btn-sm" ng-click="remove(switchName)"><i class="icon-trash"></i></a>
                                             </li>
                                         </ul>
                                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
@@ -95,7 +95,7 @@
                                         <ul>
                                             <li ng-repeat="transformerName in transformerNames">
                                                 <a href="" ng-click="edit(transformerName)">{{transformerName}}</a>
-                                                <a class="btn btn-small" ng-click="remove(transformerName)"><i class="icon-trash"></i></a>
+                                                <a class="btn btn-sm" ng-click="remove(transformerName)"><i class="icon-trash"></i></a>
                                             </li>
                                         </ul>
                                         <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
@@ -113,7 +113,7 @@
                                         <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
                                         -
                                         <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
-                                        <a class="btn btn-small" ng-click="removeLayer($index)"><i class="icon-trash"></i></a>
+                                        <a class="btn btn-sm" ng-click="removeLayer($index)"><i class="icon-trash"></i></a>
                                     </li>
                                 </ul>
 

@@ -18,18 +18,18 @@
                 <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" href=""><i class="font-icon-logout"></i></a>
             </div>
             <div>
-                <button ng-click="doSaveAction()" class="btn btn-small btn-primary" ng-disabled="saveButtonDisabled">
+                <button ng-click="doSaveAction()" class="btn btn-sm btn-primary" ng-disabled="saveButtonDisabled">
                     <i ng-class="getSaveButtonClasses()"></i>
                     {{ getSaveButtonName() }}
                 </button>
-                <button ng-click="loginDialog.open();" class="btn btn-small btn-primary" ng-show="user.isNotLoggedIn()">
+                <button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-show="user.isNotLoggedIn()">
                     Login
                 </button>
-                <button id="importExportButton" title="Import/Export" ng-click="importExportDialog.open();" class="btn btn-small">
-                    <i class="icon-file"></i>
+                <button id="importExportButton" title="Import/Export" ng-click="importExportDialog.open();" class="btn btn-default btn-sm">
+                    <i class="glyphicon glyphicon-file"></i>
                 </button>
-                <button ng-click="gotoPlayScreen()" title="Play" class="btn btn-small">
-                    <i class="icon-share"></i>
+                <button ng-click="gotoPlayScreen()" title="Play" class="btn btn-default btn-sm">
+                    <i class="glyphicon glyphicon-share"></i>
                 </button>
             </div>
         </div>
