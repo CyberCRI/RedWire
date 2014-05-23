@@ -18,7 +18,7 @@
                 <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" href=""><i class="font-icon-logout"></i></a>
             </div>
             <div>
-                <button ng-click="doSaveAction()" class="btn btn-sm btn-primary" ng-disabled="saveButtonDisabled">
+                <button ng-click="doSaveAction()" class="btn btn-sm btn-primary" ng-disabled="saveButtonDisabled" ng-hide="!isSaveButtonShown()">
                     <i ng-class="getSaveButtonClasses()"></i>
                     {{ getSaveButtonName() }}
                 </button>

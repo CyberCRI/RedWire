@@ -25,9 +25,9 @@ generateType = (source) ->
   else throw new Error("Cannot find type of chip #{source}")
 
 makeChipButtons = (nodeId, parentNodeId, muted) -> """
-  <a href="" class="btn btn-sm" editChip nodeId="#{nodeId}"><i class="icon-edit"></i></a>
-  <a href="" class="btn btn-sm" muteChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}">#{if muted then "MUTED" else "Mute"}</a>
-  <a href="" class="btn btn-sm" removeChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}"><i class="icon-trash"></i></a>
+  <a href="" class="btn btn-default btn-sm" editChip nodeId="#{nodeId}"><i class="glyphicon glyphicon-edit"></i></a>
+  <a href="" class="btn btn-default btn-sm" muteChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}">#{if muted then "MUTED" else "Mute"}</a>
+  <a href="" class="btn btn-default btn-sm" removeChip nodeId="#{nodeId}" parentNodeId="#{parentNodeId}"><i class="glyphicon glyphicon-trash"></i></a>
   """
 
 

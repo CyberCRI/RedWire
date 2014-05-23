@@ -48,9 +48,6 @@ angular.module('gamEvolve.model.games', [])
       .then (savedGameVersion) -> currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)
 
   saveActions:
-    none:
-      name: 'No Action'
-      execute: -> 
     saveNewVersion:
       name: 'Publish'
       classes: "font-icon-upload"
@@ -71,7 +68,8 @@ angular.module('gamEvolve.model.games', [])
 
   getSaveAction: ->
     unless currentGame.info and currentGame.version and loggedUser.isLoggedIn()
-      return @saveActions.none
+      return null
+
     if currentGame.info.id and currentGame.info.ownerId is loggedUser.profile.id
       return @saveActions.saveNewVersion
     else 
