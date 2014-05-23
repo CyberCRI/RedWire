@@ -1,4 +1,4 @@
-angular.module('gamEvolve.about', [
+angular.module('gamEvolve.game.about', [
   'ui.bootstrap'
 ])
 
@@ -10,7 +10,7 @@ angular.module('gamEvolve.about', [
       backdrop: true
       dialogFade: true
       backdrop: true
-      templateUrl: 'about/aboutDialog.tpl.html'
+      templateUrl: 'game/about/aboutDialog.tpl.html'
       controller: 'AboutDialogCtrl'
     current = $modal.open(options)
 
