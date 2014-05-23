@@ -4,8 +4,8 @@
   "devDependencies": {
     "angular": "~1.2.16",
     "angular-mocks": "~1.0.7",
-    "bootstrap": "~2.3.2",
-    "angular-bootstrap": "~0.3.0",
+    "bootstrap": "~3.1.1",
+    "angular-bootstrap": "~0.11.0",
     "angular-ui-router": "~0.0.1",
     "angular-ui-utils": "~0.0.3",
     "underscore": "~1.5.2",
@@ -25,8 +25,5 @@
     "moment": "~2.6.0",
     "mousetrap": "~1.4.6"
   },
-  "dependencies": {},
-  "resolutions": {
-    "angular": "~1.0.7"
-  }
+  "dependencies": {}
 }

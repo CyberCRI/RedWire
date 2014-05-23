@@ -19,6 +19,7 @@
  */
 
 @import 'variables.less';
+@import '../../vendor/bootstrap/less/mixins.less';
 
 
 /**
@@ -37,7 +38,7 @@ code, pre, .pre {
   margin: 10px 0;
   background-color: #EFEFEF;
   border: 1px solid #DADADA;
-  .border-radius(3px);
+  border-radius: 3px;
 }
 
 code {
@@ -125,7 +126,7 @@ h2 {
       margin-left: 20px;
 
       a, a:visited {
-        color: @grayLight;
+        color: @gray-light;
         text-decoration: none;
         font-size: 40px;
         .transition( 250ms ease-in-out );

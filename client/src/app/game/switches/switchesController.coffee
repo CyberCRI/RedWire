@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.switches', [
   'ui.bootstrap',
 ])
-.controller 'SwitchesListCtrl', ($scope, $dialog, currentGame) ->
+.controller 'SwitchesListCtrl', ($scope, $modal, currentGame) ->
   # Get the switches object from the currentGame service, and keep it updated
   $scope.switches = {}
   $scope.switchNames = []
@@ -20,11 +20,10 @@ angular.module('gamEvolve.game.switches', [
       currentGame.updateLocalVersion()
 
   $scope.add = () ->
-    addSwitchDialog = $dialog.dialog
+    addSwitchDialog = $modal.open
       backdrop: true
       dialogFade: true
-      backdropFade: true
-      backdropClick: false
+      backdrop: "static"
       templateUrl: 'game/switches/editSwitch.tpl.html'
       dialogClass: "large-modal"
       controller: 'EditSwitchDialogCtrl'
@@ -48,15 +47,13 @@ angular.module('gamEvolve.game.switches', [
             cancel: ->
               addSwitchDialog.close()
           }
-    addSwitchDialog.open()
 
   $scope.edit = (switchName) -> 
     switchData = currentGame.version.switches[switchName]
-    editSwitchDialog = $dialog.dialog
+    editSwitchDialog = $modal.open
       backdrop: true
       dialogFade: true
-      backdropFade: true
-      backdropClick: false
+      backdrop: "static"
       templateUrl: 'game/switches/editSwitch.tpl.html'
       dialogClass: "large-modal"
       controller: 'EditSwitchDialogCtrl'
@@ -84,7 +81,6 @@ angular.module('gamEvolve.game.switches', [
             cancel: ->
               editSwitchDialog.close()
           }
-    editSwitchDialog.open()
 
 .controller 'EditSwitchDialogCtrl', ($scope, switchIntermediary) ->
   # Convert between "pinDef form" used in game serialization and "pin form" used in GUI

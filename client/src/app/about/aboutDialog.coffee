@@ -2,22 +2,20 @@ angular.module('gamEvolve.about', [
   'ui.bootstrap'
 ])
 
-.factory 'aboutDialog', ($dialog) ->
+.factory 'aboutDialog', ($modal) ->
+  current = null
 
-    current = null
+  open: ->
+    options =
+      backdrop: true
+      dialogFade: true
+      backdrop: true
+      templateUrl: 'about/aboutDialog.tpl.html'
+      controller: 'AboutDialogCtrl'
+    current = $modal.open(options)
 
-    open: ->
-      options =
-        backdrop: true
-        dialogFade: true
-        backdropFade: true
-        templateUrl: 'about/aboutDialog.tpl.html'
-        controller: 'AboutDialogCtrl'
-      current = $dialog.dialog(options)
-      current.open()
-
-    close: ->
-      current.close()
+  close: ->
+    current.close()
 
 
 .controller 'AboutDialogCtrl', ($scope, aboutDialog) ->

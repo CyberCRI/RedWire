@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.transformers', [
   'ui.bootstrap',
 ])
-.controller 'TransformersListCtrl', ($scope, $dialog, currentGame) ->
+.controller 'TransformersListCtrl', ($scope, $modal, currentGame) ->
   # Get the transformers object from the currentGame service, and keep it updated
   $scope.transformers = {}
   $scope.transformerNames = []
@@ -20,11 +20,10 @@ angular.module('gamEvolve.game.transformers', [
       currentGame.updateLocalVersion()
 
   $scope.add = () ->
-    addTransformerDialog = $dialog.dialog
+    addTransformerDialog = $modal.open
       backdrop: true
       dialogFade: true
-      backdropFade: true
-      backdropClick: false
+      backdrop: "static"
       templateUrl: 'game/transformers/editTransformer.tpl.html'
       dialogClass: "large-modal"
       controller: 'EditTransformerDialogCtrl'
@@ -46,15 +45,12 @@ angular.module('gamEvolve.game.transformers', [
             cancel: ->
               addTransformerDialog.close()
           }
-    addTransformerDialog.open()
 
   $scope.edit = (transformerName) -> 
     transformer = currentGame.version.transformers[transformerName]
-    editTransformerDialog = $dialog.dialog
-      backdrop: true
+    editTransformerDialog = $modal.open
       dialogFade: true
-      backdropFade: true
-      backdropClick: false
+      backdrop: "static"
       templateUrl: 'game/transformers/editTransformer.tpl.html'
       dialogClass: "large-modal"
       controller: 'EditTransformerDialogCtrl'
@@ -80,7 +76,6 @@ angular.module('gamEvolve.game.transformers', [
             cancel: ->
               editTransformerDialog.close()
           }
-    editTransformerDialog.open()
 
 .controller 'EditTransformerDialogCtrl', ($scope, transformer) ->
   $scope.name = transformer.model.name

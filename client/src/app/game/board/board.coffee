@@ -120,7 +120,7 @@ angular.module('gamEvolve.game.boardTree', [
         scope.$emit('muteChipButtonClick', nodeId)
 
 
-.controller 'BoardCtrl', ($scope, $dialog, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
+.controller 'BoardCtrl', ($scope, $modal, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
 
     $scope.currentGame = currentGame
 
@@ -131,14 +131,13 @@ angular.module('gamEvolve.game.boardTree', [
     $scope.$watch("currentGame.localVersion", updateBoard, true)
 
     showDialog = (templateUrl, controller, model, onDone) ->
-      dialog = $dialog.dialog
+      dialog = $modal.open
         backdrop: true
         dialogFade: true
-        backdropFade: true
-        backdropClick: false
+        backdrop: "static"
         templateUrl: templateUrl
         controller: controller
-        dialogClass: "large-modal"
+        size: "lg"
         resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
           liaison: ->
@@ -150,7 +149,6 @@ angular.module('gamEvolve.game.boardTree', [
             cancel: ->
               dialog.close()
             }
-      dialog.open()
 
     $scope.remove = (nodeId, parentNodeId) ->
       node = nodes.find(nodeId)

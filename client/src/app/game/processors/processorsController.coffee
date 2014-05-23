@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.processors', [
   'ui.bootstrap',
 ])
-.controller 'ProcessorsListCtrl', ($scope, $dialog, currentGame) ->
+.controller 'ProcessorsListCtrl', ($scope, $modal, currentGame) ->
   # Get the processors object from the currentGame service, and keep it updated
   $scope.processors = {}
   $scope.processorNames = []
@@ -20,11 +20,10 @@ angular.module('gamEvolve.game.processors', [
       currentGame.updateLocalVersion()
 
   $scope.add = () ->
-    addProcessorDialog = $dialog.dialog
+    addProcessorDialog = $modal.open
       backdrop: true
       dialogFade: true
-      backdropFade: true
-      backdropClick: false
+      backdrop: "static"
       templateUrl: 'game/processors/editProcessor.tpl.html'
       dialogClass: "large-modal"
       controller: 'EditProcessorDialogCtrl'
@@ -46,15 +45,13 @@ angular.module('gamEvolve.game.processors', [
             cancel: ->
               addProcessorDialog.close()
           }
-    addProcessorDialog.open()
 
   $scope.edit = (processorName) -> 
     processor = currentGame.version.processors[processorName]
-    editProcessorDialog = $dialog.dialog
+    editProcessorDialog = $modal.open
       backdrop: true
       dialogFade: true
-      backdropFade: true
-      backdropClick: false
+      backdrop: "static"
       templateUrl: 'game/processors/editProcessor.tpl.html'
       dialogClass: "large-modal"
       controller: 'EditProcessorDialogCtrl'
@@ -80,7 +77,6 @@ angular.module('gamEvolve.game.processors', [
             cancel: ->
               editProcessorDialog.close()
           }
-    editProcessorDialog.open()
 
 .controller 'EditProcessorDialogCtrl', ($scope, processor) ->
   # Convert between "pinDef form" used in game serialization and "pin form" used in GUI

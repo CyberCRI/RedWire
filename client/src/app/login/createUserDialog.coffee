@@ -3,7 +3,7 @@ angular.module('gamEvolve.login.createUser', [
   'gamEvolve.model.users'
 ])
 
-.factory 'createUserDialog', ($dialog) ->
+.factory 'createUserDialog', ($modal) ->
 
     current = null
 
@@ -11,11 +11,10 @@ angular.module('gamEvolve.login.createUser', [
       options =
         backdrop: true
         dialogFade: true
-        backdropFade: true
+        backdrop: true
         templateUrl: 'login/createUserDialog.tpl.html'
         controller: 'createUserDialogCtrl'
-      current = $dialog.dialog(options)
-      current.open()
+      current = $modal.open(options)
 
     close: ->
       current.close()
