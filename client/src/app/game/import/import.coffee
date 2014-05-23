@@ -8,7 +8,6 @@ angular.module('gamEvolve.game.import', [
   open: ->
     options =
       backdrop: true
-      dialogFade: true
       backdrop: true
       templateUrl: 'game/import/import.tpl.html'
       controller: 'ImportExportDialogCtrl'
@@ -34,7 +33,9 @@ angular.module('gamEvolve.game.import', [
 
 
 .controller 'ImportExportDialogCtrl', ($scope, liaison) ->
-  $scope.gameCode = liaison.model
+  # Need to put input/output data under an object
+  $scope.exchange = 
+    gameCode: liaison.model
 
-  $scope.done = -> liaison.done($scope.gameCode)
+  $scope.done = -> liaison.done($scope.exchange.gameCode)
   $scope.cancel = -> liaison.cancel()

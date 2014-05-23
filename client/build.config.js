@@ -52,7 +52,7 @@ module.exports = {
    */
   vendor_files: {
     js: [
-      'vendor/jquery/jquery.js',
+      'vendor/jquery/dist/jquery.js',
       'vendor/bootstrap/js/bootstrap-tab.js',
       'vendor/angular/angular.js',
       'vendor/angular-mocks/angular-mocks.js',
@@ -63,7 +63,7 @@ module.exports = {
       'vendor/ace-builds/src-noconflict/mode-javascript.js',
       'vendor/ace-builds/src-noconflict/worker-javascript.js',
       'vendor/ace-builds/src-noconflict/theme-twilight.js',
-      'vendor/angular-ui-ace/src/ui-ace.js',
+      'vendor/angular-ui-ace/ui-ace.js',
       'vendor/underscore/underscore.js',
       'vendor/underscore.string/lib/underscore.string.js',
       'vendor/flexy-layout/flexy-layout.debug.js',
