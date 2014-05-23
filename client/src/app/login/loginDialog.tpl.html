@@ -5,19 +5,19 @@
     <form class="form-horizontal">
         <div class="form-group">
             <label for="usernameInput" class="col-sm-2 control-label">Username</label>
-            <input id="usernameInput" type="text" ng-model="username" placeholder="Username">
+            <input id="usernameInput" type="text" ng-model="exchange.username" placeholder="Username">
         </div>
         <div class="form-group">
             <label for="emailInput" class="col-sm-2 control-label">Email</label>
-            <input id="emailInput" type="text" ng-model="email" placeholder="Email">
+            <input id="emailInput" type="text" ng-model="exchange.email" placeholder="Email">
         </div>
         <div class="form-group">
             <label for="passwordInput" class="col-sm-2 control-label">Password</label>
-            <input id="passwordInput" type="password" ng-model="password" placeholder="Password">
+            <input id="passwordInput" type="password" ng-model="exchange.password" placeholder="Password">
         </div>
         <div class="form-group">
-            <div class="col-sm-offset-2 col-sm-10">
-                <p ng-bind="errorMessage"></p>
+            <div class="col-sm-7">
+                <div class="alert alert-danger" ng-bind="exchange.errorMessage" ng-show="exchange.errorMessage"></div>
             </div>
         </div>
         <div class="form-group">

@@ -10,7 +10,6 @@ angular.module('gamEvolve.login', [
   open: ->
     options =
       backdrop: true
-      backdrop: true
       templateUrl: 'login/loginDialog.tpl.html'
       controller: 'LoginDialogCtrl'
     current = $modal.open(options)
@@ -20,33 +19,33 @@ angular.module('gamEvolve.login', [
 
 
 .controller 'LoginDialogCtrl', ($scope, loginDialog, users, createUserDialog, $timeout) ->
-  $scope.username = ""
-  $scope.email = ""
-  $scope.password = ""
+  # Need to put 2-way data binding under an object
+  $scope.exchange = 
+    username: ""
+    email: ""
+    password: ""
+    errorMessage: null
 
   handleError = (error) ->
-    $scope.errorMessage = "Wrong credentials"
+    $scope.exchange.errorMessage = "Wrong credentials"
 
-  logUser = (username, password) ->
+  loginUser = (username, password) ->
     users.login(username, password).then(loginDialog.close, handleError)
 
   $scope.login = ->
-    username = $scope.username
-    password = $scope.password
-    if username
-      logUser(username, password)
+    if $scope.exchange.username
+      loginUser($scope.exchange.username, $scope.exchange.password)
     else
-      email = $scope.email
-      users.findByEmail(email).then (result) ->
+      users.findByEmail($scope.exchange.email).then (result) ->
         if result.data.length is 0
-          $scope.errorMessage = "Email not found"
+          $scope.exchange.errorMessage = "Email not found"
         else
-          logUser(result.data[0].username)
+          loginUser(result.data[0].username)
 
   $scope.cancel = loginDialog.close
 
   $scope.isValid = ->
-    if not $scope.password or not $scope.username and not $scope.email
+    if not $scope.exchange.password or not $scope.exchange.username and not $scope.exchange.email
       false
     else
       true
