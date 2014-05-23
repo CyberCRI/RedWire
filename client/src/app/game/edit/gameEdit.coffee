@@ -26,9 +26,12 @@ angular.module('gamEvolve.game.edit', [
   $scope.currentGame = currentGame;
   $scope.board = {}
 
+  # Used by toolbox list
+  # TODO: put in own controller
+  $scope.isFirstOpen = true
+
   # When the board changes, update in scope
   updateBoard = -> 
     if currentGame.version?.board
       $scope.board = boardConverter.convert(currentGame.version.board)
   $scope.$watch("currentGame.localVersion", updateBoard, true)
-
