@@ -35,3 +35,6 @@ angular.module('gamEvolve.game.edit', [
     if currentGame.version?.board
       $scope.board = boardConverter.convert(currentGame.version.board)
   $scope.$watch("currentGame.localVersion", updateBoard, true)
+
+.controller 'LogoCtrl', ($scope, aboutDialog) ->
+  $scope.aboutDialog = aboutDialog
