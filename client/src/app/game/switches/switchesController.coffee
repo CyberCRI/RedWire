@@ -21,8 +21,6 @@ angular.module('gamEvolve.game.switches', [
 
   $scope.add = () ->
     addSwitchDialog = $modal.open
-      backdrop: true
-      dialogFade: true
       backdrop: "static"
       templateUrl: 'game/switches/editSwitch.tpl.html'
       dialogClass: "large-modal"
@@ -51,8 +49,6 @@ angular.module('gamEvolve.game.switches', [
   $scope.edit = (switchName) -> 
     switchData = currentGame.version.switches[switchName]
     editSwitchDialog = $modal.open
-      backdrop: true
-      dialogFade: true
       backdrop: "static"
       templateUrl: 'game/switches/editSwitch.tpl.html'
       dialogClass: "large-modal"
@@ -98,18 +94,21 @@ angular.module('gamEvolve.game.switches', [
     return pinDefs
 
   $scope.DIRECTIONS = ["in", "inout", "out"]
-  $scope.name = switchIntermediary.model.name
-  $scope.pins = toPins(switchIntermediary.model.pinDefs)
-  $scope.listActiveChildrenText = switchIntermediary.model.listActiveChildren
-  $scope.handleSignalsText = switchIntermediary.model.handleSignals
 
-  $scope.addPin = -> $scope.pins.push({ name: "", direction: "in" })
-  $scope.removePin = (index) -> $scope.pins.splice(index, 1)
+  # Need to put 2-way data binding under an object
+  $scope.exchange = {}
+  $scope.exchange.name = switchIntermediary.model.name
+  $scope.exchange.pins = toPins(switchIntermediary.model.pinDefs)
+  $scope.exchange.listActiveChildrenText = switchIntermediary.model.listActiveChildren
+  $scope.exchange.handleSignalsText = switchIntermediary.model.handleSignals
+
+  $scope.addPin = -> $scope.exchange.pins.push({ name: "", direction: "in" })
+  $scope.removePin = (index) -> $scope.exchange.pins.splice(index, 1)
 
   # Reply with the new data
   $scope.done = -> switchIntermediary.done 
-    name: $scope.name
-    pinDefs: toPinDefs($scope.pins)
-    listActiveChildren: $scope.listActiveChildrenText
-    handleSignals: $scope.handleSignalsText
+    name: $scope.exchange.name
+    pinDefs: toPinDefs($scope.exchange.pins)
+    listActiveChildren: $scope.exchange.listActiveChildrenText
+    handleSignals: $scope.exchange.handleSignalsText
   $scope.cancel = -> switchIntermediary.cancel() 

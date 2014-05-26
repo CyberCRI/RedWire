@@ -64,15 +64,16 @@
                             <accordion close-others="true">
                                 <accordion-group heading="Basic" is-open="isFirstOpen">
                                     <ul>
-                                        <li><a href="" class="jstree-draggable" emitter>Emitter</a></li>
-                                        <li><a href="" class="jstree-draggable" splitter>Splitter</a></li>
+                                        <li><span class="jstree-draggable" emitter>Emitter</span></li>
+                                        <li><span href="" class="jstree-draggable" splitter>Splitter</span></li>
                                     </ul>
                                 </accordion-group>
                                 <accordion-group heading="Processors">
                                     <div id="processors" ng-controller="ProcessorsListCtrl">
                                         <ul>
                                             <li ng-repeat="processorName in processorNames">
-                                                <a href="" ng-click="edit(processorName)" class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</a>
+                                                <span class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</span>
+                                                <a class="btn btn-default btn-sm" ng-click="edit(processorName)"><i class="glyphicon glyphicon-edit"></i></a>
                                                 <a class="btn btn-default btn-sm" ng-click="remove(processorName)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </li>
                                         </ul>
@@ -83,7 +84,8 @@
                                     <div id="switches" ng-controller="SwitchesListCtrl">
                                         <ul>
                                             <li ng-repeat="switchName in switchNames">
-                                                <a href="" ng-click="edit(switchName)" class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</a>
+                                                <span class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</span>
+                                                <a class="btn btn-default btn-sm" ng-click="edit(switchName)"><i class="glyphicon glyphicon-edit"></i></a>
                                                 <a class="btn btn-default btn-sm" ng-click="remove(switchName)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </li>
                                         </ul>
@@ -94,7 +96,8 @@
                                     <div id="transformers" ng-controller="TransformersListCtrl">
                                         <ul>
                                             <li ng-repeat="transformerName in transformerNames">
-                                                <a href="" ng-click="edit(transformerName)">{{transformerName}}</a>
+                                                <span>{{transformerName}}</span>
+                                                <a class="btn btn-default btn-sm" ng-click="edit(transformerName)"><i class="glyphicon glyphicon-edit"></i></a>
                                                 <a class="btn btn-default btn-sm" ng-click="remove(transformerName)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </li>
                                         </ul>

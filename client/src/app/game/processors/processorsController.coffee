@@ -21,8 +21,6 @@ angular.module('gamEvolve.game.processors', [
 
   $scope.add = () ->
     addProcessorDialog = $modal.open
-      backdrop: true
-      dialogFade: true
       backdrop: "static"
       templateUrl: 'game/processors/editProcessor.tpl.html'
       dialogClass: "large-modal"
@@ -94,16 +92,19 @@ angular.module('gamEvolve.game.processors', [
     return pinDefs
 
   $scope.DIRECTIONS = ["in", "inout", "out"]
-  $scope.name = processor.model.name
-  $scope.pins = toPins(processor.model.pinDefs)
-  $scope.updateText = processor.model.update
 
-  $scope.addPin = -> $scope.pins.push({ name: "", direction: "in" })
-  $scope.removePin = (index) -> $scope.pins.splice(index, 1)
+  # Need to put 2-way data binding under an object
+  $scope.exchange = {}
+  $scope.exchange.name = processor.model.name
+  $scope.exchange.pins = toPins(processor.model.pinDefs)
+  $scope.exchange.updateText = processor.model.update
+
+  $scope.addPin = -> $scope.exchange.pins.push({ name: "", direction: "in" })
+  $scope.removePin = (index) -> $scope.exchange.pins.splice(index, 1)
 
   # Reply with the new data
   $scope.done = -> processor.done 
-    name: $scope.name
-    pinDefs: toPinDefs($scope.pins)
-    update: $scope.updateText
+    name: $scope.exchange.name
+    pinDefs: toPinDefs($scope.exchange.pins)
+    update: $scope.exchange.updateText
   $scope.cancel = -> processor.cancel() 

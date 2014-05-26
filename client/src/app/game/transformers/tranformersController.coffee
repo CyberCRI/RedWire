@@ -21,8 +21,6 @@ angular.module('gamEvolve.game.transformers', [
 
   $scope.add = () ->
     addTransformerDialog = $modal.open
-      backdrop: true
-      dialogFade: true
       backdrop: "static"
       templateUrl: 'game/transformers/editTransformer.tpl.html'
       dialogClass: "large-modal"
@@ -49,7 +47,6 @@ angular.module('gamEvolve.game.transformers', [
   $scope.edit = (transformerName) -> 
     transformer = currentGame.version.transformers[transformerName]
     editTransformerDialog = $modal.open
-      dialogFade: true
       backdrop: "static"
       templateUrl: 'game/transformers/editTransformer.tpl.html'
       dialogClass: "large-modal"
@@ -78,19 +75,20 @@ angular.module('gamEvolve.game.transformers', [
           }
 
 .controller 'EditTransformerDialogCtrl', ($scope, transformer) ->
-  $scope.name = transformer.model.name
-  $scope.arguments = for argument in transformer.model.arguments 
+  # Need to put 2-way data binding under an object
+  $scope.exchange = {}
+  $scope.exchange.name = transformer.model.name
+  $scope.exchange.arguments = for argument in transformer.model.arguments 
     { value: argument } 
-  $scope.body = transformer.model.body
+  $scope.exchange.body = transformer.model.body
 
-  $scope.addArgument = -> $scope.arguments.push({ value: "" })
-  $scope.removeArgument = (index) -> $scope.arguments.splice(index, 1)
+  $scope.addArgument = -> $scope.exchange.arguments.push({ value: "" })
+  $scope.removeArgument = (index) -> $scope.exchange.arguments.splice(index, 1)
 
   # Reply with the new data
   $scope.done = -> transformer.done 
-    name: $scope.name
-    arguments: for argument in $scope.arguments
+    name: $scope.exchange.name
+    arguments: for argument in $scope.exchange.arguments
       argument.value
-    body: $scope.body
+    body: $scope.exchange.body
   $scope.cancel = -> transformer.cancel() 
-  $scope.aceLoaded = -> console.log("ace loaded")

@@ -1,22 +1,22 @@
 <div id="editProcessorDialog">
 	<form name="form" style="form-inline" novalidate>
 		<div class="modal-header">
-			<h3>Edit Processor <input ng-model="name" required placeholder="Processor name"></input></h3>
+			<h3>Edit Processor <input ng-model="exchange.name" required placeholder="Processor name"></input></h3>
 		</div>
 		<div class="modal-body"> 
 			<h4>Pins</h4>
 			<ul>
-				<li ng-repeat="pin in pins">
+				<li ng-repeat="pin in exchange.pins">
 					<input required ng-model="pin.name" placeholder="Pin name" class="input-small"></input>
 					<select ng-model="pin.direction" ng-options="direction for direction in DIRECTIONS" class="input-small"></select>
 					<input ng-model="pin.default" ng-show="pin.direction == 'in'" placeholder="Default value" class="input-small"></input>
-					<a class="btn btn-sm" ng-click="removePin($index)"><i class="icon-trash"></i></a>
+					<a class="btn btn-default btn-sm" ng-click="removePin($index)"><i class="glyphicon glyphicon-trash"></i></a>
 				</li>
 			</ul>
-			<a class="btn" ng-click="addPin()"><i class="icon-plus"></i></a>
+			<a class="btn btn-default" ng-click="addPin()"><i class="glyphicon glyphicon-plus"></i></a>
 
 			<h4>Program</h4>
-			<div ui-ace="{ onLoad : aceLoaded, mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="updateText"></div>
+			<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="exchange.updateText"></div>
 		</div>
 		<div class="modal-footer">
 			<button class="btn btn-primary" ng-click="done()" ng-disabled="form.$invalid">Done</button>

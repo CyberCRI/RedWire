@@ -1,20 +1,20 @@
 <div id="editTransformerDialog">
 	<form name="form" novalidate>
 		<div class="modal-header">
-			<h3>Edit Transformer <input ng-model="name" required placeholder="Transformer name"></input></h3>
+			<h3>Edit Transformer <input ng-model="exchange.name" required placeholder="Transformer name"></input></h3>
 		</div>
 		<div class="modal-body"> 
 			<h4>Arguments</h4>
 			<ul>
-				<li ng-repeat="argument in arguments">
+				<li ng-repeat="argument in exchange.arguments">
 					<input required ng-model="argument.value" placeholder="Argument name"></input>
-					<a class="btn" ng-click="removeArgument($index)"><i class="icon-trash"></i></a>
+					<a class="btn btn-default" ng-click="removeArgument($index)"><i class="glyphicon glyphicon-trash"></i></a>
 				</li>
 			</ul>
-			<a class="btn" ng-click="addArgument()"><i class="icon-plus"></i></a>
+			<a class="btn btn-default" ng-click="addArgument()"><i class="glyphicon glyphicon-plus"></i></a>
 
 			<h4>Body</h4>
-			<div ui-ace="{ onLoad : aceLoaded, mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="body"></div>
+			<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="exchange.body"></div>
 		</div>
 		<div class="modal-footer">
 			<button class="btn btn-primary" ng-click="done()" ng-disabled="form.$invalid">Done</button>
