@@ -23,7 +23,7 @@ angular.module('gamEvolve.game.transformers', [
     addTransformerDialog = $modal.open
       backdrop: "static"
       templateUrl: 'game/transformers/editTransformer.tpl.html'
-      dialogClass: "large-modal"
+      size: "lg"
       controller: 'EditTransformerDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
@@ -49,7 +49,7 @@ angular.module('gamEvolve.game.transformers', [
     editTransformerDialog = $modal.open
       backdrop: "static"
       templateUrl: 'game/transformers/editTransformer.tpl.html'
-      dialogClass: "large-modal"
+      size: "lg"
       controller: 'EditTransformerDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two

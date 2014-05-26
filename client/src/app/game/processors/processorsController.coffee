@@ -23,7 +23,7 @@ angular.module('gamEvolve.game.processors', [
     addProcessorDialog = $modal.open
       backdrop: "static"
       templateUrl: 'game/processors/editProcessor.tpl.html'
-      dialogClass: "large-modal"
+      size: "lg"
       controller: 'EditProcessorDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
@@ -51,7 +51,7 @@ angular.module('gamEvolve.game.processors', [
       dialogFade: true
       backdrop: "static"
       templateUrl: 'game/processors/editProcessor.tpl.html'
-      dialogClass: "large-modal"
+      size: "lg"
       controller: 'EditProcessorDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two

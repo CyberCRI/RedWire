@@ -23,7 +23,7 @@ angular.module('gamEvolve.game.switches', [
     addSwitchDialog = $modal.open
       backdrop: "static"
       templateUrl: 'game/switches/editSwitch.tpl.html'
-      dialogClass: "large-modal"
+      size: "lg"
       controller: 'EditSwitchDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
@@ -51,7 +51,7 @@ angular.module('gamEvolve.game.switches', [
     editSwitchDialog = $modal.open
       backdrop: "static"
       templateUrl: 'game/switches/editSwitch.tpl.html'
-      dialogClass: "large-modal"
+      size: "lg"
       controller: 'EditSwitchDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
