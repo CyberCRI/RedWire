@@ -1,7 +1,7 @@
-angular.module('gamEvolve.login', [
+angular.module('gamEvolve.game.login', [
   'ui.bootstrap',
   'gamEvolve.model.users',
-  'gamEvolve.login.createUser'
+  'gamEvolve.game.login.createUser'
 ])
 
 .factory 'loginDialog', ($modal) ->
@@ -10,7 +10,7 @@ angular.module('gamEvolve.login', [
   open: ->
     options =
       backdrop: true
-      templateUrl: 'login/loginDialog.tpl.html'
+      templateUrl: 'game/login/loginDialog.tpl.html'
       controller: 'LoginDialogCtrl'
     current = $modal.open(options)
 
