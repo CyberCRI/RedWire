@@ -45,8 +45,10 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
 
   $scope.LINKAGES = ['simple', 'custom']
   $scope.DESTINATIONS = currentGame.enumeratePinDestinations()
-  $scope.name = liaison.model.comment
-  $scope.childName = if liaison.model.name? then JSON.stringify(liaison.model.name) else ""
+
+  $scope.exchange = {}
+  $scope.exchange.name = liaison.model.comment
+  $scope.exchange.childName = if liaison.model.name? then JSON.stringify(liaison.model.name) else ""
 
   # Depending on if this is an processor or a switch, get the right kind of data
   # TODO: move this to calling controller?
@@ -63,7 +65,7 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
     throw new Error('Model is not a processor or switch')
 
   # TODO: refactor into function
-  $scope.pins = []
+  $scope.exchange.pins = []
   for pinName, pinDef of typeDef.pinDefs
     pin =
       name: pinName
@@ -79,18 +81,18 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
     else
       pin.customDestinations.in = liaison.model.pins.in[pinName]
       pin.customDestinations.out = findPinReferences(pinName, liaison.model.pins.out)
-    $scope.pins.push(pin)
+    $scope.exchange.pins.push(pin)
 
   $scope.addCustomDestination = (pinName) ->
-    pin = _.where($scope.pins, { name: pinName })[0]
+    pin = _.where($scope.exchange.pins, { name: pinName })[0]
     pin.customDestinations.out.push({ drain: '', source: '' })
   $scope.removeCustomDestination = (pinName, index) ->
-    pin = _.where($scope.pins, { name: pinName })[0]
+    pin = _.where($scope.exchange.pins, { name: pinName })[0]
     pin.customDestinations.out.splice(index, 1)
 
   # Reply with the new data
   $scope.done = -> liaison.done
-    comment: $scope.name
-    name: if $scope.childName then JSON.parse($scope.childName) else null 
-    pins: convertPinsToModel($scope.pins)
+    comment: $scope.exchange.name
+    name: if $scope.exchange.childName then JSON.parse($scope.exchange.childName) else null 
+    pins: convertPinsToModel($scope.exchange.pins)
   $scope.cancel = -> liaison.cancel()
