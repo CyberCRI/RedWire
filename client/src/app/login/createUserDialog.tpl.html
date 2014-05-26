@@ -2,29 +2,34 @@
     <h3>Create User</h3>
 </div>
 <div class="modal-body">
-    <table>
-        <tr>
-            <td>Username : </td>
-            <td><input type="text" ng-model="username" /></td>
-        </tr>
-        <tr>
-            <td>Email : </td>
-            <td><input type="text" ng-model="email" /></td>
-        </tr>
-        <tr>
-            <td>Password : </td>
-            <td><input type="password" ng-model="password" /></td>
-        </tr>
-        <tr>
-            <td>Verify Password : </td>
-            <td><input type="password" ng-model="verifyPassword" /></td>
-        </tr>
-        <tr>
-            <td></td>
-            <td><button class="btn btn-success" ng-click="createUser()" ng-disabled="!isValid()">Create User</button></td>
-        </tr>
-    </table>
-    <p ng-bind="errorMessage"></p>
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label for="usernameInput" class="col-sm-2 control-label">Username</label>
+            <input id="usernameInput" type="text" ng-model="exchange.username" placeholder="Username">
+        </div>
+        <div class="form-group">
+            <label for="emailInput" class="col-sm-2 control-label">Email</label>
+            <input id="emailInput" type="text" ng-model="exchange.email" placeholder="Email">
+        </div>
+        <div class="form-group">
+            <label for="passwordInput" class="col-sm-2 control-label">Password</label>
+            <input id="passwordInput" type="password" ng-model="exchange.password" placeholder="Password">
+        </div>
+        <div class="form-group">
+            <label for="verifyPasswordInput" class="col-sm-2 control-label">Password</label>
+            <input id="verifyPasswordInput" type="password" ng-model="exchange.verifyPassword" placeholder="Password">
+        </div>
+        <div class="form-group">
+            <div class="col-sm-7">
+                <div class="alert alert-danger" ng-bind="exchange.errorMessage" ng-show="exchange.errorMessage"></div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-2">
+                <button ng-click="createUser()" class="btn btn-success" ng-disabled="!isValid()">Register</button>
+            </div>
+        </div>
+    </form>
 </div>
 <div class="modal-footer">
     <button class="btn btn-warning" ng-click="cancel()">Cancel</button>
