@@ -31,6 +31,3 @@ angular.module('gamEvolve.game.edit.header', [
     $scope.saveButtonDisabled = true
     games.saveCurrent().finally ->
       $scope.saveButtonDisabled = false 
-
-.controller 'LogoCtrl', ($scope, aboutDialog) ->
-  $scope.aboutDialog = aboutDialog
