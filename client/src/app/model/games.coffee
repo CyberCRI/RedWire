@@ -8,6 +8,12 @@ angular.module('gamEvolve.model.games', [])
   creator: null
   localVersion: _.uniqueId("v")
 
+  reset: -> 
+    @info = null
+    @version = null
+    @creator = null
+    @localVersion = _.uniqueId("v")
+
   updateLocalVersion: -> @localVersion = _.uniqueId("v")
 
   enumeratePinDestinations: ->
@@ -28,7 +34,7 @@ angular.module('gamEvolve.model.games', [])
     return keys
 
 
-.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo) ->
+.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->
 
   saveInfo = ->
     $http.post('/games', currentGame.info)
@@ -90,6 +96,8 @@ angular.module('gamEvolve.model.games', [])
   load: (game) ->
     # Clear the current game data
     # TODO: have each service detect this event rather than hard coding it here?
+    overlay.makeNotification()
+    currentGame.reset()
     gameHistory.reset()
     gameTime.reset()
     undo.reset()
@@ -102,8 +110,11 @@ angular.module('gamEvolve.model.games', [])
       currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(version.data[0])
       currentGame.updateLocalVersion()
       currentGame.creator = creator.data.username
-    onError = (error) -> console.log("Error loading game", error) # TODO: notify the user of the error
-    $q.all([getVersion, getCreator]).then(updateCurrentGame, onError)
+    onError = (error) -> 
+      console.error("Error loading game", error) 
+      window.alert("Error loading game")
+    onDone = -> overlay.clearNotification()
+    $q.all([getVersion, getCreator]).then(updateCurrentGame, onError).finally(onDone)
 
   loadFromId: (gameId) ->
     $http.get("/games/#{gameId}")
