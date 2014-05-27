@@ -58,20 +58,20 @@
                 <block-splitter></block-splitter>
 
                 <!-- East Column-->
-                <block-container init="300">
+                <block-container init="300" id="toolbox">
                     <flexy-layout orientation="vertical">
                         <block-container class="scrollable">
                             <accordion close-others="true">
-                                <accordion-group heading="Basic" is-open="isFirstOpen">
+                                <accordion-group heading="Basic" is-open="isFirstOpen" id>
                                     <ul>
-                                        <li><span class="jstree-draggable" emitter>Emitter</span></li>
-                                        <li><span href="" class="jstree-draggable" splitter>Splitter</span></li>
+                                        <li class="emitterChip"><span class="jstree-draggable" emitter>Emitter</span></li>
+                                        <li class="splitterChip"><span href="" class="jstree-draggable" splitter>Splitter</span></li>
                                     </ul>
                                 </accordion-group>
                                 <accordion-group heading="Processors">
                                     <div id="processors" ng-controller="ProcessorsListCtrl">
                                         <ul>
-                                            <li ng-repeat="processorName in processorNames">
+                                            <li ng-repeat="processorName in processorNames" class="processorChip">
                                                 <span class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</span>
                                                 <a class="btn btn-default btn-sm" ng-click="edit(processorName)"><i class="glyphicon glyphicon-edit"></i></a>
                                                 <a class="btn btn-default btn-sm" ng-click="remove(processorName)"><i class="glyphicon glyphicon-trash"></i></a>
@@ -83,7 +83,7 @@
                                 <accordion-group heading="Switches">
                                     <div id="switches" ng-controller="SwitchesListCtrl">
                                         <ul>
-                                            <li ng-repeat="switchName in switchNames">
+                                            <li ng-repeat="switchName in switchNames" class="switchChip">
                                                 <span class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</span>
                                                 <a class="btn btn-default btn-sm" ng-click="edit(switchName)"><i class="glyphicon glyphicon-edit"></i></a>
                                                 <a class="btn btn-default btn-sm" ng-click="remove(switchName)"><i class="glyphicon glyphicon-trash"></i></a>
@@ -95,7 +95,7 @@
                                 <accordion-group heading="Transformers">
                                     <div id="transformers" ng-controller="TransformersListCtrl">
                                         <ul>
-                                            <li ng-repeat="transformerName in transformerNames">
+                                            <li ng-repeat="transformerName in transformerNames" class="transformerChip">
                                                 <span>{{transformerName}}</span>
                                                 <a class="btn btn-default btn-sm" ng-click="edit(transformerName)"><i class="glyphicon glyphicon-edit"></i></a>
                                                 <a class="btn btn-default btn-sm" ng-click="remove(transformerName)"><i class="glyphicon glyphicon-trash"></i></a>
