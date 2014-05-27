@@ -1,16 +1,23 @@
-angular.module('gamEvolve.game.play', [])
+# Set the embedded player to the window height
+onResize = -> $("#embeddedPlayer").width($(window).width()).height($(window).height())
+$(window).on("resize", onResize)
+# Call it now as well
+$(window).load(onResize)
+
+
+angular.module('gamEvolve.game.embed', [])
 
 .config ($stateProvider) ->
-  $stateProvider.state 'play',
-    url: '/game/:gameId/play'
+  $stateProvider.state 'embed',
+    url: '/game/:gameId/embed'
     views:
       "main":
-        controller: 'PlayCtrl'
-        templateUrl: 'game/play/play.tpl.html'
+        controller: 'EmbedCtrl'
+        templateUrl: 'game/embed/embed.tpl.html'
     data:
-      pageTitle: 'Play Game'
+      pageTitle: 'Embed Game'
 
-.controller 'PlayCtrl', ($scope, $state, games, gameTime, gameHistory, currentGame, $stateParams) ->
+.controller 'EmbedCtrl', ($scope, $state, games, gameTime, gameHistory, currentGame, $stateParams) ->
   $scope.isLoading = true
 
   onUpdateGameHistory = -> 
@@ -22,9 +29,6 @@ angular.module('gamEvolve.game.play', [])
   $scope.gameHistoryMeta = gameHistory.meta
   $scope.$watch("gameHistoryMeta", onUpdateGameHistory, true)
 
-  $scope.remix = -> $state.transitionTo('game-edit', { gameId: $stateParams.gameId }) 
-  $scope.listGames = -> $state.transitionTo('game-list') 
-
   games.loadFromId($stateParams.gameId)
 
   $scope.title = ""
@@ -34,4 +38,6 @@ angular.module('gamEvolve.game.play', [])
     $scope.author = currentGame.creator
 
   $scope.currentGame = currentGame
-  $scope.$watch("currentGame.localVersion", onUpdateCurrentGame, true)
+  $scope.$watch("currentGame", onUpdateCurrentGame, true)
+
+

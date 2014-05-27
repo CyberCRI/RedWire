@@ -12,7 +12,6 @@ angular.module('gamEvolve.game.list', [])
         pageTitle: 'List Games'
 
 .controller 'GameListCtrl', ($scope, games, $state) ->
-
     $scope.games = []
 
     games.loadAll().then (gamesList) -> $scope.games = gamesList
