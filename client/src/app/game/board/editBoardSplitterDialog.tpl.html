@@ -1,33 +1,33 @@
 <div id="editBoardSplitterDialog">
 	<form name="form" style="form-inline" novalidate>
 		<div class="modal-header">
-			<h3>Edit Splitter <input ng-model="name" placeholder="Name"></input></h3>
+			<h3>Edit Splitter <input ng-model="exchange.name" placeholder="Name"></input></h3>
 		</div>
 		<div class="modal-body"> 
-			<p>Child name: <input ng-model="childName" placeholder="Child name (optional)"></input></p>
+			<p>Child name: <input ng-model="exchange.childName" placeholder="Child name (optional)"></input></p>
 			<form class="form-horizontal">
 				<div class="control-group">
 					<label class="control-label" for="from">Split (required)</label>
 					<div class="controls">
-						<input id="inputFrom" required ng-model="from" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+						<input id="inputFrom" required ng-model="exchange.from" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
 					</div>
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="bindTo">Bind value to (required)</label>
 					<div class="controls">
-						<input id="bindTo" required ng-model="bindTo"></input>
+						<input id="bindTo" required ng-model="exchange.bindTo"></input>
 					</div>
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="index">Bind index to</label>
 					<div class="controls">
-						<input id="index" ng-model="index"></input>
+						<input id="index" ng-model="exchange.index"></input>
 					</div>
 				</div>
 				<div class="control-group">
 					<label class="control-label" for="where">Where guard expression</label>
 					<div class="controls">
-						<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="where"></div>
+						<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="exchange.where"></div>
 					</div>
 				</div>
 			</form>

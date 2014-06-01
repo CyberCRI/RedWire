@@ -1,0 +1,5 @@
+<div ng-controller="UndoCtrl" id="undoControls">
+    <a title="Undo" class="btn btn-default btn-xs" href="" ng-click="undo()" ng-disabled="!canUndo()"><i class="font-icon-ccw"></i></a>
+    <a title="Redo" class="btn btn-default btn-xs" href="" ng-click="redo()" ng-disabled="!canRedo()"><i class="font-icon-cw"></i></a>
+    <span>{{ text }}</span>
+</div> 

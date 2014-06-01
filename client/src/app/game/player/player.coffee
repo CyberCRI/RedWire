@@ -212,7 +212,7 @@ angular.module('gamEvolve.game.player', [])
     gameCode = currentGame.version
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
-  $scope.$watch('currentGame', onUpdateCode, true)
+  $scope.$watch("currentGame", onUpdateCode, true)
 
   onResize = -> 
     if not puppetIsAlive then return

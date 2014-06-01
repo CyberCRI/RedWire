@@ -34,4 +34,4 @@ angular.module('gamEvolve.game.play', [])
     $scope.author = currentGame.creator
 
   $scope.currentGame = currentGame
-  $scope.$watch("currentGame", onUpdateCurrentGame, true)
+  $scope.$watch("currentGame.localVersion", onUpdateCurrentGame, true)

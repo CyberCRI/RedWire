@@ -22,7 +22,7 @@
                                     <li ng-repeat="asset in assets">
                                         <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
                                         <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
-                                        <a class="btn" ng-click="remove(asset.name)"><i class="icon-trash"></i></a>
+                                        <a class="btn btn-default btn-sm" ng-click="remove($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                     </li>
                                 </ul>
 
@@ -58,47 +58,50 @@
                 <block-splitter></block-splitter>
 
                 <!-- East Column-->
-                <block-container init="300">
+                <block-container init="300" id="toolbox">
                     <flexy-layout orientation="vertical">
                         <block-container class="scrollable">
                             <accordion close-others="true">
-                                <accordion-group heading="Basic" is-open="true">
+                                <accordion-group heading="Basic" is-open="isFirstOpen" id>
                                     <ul>
-                                        <li><a href="" class="jstree-draggable" emitter>Emitter</a></li>
-                                        <li><a href="" class="jstree-draggable" splitter>Splitter</a></li>
+                                        <li class="emitterChip"><span class="jstree-draggable" emitter>Emitter</span></li>
+                                        <li class="splitterChip"><span href="" class="jstree-draggable" splitter>Splitter</span></li>
                                     </ul>
                                 </accordion-group>
                                 <accordion-group heading="Processors">
                                     <div id="processors" ng-controller="ProcessorsListCtrl">
                                         <ul>
-                                            <li ng-repeat="processorName in processorNames">
-                                                <a href="" ng-click="edit(processorName)" class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</a>
-                                                <a class="btn btn-small" ng-click="remove(processorName)"><i class="icon-trash"></i></a>
+                                            <li ng-repeat="processorName in processorNames" class="processorChip">
+                                                <span class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</span>
+                                                <a class="btn btn-default btn-sm" ng-click="edit(processorName)"><i class="glyphicon glyphicon-edit"></i></a>
+                                                <a class="btn btn-default btn-sm" ng-click="remove(processorName)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </li>
                                         </ul>
-                                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                                        <a class="btn btn-default" ng-click="add()"><i class="glyphicon glyphicon-plus"></i></a>
                                     </div>
                                 </accordion-group>
                                 <accordion-group heading="Switches">
                                     <div id="switches" ng-controller="SwitchesListCtrl">
                                         <ul>
-                                            <li ng-repeat="switchName in switchNames">
-                                                <a href="" ng-click="edit(switchName)" class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</a>
-                                                <a class="btn btn-small" ng-click="remove(switchName)"><i class="icon-trash"></i></a>
+                                            <li ng-repeat="switchName in switchNames" class="switchChip">
+                                                <span class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</span>
+                                                <a class="btn btn-default btn-sm" ng-click="edit(switchName)"><i class="glyphicon glyphicon-edit"></i></a>
+                                                <a class="btn btn-default btn-sm" ng-click="remove(switchName)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </li>
                                         </ul>
-                                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                                        <a class="btn btn-default" ng-click="add()"><i class="glyphicon glyphicon-plus"></i></a>
                                     </div>
                                 </accordion-group>
                                 <accordion-group heading="Transformers">
                                     <div id="transformers" ng-controller="TransformersListCtrl">
                                         <ul>
-                                            <li ng-repeat="transformerName in transformerNames">
-                                                <a href="" ng-click="edit(transformerName)">{{transformerName}}</a>
-                                                <a class="btn btn-small" ng-click="remove(transformerName)"><i class="icon-trash"></i></a>
+                                            <li ng-repeat="transformerName in transformerNames" class="transformerChip">
+                                                <span>{{transformerName}}</span>
+                                                <a class="btn btn-default btn-sm" ng-click="edit(transformerName)"><i class="glyphicon glyphicon-edit"></i></a>
+                                                <a class="btn btn-default btn-sm" ng-click="remove(transformerName)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </li>
                                         </ul>
-                                        <a class="btn" ng-click="add()"><i class="icon-plus"></i></a>
+                                        <a class="btn btn-default" ng-click="add()"><i class="glyphicon glyphicon-plus"></i></a>
                                     </div>
                                 </accordion-group>
                             </accordion>
@@ -109,15 +112,15 @@
                                 <h4>Layers</h4>
                                 <ul ui-sortable ng-model="layers">
                                     <li ng-repeat="layer in layers">
-                                        <i class="icon-align-justify"></i>
+                                        <span class="glyphicon glyphicon-align-justify"></span>
                                         <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
                                         -
                                         <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
-                                        <a class="btn btn-small" ng-click="removeLayer($index)"><i class="icon-trash"></i></a>
+                                        <a class="btn btn-default btn-sm" ng-click="removeLayer($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                     </li>
                                 </ul>
 
-                                <a class="btn" ng-click="addLayer()"><i class="icon-plus"></i></a>
+                                <a class="btn btn-default" ng-click="addLayer()"><i class="glyphicon glyphicon-plus"></i></a>
                             </div>
                         </block-container>
                     </flexy-layout>

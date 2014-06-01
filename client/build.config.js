@@ -52,7 +52,7 @@ module.exports = {
    */
   vendor_files: {
     js: [
-      'vendor/jquery/jquery.js',
+      'vendor/jquery/dist/jquery.js',
       'vendor/bootstrap/js/bootstrap-tab.js',
       'vendor/angular/angular.js',
       'vendor/angular-mocks/angular-mocks.js',
@@ -63,12 +63,12 @@ module.exports = {
       'vendor/ace-builds/src-noconflict/mode-javascript.js',
       'vendor/ace-builds/src-noconflict/worker-javascript.js',
       'vendor/ace-builds/src-noconflict/theme-twilight.js',
-      'vendor/angular-ui-ace/src/ui-ace.js',
+      'vendor/angular-ui-ace/ui-ace.js',
       'vendor/underscore/underscore.js',
       'vendor/underscore.string/lib/underscore.string.js',
       'vendor/flexy-layout/flexy-layout.debug.js',
       'vendor/jquery-ui/ui/jquery-ui.custom.js',
-      'vendor/angular-ui-sortable/src/sortable.js',
+      'vendor/angular-ui-sortable/sortable.js',
       'vendor/angular-file-dnd/dist/angular-file-dnd.js',
       'vendor/angular-xeditable/dist/js/xeditable.js',
       'vendor/jstree/jquery.jstree.js',
@@ -76,6 +76,8 @@ module.exports = {
       'vendor/sylvester/sylvester.src.js',
       'vendor/Chart.js/Chart.js',
       'vendor/jsoneditor/jsoneditor.js',
+      'vendor/moment/moment.js',
+      'vendor/mousetrap/mousetrap.js',
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
@@ -84,7 +86,6 @@ module.exports = {
       'vendor/jsoneditor/jsoneditor.css',
     ],
     images: [
-      'vendor/bootstrap/img/*.png',
       'vendor/jstree/themes/default/*.gif',
       'vendor/jstree/themes/default/*.png',
       'vendor/jsoneditor/img/jsoneditor-icons.png',

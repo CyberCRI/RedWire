@@ -48,6 +48,7 @@ angular.module('gamEvolve.game.boardTree', [
         # If the target doesn't have children, it needs an empty list
         if not target.children? then target.children = []
         target.children.unshift source
+        currentGame.updateLocalVersion()
 
     types =
       switch:
@@ -84,6 +85,7 @@ angular.module('gamEvolve.game.boardTree', [
           else # OK
             reverted = boardConverter.revert(treeJson)
             currentGame.version.board = reverted
+            currentGame.updateLocalVersion()
 
       scope.updateTree = (board) ->
         $(element).jstree
@@ -118,33 +120,24 @@ angular.module('gamEvolve.game.boardTree', [
         scope.$emit('muteChipButtonClick', nodeId)
 
 
-.controller 'BoardCtrl', ($scope, $dialog, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
+.controller 'BoardCtrl', ($scope, $modal, boardConverter, nodes, currentGame, gameHistory, gameTime) ->
 
-    $scope.game = currentGame
+    $scope.currentGame = currentGame
 
     # When the board changes, update in scope
     updateBoard = ->
       if currentGame.version?.board
         $scope.updateTree( boardConverter.convert(currentGame.version.board) )
-    $scope.$watch("game", updateBoard, true)
-
-    # Update from gameHistory
-    onUpdateGameHistory = ->
-      if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return
-      newMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
-      if not _.isEqual($scope.memory, newMemory)
-        $scope.memory = newMemory
-    $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)
+    $scope.$watch("currentGame.localVersion", updateBoard, true)
 
     showDialog = (templateUrl, controller, model, onDone) ->
-      dialog = $dialog.dialog
+      dialog = $modal.open
         backdrop: true
         dialogFade: true
-        backdropFade: true
-        backdropClick: false
+        backdrop: "static"
         templateUrl: templateUrl
         controller: controller
-        dialogClass: "large-modal"
+        size: "lg"
         resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
           liaison: ->
@@ -156,13 +149,13 @@ angular.module('gamEvolve.game.boardTree', [
             cancel: ->
               dialog.close()
             }
-      dialog.open()
 
     $scope.remove = (nodeId, parentNodeId) ->
       node = nodes.find(nodeId)
       parent = nodes.find(parentNodeId)
       index = parent.children.indexOf node
       parent.children.splice(index, 1) # Remove that child
+      currentGame.updateLocalVersion()
 
     $scope.edit = (nodeId) ->
       chip = nodes.find(nodeId)
@@ -170,15 +163,19 @@ angular.module('gamEvolve.game.boardTree', [
       if 'processor' of chip
         showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+          currentGame.updateLocalVersion()
       else if 'switch' of chip
         showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+          currentGame.updateLocalVersion()
       else if 'splitter' of chip
         showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+          currentGame.updateLocalVersion()
       else if 'emitter' of chip
         showDialog 'game/board/editBoardEmitterDialog.tpl.html', 'EditBoardEmitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+          currentGame.updateLocalVersion()
 
     $scope.$on 'editChipButtonClick', (event, nodeId) ->
       $scope.edit(nodeId)
@@ -190,9 +187,9 @@ angular.module('gamEvolve.game.boardTree', [
     $scope.$on 'muteChipButtonClick', (event, nodeId) ->
       chip = nodes.find(nodeId)
       chip.muted = !chip.muted
+      currentGame.updateLocalVersion()
 
 .factory 'nodes', ->
-
     nodes = []
     states = [0] # Root tree is open by default
 

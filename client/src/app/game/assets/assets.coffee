@@ -5,7 +5,7 @@ angular.module('gamEvolve.game.assets', [
 ])
 .controller 'AssetsCtrl', ($scope, currentGame) ->
   # Get the actions object from the currentGame service, and keep it updated
-  $scope.assets = []
+  $scope.assets = null
   $scope.fileName = ""
   $scope.file = null
 
@@ -13,22 +13,30 @@ angular.module('gamEvolve.game.assets', [
   copyFromGameToScope = -> 
     if currentGame.version?.assets
       $scope.assets = ({ name: name, data: data } for name, data of currentGame.version.assets)
-      console.log("updated assets:", $scope.assets)
 
   # Bring currentGame into scope so we can watch it 
   $scope.currentGame = currentGame
-  $scope.$watch('currentGame', copyFromGameToScope, true)
+  $scope.$watch("currentGame.localVersion", copyFromGameToScope, true)
 
-  # Transform assets back to object
-  copyFromScopeToGames = -> 
-    if currentGame.version?.assets
-      currentGame.version.assets = _.object( ([asset.name, asset.data] for asset in $scope.assets) )
-  $scope.$watch('assets', copyFromScopeToGames, true)
+  # Transform assets back to object so we can loop over it easier
+  copyFromScopeToGame = -> 
+    if $scope.assets == null then return 
 
-  $scope.remove = (name) -> 
+    assetsAsObject = _.object(([asset.name, asset.data] for asset in $scope.assets))
+    if _.isEqual(assetsAsObject, currentGame.version.assets) then return 
+
+    currentGame.version.assets = assetsAsObject
+    currentGame.updateLocalVersion()
+  $scope.$watch("assets", copyFromScopeToGame, true)
+
+  $scope.remove = (index) -> 
     if window.confirm("Are you sure you want to delete this asset?")
-      delete currentGame.version.assets[name]
+      $scope.assets.splice(index, 1)
 
   $scope.$watch "file", ->
-    currentGame.version?.assets[$scope.fileName] = $scope.file
-    console.log("added file", $scope.fileName, $scope.file)
+    if $scope.fileName is "" then return 
+
+    $scope.assets.push({ name: $scope.fileName, data: $scope.file })
+    # Reset this so that the same filename dragged twice in a row will be taken into account
+    $scope.fileName = ""  
+    $scope.file = null

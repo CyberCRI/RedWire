@@ -6,11 +6,13 @@ angular.module( 'gamEvolve', [
   'ui.router'
   'ui.state'
   'ui.ace'
+  'gamEvolve.model.cache'
   'gamEvolve.model.games'
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
   'gamEvolve.util.boardConverter'
   'gamEvolve.util.gameConverter'
+  'gamEvolve.game.about'
   'gamEvolve.game.assets'
   'gamEvolve.game.boardTree'
   'gamEvolve.game.edit'
@@ -20,6 +22,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.import'
   'gamEvolve.game.layers'
   'gamEvolve.game.log'
+  'gamEvolve.game.login'
   'gamEvolve.game.memory'
   'gamEvolve.game.overlay'
   'gamEvolve.game.play'
@@ -27,12 +30,12 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.processors'
   'gamEvolve.game.switches'
   'gamEvolve.game.transformers'
-  'gamEvolve.login'
-  'gamEvolve.about'
+  'gamEvolve.game.undo'
   'gamEvolve.model.games'
   'gamEvolve.model.history'
   'gamEvolve.model.overlay'
   'gamEvolve.model.time'
+  'gamEvolve.model.undo'
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
   'xeditable'
@@ -59,4 +62,4 @@ angular.module( 'gamEvolve', [
 
 # Set options for xeditable
 .run (editableOptions) ->
-  editableOptions.theme = "bs2"
+  editableOptions.theme = "bs3"

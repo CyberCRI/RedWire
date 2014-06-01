@@ -2,14 +2,13 @@ angular.module('gamEvolve.game.import', [
   'ui.bootstrap'
 ])
 
-.factory 'importExportDialog', ($dialog, gameConverter, currentGame) ->
+.factory 'importExportDialog', ($modal, gameConverter, currentGame) ->
   dialog = null
 
   open: ->
     options =
       backdrop: true
-      dialogFade: true
-      backdropFade: true
+      backdrop: true
       templateUrl: 'game/import/import.tpl.html'
       controller: 'ImportExportDialogCtrl'
       resolve: 
@@ -24,17 +23,19 @@ angular.module('gamEvolve.game.import', [
               _.extend(currentGame.info, newGame.info)
               # TODO: check that the import doesn't overwrite internal properties (versionNumber, id, etc.)
               _.extend(currentGame.version, newGame.version)
+              currentGame.updateLocalVersion() # Increment local version of code
 
               dialog.close()
             cancel: ->
               dialog.close()
           }
-    dialog = $dialog.dialog(options)
-    dialog.open()
+    dialog = $modal.open(options)
 
 
 .controller 'ImportExportDialogCtrl', ($scope, liaison) ->
-  $scope.gameCode = liaison.model
+  # Need to put input/output data under an object
+  $scope.exchange = 
+    gameCode: liaison.model
 
-  $scope.done = -> liaison.done($scope.gameCode)
+  $scope.done = -> liaison.done($scope.exchange.gameCode)
   $scope.cancel = -> liaison.cancel()
