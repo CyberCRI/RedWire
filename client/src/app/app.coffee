@@ -17,6 +17,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.boardTree'
   'gamEvolve.game.edit'
   'gamEvolve.game.embed'
+  'gamEvolve.game.home'
   'gamEvolve.game.list'
   'gamEvolve.game.play'
   'gamEvolve.game.import'
@@ -42,7 +43,7 @@ angular.module( 'gamEvolve', [
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->
-  $urlRouterProvider.otherwise( '/game/list' )
+  $urlRouterProvider.otherwise( '/' )
 )
 
 .controller('AppCtrl', ( $scope, $location ) ->

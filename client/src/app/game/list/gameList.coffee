@@ -1,4 +1,3 @@
-
 angular.module('gamEvolve.game.list', [])
 
 .config ($stateProvider) ->
