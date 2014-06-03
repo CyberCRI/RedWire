@@ -292,7 +292,7 @@ describe "RedWire", ->
       expect(results.logMessages[0].path).toDeeplyEqual(["3"])
       expect(results.logMessages[1].path).toDeeplyEqual(["4"])
 
-    it "evaluates pineters for processors", ->
+    it "evaluates pins for processors", ->
       oldMemory = 
         a: 1
         b: 10
