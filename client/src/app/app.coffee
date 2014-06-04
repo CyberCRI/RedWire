@@ -8,6 +8,7 @@ angular.module( 'gamEvolve', [
   'ui.ace'
   'gamEvolve.model.games'
   'gamEvolve.model.users'
+  'gamEvolve.util.eventBus'
   'gamEvolve.util.logger'
   'gamEvolve.util.gameConverter'
   'gamEvolve.game.assets'
