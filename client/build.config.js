@@ -32,59 +32,59 @@ module.exports = {
         less: 'src/less/main.less'
     },
 
-    /**
-     * This is the same as `app_files`, except it contains patterns that
-     * reference vendor code (`vendor/`) that we need to place into the build
-     * process somewhere. While the `app_files` property ensures all
-     * standardized files are collected for compilation, it is the user's job
-     * to ensure non-standardized (i.e. vendor-related) files are handled
-     * appropriately in `vendor_files.js`.
-     *
-     * The `vendor_files.js` property holds files to be automatically
-     * concatenated and minified with our project source files.
-     *
-     * The `vendor_files.css` property holds any CSS files to be automatically
-     * included in our app.
-     *
-     * The `vendor_files.images` property holds any images to be copied along
-     * with our app's assets. This structure is flattened, so it is not
-     * recommended that you use wildcards.
-     */
-    vendor_files: {
-        js: [
-            'vendor/jquery/jquery.js',
-            'vendor/bootstrap/js/bootstrap-tab.js',
-            'vendor/angular/angular.js',
-            'vendor/angular-mocks/angular-mocks.js',
-            'vendor/angular-bootstrap/ui-bootstrap-tpls.js',
-            'vendor/angular-ui-router/release/angular-ui-router.js',
-            'vendor/angular-ui-utils/modules/route/route.js',
-            'vendor/ace-builds/src-noconflict/ace.js',
-            'vendor/ace-builds/src-noconflict/mode-javascript.js',
-            'vendor/ace-builds/src-noconflict/worker-javascript.js',
-            'vendor/ace-builds/src-noconflict/theme-twilight.js',
-            'vendor/angular-ui-ace/src/ui-ace.js',
-            'vendor/underscore/underscore.js',
-            'vendor/underscore.string/lib/underscore.string.js',
-            'vendor/flexy-layout/flexy-layout.debug.js',
-            'vendor/jquery-ui/ui/jquery-ui.custom.js',
-            'vendor/angular-ui-sortable/src/sortable.js',
-            'vendor/angular-file-dnd/dist/angular-file-dnd.js',
-            'vendor/angular-xeditable/dist/js/xeditable.js',
-            'vendor/rivets/dist/rivets.js',
-            'vendor/sylvester/sylvester.src.js',
-            'vendor/Chart.js/Chart.js',
-            'vendor/jsoneditor/jsoneditor.js',
-            'vendor/angular-animate/angular-animate.js'
-        ],
-        css: [
-            'vendor/flexy-layout/src/flexyLayout.css',
-            'vendor/angular-xeditable/dist/css/xeditable.css',
-            'vendor/jsoneditor/jsoneditor.css'
-        ],
-        images: [
-            'vendor/bootstrap/img/*.png',
-            'vendor/jsoneditor/img/jsoneditor-icons.png'
-        ]
-    }
+  /**
+   * This is the same as `app_files`, except it contains patterns that
+   * reference vendor code (`vendor/`) that we need to place into the build
+   * process somewhere. While the `app_files` property ensures all
+   * standardized files are collected for compilation, it is the user's job
+   * to ensure non-standardized (i.e. vendor-related) files are handled
+   * appropriately in `vendor_files.js`.
+   *
+   * The `vendor_files.js` property holds files to be automatically
+   * concatenated and minified with our project source files.
+   *
+   * The `vendor_files.css` property holds any CSS files to be automatically
+   * included in our app.
+   *
+   * The `vendor_files.images` property holds any images to be copied along
+   * with our app's assets. This structure is flattened, so it is not
+   * recommended that you use wildcards.
+   */
+  vendor_files: {
+    js: [
+      'vendor/jquery/jquery.js',
+      'vendor/bootstrap/js/bootstrap-tab.js',
+      'vendor/angular/angular.js',
+      'vendor/angular-mocks/angular-mocks.js',
+      'vendor/angular-bootstrap/ui-bootstrap-tpls.js',
+      'vendor/angular-ui-router/release/angular-ui-router.js',
+      'vendor/angular-ui-utils/modules/route/route.js',
+      'vendor/ace-builds/src-noconflict/ace.js',
+      'vendor/ace-builds/src-noconflict/mode-javascript.js',
+      'vendor/ace-builds/src-noconflict/worker-javascript.js',
+      'vendor/ace-builds/src-noconflict/theme-twilight.js',
+      'vendor/angular-ui-ace/src/ui-ace.js',
+      'vendor/underscore/underscore.js',
+      'vendor/underscore.string/lib/underscore.string.js',
+      'vendor/flexy-layout/flexy-layout.debug.js',
+      'vendor/jquery-ui/ui/jquery-ui.custom.js',
+      'vendor/angular-ui-sortable/src/sortable.js',
+      'vendor/angular-file-dnd/dist/angular-file-dnd.js',
+      'vendor/angular-xeditable/dist/js/xeditable.js',
+      'vendor/rivets/dist/rivets.js',
+      'vendor/sylvester/sylvester.src.js',
+      'vendor/Chart.js/Chart.js',
+      'vendor/jsoneditor/jsoneditor.js',
+      'vendor/moment/moment.js',
+      'vendor/mousetrap/mousetrap.js'
+    ],
+    css: [
+      'vendor/flexy-layout/src/flexyLayout.css',
+      'vendor/angular-xeditable/dist/css/xeditable.css',
+      'vendor/jsoneditor/jsoneditor.css'
+    ],
+    images: [
+      'vendor/jsoneditor/img/jsoneditor-icons.png'
+    ]
+  }
 };
