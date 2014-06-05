@@ -75,6 +75,7 @@ angular.module('gamEvolve.game.boardTree', [
           model: RW.cloneData(model)
           done: (newModel) ->
             onDone(newModel)
+            currentGame.updateLocalVersion()
             dialog.close()
           cancel: ->
             dialog.close()
@@ -84,6 +85,7 @@ angular.module('gamEvolve.game.boardTree', [
     if window.confirm("Are you sure you want to delete this chip?")
       index = parent.children.indexOf node
       parent.children.splice(index, 1) # Remove that child
+      currentGame.updateLocalVersion()
 
   $scope.enter = (node) ->
     boardNodes.open(node) unless treeDrag.dropBefore
@@ -97,6 +99,7 @@ angular.module('gamEvolve.game.boardTree', [
       moveInsideTarget(source, target, sourceParent)
     else
       moveAfterTarget(source, target, sourceParent, targetParent)
+    currentGame.updateLocalVersion()
 
   moveBeforeTarget = (source, target, sourceParent, targetParent) ->
     removeSourceFromParent(source, sourceParent)
