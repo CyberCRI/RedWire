@@ -60,6 +60,10 @@ angular.module('gamEvolve.game.boardTree', [
         showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
 
+  $scope.mute = (node) ->
+    node.muted = !node.muted
+    currentGame.updateLocalVersion()
+
   showDialog = (templateUrl, controller, model, onDone) ->
     dialog = $modal.open
       backdrop: true

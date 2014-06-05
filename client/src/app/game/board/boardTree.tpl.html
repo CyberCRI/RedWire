@@ -18,7 +18,7 @@
             &nbsp;
             <span ng-hide="chips.isRoot(node)">
                 <button class="btn btn-xs" ng-click="edit(node)"><span class="glyphicon glyphicon-pencil"></span></button>
-                <button class="btn btn-xs" ng-click="node.muted = !node.muted" ng-class="{'btn-danger': node.muted, active: node.muted}">
+                <button class="btn btn-xs" ng-click="mute(node)" ng-class="{'btn-danger': node.muted, active: node.muted}">
                     {{node.muted ? 'Unmute' : 'Mute'}}
                 </button>
                 <button class="btn btn-xs" ng-click="remove(node, $parent.node)"><span class="glyphicon glyphicon-trash"></span></button>
