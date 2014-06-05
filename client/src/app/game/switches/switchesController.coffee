@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.switches', [
   'ui.bootstrap',
 ])
-.controller 'SwitchesListCtrl', ($scope, $modal, $dialog, currentGame, SwitchRenamedEvent) ->
+.controller 'SwitchesListCtrl', ($scope, $modal, currentGame, SwitchRenamedEvent) ->
   # Get the switches object from the currentGame service, and keep it updated
   $scope.switches = {}
   $scope.switchNames = []

@@ -12,13 +12,16 @@
                 <!--ng-hide="treeDrag.data.node === node && treeDrag.lastHovered != node && treeDrag.lastHovered.children[0] != node">-->
             <span ng-click="boardNodes.labelClicked(node)">
                 <span class="arrow"
-                      ng-class="{collapsed: !boardNodes.isOpen(node), expanded: boardNodes.isOpen(node), hidden: !chips.hasChildren(node) || chips.isRoot(node)}"></span>
+                      ng-class="{collapsed: !boardNodes.isOpen(node), expanded: boardNodes.isOpen(node), leaf: !chips.hasChildren(node) || chips.isRoot(node)}"></span>
                 <board-label node="node" ></board-label>
             </span>
+            &nbsp;
             <span ng-hide="chips.isRoot(node)">
-                <a href="" class="btn btn-small" ng-click="edit(node)"><i class="icon-edit"></i></a>
-                <a href="" class="btn btn-small" ng-click="node.muted = !node.muted">{{node.muted ? 'MUTED' : 'Mute'}}</a>
-                <a href="" class="btn btn-small" ng-click="remove(node, $parent.node)"><i class="icon-trash"></i></a>
+                <button class="btn btn-xs" ng-click="edit(node)"><span class="glyphicon glyphicon-pencil"></span></button>
+                <button class="btn btn-xs" ng-click="node.muted = !node.muted" ng-class="{'btn-danger': node.muted, active: node.muted}">
+                    {{node.muted ? 'Unmute' : 'Mute'}}
+                </button>
+                <button class="btn btn-xs" ng-click="remove(node, $parent.node)"><span class="glyphicon glyphicon-trash"></span></button>
             </span>
         </div>
         <div class="preview after"

@@ -17,7 +17,7 @@ angular.module('gamEvolve.game.edit', [
       pageTitle: 'Edit Game'
 
 
-.controller 'GameEditCtrl', ($scope, $stateParams, games) ->
+.controller 'GameEditCtrl', ($scope, $stateParams, games, currentGame) ->
 
   games.loadFromId $stateParams.gameId
 

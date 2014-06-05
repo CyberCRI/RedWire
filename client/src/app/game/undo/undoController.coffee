@@ -38,7 +38,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
             undo.changeValue(currentGame.localVersion, currentGame.version)
             
             # Now update with the new version
-            currentGame.version = cachedCode
+            currentGame.setVersion(cachedCode)
             currentGame.updateLocalVersion()
           else
             cache.remove(currentGame.info.id)

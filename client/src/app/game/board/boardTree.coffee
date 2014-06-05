@@ -9,8 +9,7 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.game.boardLabel'
 ])
 
-.controller 'BoardTreeCtrl', ($scope, $dialog, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes) ->
-
+.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes) ->
   $scope.currentGame = currentGame
   $scope.treeDrag = treeDrag
   $scope.chips = chips
@@ -62,14 +61,13 @@ angular.module('gamEvolve.game.boardTree', [
           _.extend(chip, model)
 
   showDialog = (templateUrl, controller, model, onDone) ->
-    dialog = $dialog.dialog
+    dialog = $modal.open
       backdrop: true
       dialogFade: true
-      backdropFade: true
-      backdropClick: false
+      backdrop: "static"
       templateUrl: templateUrl
       controller: controller
-      dialogClass: "large-modal"
+      size: "lg"
       resolve:
       # This object will be provided to the dialog as a dependency, and serves to communicate between the two
         liaison: ->
@@ -81,7 +79,6 @@ angular.module('gamEvolve.game.boardTree', [
           cancel: ->
             dialog.close()
           }
-    dialog.open()
 
   $scope.remove = (node, parent) ->
     if window.confirm("Are you sure you want to delete this chip?")
@@ -121,7 +118,7 @@ angular.module('gamEvolve.game.boardTree', [
   moveAfterTarget = (source, target, sourceParent, targetParent) ->
     removeSourceFromParent(source, sourceParent)
     targetIndex = targetParent.children.indexOf(target)
-    targetParent.children.splice targetIndex+1, 0, source
+    targetParent.children.splice targetIndex + 1, 0, source
 
   # TODO Remove or move to right place
   # Update from gameHistory

@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.processors', [
   'ui.bootstrap',
 ])
-.controller 'ProcessorsListCtrl', ($scope, $dialog, $modal, currentGame, ProcessorRenamedEvent) ->
+.controller 'ProcessorsListCtrl', ($scope, $modal, currentGame, ProcessorRenamedEvent) ->
   # Get the processors object from the currentGame service, and keep it updated
   $scope.processors = {}
   $scope.processorNames = []

@@ -31,8 +31,6 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.processors'
   'gamEvolve.game.switches'
   'gamEvolve.game.transformers'
-  'gamEvolve.login'
-  'gamEvolve.about'
   'gamEvolve.model.chips'
   'gamEvolve.game.undo'
   'gamEvolve.model.games'
