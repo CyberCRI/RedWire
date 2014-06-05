@@ -132,7 +132,7 @@ describe "RedWire", ->
       conflicts = RW.detectPatchConflicts(patches)
       expect(conflicts.length).toBe(1)
 
-  describe "visitChip()", ->
+  describe "stimulateCircuits()", ->
     it "calls processors", ->
       isCalled = false
 
@@ -158,9 +158,12 @@ describe "RedWire", ->
             x: compileExpression("1 + 1")
 
       constants = new RW.ChipVisitorConstants
-        processors: processors
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            processors: processors
         evaluator: makeEvaluator()
-      RW.visitChip([], board, constants, {})
+      RW.stimulateCircuits(constants)
       expect(isCalled).toBeTruthy()
 
     it "calls children of switches", ->
@@ -191,9 +194,13 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
-        processors: processors
-        switches: switches
-      RW.visitChip([], board, constants, {})
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            processors: processors
+            switches: switches
+        evaluator: makeEvaluator()
+      RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(3)
 
     it "returns the path for patches", ->
@@ -266,13 +273,16 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
-        memoryData: memoryData
-        ioData: ioData
-        processors: processors
-        switches: switches
-        evaluator: eval
-        transformers: transformers
-      results = RW.visitChip([], board, constants, {})
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            memoryData: memoryData
+            ioData: ioData
+            processors: processors
+            switches: switches
+            transformers: transformers
+        evaluator: makeEvaluator()
+      results = RW.stimulateCircuits(constants)
 
       expect(results.memoryPatches.length).toBe(3)
       for memoryPatch in results.memoryPatches
@@ -331,12 +341,15 @@ describe "RedWire", ->
             "memory.b": compileExpression("pins.y")
             "memory.c": compileExpression("pins.z")
 
-      constants = new RW.ChipVisitorConstants 
-        memoryData: oldMemory, 
-        assets: assets
-        processors: processors
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            memoryData: oldMemory
+            assets: assets
+            processors: processors
         evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
+      results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
 
       # The new memory should be changed, but the old one shouldn't be
@@ -365,10 +378,13 @@ describe "RedWire", ->
           "io.s.a": compileExpression("-5")
 
       constants = new RW.ChipVisitorConstants
-        memoryData: oldMemory
-        ioData: oldIoData
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            memoryData: oldMemory
+            ioData: oldIoData
         evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
+      results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
       newIoData = RW.applyPatches(results.ioPatches, oldIoData)
 
@@ -443,11 +459,14 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
-        memoryData: memories[0]
-        processors: processors
-        switches: switches
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            memoryData: memories[0]
+            processors: processors
+            switches: switches
         evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
+      results = RW.stimulateCircuits(constants)
       memories[1] = RW.applyPatches(results.memoryPatches, memories[0])
 
       expect(memories[1].child0TimesCalled).toBe(1)
@@ -455,11 +474,14 @@ describe "RedWire", ->
       expect(memories[1].activeChild).toBe(1)
       
       constants = new RW.ChipVisitorConstants
-        memoryData: memories[1]
-        processors: processors
-        switches: switches
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            memoryData: memories[1]
+            processors: processors
+            switches: switches
         evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
+      results = RW.stimulateCircuits(constants)
       memories[2] = RW.applyPatches(results.memoryPatches, memories[1])
 
       expect(memories[2].child0TimesCalled).toBe(1)
@@ -500,9 +522,12 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
-        processors: processors
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            processors: processors
         evaluator: makeEvaluator()
-      RW.visitChip([], board, constants, {})
+      RW.stimulateCircuits(constants)
 
       expect(processors.getName.update).toHaveBeenCalled()
 
@@ -544,10 +569,13 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
-        memoryData: oldMemory
-        processors: processors
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            memoryData: oldMemory
+            processors: processors
         evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
+      results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
 
       expect(newMemory.people[0].last).toBe("bill")
@@ -584,10 +612,13 @@ describe "RedWire", ->
       spyOn(processors.getName, "update").andCallThrough()
 
       constants = new RW.ChipVisitorConstants
-        memoryData: oldMemory
-        processors: processors
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            memoryData: oldMemory
+            processors: processors
         evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
+      results = RW.stimulateCircuits(constants)
 
       expect(processors.getName.update).toHaveBeenCalled()
 
@@ -614,10 +645,13 @@ describe "RedWire", ->
             "io.serviceA": compileExpression("pins.service")
 
       constants = new RW.ChipVisitorConstants
-        ioData: oldIoData
-        processors: processors
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            ioData: oldIoData
+            processors: processors
         evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
+      results = RW.stimulateCircuits(constants)
       newIoData = RW.applyPatches(results.ioPatches, oldIoData)
 
       expect(newIoData.serviceA.a).toBe(2)
@@ -651,9 +685,12 @@ describe "RedWire", ->
 
       # Only one of these chips should have been called
       constants = new RW.ChipVisitorConstants
-        processors: processors
-        switches: switches
-      RW.visitChip([], board, constants, {})
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            processors: processors
+            switches: switches
+      RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(1)
 
   describe "stepLoop()", ->

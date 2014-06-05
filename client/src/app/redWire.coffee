@@ -8,16 +8,22 @@ globals.RW = RW
 # The logFunction can be reset before visiting each chip that calls transformers
 RW.transformersLogger = null
 
-RW.ChipVisitorConstants = class 
-  # Accepts options for "memoryData", "ioData", "assets", "processors", "transformers", and "evaluator"
+RW.Circuit = class 
   constructor: (options) -> 
     _.defaults this, options,
+      board: {}
       memoryData: {}
       ioData: {}
       assets: {}
       processors: {}
       switches: {}
       transformers: {}
+
+RW.ChipVisitorConstants = class 
+  constructor: (options) -> 
+    _.defaults this, options,
+      circuits: 
+        main: new RW.Circuit()
       evaluator: null
 
 RW.ChipVisitorResult = class 
@@ -42,11 +48,14 @@ RW.extensions =
   HTML: ["html"]
 
 # Used to evaluate expressions against with RW.evaluateExpressionFunction
-RW.makeEvaluationContext = (constants, bindings) ->
+RW.makeEvaluationContext = (circuitId, constants, bindings) ->
   context = 
-    memory: constants.memoryData
-    io: constants.ioData
+    memory: constants.circuits[circuitId].memoryData
+    io: constants.circuits[circuitId].ioData
+    assets: constants.circuits[circuitId].assets
+    transformers: constants.circuits[circuitId].transformers
     bindings: {}
+  # Setup bindings
   for bindingName, bindingValue of bindings
     if bindingValue instanceof RW.BindingReference
       [parent, key] = RW.getParentAndKey(context, RW.splitAddress(bindingValue.ref))
@@ -57,8 +66,8 @@ RW.makeEvaluationContext = (constants, bindings) ->
 
 # context is created with RW.makeEvaluationContext()
 # pins are optional
-RW.evaluateExpressionFunction = (constants, context, f, pins) ->
-  f(context.memory, context.io, constants.assets, constants.transformers, context.bindings, pins)
+RW.evaluateExpressionFunction = (context, f, pins) ->
+  f(context.memory, context.io, context.assets, context.transformers, context.bindings, pins)
 
 # Returns address as array (like pathParts) with binding refs replaced with their full addresses (to memory or io) 
 RW.resolveBindingAddresses = (bindings, pathParts) ->
@@ -236,7 +245,7 @@ RW.evaluateInputPinExpressions = (circuitId, path, constants, evaluationContext,
     
     try
       # Get the value
-      evaluatedPins[pinName] = RW.evaluateExpressionFunction(constants, evaluationContext, pinFunction)
+      evaluatedPins[pinName] = RW.evaluateExpressionFunction(evaluationContext, pinFunction)
       
       # Protect inout pins from changing buffer values directly by cloning the data
       if pinOptions.direction is "inout"
@@ -250,7 +259,7 @@ RW.evaluateInputPinExpressions = (circuitId, path, constants, evaluationContext,
 RW.evaluateOutputPinExpressions = (circuitId, path, constants, bindings, evaluationContext, memoryPatches, ioPatches, pinDefs, pinFunctions, evaluatedPins) ->
   for pinName, pinFunction of pinFunctions?.out
     try
-      outputValue = RW.evaluateExpressionFunction(constants, evaluationContext, pinFunction, evaluatedPins)
+      outputValue = RW.evaluateExpressionFunction(evaluationContext, pinFunction, evaluatedPins)
     catch error
       throw RW.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{RW.formatStackTrace(error)}\nPin values were #{JSON.stringify(evaluatedPins)}.", circuitId, path)
 
@@ -268,19 +277,19 @@ RW.calculateBindingSet = (circuitId, path, chip, constants, oldBindings) ->
       if chip.splitter.index? then newBindings["#{chip.splitter.index}"] = key
 
       if chip.splitter.where?
-        evaluationContext = RW.makeEvaluationContext(constants, newBindings)
+        evaluationContext = RW.makeEvaluationContext(circuitId, constants, newBindings)
 
         try
           # If the where clause evaluates to false, don't add it
-          if RW.evaluateExpressionFunction(constants, evaluationContext, chip.splitter.where) then bindingSet.push(newBindings)
+          if RW.evaluateExpressionFunction(evaluationContext, chip.splitter.where) then bindingSet.push(newBindings)
         catch error
           throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{RW.formatStackTrace(error)}", circuitId, path)
       else
         bindingSet.push(newBindings)
   else if _.isString(chip.splitter.from)
     inputContext = 
-      memory: constants.memoryData
-      io: constants.ioData
+      memory: constants.circuits[circuitId].memoryData
+      io: constants.circuits[circuitId].ioData
 
     [parent, key] = RW.getParentAndKey(inputContext, RW.splitAddress(chip.splitter.from))
     boundValue = parent[key]
@@ -293,10 +302,10 @@ RW.calculateBindingSet = (circuitId, path, chip, constants, oldBindings) ->
 
       if chip.splitter.where?
         # TODO: compile expressions ahead of time
-        evaluationContext = RW.makeEvaluationContext(constants, newBindings)
+        evaluationContext = RW.makeEvaluationContext(circuitId, constants, newBindings)
         try
           # If the where clause evaluates to false, don't add it
-          if RW.evaluateExpressionFunction(constants, evaluationContext, chip.splitter.where) then bindingSet.push(newBindings)
+          if RW.evaluateExpressionFunction(evaluationContext, chip.splitter.where) then bindingSet.push(newBindings)
         catch error
           throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{RW.formatStackTrace(error)}", circuitId, path)
       else
@@ -307,14 +316,14 @@ RW.calculateBindingSet = (circuitId, path, chip, constants, oldBindings) ->
   return bindingSet
 
 RW.visitProcessorChip = (circuitId, path, chip, constants, bindings) ->
-  if chip.processor not of constants.processors then throw RW.makeExecutionError("Cannot find processor '#{chip.processor}'", circuitId, path)
+  if chip.processor not of constants.circuits[circuitId].processors then throw RW.makeExecutionError("Cannot find processor '#{chip.processor}'", circuitId, path)
 
-  processor = constants.processors[chip.processor]
+  processor = constants.circuits[circuitId].processors[chip.processor]
 
   result = new RW.ChipVisitorResult()
   RW.transformersLogger = RW.makeLogFunction(circuitId, path, result.logMessages)
 
-  evaluationContext = RW.makeEvaluationContext(constants, bindings)
+  evaluationContext = RW.makeEvaluationContext(circuitId, constants, bindings)
   RW.fillPinDefDefaults(processor.pinDefs)
   evaluatedPins = RW.evaluateInputPinExpressions(circuitId, path, constants, evaluationContext, processor.pinDefs, chip.pins)
 
@@ -330,16 +339,16 @@ RW.visitProcessorChip = (circuitId, path, chip, constants, bindings) ->
   return result
 
 RW.visitSwitchChip = (circuitId, path, chip, constants, bindings) ->
-  if chip.switch not of constants.switches then throw RW.makeExecutionError("Cannot find switch '#{chip.switch}'", circuitId, path)
+  if chip.switch not of constants.circuits[circuitId].switches then throw RW.makeExecutionError("Cannot find switch '#{chip.switch}'", circuitId, path)
 
-  switchChip = constants.switches[chip.switch]
+  switchChip = constants.circuits[circuitId].switches[chip.switch]
   # Keys of arrays are given as strings, so we need to convert them back to numbers
   childNames = if chip.children? then (child.name ? parseInt(index)) for index, child of chip.children else []
 
   result = new RW.ChipVisitorResult()
   RW.transformersLogger = RW.makeLogFunction(circuitId, path, result.logMessages)
 
-  evaluationContext = new RW.makeEvaluationContext(constants, bindings)
+  evaluationContext = new RW.makeEvaluationContext(circuitId, constants, bindings)
   RW.fillPinDefDefaults(switchChip.pinDefs)
   evaluatedPins = RW.evaluateInputPinExpressions(circuitId, path, constants, evaluationContext, switchChip.pinDefs, chip.pins)
 
@@ -373,7 +382,7 @@ RW.visitSwitchChip = (circuitId, path, chip, constants, bindings) ->
       signalsResult = switchChip.handleSignals(evaluatedPins, childNames, activeChildren, childSignals, constants.transformers, RW.transformersLogger)
       temporaryResult = new RW.ChipVisitorResult(signalsResult)
 
-      RW.evaluateOutputPinExpressions(path, constants, bindings, evaluationContext, result.memoryPatches, result.ioPatches, switchChip.pinDefs, chip.pins, evaluatedPins)
+      RW.evaluateOutputPinExpressions(circuitId, path, constants, bindings, evaluationContext, result.memoryPatches, result.ioPatches, switchChip.pinDefs, chip.pins, evaluatedPins)
 
       result = result.appendWith(temporaryResult)
       result.result = signalsResult # appendWith() does not affect result
@@ -394,7 +403,7 @@ RW.visitSplitterChip = (circuitId, path, chip, constants, oldBindings) ->
   return result
 
 RW.visitEmitterChip = (circuitId, path, chip, constants, bindings) ->
-  evaluationContext = RW.makeEvaluationContext(constants, bindings)
+  evaluationContext = RW.makeEvaluationContext(circuitId, constants, bindings)
 
   # Return "DONE" signal, so it can be put in sequences
   result = new RW.ChipVisitorResult(RW.signals.DONE)  
@@ -402,7 +411,7 @@ RW.visitEmitterChip = (circuitId, path, chip, constants, bindings) ->
 
   for dest, expressionFunction of chip.emitter  
     try
-      outputValue = RW.evaluateExpressionFunction(constants, evaluationContext, expressionFunction)
+      outputValue = RW.evaluateExpressionFunction(evaluationContext, expressionFunction)
     catch error
       throw RW.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{RW.formatStackTrace(error)}", path)
 
@@ -411,9 +420,11 @@ RW.visitEmitterChip = (circuitId, path, chip, constants, bindings) ->
   return result
 
 RW.visitCircuitChip = (circuitId, path, chip, constants, bindings) ->
-  # look up chip
-
-  return RW.visitChip(, [], chip, constants, bindings)
+  # Expect data like { circuit: circuitType, id: circuitId: , children: , pins: }
+  # Look up chip
+  circuit = constants.circuits[chip.circuit]
+  # TODO: allow bindings go across circuits?
+  return RW.visitChip(chip.id, [], circuit, constants, {})
 
 RW.chipVisitors =
   "processor": RW.visitProcessorChip
@@ -441,6 +452,9 @@ RW.visitChip = (circuitId, path, chip, constants, bindings = {}) ->
     level: RW.logLevels.ERROR
     message: ["Board item '#{JSON.stringify(chip)}' is not understood"]
   return result
+
+# Starts the RW.visitChip() recursive chain with the starting parameters
+RW.stimulateCircuits = (constants) -> RW.visitChip("main", [], constants.circuits.main.board, constants, {})
 
 # The argument "options" can values for "chip", memoryData", "assets", "processors", "switches", "transformers", "io", "ioConfig", and "evaluator".
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
@@ -591,56 +605,3 @@ RW.splitAddress = (address) -> _.reject(address.split(/[\.\[\]]/), (part) -> par
 
 # Combine a path like ["a", "b", 1, 2] into "a/b/1/2
 RW.joinPathParts = (pathParts) -> "/#{pathParts.join('/')}"
-
-# Load all the assets in the given object (name: url) and then call callback with the results, or error
-# TODO: have cache-busting be configurable
-# TODO: use promises rather than a counter
-RW.loadAssets = (assets, callback) ->
-  if _.size(assets) == 0 then return callback(null, {})
-
-  results = {}
-  loadedCount = 0 
-
-  onLoad = -> if ++loadedCount == _.size(assets) then callback(null, results)
-  onError = (text) -> callback(new Error(text))
-
-  for name, url of assets
-    do (name, url) -> # The `do` is needed because of asnyc requests below
-      switch RW.determineAssetType(url)
-        when "IMAGE"
-          results[name] = new Image()
-          results[name].onload = onLoad 
-          results[name].onabort = onError
-          results[name].onerror = -> onError("Cannot load image '#{name}'")
-          results[name].src = url + "?_=#{new Date().getTime()}"
-        when "JS"
-          $.ajax
-            url: url
-            dataType: "text"
-            cache: false
-            error: -> onError("Cannot load JavaScript '#{name}'")
-            success: (text) ->
-              results[name] = text
-              onLoad()
-        when "HTML"
-          $.ajax
-            url: url
-            dataType: "text"
-            cache: false
-            error: -> onError("Cannot load HTML '#{name}'")
-            success: (text) ->
-              results[name] = text
-              onLoad()
-        when "CSS"
-          # Based on http://stackoverflow.com/a/805406/209505
-          # TODO: need way to remove loaded styles later
-          $.ajax
-            url: url
-            dataType: "text"
-            cache: false
-            error: -> onError("Cannot load CSS '#{name}'")
-            success: (css) ->
-              $('<style type="text/css"></style>').html(css).appendTo("head")
-              onLoad()
-        else 
-          return callback(new Error("Do not know how to load #{url} for asset #{name}"))
