@@ -18,6 +18,12 @@ RW.logLevels = RW.makeConstantSet("ERROR", "WARN", "INFO")
 
 RW.signals = RW.makeConstantSet("DONE", "ERROR")
 
+RW.extensions =
+  IMAGE: ["png", "gif", "jpeg", "jpg"]
+  JS: ["js"]
+  CSS: ["css"]
+  HTML: ["html"]
+
 # Looks for the first element in the array or object which is equal to value, using the _.isEqual() test
 # If no element exists, returns -1
 RW.indexOf = (collection, value) ->

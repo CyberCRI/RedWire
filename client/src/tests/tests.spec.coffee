@@ -284,8 +284,10 @@ describe "RedWire", ->
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
 
-      expect(results.memoryPatches.length).toBe(3)
-      for memoryPatch in results.memoryPatches
+      mainResults = results.circuitResults.main
+
+      expect(mainResults.memoryPatches.length).toBe(3)
+      for memoryPatch in mainResults.memoryPatches
         if memoryPatch.replace is "/a"
           expect(memoryPatch.path).toDeeplyEqual(["0"])
         else if memoryPatch.replace is "/b"
@@ -295,12 +297,12 @@ describe "RedWire", ->
         else 
           throw new Error("Memory patch affects wrong attribute")
 
-      expect(results.ioPatches.length).toBe(1)
-      expect(results.ioPatches[0].path).toDeeplyEqual(["2"])
+      expect(mainResults.ioPatches.length).toBe(1)
+      expect(mainResults.ioPatches[0].path).toDeeplyEqual(["2"])
 
-      expect(results.logMessages.length).toBe(2)
-      expect(results.logMessages[0].path).toDeeplyEqual(["3"])
-      expect(results.logMessages[1].path).toDeeplyEqual(["4"])
+      expect(mainResults.logMessages.length).toBe(2)
+      expect(mainResults.logMessages[0].path).toDeeplyEqual(["3"])
+      expect(mainResults.logMessages[1].path).toDeeplyEqual(["4"])
 
     it "evaluates pins for processors", ->
       oldMemory = 
@@ -350,7 +352,7 @@ describe "RedWire", ->
             processors: processors
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
-      newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
+      newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
 
       # The new memory should be changed, but the old one shouldn't be
       expect(oldMemory.a).toBe(1)
@@ -385,8 +387,8 @@ describe "RedWire", ->
             ioData: oldIoData
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
-      newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
-      newIoData = RW.applyPatches(results.ioPatches, oldIoData)
+      newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
+      newIoData = RW.applyPatches(results.circuitResults.main.ioPatches, oldIoData)
 
       # The new memory and io should be changed, but the old ones shouldn't be
       expect(oldMemory.a.a1).toBe(1)
@@ -467,7 +469,7 @@ describe "RedWire", ->
             switches: switches
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
-      memories[1] = RW.applyPatches(results.memoryPatches, memories[0])
+      memories[1] = RW.applyPatches(results.circuitResults.main.memoryPatches, memories[0])
 
       expect(memories[1].child0TimesCalled).toBe(1)
       expect(memories[1].child1TimesCalled).toBe(0)
@@ -482,7 +484,7 @@ describe "RedWire", ->
             switches: switches
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
-      memories[2] = RW.applyPatches(results.memoryPatches, memories[1])
+      memories[2] = RW.applyPatches(results.circuitResults.main.memoryPatches, memories[1])
 
       expect(memories[2].child0TimesCalled).toBe(1)
       expect(memories[2].child1TimesCalled).toBe(1)
@@ -576,7 +578,7 @@ describe "RedWire", ->
             processors: processors
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
-      newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
+      newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
 
       expect(newMemory.people[0].last).toBe("bill")
       expect(newMemory.people[1].last).toBe("joe")
@@ -652,7 +654,7 @@ describe "RedWire", ->
             processors: processors
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
-      newIoData = RW.applyPatches(results.ioPatches, oldIoData)
+      newIoData = RW.applyPatches(results.circuitResults.main.ioPatches, oldIoData)
 
       expect(newIoData.serviceA.a).toBe(2)
 
@@ -692,6 +694,66 @@ describe "RedWire", ->
             switches: switches
       RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(1)
+
+    it "handles multiple circuits", ->
+      circuits = 
+        main: new RW.Circuit
+          memoryData: 
+            a: 
+              a1: 1
+            b: 10
+            c: "hi"
+          ioData:  
+            s: 
+              a: -1
+          switches:
+            doAll: 
+              pinDefs: {}
+          board:
+            switch: "doAll"
+            children: [
+              { 
+                emitter: 
+                  "memory.a.a1": compileExpression("2")
+                  "memory.b": compileExpression("memory.c")
+                  "io.s.a": compileExpression("-5")
+              }
+              { 
+                circuit: "sub"
+                id: "subId"
+              }
+            ]
+        sub: new RW.Circuit
+          memoryData: 
+            a: 32
+            b: "hi"
+            c: "bye"
+          ioData:  
+            s: 
+              a: -1
+          board: 
+            emitter: 
+              "memory.a": compileExpression("99")
+              "memory.b": compileExpression("memory.c")
+              "io.s.a": compileExpression("100")
+      constants = new RW.ChipVisitorConstants
+        circuits: circuits 
+        evaluator: makeEvaluator()
+      results = RW.stimulateCircuits(constants)
+
+      newMemory = {}
+      newIo = {}
+      for name, circuit of { main: circuits.main, subId: circuits.sub }
+        newMemory[name] = RW.applyPatches(results.circuitResults[name].memoryPatches, circuit.memoryData)
+        newIo[name] = RW.applyPatches(results.circuitResults[name].ioPatches, circuit.ioData)
+
+      expect(newMemory.main.a.a1).toBe(2)
+      expect(newMemory.main.b).toBe("hi")
+      expect(newIo.main.s.a).toBe(-5)
+      expect(newMemory.subId.a).toBe(99)
+      expect(newMemory.subId.b).toBe("bye")
+      expect(newMemory.subId.c).toBe("bye")
+      expect(newIo.subId.s.a).toBe(100)
 
   describe "stepLoop()", ->
     it "sends output data directly to io", ->
