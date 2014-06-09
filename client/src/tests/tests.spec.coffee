@@ -276,11 +276,13 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            memoryData: memoryData
-            ioData: ioData
             processors: processors
             switches: switches
             transformers: transformers
+        memoryData: 
+          main: memoryData
+        ioData: 
+          main: ioData
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
 
@@ -347,9 +349,10 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            memoryData: oldMemory
             assets: assets
             processors: processors
+        memoryData: 
+          main: oldMemory
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
@@ -383,8 +386,10 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            memoryData: oldMemory
-            ioData: oldIoData
+        memoryData: 
+          main: oldMemory
+        ioData: 
+          main: oldIoData
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
@@ -464,9 +469,10 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            memoryData: memories[0]
             processors: processors
             switches: switches
+        memoryData: 
+          main: memories[0]
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       memories[1] = RW.applyPatches(results.circuitResults.main.memoryPatches, memories[0])
@@ -479,9 +485,10 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            memoryData: memories[1]
             processors: processors
             switches: switches
+        memoryData: 
+          main: memories[1]
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       memories[2] = RW.applyPatches(results.circuitResults.main.memoryPatches, memories[1])
@@ -574,8 +581,9 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            memoryData: oldMemory
             processors: processors
+        memoryData: 
+          main: oldMemory
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
@@ -617,8 +625,9 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            memoryData: oldMemory
             processors: processors
+        memoryData: 
+          main: oldMemory
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
 
@@ -650,8 +659,9 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            ioData: oldIoData
             processors: processors
+        ioData: 
+          main: oldIoData
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       newIoData = RW.applyPatches(results.circuitResults.main.ioPatches, oldIoData)
@@ -698,14 +708,6 @@ describe "RedWire", ->
     it "handles multiple circuits", ->
       circuits = 
         main: new RW.Circuit
-          memoryData: 
-            a: 
-              a1: 1
-            b: 10
-            c: "hi"
-          ioData:  
-            s: 
-              a: -1
           switches:
             doAll: 
               pinDefs: {}
@@ -724,28 +726,44 @@ describe "RedWire", ->
               }
             ]
         sub: new RW.Circuit
-          memoryData: 
-            a: 32
-            b: "hi"
-            c: "bye"
-          ioData:  
-            s: 
-              a: -1
           board: 
             emitter: 
               "memory.a": compileExpression("99")
               "memory.b": compileExpression("memory.c")
               "io.s.a": compileExpression("100")
+
+      memoryData = 
+        main: 
+          a: 
+            a1: 1
+          b: 10
+          c: "hi"
+        subId:
+          a: 32
+          b: "hi"
+          c: "bye"
+
+      ioData = 
+        main: 
+          s: 
+            a: -1
+        subId:
+          s: 
+            a: -1
+
+
       constants = new RW.ChipVisitorConstants
         circuits: circuits 
+        memoryData: memoryData
+        ioData: ioData
         evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
 
       newMemory = {}
       newIo = {}
-      for name, circuit of { main: circuits.main, subId: circuits.sub }
-        newMemory[name] = RW.applyPatches(results.circuitResults[name].memoryPatches, circuit.memoryData)
-        newIo[name] = RW.applyPatches(results.circuitResults[name].ioPatches, circuit.ioData)
+      for name in ["main", "subId"]
+        newMemory[name] = RW.applyPatches(results.circuitResults[name].memoryPatches, memoryData[name])
+        newIo[name] = RW.applyPatches(results.circuitResults[name].ioPatches, ioData[name])
 
       expect(newMemory.main.a.a1).toBe(2)
       expect(newMemory.main.b).toBe("hi")
@@ -839,8 +857,6 @@ describe "RedWire", ->
           out:
             "io.myService": compileExpression("pins.service")
 
-      ioConfig = { configA: 1 }
-
       result = RW.stepLoop 
         chip: board
         processors: processors 
@@ -849,8 +865,8 @@ describe "RedWire", ->
         ioConfig: ioConfig
         evaluator: makeEvaluator()
 
-      expect(io.myService.provideData).toHaveBeenCalledWith(ioConfig, {})
-      expect(io.myService.establishData).toHaveBeenCalledWith({ a: 2 }, ioConfig, {})
+      expect(io.myService.provideData).toHaveBeenCalledWith({})
+      expect(io.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
       expect(result.memoryPatches).toBeEmpty()
 
     it "rejects conflicting patches", ->

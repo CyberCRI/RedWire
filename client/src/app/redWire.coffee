@@ -12,8 +12,6 @@ RW.Circuit = class
   constructor: (options) -> 
     _.defaults this, options,
       board: {}
-      memoryData: {}
-      ioData: {}
       assets: {}
       processors: {}
       switches: {}
@@ -24,6 +22,8 @@ RW.ChipVisitorConstants = class
     _.defaults this, options,
       circuits: 
         main: new RW.Circuit()
+      memoryData: {} # Map of circuitIds to data
+      ioData: {} # Map of circuitIds to data
       evaluator: null
 
 RW.CircuitMeta = class
@@ -62,8 +62,8 @@ RW.BindingReference = class
 # Used to evaluate expressions against with RW.evaluateExpressionFunction
 RW.makeEvaluationContext = (circuitMeta, constants, bindings) ->
   context = 
-    memory: constants.circuits[circuitMeta.type].memoryData
-    io: constants.circuits[circuitMeta.type].ioData
+    memory: constants.memoryData[circuitMeta.id]
+    io: constants.ioData[circuitMeta.id]
     assets: constants.circuits[circuitMeta.type].assets
     transformers: constants.circuits[circuitMeta.type].transformers
     bindings: {}
@@ -300,8 +300,8 @@ RW.calculateBindingSet = (circuitMeta, path, chip, constants, oldBindings) ->
         bindingSet.push(newBindings)
   else if _.isString(chip.splitter.from)
     inputContext = 
-      memory: constants.circuits[circuitMeta.type].memoryData
-      io: constants.circuits[circuitMeta.type].ioData
+      memory: constants.memoryData[circuitMeta.id]
+      io: constants.ioData[circuitMeta.id]
 
     [parent, key] = RW.getParentAndKey(inputContext, RW.splitAddress(chip.splitter.from))
     boundValue = parent[key]
@@ -451,7 +451,6 @@ RW.chipVisitors =
   "emitter": RW.visitEmitterChip
   "circuit": RW.visitCircuitChip
 
-# Constants are memoryData, assets, processors, switches and ioData
 # The path is an array of the indices necessary to access the children
 RW.visitChip = (circuitMeta, path, chip, constants, bindings = {}) ->
   # TODO: defer processor and call execution until whole tree is evaluated?
@@ -474,18 +473,18 @@ RW.visitChip = (circuitMeta, path, chip, constants, bindings = {}) ->
 # Starts the RW.visitChip() recursive chain with the starting parameters
 RW.stimulateCircuits = (constants) -> RW.visitChip(new RW.CircuitMeta("main", "main"), [], constants.circuits.main.board, constants, {})
 
-# The argument "options" can values for "chip", memoryData", "assets", "processors", "switches", "transformers", "io", "ioConfig", and "evaluator".
+# The argument "options" can values for "circuits", and "evaluator". Circuits is a map of a circuit names to RW.Circuit objects.
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
 # If outputIoData is not null, the loop is not stepped, and the data is sent directly to the io. In this case, no memory patches are returned.
 # Otherwise, if inputIoData is not null, this data is used instead of asking the io.
-# The options memoryData and inputIoData should be frozen with RW.deepFreeze() before being sent.
+# The memoryData and inputIoData parameters of circuits should be frozen with RW.deepFreeze() before being sent.
 # Rather than throwing errors, this function attempts to trap errors internally and return them as an "errors" attribute.
 # The errors have a "stage" attribute that is "readIo", "executeChips", "patchMemory", "patchIo", and "writeIo"
-# Returns { memoryPatches: [...], inputIoData: {...}, ioPatches: [...], logMessages: [...], errors: [...] }
+# Returns a map of circuit IDs to RW.CircuitResult objects
 RW.stepLoop = (options) ->  
   makeErrorResponse = (stage, err) -> 
     console.error("ERROR IN STEP LOOP", stage, err)
-    # Some Firefox errors have name, filename, lineNumber, and columnNumber exceptions
+    # Some Firefox errors have name, filename, lineNumber, and columnNumber 
     errorDescription = 
       stage: stage
       message: err.message || err.name
@@ -494,13 +493,7 @@ RW.stepLoop = (options) ->
     return { errors: [errorDescription], memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
 
   _.defaults options, 
-    chip: null
-    memoryData: {}
-    assets: {}
-    processors: {}
-    switches: {}
-    io: {}
-    ioConfig: {}
+    ciruits: {}
     evaluator: eval
     inputIoData: null
     outputIoData: null 
@@ -516,12 +509,12 @@ RW.stepLoop = (options) ->
       options.inputIoData = {}
       try
         for ioName, io of options.io
-          options.inputIoData[ioName] = RW.cloneData(io.provideData(options.ioConfig, options.assets))
+          options.inputIoData[ioName] = RW.cloneData(io.provideData(options.assets))
       catch e 
         return makeErrorResponse("readIo", e)
 
     try
-      result = RW.visitChip [], options.chip, new RW.ChipVisitorConstants
+      result = RW.stimulateCircuits new RW.ChipVisitorConstants
         memoryData: options.memoryData
         ioData: options.inputIoData
         assets: options.assets
@@ -553,7 +546,7 @@ RW.stepLoop = (options) ->
   if options.establishOutput
     try
       for ioName, io of options.io
-        io.establishData(options.outputIoData[ioName], options.ioConfig, options.assets)
+        io.establishData(options.outputIoData[ioName], options.assets)
     catch e 
       return makeErrorResponse("writeIo", e)
 

@@ -27,7 +27,9 @@ RW.io.keyboard =
         else throw new Error('Unexpected event type')
 
     return {
-      provideData: -> return { 'keysDown': keysDown }
+      provideData: (circuitIds) -> 
+        result = { 'keysDown': keysDown }
+        return RW.mapToObject(circuitIds, -> result)
 
       establishData: -> # NOOP. Input io does not take data
 
@@ -66,7 +68,7 @@ RW.io.mouse =
           ]
 
     return {
-      provideData: -> 
+      provideData: (circuitIds) -> 
         # Calculate justDown and justUp in terms of previous data
         info = 
           down: mouse.down
@@ -75,10 +77,17 @@ RW.io.mouse =
           justDown: mouse.down and not lastMouse.down
           justUp: not mouse.down and lastMouse.down
         lastMouse = RW.cloneData(mouse)
+
+        return RW.mapToObject(circuitIds, -> info)
+
         return info
 
       establishData: (data) -> 
-        $(options.elementSelector).css("cursor", data.cursor || "")
+        # TODO: how to handle contention for cursor across circuits?
+        cursor = ""
+        for circuitId, circuitData of data
+          cursor = circuitData.cursor || cursor
+        $(options.elementSelector).css("cursor", cursor)
 
       # Remove all event handlers
       destroy: -> $(options.elementSelector).off(".#{eventNamespace}")
@@ -206,14 +215,13 @@ RW.io.canvas =
     layers = createLayers()
 
     return {
-      provideData: -> 
-        return {
-          layers: options.layers
+      provideData: (circuitIds) -> 
+        result =
           size: options.size
           shapes: {}
-        }
+        return RW.mapToObject(circuitIds, -> result)
 
-      establishData: (data, config, assets) -> 
+      establishData: (data, assets) -> 
         if not data.shapes then return 
 
         # Clear layers and create shapeArrays
@@ -273,7 +281,7 @@ RW.io.html =
     return {
       provideData: () -> return { receive: templates, send: {} }
 
-      establishData: (data, config, assets) -> 
+      establishData: (data, assets) -> 
         newTemplateData = data.send 
 
         # data.send and data.receive are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
@@ -348,7 +356,7 @@ RW.io.http =
     io =
       provideData: () -> return state
 
-      establishData: (ioData, config, assets) -> 
+      establishData: (ioData, assets) -> 
         # Expecting a format like { requests: { id: { method:, url:, data:, cache:, contentType: }, ... }, { responses: { id: { code:, data: }, ... }
 
         # Create new requests
@@ -398,7 +406,7 @@ RW.io.charts =
     return {
       provideData: -> {}
 
-      establishData: (ioData, config, assets) -> 
+      establishData: (ioData, assets) -> 
         # Expecting ioData like { chartA: { size:, position:, depth:, data:, options: }}
 
         # Remove old charts 

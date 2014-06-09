@@ -229,7 +229,6 @@ playBackFrame = (outputIoData) ->
     switches: loadedGame.switches
     io: loadedGame.io
     transformers: loadedGame.transformers
-    ioConfig: {}
     outputIoData: outputIoData 
 
 updateFrame = (memory, inputIoData) ->

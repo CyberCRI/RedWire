@@ -108,6 +108,13 @@ RW.mapObject = (obj, f) ->
     mapped[key] = f(value, key)
   return mapped
 
+# Creates an object with the provided keys, where map[key] = f(key)
+RW.mapToObject = (keys, f) -> 
+  mapped = {}
+  for key in keys 
+    mapped[key] = f(key)
+  return mapped
+
 # Returns an object { mimeType: String, base64: Bool, data: String}
 RW.splitDataUrl = (url) -> 
   matches = url.match(/data:([^;]+);([^,]*),(.*)/)
