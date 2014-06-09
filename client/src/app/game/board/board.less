@@ -1,71 +1,130 @@
 @chip-border-style: 2px solid black;
 
+.board {
+
+  .label {
+    padding: 4px 8px;
+  }
+
+  ul {
+    padding-left: 20px;
+    .label.folder {
+      color: lightgreen;
+    }
+  }
+
+  li {
+    list-style-type: none;
+  }
+
+  a.btn-small {
+    padding: 0px 3px;
+  }
+
+  .drop-before {
+    height: 8px;
+  }
+
+  .arrow {
+    display: block;
+    float: left;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+  }
+  .expanded {
+    background-image: url(/assets/images/expanded.png);
+  }
+  .collapsed {
+    background-image: url(/assets/images/collapsed.png);
+  }
+  .leaf {
+    background-image: none;
+  }
+
+  .preview {
+    height: 22px;
+    margin-left: 16px;
+    opacity: 0.5;
+  }
+  .before {
+    margin-bottom: 8px;
+  }
+  .after {
+    margin-top: 8px;
+  }
+  .child {
+    margin-left: 34px;
+  }
+
+}
+
 table.chip {
-	width: 100%;
-	margin: auto;
-	text-align: center;
+  width: 100%;
+  margin: auto;
+  text-align: center;
 
-	.ace_editor {
-		display: inline-block;
-		height: 100px;
-		width: 90%;
-		min-width: 100px;
-		text-align: left;
-	}
+  .ace_editor {
+    display: inline-block;
+    height: 100px;
+    width: 90%;
+    min-width: 100px;
+    text-align: left;
+  }
 
-	.chip-inside {
-		background-color: whitesmoke;
-	}
+  .chip-inside {
+    background-color: whitesmoke;
+  }
 
-	.pin-in, .pin-out {
-		border-bottom: 1px solid black;
-	}
+  .pin-in, .pin-out {
+    border-bottom: 1px solid black;
+  }
 
-	.chip-border-top {
-		border-top: @chip-border-style;
-	}
+  .chip-border-top {
+    border-top: @chip-border-style;
+  }
 
-	.chip-border-left {
-		border-left: @chip-border-style;
-	}
+  .chip-border-left {
+    border-left: @chip-border-style;
+  }
 
-	.chip-border-right {
-		border-right: @chip-border-style;
-	}
+  .chip-border-right {
+    border-right: @chip-border-style;
+  }
 
-	.chip-border-bottom {
-		border-bottom: @chip-border-style;
-	}
+  .chip-border-bottom {
+    border-bottom: @chip-border-style;
+  }
 }
 
 #editBoardEmitterDialog {
-	table.chip {
-		.col-left {
-			width: 5%;
-		}
+  table.chip {
+    .col-left {
+      width: 5%;
+    }
 
-		.col-right {
-			width: 25%;
-		}
-	}
+    .col-right {
+      width: 25%;
+    }
+  }
 }
 
 #editBoardProcessorDialog {
-	table.chip {
-		.col-left {
-			width: 35%;
-		}
+  table.chip {
+    .col-left {
+      width: 35%;
+    }
 
-		.col-right {
-			width: 35%;
-		}
-	}
+    .col-right {
+      width: 35%;
+    }
+  }
 }
 
 #editBoardSplitterDialog {
-	.ace_editor {
-		height: 100px;
-		width: 90%;
-		min-width: 100px;
-	}
+  .ace_editor {
+    height: 100px;
+    width: 90%;
+    min-width: 100px;
+  }
 }

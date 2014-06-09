@@ -1,15 +1,10 @@
-# Modifies the object by taking out the "$$hashKey" property put in by AngularJS
-filterOutHashKey = (obj) ->
-  if "$$hashKey" of obj then delete obj["$$hashKey"]
-  for key, value of obj
-    if _.isObject(value) then filterOutHashKey(value)
-  return obj
 
 angular.module('gamEvolve.game.edit', [
   'flexyLayout'
   'gamEvolve.game.memory'
   'gamEvolve.game.edit.header'
 ])
+
 
 .config ($stateProvider) ->
   $stateProvider.state 'game-edit',
@@ -21,20 +16,23 @@ angular.module('gamEvolve.game.edit', [
     data: 
       pageTitle: 'Edit Game'
 
-.controller 'GameEditCtrl', ($scope, $stateParams, games, $filter, gameHistory, currentGame, boardConverter, gameTime) ->
+
+.controller 'GameEditCtrl', ($scope, $stateParams, games) ->
+
   games.loadFromId $stateParams.gameId
-  $scope.currentGame = currentGame;
-  $scope.board = {}
 
   # Used by toolbox list
   # TODO: put in own controller
   $scope.isFirstOpen = true
 
-  # When the board changes, update in scope
-  updateBoard = -> 
-    if currentGame.version?.board
-      $scope.board = boardConverter.convert(currentGame.version.board)
-  $scope.$watch("currentGame.localVersion", updateBoard, true)
 
+.controller 'BasicChipLibraryCtrl', ($scope) ->
+
+  $scope.newSplitter = ->
+    splitter:
+      from: ''
+      bindTo: ''
+      index: ''
+      
 .controller 'LogoCtrl', ($scope, aboutDialog) ->
   $scope.aboutDialog = aboutDialog

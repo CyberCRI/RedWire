@@ -36,7 +36,11 @@
     "grunt-rsync": "~0.2.1",
     "request": "~2.33.0",
     "grunt-docco": "~0.3.3",
-    "moment": "~2.5.1"
+    "moment": "~2.5.1",
+    "karma": "~0.12.16",
+    "karma-chrome-launcher": "~0.1.4",
+    "karma-jasmine": "~0.1.5",
+    "karma-coffee-preprocessor": "~0.2.1"
   },
   "licenses": {
     "type": "MIT",

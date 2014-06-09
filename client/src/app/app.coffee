@@ -9,12 +9,13 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.cache'
   'gamEvolve.model.games'
   'gamEvolve.model.users'
+  'gamEvolve.util.eventBus'
   'gamEvolve.util.logger'
-  'gamEvolve.util.boardConverter'
   'gamEvolve.util.gameConverter'
   'gamEvolve.game.about'
   'gamEvolve.game.assets'
   'gamEvolve.game.boardTree'
+  'gamEvolve.game.boardNodes'
   'gamEvolve.game.edit'
   'gamEvolve.game.embed'
   'gamEvolve.game.list'
@@ -30,6 +31,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.processors'
   'gamEvolve.game.switches'
   'gamEvolve.game.transformers'
+  'gamEvolve.model.chips'
   'gamEvolve.game.undo'
   'gamEvolve.model.games'
   'gamEvolve.model.history'
@@ -39,6 +41,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
   'xeditable'
+  'treeRepeat'
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->

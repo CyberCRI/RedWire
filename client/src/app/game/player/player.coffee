@@ -34,6 +34,8 @@ angular.module('gamEvolve.game.player', [])
   # Bring services into the scope
   $scope.currentGame = currentGame
   $scope.gameTime = gameTime
+  $scope.gameHistoryMeta = gameHistory.meta
+  lastGameVersion = -1
 
   # TODO: take out this "global" message handler?
   window.addEventListener 'message', (e) -> 
@@ -58,23 +60,25 @@ angular.module('gamEvolve.game.player', [])
           $scope.$apply ->
             gameHistory.data.compilationErrors = [message.error]
             overlay.makeNotification("error")
-            gameHistory.meta.version++
+            lastGameVersion = ++gameHistory.meta.version
         else
           # The game loaded successfully
           $scope.$apply ->
             gameHistory.data.compilationErrors = []
-            gameHistory.meta.version++
+            lastGameVersion = ++gameHistory.meta.version
 
           # Don't bother updating if we're playing right now
           if gameTime.isPlaying then return
 
           if gameHistory.data.frames.length > 0 and gameHistory.data.frames[0].inputIoData
-            # If there are already frames, then update them 
             # Notify the user
             overlay.makeNotification("updating", true)
-            inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
+
             timing.updateFrames = Date.now()
-            sendMessage("updateFrames", { memory: gameCode.memory, inputIoDataFrames })
+            # If there are already frames, then update them starting with the current frame
+            inputIoDataFrames = _.pluck(gameHistory.data.frames[gameTime.currentFrameNumber..], "inputIoData")
+            # The memory stored in the current frame
+            sendMessage("updateFrames", { memory: gameHistory.data.frames[gameTime.currentFrameNumber].memory, inputIoDataFrames })
           else
             # Else just record the first frame
             sendMessage("recordFrame", { memory: gameCode.memory })
@@ -90,7 +94,7 @@ angular.module('gamEvolve.game.player', [])
             overlay.makeNotification("error")
 
           gameHistory.data.frames = [newFrame]
-          gameHistory.meta.version++
+          lastGameVersion = ++gameHistory.meta.version
           gameTime.currentFrameNumber = 0
       when "recording"
         if message.type isnt "error" then new Error("Cannot deal with recording success message")
@@ -133,7 +137,7 @@ angular.module('gamEvolve.game.player', [])
           gameTime.currentFrameNumber = gameHistory.data.frames.length - 1
 
           # Update the version
-          gameHistory.meta.version++
+          lastGameVersion = ++gameHistory.meta.version
       when "playing"
         if message.type isnt "error" then new Error("Cannot deal with playing success message")
 
@@ -166,7 +170,7 @@ angular.module('gamEvolve.game.player', [])
           gameTime.currentFrameNumber = gameHistory.data.frames.length - 1
 
           # Update the version
-          gameHistory.meta.version++
+          lastGameVersion = ++gameHistory.meta.version
       when "updateFrames" 
         if message.type is "error" then throw new Error("Cannot deal with updateFrames error")
         console.log("Update frames took puppet #{Date.now() - timing.updateFrames} ms")
@@ -175,10 +179,11 @@ angular.module('gamEvolve.game.player', [])
           metError = false
 
           # Replace existing frames by the new results, until an error is found
-          lastMemory = gameCode.memory
+          lastMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
           for index, results of message.value
             # Copy over old inputIoData
-            gameHistory.data.frames[index] = extendFrameResults(results, lastMemory, gameHistory.data.frames[index].inputIoData)
+            frameIndex = gameTime.currentFrameNumber + parseInt(index)
+            gameHistory.data.frames[frameIndex] = extendFrameResults(results, lastMemory, gameHistory.data.frames[frameIndex].inputIoData)
 
             if results.errors 
               console.error("Update frames errors", results.errors)
@@ -194,7 +199,7 @@ angular.module('gamEvolve.game.player', [])
             overlay.clearNotification() # Clear "updating" status
 
           # Update the version
-          gameHistory.meta.version++
+          lastGameVersion = ++gameHistory.meta.version
           # Display the current frame
           # TODO: go to the frame of first error
           onUpdateFrame(gameTime.currentFrameNumber)
@@ -205,6 +210,7 @@ angular.module('gamEvolve.game.player', [])
     console.log("Sending #{operation} message to puppet");
     $('#gamePlayer')[0].contentWindow.postMessage({operation: operation, value: value}, '*')
 
+  # Call onUpdateCode() when the code changes 
   onUpdateCode = ->
     if not currentGame.version? then return
     if not puppetIsAlive then return
@@ -213,6 +219,13 @@ angular.module('gamEvolve.game.player', [])
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
   $scope.$watch("currentGame", onUpdateCode, true)
+
+  # Call onUpdateGode() if the game history changes 
+  onUpdateGameHistory = ->
+    # To check that we haven't updated the game version ourselves
+    if gameHistory.meta.version isnt lastGameVersion
+      onUpdateCode()
+  $scope.$watch('gameHistoryMeta.version', onUpdateGameHistory, true)
 
   onResize = -> 
     if not puppetIsAlive then return
