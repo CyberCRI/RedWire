@@ -1,42 +1,44 @@
-#headerBar {
-	display: table;
-	height: 80px;
-	width: 100%;
+#headerBarContainer {
 	border-bottom: 1px @red solid;
 
-	#logo {
-		display: table-cell;
-		min-width: 180px;
-		height: 78px;
-		background-image: url(images/logo.png);
-		background-position: center;
-		background-repeat: no-repeat;
-		cursor: help;
-	}
+	#headerBar {
+		display: table-row;
+		height: 100px;
+		width: 100%;
 
-	#center {
-		display: table-cell;
-		width: 99%;
-
-		#title {
-			text-align: center;
-		}
-	}
-
-	#gameLoadingControls {
-		display: table-cell;
-		vertical-align: middle;
-		min-width: 180px;
-		text-align: right;
-		padding-right: 10px;
-
-		button {
-			margin-left: auto;
-			margin-right: 0;
+		#logo {
+			display: table-cell;
+			min-width: 180px;
+			// height: 100px; Giving a height to the image messes up the header size in FF
+			background-image: url(images/logo.png);
+			background-position: center;
+			background-repeat: no-repeat;
 		}
 
-		#loggedInInfo {
-			padding-bottom: 10px;
+		#center {
+			display: table-cell;
+			width: 99%;
+
+			#title {
+				text-align: center;
+			}
+		}
+
+		#gameLoadingControls {
+			display: table-cell;
+			vertical-align: middle;
+			min-width: 180px;
+			text-align: right;
+			padding-right: 10px;
+
+			button {
+				margin-left: auto;
+				margin-right: 0;
+			}
+
+			#loggedInInfo {
+				padding-bottom: 10px;
+			}
 		}
 	}
 }

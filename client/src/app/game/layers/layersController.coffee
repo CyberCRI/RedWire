@@ -1,6 +1,5 @@
-angular.module('gamEvolve.game.layers', [
-  'ui.sortable',
-])
+angular.module('gamEvolve.game.layers', [])
+
 .controller 'LayersCtrl', ($scope, currentGame) ->
   $scope.TYPES = (name for name, io of RW.io when io.meta.visual)
 
@@ -13,7 +12,18 @@ angular.module('gamEvolve.game.layers', [
       $scope.layers.splice(index, 1)
 
   # Bring currentGame into scope so we can watch it 
-  updateLayers = -> $scope.layers = currentGame.version?.io?.layers
+  copyFromGameToScope = ->
+    if not currentGame.version then return 
+    $scope.layers = RW.cloneData(currentGame.version?.io?.layers)
 
   $scope.currentGame = currentGame
-  $scope.$watch('currentGame', updateLayers, true)
+  $scope.$watch("currentGame.localVersion", copyFromGameToScope, true)
+
+  copyFromScopeToGame = ->
+    if not currentGame.version then return 
+    if _.isEqual(currentGame.version?.io?.layers, $scope.layers) then return 
+
+    currentGame.version.io.layers = $scope.layers
+    currentGame.updateLocalVersion()
+  $scope.$watch("layers", copyFromScopeToGame, true)
+

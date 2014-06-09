@@ -2,11 +2,23 @@
 angular.module('gamEvolve.model.games', [])
 
 
-.factory 'currentGame', ->
+.factory 'currentGame', (GameVersionUpdatedEvent) ->
 
-  info: null
   version: null
+  setVersion: (newVersion) ->
+    @version = newVersion
+    GameVersionUpdatedEvent.send(newVersion)
+  info: null
   creator: null
+  localVersion: _.uniqueId("v")
+
+  reset: -> 
+    @info = null
+    @version = null
+    @creator = null
+    @localVersion = _.uniqueId("v")
+
+  updateLocalVersion: -> @localVersion = _.uniqueId("v")
 
   enumeratePinDestinations: ->
     destinations = @enumerateMemoryKeys(@version.memory)
@@ -26,7 +38,7 @@ angular.module('gamEvolve.model.games', [])
     return keys
 
 
-.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime) ->
+.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->
 
   saveInfo = ->
     $http.post('/games', currentGame.info)
@@ -43,17 +55,17 @@ angular.module('gamEvolve.model.games', [])
   saveVersion = ->
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
     $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
-      .then (savedGameVersion) -> currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)
+      .then (savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data))
 
   saveActions:
-    none:
-      name: 'No Action'
-      execute: -> console.log 'games.saveActions.none executed'
     saveNewVersion:
-      name: 'Save'
-      execute: -> updateInfo().then(saveVersion)
+      name: 'Publish'
+      classes: "font-icon-upload"
+      execute: -> 
+        updateInfo().then(saveVersion)
     fork:
       name: 'Fork'
+      classes: "font-icon-fork"
       execute: ->
         # Removing the game ID will make the server provide a new one
         delete currentGame.info.id
@@ -61,29 +73,13 @@ angular.module('gamEvolve.model.games', [])
           $location.path("/game/#{currentGame.version.gameId}/edit")
           saveVersion()
 
-  loadJson: (gameName) ->
-    deferred = $q.defer()
-    promise = deferred.promise
-    propertyNames = @propertyNames
-    $http.get("/assets/games/#{gameName}.json")
-      .error((error) ->
-          deferred.reject error
-        )
-      .success((game) ->
-          for propertyName in propertyNames
-            game[propertyName] = JSON.stringify(game[propertyName], null, 2)
-          currentGame.info = game
-          currentGame.version = game
-          deferred.resolve game
-        )
-    promise
-
   saveCurrent: ->
     @getSaveAction().execute()
 
   getSaveAction: ->
     unless currentGame.info and currentGame.version and loggedUser.isLoggedIn()
-      return @saveActions.none
+      return null
+
     if currentGame.info.id and currentGame.info.ownerId is loggedUser.profile.id
       return @saveActions.saveNewVersion
     else 
@@ -103,18 +99,26 @@ angular.module('gamEvolve.model.games', [])
   # Load the game content and the creator info, then put it all into currentGame
   load: (game) ->
     # Clear the current game data
+    # TODO: have each service detect this event rather than hard coding it here?
+    overlay.makeNotification()
+    currentGame.reset()
     gameHistory.reset()
     gameTime.reset()
+    undo.reset()
 
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
     getVersion = $http.get("/game-versions?#{query}")
     getCreator = $http.get("/users?id=#{game.ownerId}")
     updateCurrentGame = ([version, creator]) ->
       currentGame.info = game
-      currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(version.data[0])
+      currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(version.data[0]))
+      currentGame.updateLocalVersion()
       currentGame.creator = creator.data.username
-    onError = (error) -> console.log("Error loading game", error) # TODO: notify the user of the error
-    $q.all([getVersion, getCreator]).then(updateCurrentGame, onError)
+    onError = (error) -> 
+      console.error("Error loading game", error) 
+      window.alert("Error loading game")
+    onDone = -> overlay.clearNotification()
+    $q.all([getVersion, getCreator]).then(updateCurrentGame, onError).finally(onDone)
 
   loadFromId: (gameId) ->
     $http.get("/games/#{gameId}")

@@ -53,6 +53,7 @@ angular.module('gamEvolve.game.player', [])
       when "areYouAlive"
         if message.type is "error" then throw new Error("Cannot deal with areYouAlive error message")
         puppetIsAlive = true
+        onResize() # Resize might already have been sent
         onUpdateCode() # Code might be already there 
       when "loadGameCode"
         if message.type is "error"
@@ -217,7 +218,7 @@ angular.module('gamEvolve.game.player', [])
     gameCode = currentGame.version
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
-  $scope.$watch('currentGame', onUpdateCode, true)
+  $scope.$watch("currentGame", onUpdateCode, true)
 
   # Call onUpdateGode() if the game history changes 
   onUpdateGameHistory = ->
@@ -227,6 +228,8 @@ angular.module('gamEvolve.game.player', [])
   $scope.$watch('gameHistoryMeta.version', onUpdateGameHistory, true)
 
   onResize = -> 
+    if not puppetIsAlive then return
+
     screenElement = $('#gamePlayer')
     scale = Math.min(screenElement.parent().outerWidth() / GAME_DIMENSIONS[0], screenElement.parent().outerHeight() / GAME_DIMENSIONS[1])
     roundedScale = scale.toFixed(2)

@@ -18,14 +18,28 @@
     opacity: 0.5;
 }
 
+// Taken from http://angular-ui.github.io/bootstrap/ demo
+.nav, .pagination, .carousel, .panel-title a {
+    cursor: pointer;
+}
+
+// Use the Bootstrap form controls, but get rid of the 100% width div
+select, textarea, input:not([type]), input[type="text"], input[type="password"] {
+  .form-control;
+  
+  width: inherit;
+  display: inline;
+}
+
 
 /* Import child LESS files */
 
-@import 'modals.less';
 @import 'assets/assets.less';
+@import 'about/about.less';
 @import 'board/board.less';
 @import 'edit/gameEdit.less';
 @import 'edit/header/header.less';
+@import 'embed/embed.less';
 @import 'import/import.less';
 @import 'layers/layers.less';
 @import 'list/gameList.less';
@@ -37,4 +51,7 @@
 @import 'processors/editProcessors.less';
 @import 'switches/editSwitches.less';
 @import 'edit/header/time/time';
+@import 'toolbox/toolbox.less';
 @import 'transformers/editTransformers.less';
+@import 'undo/undo.less';
+

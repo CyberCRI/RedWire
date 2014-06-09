@@ -1,21 +1,33 @@
-
 angular.module('gamEvolve.game.edit.header', [
   'gamEvolve.game.edit.header.time'
 ])
 
 .controller 'GameInfoCtrl', ($scope, currentGame, gameTime) ->
-    $scope.currentGame = currentGame
-    $scope.gameTime = gameTime
+  $scope.currentGame = currentGame
 
 .controller 'MenuCtrl', ($scope, $state, $stateParams, $location, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog) ->
-    $scope.user = loggedUser
-    $scope.games = games
-    $scope.currentGame = currentGame
-    $scope.loginDialog = loginDialog
-    $scope.aboutDialog = aboutDialog
-    $scope.importExportDialog = importExportDialog
-    $scope.loadGame = -> $state.transitionTo('game-list')
-    $scope.gotoPlayScreen = -> $state.transitionTo('play', { gameId: $stateParams.gameId })
+  $scope.user = loggedUser
+  $scope.games = games
+  $scope.currentGame = currentGame
+  $scope.loginDialog = loginDialog
+  $scope.aboutDialog = aboutDialog
+  $scope.importExportDialog = importExportDialog
+  $scope.loadGame = -> $state.transitionTo('game-list')
+  $scope.gotoPlayScreen = -> $state.transitionTo('play', { gameId: $stateParams.gameId })
 
-.controller 'LogoCtrl', ($scope, aboutDialog) ->
-    $scope.aboutDialog = aboutDialog
+  $scope.saveButtonDisabled = false
+  lastSaveActionName = null
+  $scope.isSaveButtonShown = -> games.getSaveAction()
+  $scope.getSaveButtonName = -> 
+    if $scope.saveButtonDisabled then lastSaveActionName
+    else if $scope.isSaveButtonShown() then games.getSaveAction().name
+    else ""
+  $scope.getSaveButtonClasses = -> 
+    if $scope.saveButtonDisabled then "font-icon-spin5 animate-spin"
+    else if $scope.isSaveButtonShown() then games.getSaveAction().classes
+    else ""
+  $scope.doSaveAction = ->
+    lastSaveActionName = $scope.getSaveButtonName()
+    $scope.saveButtonDisabled = true
+    games.saveCurrent().finally ->
+      $scope.saveButtonDisabled = false 

@@ -151,10 +151,17 @@ RW.io.canvas =
         when 'image'
           if shape.asset not of assets then throw new Error("Cannot find asset '#{shape.asset}' for shape '#{JSON.stringify(shape)}'")
           img = assets[shape.asset]
-          size = shape.size || [img.naturalWidth, img.naturalHeight]
+          size = if shape.size
+              # Clamp size to image size
+              [Math.min(shape.size[0], img.naturalWidth), Math.min(shape.size[1], img.naturalHeight)]
+            else 
+              [img.naturalWidth, img.naturalHeight]
           offset = shape.offset || [0, 0]
-          # drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
-          ctx.drawImage(img, offset[0], offset[1], size[0], size[1], shape.position[0], shape.position[1], size[0], size[1])
+          try 
+            # drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
+            ctx.drawImage(img, offset[0], offset[1], size[0], size[1], shape.position[0], shape.position[1], size[0], size[1])
+          catch error
+            throw new Error("Error drawing image shape #{JSON.stringify(shape)}: #{RW.formatStackTrace(error)}")
         when 'text'
           text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
           ctx.font = shape.font
