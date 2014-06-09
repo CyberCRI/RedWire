@@ -473,11 +473,12 @@ RW.visitChip = (circuitMeta, path, chip, constants, bindings = {}) ->
 # Starts the RW.visitChip() recursive chain with the starting parameters
 RW.stimulateCircuits = (constants) -> RW.visitChip(new RW.CircuitMeta("main", "main"), [], constants.circuits.main.board, constants, {})
 
-# The argument "options" can values for "circuits", and "evaluator". Circuits is a map of a circuit names to RW.Circuit objects.
+# The argument "options" can values for "circuits", "memoryData", "ioData", "evaluator", "inputIoData", "outputIoData", and "establishOutput". 
+# circuits is a map of a circuit names to RW.Circuit objects.
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
 # If outputIoData is not null, the loop is not stepped, and the data is sent directly to the io. In this case, no memory patches are returned.
 # Otherwise, if inputIoData is not null, this data is used instead of asking the io.
-# The memoryData and inputIoData parameters of circuits should be frozen with RW.deepFreeze() before being sent.
+# The memoryData and inputIoData parametersshould be frozen with RW.deepFreeze() before being sent.
 # Rather than throwing errors, this function attempts to trap errors internally and return them as an "errors" attribute.
 # The errors have a "stage" attribute that is "readIo", "executeChips", "patchMemory", "patchIo", and "writeIo"
 # Returns a map of circuit IDs to RW.CircuitResult objects
@@ -494,22 +495,26 @@ RW.stepLoop = (options) ->
 
   _.defaults options, 
     ciruits: {}
+    memoryData: {}
+    io: {}
     evaluator: eval
     inputIoData: null
     outputIoData: null 
     establishOutput: true
 
+  assetsByCircuit = RW.pluckToObject(options.circuits, "assets")
+
   # Initialize return data
-  memoryPatches = []
-  ioPatches = []
-  logMessages = []
+  memoryPatches = {}
+  ioPatches = {}
+  logMessages = {}
 
   if options.outputIoData == null
     if options.inputIoData == null
       options.inputIoData = {}
       try
         for ioName, io of options.io
-          options.inputIoData[ioName] = RW.cloneData(io.provideData(options.assets))
+          options.inputIoData[ioName] = RW.cloneData(io.provideData(assetsByCircuit))
       catch e 
         return makeErrorResponse("readIo", e)
 
@@ -517,36 +522,45 @@ RW.stepLoop = (options) ->
       result = RW.stimulateCircuits new RW.ChipVisitorConstants
         memoryData: options.memoryData
         ioData: options.inputIoData
-        assets: options.assets
-        processors: options.processors
-        switches: options.switches
-        transformers: options.transformers
+        circuits: options.ciruits
         evaluator: options.evaluator
     catch e 
       return makeErrorResponse("executeChips", e)
     
+    circuitIds = _.keys(result.circuitResults)
+
     try 
-      conflicts = RW.detectPatchConflicts(result.memoryPatches)
-      if conflicts.length > 0 then throw new Error("Memory patches conflict: #{JSON.stringify(conflicts)}")
+      for circuitId in circuitIds
+        conflicts = RW.detectPatchConflicts(result.circuitResults[circuitId].memoryPatches)
+        if conflicts.length > 0 then throw new Error("Memory patches conflict for circuit #{circuitId}: #{JSON.stringify(conflicts)}")
       memoryPatches = result.memoryPatches
     catch e 
       return makeErrorResponse("patchMemory", e)
 
     try
-      conflicts = RW.detectPatchConflicts(result.ioPatches)
-      if conflicts.length > 0 then throw new Error("IO patches conflict: #{JSON.stringify(conflicts)}")
-      ioPatches = result.ioPatches
-      options.outputIoData = RW.applyPatches(result.ioPatches, options.inputIoData)
+      # Input IO data is keyed by IO name. Organize it by circuitName
+      inputIoDataByCircuit = RW.reverseKeys(options.inputIoData)
+      outputIoDataByCircuit = {}
+      ioPatchesByCircuit = {}
+
+      for circuitId in circuitIds
+        conflicts = RW.detectPatchConflicts(result.circuitMeta[circuitId].ioPatches)
+        if conflicts.length > 0 then throw new Error("IO patches conflict for circuit #{circuitId}: #{JSON.stringify(conflicts)}")
+        ioPatchesByCircuit[circuit] = result.circuitMeta[circuitId].ioPatches
+        outputIoDataByCircuit[circuitId] = RW.applyPatches(result.circuitMeta[circuitId].ioPatches, inputIoDataByCircuit[circuitId])
+
+      options.outputIoData = RW.reverseKeys(outputIoDataByCircuit)
+      ioPatches = RW.reverseKeys(ioPatchesByCircuit)
     catch e 
       return makeErrorResponse("patchIo", e)
 
-    logMessages = result.logMessages
+    logMessages = RW.pluckToObject(results.circuitResults, "logMessages")
 
   # TODO: check the output even if isn't established, in order to catch errors
   if options.establishOutput
     try
       for ioName, io of options.io
-        io.establishData(options.outputIoData[ioName], options.assets)
+        io.establishData(options.outputIoData[ioName], assetsByCircuit)
     catch e 
       return makeErrorResponse("writeIo", e)
 

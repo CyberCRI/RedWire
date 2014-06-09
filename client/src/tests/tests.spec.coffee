@@ -787,11 +787,11 @@ describe "RedWire", ->
         io: io
         outputIoData: outputIoData
 
-      expect(io.myService.establishData).toHaveBeenCalledWith(outputIoData.myService, {}, {})
-      expect(result.memoryPatches).toBeEmpty()
-      expect(result.ioPatches).toBeEmpty()
+      expect(io.myService.establishData).toHaveBeenCalledWith(outputIoData.myService, {})
+      expect(_.size(result.memoryPatches)).toBe(0)
+      expect(_.size(result.ioPatches)).toBe(0)
 
-    it "sends io input data to visitChip()", ->
+    it "sends io input data to stimulateCircuits()", ->
       io = 
         myService:
           establishData: jasmine.createSpy()
@@ -818,14 +818,16 @@ describe "RedWire", ->
             "io.myService": compileExpression("pins.service")
 
       result = RW.stepLoop 
-        chip: board
-        processors: processors 
+        circuits: 
+          main: 
+            board: board
+            processors: processors 
         io: io
         inputIoData: inputIoData
         evaluator: makeEvaluator()
 
       expect(io.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {}, {})
-      expect(result.memoryPatches).toBeEmpty()
+      expect(_.size(result.memoryPatches)).toBe(0)
       expect(result.ioPatches.length).toEqual(1)
 
     it "gathers io input data, visits chips, uses transformers, and gives output to io", ->

@@ -183,3 +183,17 @@ RW.formatStackTrace = (error) ->
   if error.stack then stack += "\n" + error.stack
   else if error.fileName then stack += " (#{error.fileName}:#{error.lineNumber}.#{error.columnNumber})"
   return stack
+
+# Reverses the order of the 1st and 2nd level keys of nested objects
+RW.reverseKeys = (obj) ->
+  newObj = {}
+  for keyA, valA of obj
+    for keyB, valB of valA
+      if keyB not of newObj then newObj[keyB] = {}
+      newObj[keyB][keyA] = valB
+
+# Plucks a single attribute out of obj, and returns a single object out of it
+RW.pluckToObject = (obj, attribute) ->
+  newObj = {}
+  for key, val of obj
+    newObj[key] = val[attribute]
