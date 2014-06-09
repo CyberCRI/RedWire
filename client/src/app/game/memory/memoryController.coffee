@@ -57,7 +57,12 @@ angular.module('gamEvolve.game.memory', [])
   onUpdateMemoryEditor = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
 
-    # If we are on the first frame, update the game memory
+    # Update the frame memory
+    newMemory = RW.cloneData(editor.get())
+    gameHistory.data.frames[gameTime.currentFrameNumber].memory = newMemory
+    gameHistory.meta.version++
+
+    # If we are on the first frame, update the game memory as well
     if gameTime.currentFrameNumber == 0 
-      currentGame.version.memory = RW.cloneData(editor.get())
+      currentGame.version.memory = newMemory
       currentGame.updateLocalVersion()

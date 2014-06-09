@@ -11,7 +11,7 @@
                 <block-container init="340">
                     <flexy-layout orientation="vertical">
                         <block-container style="font-size:13px;">
-                            <div id="memoryEditor" ng-class="{ notEditable: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl"></div>
+                            <div id="memoryEditor" ng-class="{ notFirstFrame: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl"></div>
                         </block-container>
                         <block-splitter></block-splitter>
                         <block-container class="scrollable">
