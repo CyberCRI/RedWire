@@ -517,7 +517,7 @@ RW.stepLoop = (options) ->
       try
         inputIoDataByIoName = {}
         for ioName, io of options.io
-          inputIoDataByIoName[ioName] = RW.cloneData(io.provideData(circuitIds, assetsByCircuit))
+          inputIoDataByIoName[ioName] = RW.cloneData(io.provideData(assetsByCircuit))
         options.inputIoData = RW.reverseKeys(inputIoDataByIoName)
       catch e 
         return makeErrorResponse("readIo", e)

@@ -835,9 +835,7 @@ describe "RedWire", ->
     it "gathers io input data, visits chips, uses transformers, and gives output to io", ->
       io = 
         myService:
-          provideData: (circuitIds) -> 
-            expect(circuitIds).toDeeplyEqual(["main"])
-            return { main: { a: 1 } }
+          provideData: -> { main: { a: 1 } }
           establishData: jasmine.createSpy()
 
       spyOn(io.myService, "provideData").andCallThrough()
@@ -871,7 +869,7 @@ describe "RedWire", ->
         io: io
         evaluator: makeEvaluator()
 
-      expect(io.myService.provideData).toHaveBeenCalledWith(["main"], [{}])
+      expect(io.myService.provideData).toHaveBeenCalledWith([{}])
       expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } }, [{}])
       expect(result.memoryPatches).toDeeplyEqual({ main: [] })
 
@@ -882,7 +880,7 @@ describe "RedWire", ->
 
       io = 
         myService:
-          provideData: -> return { a: 0 }
+          provideData: -> return { main: { a: 0 } }
           establishData: jasmine.createSpy()
 
       switches = 
@@ -904,7 +902,7 @@ describe "RedWire", ->
             processor: "setDataTo"
             pins:
               in:
-               value: 1
+               value: compileExpression("1")
               out:
                 "memory.a": compileExpression("pins.var")
           },
@@ -912,28 +910,31 @@ describe "RedWire", ->
             processor: "setDataTo"
             pins:
               in:
-               value: 2
+               value: compileExpression("2")
               out:
                 "memory.a": compileExpression("pins.var")
           }
         ]
 
       results = RW.stepLoop 
-        chip: boardA
-        memoryData: oldData
-        switches: switches
-        processors: processors 
+        circuits:
+          main: new RW.Circuit
+            board: boardA
+            switches: switches
+            processors: processors 
+        memoryData: 
+          main: oldData
         evaluator: makeEvaluator()
-      expect(results.errors.length).not.toBeEmpty()
+      expect(results.errors[0].stage).toBe("patchMemory")
       
       boardB = 
-        processor: "group"
+        switch: "group"
         children: [
           {
             processor: "setDataTo"
             pins:
              in:
-               value: compileExpression("2")
+               value: compileExpression("1")
               out:
                 "io.myService.a": compileExpression("pins.var")
           },
@@ -941,15 +942,18 @@ describe "RedWire", ->
             processor: "setDataTo"
             pins:
              in:
-               value: compileExpression(2)
+               value: compileExpression("2")
               out:
                 "io.myService.a": compileExpression("pins.var")
           }
         ]
 
       results = RW.stepLoop 
-        chip: boardB 
-        processors: processors 
+        circuits:
+          main: new RW.Circuit
+            board: boardB 
+            switches: switches
+            processors: processors 
         io: io
         evaluator: makeEvaluator()
-      expect(results.errors.length).not.toBeEmpty()
+      expect(results.errors[0].stage).toBe("patchIo")

@@ -27,9 +27,9 @@ RW.io.keyboard =
         else throw new Error('Unexpected event type')
 
     return {
-      provideData: (circuitIds) -> 
+      provideData: -> 
         result = { 'keysDown': keysDown }
-        return RW.mapToObject(circuitIds, -> result)
+        return RW.mapToObject(options.circuitIds, -> result)
 
       establishData: -> # NOOP. Input io does not take data
 
@@ -68,7 +68,7 @@ RW.io.mouse =
           ]
 
     return {
-      provideData: (circuitIds) -> 
+      provideData: -> 
         # Calculate justDown and justUp in terms of previous data
         info = 
           down: mouse.down
@@ -78,9 +78,7 @@ RW.io.mouse =
           justUp: not mouse.down and lastMouse.down
         lastMouse = RW.cloneData(mouse)
 
-        return RW.mapToObject(circuitIds, -> info)
-
-        return info
+        return RW.mapToObject(options.circuitIds, -> info)
 
       establishData: (data) -> 
         # TODO: how to handle contention for cursor across circuits?
@@ -100,13 +98,16 @@ RW.io.canvas =
   factory: (options = {}) ->
     CANVAS_CSS = "position: absolute; left: 0px; top: 0px;"
 
+    makeLayerId = (circuitId, layerName) -> "#{circuitId}.#{layerName}"
+
     createLayers = ->
       # Convert layers to ordered
       createdLayers = {}
-      for layerName, depth of options.layers
-        layer = $("<canvas id='canvasLayer-#{layerName}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{depth}; #{CANVAS_CSS}' />")
+      for { circuitId, name, depth } in options.layers
+        layerId = makeLayerId(circuitId, name)
+        layer = $("<canvas id='canvasLayer-#{layerId}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{depth}; #{CANVAS_CSS}' />")
         $(options.elementSelector).append(layer)
-        createdLayers[layerName] = layer
+        createdLayers[layerId] = layer
 
       return createdLayers
 
@@ -210,20 +211,18 @@ RW.io.canvas =
       ctx.restore()
 
     options = _.defaults options,
-      layers: ['default'] 
+      layers: []
 
     layers = createLayers()
 
     return {
-      provideData: (circuitIds) -> 
+      provideData: -> 
         result =
           size: options.size
           shapes: {}
-        return RW.mapToObject(circuitIds, -> result)
+        return RW.mapToObject(options.circuitIds, -> result)
 
       establishData: (data, assets) -> 
-        if not data.shapes then return 
-
         # Clear layers and create shapeArrays
         shapeArrays = {}
         for layerName, canvas of layers
@@ -231,17 +230,18 @@ RW.io.canvas =
           shapeArrays[layerName] = []
 
         # Copy shapes from object into arrays based on their layer
-        for id, shape of data.shapes
-          if not shape.layer then throw new Error("Missing layer for shape '#{JSON.stringify(shape)}'")
-          if shape.layer not of layers then throw new Error("Invalid layer for shape '#{JSON.stringify(shape)}'")
+        for circuitId, circuitData of data
+          for id, shape of circuitData.shapes
+            if not shape.layer then throw new Error("Missing layer for shape '#{JSON.stringify(shape)}'")
+            layerId = makeLayerId(circuitId, shape.layer)
+            if layerId not of layers then throw new Error("Invalid layer for shape '#{JSON.stringify(shape)}'")
 
-          shapeArrays[shape.layer].push(shape)
+            shapeArrays[layerId].push(shape)
 
         # For each layer, sort shapes and then draw them
         for layerName, shapeArray of shapeArrays
           shapeArray.sort(shapeSorter)
 
-          # TODO: handle composition for layers
           ctx = layers[layerName][0].getContext('2d')
           for shape in shapeArray then drawShape(shape, ctx, assets)
 
@@ -340,7 +340,9 @@ RW.io.time =
   meta:
     visual: false
   factory: ->
-    provideData: -> return Date.now()
+    provideData: -> 
+      result = Date.now()
+      return RW.mapToObject(options.circuitIds, -> result)
     establishData: -> # NOP
     destroy: -> # NOP
 
@@ -348,8 +350,8 @@ RW.io.time =
 RW.io.http =  
   meta:
     visual: false
-  factory: ->
-    state = 
+  factory: (options) ->
+    state = RW.mapToObject options.circuitIds, -> 
       requests: {}
       responses: {}
 
@@ -359,29 +361,30 @@ RW.io.http =
       establishData: (ioData, assets) -> 
         # Expecting a format like { requests: { id: { method:, url:, data:, cache:, contentType: }, ... }, { responses: { id: { code:, data: }, ... }
 
-        # Create new requests
-        for requestName in _.difference(_.keys(ioData.requests), _.keys(state.requests)) 
-          do (requestName) ->
-            jqXhr = $.ajax 
-              url: ioData.requests[requestName].url
-              type: ioData.requests[requestName].method ? "GET"
-              cache: ioData.requests[requestName].cache ? true
-              data: ioData.requests[requestName].data
-              contentType: ioData.requests[requestName].contentType
-            jqXhr.done (data, textStatus) -> 
-              state.responses[requestName] = 
-                status: textStatus
-                data: data
-            jqXhr.fail (__, textStatus, errorThrown) -> 
-              state.responses[requestName] = 
-                status: textStatus
-                error: errorThrown
+        for circuitId in options.circuitIds 
+          # Create new requests
+          for requestName in _.difference(_.keys(ioData[circuitId].requests), _.keys(state[circuitId].requests)) 
+            do (requestName) ->
+              jqXhr = $.ajax 
+                url: ioData[circuitId].requests[requestName].url
+                type: ioData[circuitId].requests[requestName].method ? "GET"
+                cache: ioData[circuitId].requests[requestName].cache ? true
+                data: ioData[circuitId].requests[requestName].data
+                contentType: ioData[circuitId].requests[requestName].contentType
+              jqXhr.done (data, textStatus) -> 
+                state[circuitId].responses[requestName] = 
+                  status: textStatus
+                  data: data
+              jqXhr.fail (__, textStatus, errorThrown) -> 
+                state[circuitId].responses[requestName] = 
+                  status: textStatus
+                  error: errorThrown
 
-            delete state.requests[requestName]
+              delete state[circuitId].requests[requestName]
 
-        # Remove deleted responses
-        for requestName in _.difference(_.keys(state.responses), _.keys(ioData.responses)) 
-          delete state.responses[requestName]
+          # Remove deleted responses
+          for requestName in _.difference(_.keys(state[circuitId].responses), _.keys(ioData[circuitId].responses)) 
+            delete state[circuitId].responses[requestName]
 
         return state
 
@@ -394,14 +397,16 @@ RW.io.charts =
   meta:
     visual: true
   factory: (options = {}) ->
+    makeCharId = (circuitId, chartName) -> "#{circuitId}.#{chartName}"
+
     capitalizeFirstLetter = (str) -> str[0].toUpperCase() + str.slice(1)
 
-    # Format { name: { canvas:, data: }} 
+    # Format { circuitId: { name: { canvas:, data: }}} 
     charts = {}
 
-    removeChart = (chartName) ->
-      charts[chartName].canvas.remove()
-      delete charts[chartName]
+    removeChart = (circuitId, chartId) ->
+      charts[circuitId][chartId].canvas.remove()
+      delete charts[circuitId][chartId]
 
     return {
       provideData: -> {}
@@ -409,44 +414,45 @@ RW.io.charts =
       establishData: (ioData, assets) -> 
         # Expecting ioData like { chartA: { size:, position:, depth:, data:, options: }}
 
-        # Remove old charts 
-        for chartName in _.difference(_.keys(charts), _.keys(ioData)) then removeChart(chartName)
+        for circuitId in options.circuitIds
+          # Remove old charts 
+          for chartName in _.difference(_.keys(charts[circuitId]), _.keys(ioData[circuitId])) then removeChart(circuitId, chartName)
 
-        # Create new charts and update old ones
-        for chartName, chartData of ioData
-          # If the chart already exists...
-          if chartName of charts 
-            #... and has the same data, don't bother redrawing it
-            if _.isEqual(charts[chartName].data, chartData) then continue
-            # Otherwise remove it.
-            else removeChart(chartName)
+          # Create new charts and update old ones
+          for chartName, chartData of ioData[circuitId]
+            # If the chart already exists...
+            if chartName of charts[circuitId] 
+              #... and has the same data, don't bother redrawing it
+              if _.isEqual(charts[circuitId][chartName].data, chartData) then continue
+              # Otherwise remove it.
+              else removeChart(circuitId, chartName)
 
-          # Check it's a valid chart type
-          if chartData.type not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
-            throw new Error("Unknown chart type: '#{chartData.type}'")
+            # Check it's a valid chart type
+            if chartData.type not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
+              throw new Error("Unknown chart type: '#{chartData.type}'")
 
-          # Define options
-          displayOptions = 
-            size: chartData.size ? options.size
-            position: chartData.position ? [0, 0]
-            depth: chartData.depth ? 50
-          chartOptions = _.defaults chartData.options ? {},
-            animation: false
+            # Define options
+            displayOptions = 
+              size: chartData.size ? options.size
+              position: chartData.position ? [0, 0]
+              depth: chartData.depth ? 50
+            chartOptions = _.defaults chartData.options ? {},
+              animation: false
 
-          # Create a canvas element 
-          canvasProps = "id='chartLayer-#{chartName}' class='chartCanvas' width='#{displayOptions.size[0]}' height='#{displayOptions.size[1]}' tabIndex=0"
-          canvasCss = "z-index: #{displayOptions.depth}; position: absolute; left: #{displayOptions.position[0]}px; top: #{displayOptions.position[1]}px;"
-          canvas = $("<canvas #{canvasProps} style='#{canvasCss}' />")
-          $(options.elementSelector).append(canvas)
-          charts[chartName] = 
-            canvas: canvas
-            data: chartData
+            # Create a canvas element 
+            canvasProps = "id='chartLayer-#{circuitId}-#{chartName}' class='chartCanvas' width='#{displayOptions.size[0]}' height='#{displayOptions.size[1]}' tabIndex=0"
+            canvasCss = "z-index: #{displayOptions.depth}; position: absolute; left: #{displayOptions.position[0]}px; top: #{displayOptions.position[1]}px;"
+            canvas = $("<canvas #{canvasProps} style='#{canvasCss}' />")
+            $(options.elementSelector).append(canvas)
+            charts[circuitId][chartName] = 
+              canvas: canvas
+              data: chartData
 
-          # Create a new Chart object
-          chart = new Chart(canvas[0].getContext("2d"))
+            # Create a new Chart object
+            chart = new Chart(canvas[0].getContext("2d"))
 
-          # Call the correct method on it
-          chart[capitalizeFirstLetter(chartData.type)](chartData.data, chartOptions)
+            # Call the correct method on it
+            chart[capitalizeFirstLetter(chartData.type)](chartData.data, chartOptions)
 
       destroy: -> 
         for chartName, canvas of charts then canvas.remove()
