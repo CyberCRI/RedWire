@@ -24,7 +24,6 @@ RW.ChipVisitorConstants = class
         main: new RW.Circuit()
       memoryData: {} # Map of circuitIds to data
       ioData: {} # Map of circuitIds to data
-      evaluator: null
 
 RW.CircuitMeta = class
   constructor: (@id, @type) -> 
@@ -473,7 +472,7 @@ RW.visitChip = (circuitMeta, path, chip, constants, bindings = {}) ->
 # Starts the RW.visitChip() recursive chain with the starting parameters
 RW.stimulateCircuits = (constants) -> RW.visitChip(new RW.CircuitMeta("main", "main"), [], constants.circuits.main.board, constants, {})
 
-# The argument "options" can values for "circuits", "memoryData", "ioData", "evaluator", "inputIoData", "outputIoData", and "establishOutput". 
+# The argument "options" can values for "circuits", "memoryData", "ioData", "inputIoData", "outputIoData", and "establishOutput". 
 # circuits is a map of a circuit names to RW.Circuit objects.
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
 # If outputIoData is not null, the loop is not stepped, and the data is sent directly to the io. In this case, no memory patches are returned.
@@ -498,7 +497,6 @@ RW.stepLoop = (options) ->
       main: new RW.Circuit()
     memoryData: {}
     io: {}
-    evaluator: eval
     inputIoData: null
     outputIoData: null 
     establishOutput: true
@@ -527,7 +525,6 @@ RW.stepLoop = (options) ->
         memoryData: options.memoryData
         ioData: options.inputIoData
         circuits: options.circuits
-        evaluator: options.evaluator
     catch e 
       return makeErrorResponse("executeChips", e)
 

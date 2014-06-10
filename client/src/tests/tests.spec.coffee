@@ -1,8 +1,6 @@
 # Get alias for the global scope
 globals = @
 
-makeEvaluator = -> eval
-
 compileExpression = (expression) -> RW.compileExpression(expression, eval)
 
 
@@ -162,7 +160,6 @@ describe "RedWire", ->
           main: new RW.Circuit
             board: board
             processors: processors
-        evaluator: makeEvaluator()
       RW.stimulateCircuits(constants)
       expect(isCalled).toBeTruthy()
 
@@ -199,7 +196,6 @@ describe "RedWire", ->
             board: board
             processors: processors
             switches: switches
-        evaluator: makeEvaluator()
       RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(3)
 
@@ -283,7 +279,6 @@ describe "RedWire", ->
           main: memoryData
         ioData: 
           main: ioData
-        evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
 
       mainResults = results.circuitResults.main
@@ -353,7 +348,6 @@ describe "RedWire", ->
             processors: processors
         memoryData: 
           main: oldMemory
-        evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
 
@@ -390,7 +384,6 @@ describe "RedWire", ->
           main: oldMemory
         ioData: 
           main: oldIoData
-        evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
       newIoData = RW.applyPatches(results.circuitResults.main.ioPatches, oldIoData)
@@ -473,7 +466,6 @@ describe "RedWire", ->
             switches: switches
         memoryData: 
           main: memories[0]
-        evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       memories[1] = RW.applyPatches(results.circuitResults.main.memoryPatches, memories[0])
 
@@ -489,7 +481,6 @@ describe "RedWire", ->
             switches: switches
         memoryData: 
           main: memories[1]
-        evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       memories[2] = RW.applyPatches(results.circuitResults.main.memoryPatches, memories[1])
 
@@ -535,7 +526,6 @@ describe "RedWire", ->
           main: new RW.Circuit
             board: board
             processors: processors
-        evaluator: makeEvaluator()
       RW.stimulateCircuits(constants)
 
       expect(processors.getName.update).toHaveBeenCalled()
@@ -584,7 +574,6 @@ describe "RedWire", ->
             processors: processors
         memoryData: 
           main: oldMemory
-        evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
 
@@ -628,7 +617,6 @@ describe "RedWire", ->
             processors: processors
         memoryData: 
           main: oldMemory
-        evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
 
       expect(processors.getName.update).toHaveBeenCalled()
@@ -662,7 +650,6 @@ describe "RedWire", ->
             processors: processors
         ioData: 
           main: oldIoData
-        evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
       newIoData = RW.applyPatches(results.circuitResults.main.ioPatches, oldIoData)
 
@@ -756,7 +743,6 @@ describe "RedWire", ->
         circuits: circuits 
         memoryData: memoryData
         ioData: ioData
-        evaluator: makeEvaluator()
       results = RW.stimulateCircuits(constants)
 
       newMemory = {}
@@ -826,7 +812,6 @@ describe "RedWire", ->
             processors: processors 
         io: io
         inputIoData: inputIoData
-        evaluator: makeEvaluator()
 
       expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } }, [{}])
       expect(result.memoryPatches.main).toBeEmpty()
@@ -867,7 +852,6 @@ describe "RedWire", ->
             processors: processors 
             transformers: transformers
         io: io
-        evaluator: makeEvaluator()
 
       expect(io.myService.provideData).toHaveBeenCalledWith([{}])
       expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } }, [{}])
@@ -924,7 +908,6 @@ describe "RedWire", ->
             processors: processors 
         memoryData: 
           main: oldData
-        evaluator: makeEvaluator()
       expect(results.errors[0].stage).toBe("patchMemory")
       
       boardB = 
@@ -955,5 +938,4 @@ describe "RedWire", ->
             switches: switches
             processors: processors 
         io: io
-        evaluator: makeEvaluator()
       expect(results.errors[0].stage).toBe("patchIo")
