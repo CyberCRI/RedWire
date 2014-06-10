@@ -109,7 +109,7 @@ destroyIo = (currentIo) ->
   for ioName, io of currentIo
     io.destroy()
 
-initializeIo = (ioConfig) ->
+initializeIo = (ioConfig, circuitIds) ->
   # Create new io
   currentIo = {}
   for ioName, ioData of RW.io
@@ -117,8 +117,10 @@ initializeIo = (ioConfig) ->
       options = 
         elementSelector: '#gameContent'
         size: GAME_DIMENSIONS
+        circuitIDs: circuitIds
       if ioData.meta.visual
-        options.layers = _.object(([layer.name, index] for index, layer of ioConfig.layers when layer.type is ioName ))
+        options.layers = for layer in ioConfig.layers when layer.type is ioName
+          { circuitId: layer.circuitId, name: layer.name, depth: layer.depth } 
 
       currentIo[ioName] = ioData.factory(options)
     catch error
@@ -161,18 +163,23 @@ createAssets = (inputAssets, evaluator) ->
 loadGameCode = (gameCode, logFunction) ->
   evaluator = eval
   return {
-    processors: compileProcessors(gameCode.processors, evaluator)
-    switches: compileSwitches(gameCode.switches, evaluator)
-    transformers: compileTransformers(gameCode.transformers, evaluator, logFunction)
-    board: compileBoard(gameCode.board, evaluator)
-    io: initializeIo(gameCode.io)
-    assets: createAssets(gameCode.assets, evaluator)
-    evaluator: evaluator
+    circuits: for circuitId, circuit in gameCode.circuits
+      processors: compileProcessors(circuit.processors, evaluator)
+      switches: compileSwitches(circuit.switches, evaluator)
+      transformers: compileTransformers(circuit.transformers, evaluator, logFunction)
+      board: compileBoard(circuit.board, evaluator)
+      assets: createAssets(circuit.assets, evaluator)
+    io: initializeIo(gameCode.io, RW.findCircuitIds(gameCode.circuits))
   }
 
 unloadGame = (loadedGame) ->
-  destroyAssets(loadedGame.assets)
+  for circuitId, circuit of loadedGame.circuits
+    destroyAssets(circuit.assets)
   destroyIo(loadedGame.io)
+
+applyMemoryPatchesInCircuits = (patches, memory) ->
+  RW.mapObject memory, (circuitMemory, circuitId) ->
+    RW.applyPatches(patches[circuitId], circuitMemory)
 
 makeReporter = (destinationWindow, destinationOrigin, operation) ->
   return (err, value) ->
@@ -186,13 +193,9 @@ onRecordFrame = (memory) ->
   RW.deepFreeze(memory) 
 
   return RW.stepLoop
-    chip: loadedGame.board
+    circuits: loadedGame.circuits
     memoryData: memory
-    assets: loadedGame.assets.data
-    processors: loadedGame.processors
-    switches: loadedGame.switches
     io: loadedGame.io
-    transformers: loadedGame.transformers
 
 onRepeatRecordFrame = ->
   if !isRecording then return  # Stop when requested
@@ -205,7 +208,7 @@ onRepeatRecordFrame = ->
     isRecording = false
     recordFrameReporter(new Error("Errors in recording"))
   else 
-    lastMemory = RW.applyPatches(result.memoryPatches, lastMemory)
+    lastMemory = applyMemoryPatchesInCircuits(result.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatRecordFrame) # Loop!
 
 onRepeatPlayFrame = ->
@@ -218,17 +221,13 @@ onRepeatPlayFrame = ->
     isPlaying = false
     playFrameReporter(new Error("Errors in playing"))
   else 
-    lastMemory = RW.applyPatches(lastPlayedFrame.memoryPatches, lastMemory)
+    lastMemory = applyMemoryPatchesInCircuits(result.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatPlayFrame) # Loop!
 
 playBackFrame = (outputIoData) ->
   RW.stepLoop
-    chip: loadedGame.board
-    assets: loadedGame.assets.data
-    processors: loadedGame.processors
-    switches: loadedGame.switches
+    circuits: loadedGame.circuits
     io: loadedGame.io
-    transformers: loadedGame.transformers
     outputIoData: outputIoData 
 
 updateFrame = (memory, inputIoData) ->
@@ -237,13 +236,9 @@ updateFrame = (memory, inputIoData) ->
   RW.deepFreeze(inputIoData)
 
   return RW.stepLoop
-    chip: loadedGame.board
+    circuits: loadedGame.circuits
     memoryData: memory
-    assets: loadedGame.assets.data
-    processors: loadedGame.processors
-    switches: loadedGame.switches
     io: loadedGame.io
-    transformers: loadedGame.transformers
     inputIoData: inputIoData
 
 # Recalculate frames with different code but the same inputIoData
@@ -256,7 +251,7 @@ onUpdateFrames = (memory, inputIoDataFrames) ->
     results.push(result)
     if results.errors then return results # Return right away
 
-    lastMemory = RW.applyPatches(result.memoryPatches, lastMemory)
+    lastMemory = applyMemoryPatchesInCircuits(result.memoryPatches, lastMemory)
   return results
 
 # MAIN

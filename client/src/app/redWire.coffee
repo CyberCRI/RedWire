@@ -472,7 +472,7 @@ RW.visitChip = (circuitMeta, path, chip, constants, bindings = {}) ->
 # Starts the RW.visitChip() recursive chain with the starting parameters
 RW.stimulateCircuits = (constants) -> RW.visitChip(new RW.CircuitMeta("main", "main"), [], constants.circuits.main.board, constants, {})
 
-# The argument "options" can values for "circuits", "memoryData", "ioData", "inputIoData", "outputIoData", and "establishOutput". 
+# The argument "options" can values for "circuits", "circuitIds", "memoryData", "ioData", "inputIoData", "outputIoData", and "establishOutput". 
 # circuits is a map of a circuit names to RW.Circuit objects.
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
 # If outputIoData is not null, the loop is not stepped, and the data is sent directly to the io. In this case, no memory patches are returned.
@@ -495,14 +495,13 @@ RW.stepLoop = (options) ->
   _.defaults options, 
     circuits: 
       main: new RW.Circuit()
+    circuitIds: ["main"]
     memoryData: {}
     io: {}
     inputIoData: null
     outputIoData: null 
     establishOutput: true
 
-  # OPT: circuitIds could be provided as input rather than calculated here
-  circuitIds = RW.findCircuitIds(options.circuits)
   assetsByCircuit = RW.pluckToObject(options.circuits, "assets")
 
   # Initialize return data
@@ -529,7 +528,7 @@ RW.stepLoop = (options) ->
       return makeErrorResponse("executeChips", e)
 
     try 
-      for circuitId in circuitIds
+      for circuitId in options.circuitIds
         conflicts = RW.detectPatchConflicts(result.circuitResults[circuitId].memoryPatches)
         if conflicts.length > 0 then throw new Error("Memory patches conflict for circuit #{circuitId}: #{JSON.stringify(conflicts)}")
         memoryPatches[circuitId] = result.circuitResults[circuitId].memoryPatches
@@ -539,7 +538,7 @@ RW.stepLoop = (options) ->
     try
       options.outputIoData = {}
 
-      for circuitId in circuitIds
+      for circuitId in options.circuitIds
         conflicts = RW.detectPatchConflicts(result.circuitResults[circuitId].ioPatches)
         if conflicts.length > 0 then throw new Error("IO patches conflict for circuit #{circuitId}: #{JSON.stringify(conflicts)}")
         ioPatches[circuitId] = result.circuitResults[circuitId].ioPatches
@@ -625,7 +624,7 @@ RW.splitAddress = (address) -> _.reject(address.split(/[\.\[\]]/), (part) -> par
 # Combine a path like ["a", "b", 1, 2] into "a/b/1/2
 RW.joinPathParts = (pathParts) -> "/#{pathParts.join('/')}"
 
-# Search through the board, looking for all circuitIds that are 
+# Search through the board returning a list of all circuitIds
 RW.findCircuitIds = (circuits) -> 
   searchRecursive = (chip, circuitIds = []) -> 
     if "circuit" of chip 
