@@ -340,7 +340,7 @@ RW.visitProcessorChip = (circuitMeta, path, chip, constants, bindings) ->
   evaluatedPins = RW.evaluateInputPinExpressions(circuitMeta, path, constants, evaluationContext, processor.pinDefs, chip.pins)
 
   try
-    result.signal = processor.update(evaluatedPins, constants.transformers, RW.transformersLogger)
+    result.signal = processor.update(evaluatedPins, constants.circuits[circuitMeta.id].transformers, RW.transformersLogger)
     RW.evaluateOutputPinExpressions(circuitMeta, path, constants, bindings, evaluationContext, result, processor.pinDefs, chip.pins, evaluatedPins)
   catch e
     result.signal = RW.signals.ERROR
@@ -494,7 +494,8 @@ RW.stepLoop = (options) ->
     return { errors: [errorDescription], memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
 
   _.defaults options, 
-    ciruits: {}
+    circuits: 
+      main: new RW.Circuit()
     memoryData: {}
     io: {}
     evaluator: eval
@@ -502,6 +503,8 @@ RW.stepLoop = (options) ->
     outputIoData: null 
     establishOutput: true
 
+  # OPT: circuitIds could be provided as input rather than calculated here
+  circuitIds = RW.findCircuitIds(options.circuits)
   assetsByCircuit = RW.pluckToObject(options.circuits, "assets")
 
   # Initialize return data
@@ -511,10 +514,11 @@ RW.stepLoop = (options) ->
 
   if options.outputIoData == null
     if options.inputIoData == null
-      options.inputIoData = {}
       try
+        inputIoDataByIoName = {}
         for ioName, io of options.io
-          options.inputIoData[ioName] = RW.cloneData(io.provideData(assetsByCircuit))
+          inputIoDataByIoName[ioName] = RW.cloneData(io.provideData(circuitIds, assetsByCircuit))
+        options.inputIoData = RW.reverseKeys(inputIoDataByIoName)
       catch e 
         return makeErrorResponse("readIo", e)
 
@@ -522,45 +526,39 @@ RW.stepLoop = (options) ->
       result = RW.stimulateCircuits new RW.ChipVisitorConstants
         memoryData: options.memoryData
         ioData: options.inputIoData
-        circuits: options.ciruits
+        circuits: options.circuits
         evaluator: options.evaluator
     catch e 
       return makeErrorResponse("executeChips", e)
-    
-    circuitIds = _.keys(result.circuitResults)
 
     try 
       for circuitId in circuitIds
         conflicts = RW.detectPatchConflicts(result.circuitResults[circuitId].memoryPatches)
         if conflicts.length > 0 then throw new Error("Memory patches conflict for circuit #{circuitId}: #{JSON.stringify(conflicts)}")
-      memoryPatches = result.memoryPatches
+        memoryPatches[circuitId] = result.circuitResults[circuitId].memoryPatches
     catch e 
       return makeErrorResponse("patchMemory", e)
 
     try
-      # Input IO data is keyed by IO name. Organize it by circuitName
-      inputIoDataByCircuit = RW.reverseKeys(options.inputIoData)
-      outputIoDataByCircuit = {}
-      ioPatchesByCircuit = {}
+      options.outputIoData = {}
 
       for circuitId in circuitIds
-        conflicts = RW.detectPatchConflicts(result.circuitMeta[circuitId].ioPatches)
+        conflicts = RW.detectPatchConflicts(result.circuitResults[circuitId].ioPatches)
         if conflicts.length > 0 then throw new Error("IO patches conflict for circuit #{circuitId}: #{JSON.stringify(conflicts)}")
-        ioPatchesByCircuit[circuit] = result.circuitMeta[circuitId].ioPatches
-        outputIoDataByCircuit[circuitId] = RW.applyPatches(result.circuitMeta[circuitId].ioPatches, inputIoDataByCircuit[circuitId])
-
-      options.outputIoData = RW.reverseKeys(outputIoDataByCircuit)
-      ioPatches = RW.reverseKeys(ioPatchesByCircuit)
+        ioPatches[circuitId] = result.circuitResults[circuitId].ioPatches
+        options.outputIoData[circuitId] = RW.applyPatches(result.circuitResults[circuitId].ioPatches, options.inputIoData[circuitId])
     catch e 
       return makeErrorResponse("patchIo", e)
 
-    logMessages = RW.pluckToObject(results.circuitResults, "logMessages")
+    logMessages = RW.pluckToObject(result.circuitResults, "logMessages")
 
   # TODO: check the output even if isn't established, in order to catch errors
   if options.establishOutput
     try
+      # outputIoData is keyed by circuit, we need it by io name
+      outputIoDataByIoName = RW.reverseKeys(options.outputIoData)
       for ioName, io of options.io
-        io.establishData(options.outputIoData[ioName], assetsByCircuit)
+        io.establishData(outputIoDataByIoName[ioName], assetsByCircuit)
     catch e 
       return makeErrorResponse("writeIo", e)
 
@@ -629,3 +627,16 @@ RW.splitAddress = (address) -> _.reject(address.split(/[\.\[\]]/), (part) -> par
 
 # Combine a path like ["a", "b", 1, 2] into "a/b/1/2
 RW.joinPathParts = (pathParts) -> "/#{pathParts.join('/')}"
+
+# Search through the board, looking for all circuitIds that are 
+RW.findCircuitIds = (circuits) -> 
+  searchRecursive = (chip, circuitIds = []) -> 
+    if "circuit" of chip 
+      circuitIds.push(chip.id)
+      searchRecursive(circuits[chip.circuit].board, circuitIds)
+    if "children" of chip 
+      for child in chip.children then searchRecursive(child, circuitIds)
+
+  circuitIds = ["main"]
+  searchRecursive(circuits.main.board, circuitIds)
+  return circuitIds 

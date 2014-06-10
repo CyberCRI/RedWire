@@ -191,6 +191,7 @@ RW.reverseKeys = (obj) ->
     for keyB, valB of valA
       if keyB not of newObj then newObj[keyB] = {}
       newObj[keyB][keyA] = valB
+  return newObj
 
 # Plucks a single attribute out of obj, and returns a single object out of it
 RW.pluckToObject = (obj, attribute) ->

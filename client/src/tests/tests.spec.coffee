@@ -780,14 +780,15 @@ describe "RedWire", ->
           establishData: jasmine.createSpy()
 
       outputIoData = 
-        myService:
-          a = 1
+        main: 
+          myService:
+            a = 1
 
       result = RW.stepLoop 
         io: io
         outputIoData: outputIoData
 
-      expect(io.myService.establishData).toHaveBeenCalledWith(outputIoData.myService, {})
+      expect(io.myService.establishData).toHaveBeenCalledWith({ main: 1 }, [{}])
       expect(_.size(result.memoryPatches)).toBe(0)
       expect(_.size(result.ioPatches)).toBe(0)
 
@@ -797,8 +798,9 @@ describe "RedWire", ->
           establishData: jasmine.createSpy()
 
       inputIoData = 
-        myService:
-          a: 1
+        main:
+          myService:
+            a: 1
 
       processors = 
         incrementIoData: 
@@ -819,28 +821,29 @@ describe "RedWire", ->
 
       result = RW.stepLoop 
         circuits: 
-          main: 
+          main: new RW.Circuit
             board: board
             processors: processors 
         io: io
         inputIoData: inputIoData
         evaluator: makeEvaluator()
 
-      expect(io.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {}, {})
-      expect(_.size(result.memoryPatches)).toBe(0)
-      expect(result.ioPatches.length).toEqual(1)
+      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } }, [{}])
+      expect(result.memoryPatches.main).toBeEmpty()
+      expect(result.ioPatches.main.length).toEqual(1)
 
     it "gathers io input data, visits chips, uses transformers, and gives output to io", ->
       io = 
         myService:
-          provideData: -> return { a: 1 }
+          provideData: (circuitIds) -> 
+            expect(circuitIds).toDeeplyEqual(["main"])
+            return { main: { a: 1 } }
           establishData: jasmine.createSpy()
 
       spyOn(io.myService, "provideData").andCallThrough()
 
-      transformers = {
+      transformers =
         testTransformer: (arg1, arg2) -> return {_1: arg1, _2: arg2};
-      }
 
       processors = 
         incrementIoData: 
@@ -860,16 +863,17 @@ describe "RedWire", ->
             "io.myService": compileExpression("pins.service")
 
       result = RW.stepLoop 
-        chip: board
-        processors: processors 
-        transformers: transformers
+        circuits:
+          main: new RW.Circuit
+            board: board
+            processors: processors 
+            transformers: transformers
         io: io
-        ioConfig: ioConfig
         evaluator: makeEvaluator()
 
-      expect(io.myService.provideData).toHaveBeenCalledWith({})
-      expect(io.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {})
-      expect(result.memoryPatches).toBeEmpty()
+      expect(io.myService.provideData).toHaveBeenCalledWith(["main"], [{}])
+      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } }, [{}])
+      expect(result.memoryPatches).toDeeplyEqual({ main: [] })
 
     it "rejects conflicting patches", ->
       # Create old data, new data, and the patches between
