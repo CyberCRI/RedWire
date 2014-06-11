@@ -109,7 +109,20 @@ destroyIo = (currentIo) ->
   for ioName, io of currentIo
     io.destroy()
 
-initializeIo = (ioConfig, circuitIds) ->
+# Converts the nested layers description into a simple list, ordered by depth
+flattenLayerList = (circuits) -> 
+  flattenRecursive = (circuitId, layerList) -> 
+    for layer in circuits[circuitId].io.layers
+      if layer.type is "circuit" then flattenRecursive(layer.name, layerList)
+      else layerList.push(layer)
+    return layerList
+  
+  return flattenRecursive("main", [])
+
+initializeIo = (circuits, circuitIds) ->
+  # Get flattened list of layers
+  layerList = flattenLayerList(circuits)
+
   # Create new io
   currentIo = {}
   for ioName, ioData of RW.io
@@ -117,10 +130,10 @@ initializeIo = (ioConfig, circuitIds) ->
       options = 
         elementSelector: '#gameContent'
         size: GAME_DIMENSIONS
-        circuitIDs: circuitIds
+        circuitIds: circuitIds
       if ioData.meta.visual
-        options.layers = for layer in ioConfig.layers when layer.type is ioName
-          { circuitId: layer.circuitId, name: layer.name, depth: layer.depth } 
+        options.layers = for depth, layer of layerList when layer.type is ioName
+          { circuitId: layer.circuitId, name: layer.name, depth: depth } 
 
       currentIo[ioName] = ioData.factory(options)
     catch error
@@ -169,7 +182,7 @@ loadGameCode = (gameCode, logFunction) ->
       transformers: compileTransformers(circuit.transformers, evaluator, logFunction)
       board: compileBoard(circuit.board, evaluator)
       assets: createAssets(circuit.assets, evaluator)
-    io: initializeIo(gameCode.io, RW.findCircuitIds(gameCode.circuits))
+    io: initializeIo(gameCode.circuits, RW.findCircuitIds(gameCode.circuits))
   }
 
 unloadGame = (loadedGame) ->

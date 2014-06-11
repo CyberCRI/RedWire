@@ -480,7 +480,7 @@ RW.stimulateCircuits = (constants) -> RW.visitChip(new RW.CircuitMeta("main", "m
 # The memoryData and inputIoData parametersshould be frozen with RW.deepFreeze() before being sent.
 # Rather than throwing errors, this function attempts to trap errors internally and return them as an "errors" attribute.
 # The errors have a "stage" attribute that is "readIo", "executeChips", "patchMemory", "patchIo", and "writeIo"
-# Returns a map of circuit IDs to RW.CircuitResult objects
+# Returns a map like { memoryPatches: , inputIoData: , ioPatches: , logMessages: }
 RW.stepLoop = (options) ->  
   makeErrorResponse = (stage, err) -> 
     console.error("ERROR IN STEP LOOP", stage, err)

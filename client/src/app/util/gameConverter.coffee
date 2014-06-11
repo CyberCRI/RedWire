@@ -1,12 +1,6 @@
 # These properties need to be converted from JSON strings to objects upon loading, and back to JSON for saving
 JSON_PROPERTIES = [
-  'memory'
-  'board'
-  'io'
-  'processors'
-  'switches'
-  'transformers'
-  'assets'
+  'circuits'
 ]
 
 META_PROPERTIES = [
