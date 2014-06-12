@@ -2,7 +2,7 @@
 angular.module('gamEvolve.model.games', [])
 
 
-.factory 'currentGame', (GameVersionUpdatedEvent) ->
+.factory 'currentGame', (GameVersionUpdatedEvent, editorContext) ->
 
   version: null
   setVersion: (newVersion) ->
@@ -36,6 +36,9 @@ angular.module('gamEvolve.model.games', [])
     for name of ioServices
       keys.push(['io', name].join('.'))
     return keys
+
+  # Shortcut method to get the current data for the current circuit
+  getCurrentCircuitData: -> @version?.circuits[editorContext.currentCircuitMeta.id]
 
 
 .factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->

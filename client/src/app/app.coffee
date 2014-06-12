@@ -1,5 +1,5 @@
-# Let's keep this list in alphabetical order
 angular.module( 'gamEvolve', [
+  # Order seems to matter
   'templates-app'
   'templates-common'
   'ui.bootstrap'
@@ -9,6 +9,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.cache'
   'gamEvolve.model.games'
   'gamEvolve.model.users'
+  'gamEvolve.model.editorContext'
   'gamEvolve.util.eventBus'
   'gamEvolve.util.logger'
   'gamEvolve.util.gameConverter'

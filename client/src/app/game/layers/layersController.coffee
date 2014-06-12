@@ -1,6 +1,6 @@
 angular.module('gamEvolve.game.layers', [])
 
-.controller 'LayersCtrl', ($scope, currentGame) ->
+.controller 'LayersCtrl', ($scope, currentGame, editorContext) ->
   $scope.TYPES = (name for name, io of RW.io when io.meta.visual)
 
   # Get the actions object from the currentGame service, and keep it updated
@@ -14,16 +14,17 @@ angular.module('gamEvolve.game.layers', [])
   # Bring currentGame into scope so we can watch it 
   copyFromGameToScope = ->
     if not currentGame.version then return 
-    $scope.layers = RW.cloneData(currentGame.version?.io?.layers)
+    $scope.layers = RW.cloneData(currentGame.getCurrentCircuitData().io?.layers)
 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", copyFromGameToScope, true)
+  $scope.$watch((-> editorContext.currentCircuitMeta), copyFromGameToScope, true)
 
   copyFromScopeToGame = ->
     if not currentGame.version then return 
-    if _.isEqual(currentGame.version?.io?.layers, $scope.layers) then return 
+    if _.isEqual(currentGame.getCurrentCircuitData().io?.layers, $scope.layers) then return 
 
-    currentGame.version.io.layers = $scope.layers
+    currentGame.getCurrentCircuitData().io.layers = $scope.layers
     currentGame.updateLocalVersion()
   $scope.$watch("layers", copyFromScopeToGame, true)
 

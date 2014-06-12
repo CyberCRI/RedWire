@@ -96,7 +96,7 @@ angular.module('gamEvolve.game.boardTree', [
 
   $scope.drop = (source, target, sourceParent, targetParent) ->
     return if source is target
-    return if source is currentGame.version.board # Ignore Main node DnD
+    return if source is currentGame.getCurrentCircuitData().board # Ignore Main node DnD
     if treeDrag.dropBefore
       moveBeforeTarget(source, target, sourceParent, targetParent)
     else if chips.acceptsChildren(target)
@@ -126,12 +126,3 @@ angular.module('gamEvolve.game.boardTree', [
     removeSourceFromParent(source, sourceParent)
     targetIndex = targetParent.children.indexOf(target)
     targetParent.children.splice targetIndex + 1, 0, source
-
-  # TODO Remove or move to right place
-  # Update from gameHistory
-  onUpdateGameHistory = ->
-    if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return
-    newMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
-    if not _.isEqual($scope.memory, newMemory)
-      $scope.memory = newMemory
-  $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)

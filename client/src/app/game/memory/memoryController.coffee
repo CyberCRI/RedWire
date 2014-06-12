@@ -21,7 +21,7 @@ restoreExpandedNodes = (node, save) ->
 
 angular.module('gamEvolve.game.memory', [])
 
-.controller 'MemoryCtrl', ($scope, gameHistory, gameTime, currentGame) ->
+.controller 'MemoryCtrl', ($scope, gameHistory, gameTime, currentGame, editorContext) ->
   $scope.gameHistoryMeta = gameHistory.meta 
   $scope.gameTime = gameTime
 
@@ -37,9 +37,9 @@ angular.module('gamEvolve.game.memory', [])
 
     memoryModel = 
       if gameTime.currentFrameNumber is 0
-        currentGame.version.memory
+        currentGame.getCurrentCircuitData().memory
       else
-        gameHistory.data.frames[gameTime.currentFrameNumber].memory
+        gameHistory.data.frames[gameTime.currentFrameNumber].circuits[editorContext.currentCircuitMeta.id].memory
 
     if _.isEqual(memoryModel, editor.get()) then return 
 
@@ -51,6 +51,7 @@ angular.module('gamEvolve.game.memory', [])
     restoreExpandedNodes(editor.node, save)
 
   $scope.$watch('gameHistoryMeta', onUpdateMemoryModel, true)
+  $scope.$watch((-> editorContext.currentCircuitMeta), onUpdateMemoryModel)
   $scope.$watch('gameTime.currentFrameNumber', onUpdateMemoryModel)
 
   # Write back to gameHistory
@@ -59,10 +60,10 @@ angular.module('gamEvolve.game.memory', [])
 
     # Update the frame memory
     newMemory = RW.cloneData(editor.get())
-    gameHistory.data.frames[gameTime.currentFrameNumber].memory = newMemory
+    gameHistory.data.frames[gameTime.currentFrameNumber].circuits[editorContext.currentCircuitMeta.id].memory = newMemory
     gameHistory.meta.version++
 
     # If we are on the first frame, update the game memory as well
     if gameTime.currentFrameNumber == 0 
-      currentGame.version.memory = newMemory
+      currentGame.getCurrentCircuitData().memory = newMemory
       currentGame.updateLocalVersion()

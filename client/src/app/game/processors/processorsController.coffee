@@ -1,18 +1,19 @@
 angular.module('gamEvolve.game.processors', [
   'ui.bootstrap',
 ])
-.controller 'ProcessorsListCtrl', ($scope, $modal, currentGame, ProcessorRenamedEvent) ->
+.controller 'ProcessorsListCtrl', ($scope, $modal, currentGame, editorContext, ProcessorRenamedEvent) ->
   # Get the processors object from the currentGame service, and keep it updated
   $scope.processors = {}
   $scope.processorNames = []
 
   # Bring currentGame into scope so we can watch it 
   updateProcessors = ->
-    if currentGame.version?.processors?
-      $scope.processors = currentGame.version.processors
-      $scope.processorNames = _.keys(currentGame.version.processors)
+    if not currentGame.version then return
+    $scope.processors = currentGame.getCurrentCircuitData().processors
+    $scope.processorNames = _.keys(currentGame.getCurrentCircuitData().processors)
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", updateProcessors, true)
+  $scope.$watch((-> editorContext.currentCircuitMeta), updateProcessors)
 
   $scope.newProcessor = (processorName) ->
     processor: processorName
@@ -22,7 +23,7 @@ angular.module('gamEvolve.game.processors', [
 
   $scope.remove = (name) ->
     if window.confirm("Are you sure you want to delete this processor?")
-      delete currentGame.version.processors[name]
+      delete currentGame.getCurrentCircuitData().processors[name]
       currentGame.updateLocalVersion()
 
   $scope.add = () ->
@@ -40,7 +41,7 @@ angular.module('gamEvolve.game.processors', [
               pinDefs: {}
               update: ""
             done: (model) ->
-              currentGame.version.processors[model.name] = 
+              currentGame.getCurrentCircuitData().processors[model.name] = 
                 pinDefs: model.pinDefs
                 update: model.update
               currentGame.updateLocalVersion()
@@ -51,7 +52,7 @@ angular.module('gamEvolve.game.processors', [
           }
 
   $scope.edit = (processorName) -> 
-    processor = currentGame.version.processors[processorName]
+    processor = currentGame.getCurrentCircuitData().processors[processorName]
     editProcessorDialog = $modal.open
       backdrop: true
       dialogFade: true
@@ -73,9 +74,9 @@ angular.module('gamEvolve.game.processors', [
                 ProcessorRenamedEvent.send
                   oldName: processorName
                   newName: model.name
-                delete currentGame.version.processors[processorName]
+                delete currentGame.getCurrentCircuitData().processors[processorName]
 
-              currentGame.version.processors[model.name] = 
+              currentGame.getCurrentCircuitData().processors[model.name] = 
                 pinDefs: model.pinDefs
                 update: model.update
                 

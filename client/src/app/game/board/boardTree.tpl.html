@@ -1,5 +1,5 @@
 <ul frang-tree class="board">
-    <li frang-tree-repeat="node in [currentGame.version.board]"
+    <li frang-tree-repeat="node in [currentGame.getCurrentCircuitData().board]"
         frang-tree-drag="{node: node, parent: $parent.node}"
         frang-tree-drop="drop(dragData.node, node, dragData.parent, $parent.node)"
         frang-tree-enter="enter(node)"

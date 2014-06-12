@@ -1,18 +1,19 @@
 angular.module('gamEvolve.game.switches', [
   'ui.bootstrap',
 ])
-.controller 'SwitchesListCtrl', ($scope, $modal, currentGame, SwitchRenamedEvent) ->
+.controller 'SwitchesListCtrl', ($scope, $modal, currentGame, editorContext, SwitchRenamedEvent) ->
   # Get the switches object from the currentGame service, and keep it updated
   $scope.switches = {}
   $scope.switchNames = []
 
   # Bring currentGame into scope so we can watch it 
   updateSwitches = ->
-    if currentGame.version?.switches?
-      $scope.switches = currentGame.version.switches
-      $scope.switchNames = _.keys(currentGame.version.switches)
+    if not currentGame.version then return
+    $scope.switches = currentGame.getCurrentCircuitData().switches
+    $scope.switchNames = _.keys(currentGame.getCurrentCircuitData().switches)
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", updateSwitches, true)
+  $scope.$watch((-> editorContext.currentCircuitMeta), updateSwitches, true)
 
   $scope.newSwitch = (switchName) ->
     switch: switchName
@@ -22,7 +23,7 @@ angular.module('gamEvolve.game.switches', [
 
   $scope.remove = (name) ->
     if window.confirm("Are you sure you want to delete this switch?")
-      delete currentGame.version.switches[name]
+      delete currentGame.getCurrentCircuitData().switches[name]
       currentGame.updateLocalVersion()
 
   $scope.add = () ->
@@ -41,7 +42,7 @@ angular.module('gamEvolve.game.switches', [
               listActiveChildren: ""
               handleSignals: ""
             done: (model) ->
-              currentGame.version.switches[model.name] =
+              currentGame.getCurrentCircuitData().switches[model.name] =
                 pinDefs: model.pinDefs
                 listActiveChildren: model.listActiveChildren
                 handleSignals: model.handleSignals
@@ -53,7 +54,7 @@ angular.module('gamEvolve.game.switches', [
           }
 
   $scope.edit = (switchName) -> 
-    switchData = currentGame.version.switches[switchName]
+    switchData = currentGame.getCurrentCircuitData().switches[switchName]
     editSwitchDialog = $modal.open
       backdrop: "static"
       templateUrl: 'game/switches/editSwitch.tpl.html'
@@ -74,9 +75,9 @@ angular.module('gamEvolve.game.switches', [
                 SwitchRenamedEvent.send
                   oldName: switchName
                   newName: model.name
-                delete currentGame.version.switches[switchName]
+                delete currentGame.getCurrentCircuitData().switches[switchName]
 
-              currentGame.version.switches[model.name] = 
+              currentGame.getCurrentCircuitData().switches[model.name] = 
                 pinDefs: model.pinDefs
                 listActiveChildren: model.listActiveChildren
                 handleSignals: model.handleSignals
