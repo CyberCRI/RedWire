@@ -58,12 +58,27 @@ RW.ChipVisitorResult = class
 RW.BindingReference = class 
   constructor: (@ref) ->
 
+# Search through the board returning a list of all circuitMeta
+RW.listCircuitMeta = (circuits) -> 
+  searchRecursive = (parentId, chip, circuitMetaList) -> 
+    if "circuit" of chip 
+      newCircuitMeta = new RW.CircuitMeta(RW.makeCircuitId(parentId, chip.id))
+      circuitIds.push(newCircuitMeta)
+      searchRecursive(newCircuitMeta.id, circuits[chip.circuit].board, circuitMetaList)
+    if "children" of chip 
+      for child in chip.children then searchRecursive(parentId, child, circuitMetaList)
+    return circuitMetaList
+
+  return searchRecursive("main", circuits.main.board, [new RW.CircuitMeta("main", "main")])
+
+RW.makeCircuitId = (parentId, childId) -> "#{parentId}.#{childId}"
+
 # Used to evaluate expressions against with RW.evaluateExpressionFunction
 RW.makeEvaluationContext = (circuitMeta, constants, bindings) ->
   context = 
     memory: constants.memoryData[circuitMeta.id]
     io: constants.ioData[circuitMeta.id]
-    assets: constants.circuits[circuitMeta.type].assets
+    assets: constants.circuits[circuitMeta.type].assets.data
     transformers: constants.circuits[circuitMeta.type].transformers
     bindings: {}
   # Setup bindings
@@ -441,7 +456,7 @@ RW.visitCircuitChip = (circuitMeta, path, chip, constants, bindings) ->
   circuit = constants.circuits[chip.circuit]
   # TODO: continue to visit children
   # TODO: handle parameters for circuit
-  return RW.visitChip(new RW.CircuitMeta(chip.id, chip.circuit), [], circuit.board, constants, {})
+  return RW.visitChip(new RW.CircuitMeta(RW.makeCircuitId(circuitMeta.id, chip.id), chip.circuit), [], circuit.board, constants, {})
 
 RW.chipVisitors =
   "processor": RW.visitProcessorChip
@@ -502,7 +517,10 @@ RW.stepLoop = (options) ->
     outputIoData: null 
     establishOutput: true
 
-  assetsByCircuit = RW.pluckToObject(options.circuits, "assets")
+  # Repackage assets as a map from circuitId to asset data
+  assetsByCircuit = {}
+  for circuitId, circuit of options.circuits
+    assetsByCircuit[circuitId] = circuit.assets.data
 
   # Initialize return data
   memoryPatches = {}
@@ -623,16 +641,3 @@ RW.splitAddress = (address) -> _.reject(address.split(/[\.\[\]]/), (part) -> par
 
 # Combine a path like ["a", "b", 1, 2] into "a/b/1/2
 RW.joinPathParts = (pathParts) -> "/#{pathParts.join('/')}"
-
-# Search through the board returning a list of all circuitIds
-RW.findCircuitIds = (circuits) -> 
-  searchRecursive = (chip, circuitIds = []) -> 
-    if "circuit" of chip 
-      circuitIds.push(chip.id)
-      searchRecursive(circuits[chip.circuit].board, circuitIds)
-    if "children" of chip 
-      for child in chip.children then searchRecursive(child, circuitIds)
-
-  circuitIds = ["main"]
-  searchRecursive(circuits.main.board, circuitIds)
-  return circuitIds 

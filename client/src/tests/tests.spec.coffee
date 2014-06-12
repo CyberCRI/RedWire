@@ -725,7 +725,7 @@ describe "RedWire", ->
             a1: 1
           b: 10
           c: "hi"
-        subId:
+        "main.subId":
           a: 32
           b: "hi"
           c: "bye"
@@ -734,10 +734,9 @@ describe "RedWire", ->
         main: 
           s: 
             a: -1
-        subId:
+        "main.subId":
           s: 
             a: -1
-
 
       constants = new RW.ChipVisitorConstants
         circuits: circuits 
@@ -747,17 +746,17 @@ describe "RedWire", ->
 
       newMemory = {}
       newIo = {}
-      for name in ["main", "subId"]
+      for name in ["main", "main.subId"]
         newMemory[name] = RW.applyPatches(results.circuitResults[name].memoryPatches, memoryData[name])
         newIo[name] = RW.applyPatches(results.circuitResults[name].ioPatches, ioData[name])
 
       expect(newMemory.main.a.a1).toBe(2)
       expect(newMemory.main.b).toBe("hi")
       expect(newIo.main.s.a).toBe(-5)
-      expect(newMemory.subId.a).toBe(99)
-      expect(newMemory.subId.b).toBe("bye")
-      expect(newMemory.subId.c).toBe("bye")
-      expect(newIo.subId.s.a).toBe(100)
+      expect(newMemory["main.subId"].a).toBe(99)
+      expect(newMemory["main.subId"].b).toBe("bye")
+      expect(newMemory["main.subId"].c).toBe("bye")
+      expect(newIo["main.subId"].s.a).toBe(100)
 
   describe "stepLoop()", ->
     it "sends output data directly to io", ->

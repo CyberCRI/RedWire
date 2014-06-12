@@ -243,7 +243,7 @@ RW.io.canvas =
           shapeArray.sort(shapeSorter)
 
           ctx = layers[layerName][0].getContext('2d')
-          for shape in shapeArray then drawShape(shape, ctx, assets)
+          for shape in shapeArray then drawShape(shape, ctx, assets[circuitId])
 
       destroy: -> 
         for layerName, canvas of layers then canvas.remove()
@@ -254,92 +254,108 @@ RW.io.html =
   meta:
     visual: true
   factory: (options = {}) ->
-    templates = { }
-    layers = { }
-    views = { }
-    callbacks = { }
+    state = RW.mapToObject options.circuitIds, ->
+      templates: {}
+      layers: {}
+      views: {}
+      callbacks: {}
+
+    codeTemplateId = (circuitId, templateName) -> return "#{circuitId}.#{templateName}"
+    decodeTemplateId = (templateId) -> templateId.split(".")
 
     rivets.configure
       handler: (target, event, binding) ->
-        # binding.view.models.template will give the name of the template
-        templates[binding.view.models.data]["values"][binding.keypath] = true
+        # binding.view.models.data will give the id of the template
+        [circuitId, templateName] = decodeTemplateId(binding.view.models.data)
+        state[circuitId].templates[templateName].values[binding.keypath] = true
 
       adapter: 
-        subscribe: (templateName, keypath, callback) -> 
+        subscribe: (templateId, keypath, callback) -> 
           # console.log("subscribe called with ", arguments)
-          callbacks[templateName][keypath] = callback
-        unsubscribe: (templateName, keypath, callback) ->
+          [circuitId, templateName] = decodeTemplateId(templateId) 
+          state[circuitId].callbacks[templateName][keypath] = callback
+        unsubscribe: (templateId, keypath, callback) ->
           # console.log("unsubscribe called with ", arguments)
-          delete callbacks[templateName][keypath]
-        read: (templateName, keypath) ->
+          [circuitId, templateName] = decodeTemplateId(templateId) 
+          delete state[circuitId].callbacks[templateName][keypath]
+        read: (templateId, keypath) ->
           # console.log("read called with ", arguments)
-          return templates[templateName]["values"][keypath]
-        publish: (templateName, keypath, value) ->
+          [circuitId, templateName] = decodeTemplateId(templateId) 
+          return state[circuitId].templates[templateName].values[keypath]
+        publish: (templateId, keypath, value) ->
           # console.log("publish called with ", arguments)
-          templates[templateName]["values"][keypath] = value
+          [circuitId, templateName] = decodeTemplateId(templateId) 
+          state[circuitId]/templates[templateId].values[keypath] = value
 
     return {
-      provideData: () -> return { receive: templates, send: {} }
+      provideData: -> 
+        return RW.mapToObject options.circuitIds, (circuitId) -> 
+          receive: state[circuitId].templates
+          send: {}
 
       establishData: (data, assets) -> 
-        newTemplateData = data.send 
+        for circuitId, circuitData of data
+          newTemplateData = circuitData.send 
 
-        # data.send and data.receive are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
-        existingTemplates = _.keys(templates)
-        newTemplates = _.keys(newTemplateData)
+          # data.send and data.receive are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
+          existingTemplates = _.keys(state[circuitId].templates)
+          newTemplates = _.keys(newTemplateData)
 
-        # Remove all templates that are no longer to be shown
-        for templateName in _.difference(existingTemplates, newTemplates) 
-          delete templates[templateName]
-          layers[templateName].remove()
-          delete layers[templateName]
-          views[templateName].unbind()
-          delete views[templateName]
-          delete callbacks[templateName]
+          # Remove all templates that are no longer to be shown
+          for templateName in _.difference(existingTemplates, newTemplates) 
+            delete state[circuitId].templates[templateName]
+            state[circuitId].layers[templateName].remove()
+            delete state[circuitId].layers[templateName]
+            state[circuitId].views[templateName].unbind()
+            delete state[circuitId].views[templateName]
+            delete state[circuitId].callbacks[templateName]
 
-        # Add new templates 
-        for templateName in _.difference(newTemplates, existingTemplates) 
-          # Create template
-          templateHtml = assets[newTemplateData[templateName].asset]
-          depth = options.layers[newTemplateData[templateName].layer] ? 100 # Default to 100
-          outerWrapper = $("<div id='html-#{templateName}' style='position: absolute; z-index: #{depth}; pointer-events: none; width: #{options.size[0]}px; height: #{options.size[1]}px'/>")
-          outerWrapper.append(templateHtml)
-          $(options.elementSelector).append(outerWrapper)
-          layers[templateName] = outerWrapper
+          # Add new templates 
+          for templateName in _.difference(newTemplates, existingTemplates) 
+            # Create template
+            templateHtml = assets[circuitId][newTemplateData[templateName].asset]
+            # TODO: create all layers before hand?
+            layerOptions = _.findWhere(options.layers, { circuitId: circuitId, name: templateName })
+            depth = layerOptions?.depth ? 100 # Default to 100
+            outerWrapper = $("<div id='html-#{circuitId}-#{templateName}' style='position: absolute; z-index: #{depth}; pointer-events: none; width: #{options.size[0]}px; height: #{options.size[1]}px'/>")
+            outerWrapper.append(templateHtml)
+            $(options.elementSelector).append(outerWrapper)
+            state[circuitId].layers[templateName] = outerWrapper
 
-          # Create newTemplateData
-          templates[templateName] = newTemplateData[templateName] 
-          # Bind to the template name
-          callbacks[templateName] = { } # Will be filled by calls to adapter.subscribe()
-          views[templateName] = rivets.bind(outerWrapper[0], { data: templateName })
+            # Create newTemplateData
+            state[circuitId].templates[templateName] = newTemplateData[templateName] 
+            # Bind to the template name
+            state[circuitId].callbacks[templateName] = { } # Will be filled by calls to adapter.subscribe()
+            state[circuitId].views[templateName] = rivets.bind(outerWrapper[0], { data: codeTemplateId(circuitId, templateName) })
 
-        # Update existing templates with new newTemplateData
-        for templateName in _.intersection(newTemplates, existingTemplates) 
-          # TODO: call individual binders instead of syncronizing the whole model?
-          #   for key in _.union(_.keys(newTemplateData[templateName].values), _.keys(templates[templateName].values)
-          if not _.isEqual(newTemplateData[templateName].values, templates[templateName].values)
-            templates[templateName].values = newTemplateData[templateName].values
-            views[templateName].sync() 
+          # Update existing templates with new newTemplateData
+          for templateName in _.intersection(newTemplates, existingTemplates) 
+            # TODO: call individual binders instead of syncronizing the whole model?
+            #   for key in _.union(_.keys(newTemplateData[templateName].values), _.keys(templates[templateName].values)
+            if not _.isEqual(newTemplateData[templateName].values, state[circuitId].templates[templateName].values)
+              state[circuitId].templates[templateName].values = newTemplateData[templateName].values
+              state[circuitId].views[templateName].sync() 
 
-        # Reset all event bindings to false
-        for templateName, view of views
-          for binding in view.bindings
-            if binding.type.indexOf("on-") == 0
-              templates[templateName]["values"][binding.keypath] = false
+          # Reset all event bindings to false
+          for templateName, view of state[circuitId].views
+            for binding in view.bindings
+              if binding.type.indexOf("on-") == 0
+                state[circuitId].templates[templateName].values[binding.keypath] = false
 
       # Remove all event handlers
       destroy: -> 
-        for templateName, view of views
-          view.unbind()
-        for templateName, layer of layers
-          layer.remove()
+        for circuitId, circuitState of state
+          for templateName, view of circuitState.views
+            view.unbind()
+          for templateName, layer of circuitState.layers
+            layer.remove()
     }
 
 # Define time io, that provides the current time in ms
 RW.io.time =  
   meta:
     visual: false
-  factory: ->
+  factory: (options = {}) ->
     provideData: -> 
       result = Date.now()
       return RW.mapToObject(options.circuitIds, -> result)
@@ -350,7 +366,7 @@ RW.io.time =
 RW.io.http =  
   meta:
     visual: false
-  factory: (options) ->
+  factory: (options = {}) ->
     state = RW.mapToObject options.circuitIds, -> 
       requests: {}
       responses: {}
@@ -397,23 +413,22 @@ RW.io.charts =
   meta:
     visual: true
   factory: (options = {}) ->
-    makeCharId = (circuitId, chartName) -> "#{circuitId}.#{chartName}"
+    makeChartId = (circuitId, chartName) -> "#{circuitId}.#{chartName}"
 
     capitalizeFirstLetter = (str) -> str[0].toUpperCase() + str.slice(1)
 
     # Format { circuitId: { name: { canvas:, data: }}} 
-    charts = {}
+    charts = RW.mapToObject(options.circuitIds, -> {})
 
     removeChart = (circuitId, chartId) ->
       charts[circuitId][chartId].canvas.remove()
       delete charts[circuitId][chartId]
 
     return {
-      provideData: -> {}
+      provideData: -> RW.mapToObject(options.circuitIds, -> {})
 
       establishData: (ioData, assets) -> 
         # Expecting ioData like { chartA: { size:, position:, depth:, data:, options: }}
-
         for circuitId in options.circuitIds
           # Remove old charts 
           for chartName in _.difference(_.keys(charts[circuitId]), _.keys(ioData[circuitId])) then removeChart(circuitId, chartName)

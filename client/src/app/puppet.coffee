@@ -111,15 +111,24 @@ destroyIo = (currentIo) ->
 
 # Converts the nested layers description into a simple list, ordered by depth
 flattenLayerList = (circuits) -> 
-  flattenRecursive = (circuitId, layerList) -> 
-    for layer in circuits[circuitId].io.layers
-      if layer.type is "circuit" then flattenRecursive(layer.name, layerList)
-      else layerList.push(layer)
+  flattenRecursive = (parentCircuitId, circuitType, layerList) -> 
+    for layer in circuits[circuitType].io.layers
+      if layer.type is "circuit" 
+        circuitId = RW.makeCircuitId(parentCircuitId, layer.name)
+        circuitMeta = _.findWhere(circuitMetas, { id: circuitId })
+        flattenRecursive(circuitId, circuitMeta.type, layerList)
+      else 
+        # Copy over layer, adding the circuitId
+        layerList.push(_.extend({}, layer, { circuitId: parentCircuitId }))
     return layerList
   
-  return flattenRecursive("main", [])
+  circuitMetas = RW.listCircuitMeta(circuits)
+  return flattenRecursive("main", "main", [])
 
-initializeIo = (circuits, circuitIds) ->
+initializeIo = (circuits) ->
+  circuitMetas = RW.listCircuitMeta(circuits)
+  circuitIds = _.pluck(circuitMetas, "id")
+
   # Get flattened list of layers
   layerList = flattenLayerList(circuits)
 
@@ -176,13 +185,13 @@ createAssets = (inputAssets, evaluator) ->
 loadGameCode = (gameCode, logFunction) ->
   evaluator = eval
   return {
-    circuits: for circuitId, circuit in gameCode.circuits
+    circuits: RW.mapObject gameCode.circuits, (circuit) ->
       processors: compileProcessors(circuit.processors, evaluator)
       switches: compileSwitches(circuit.switches, evaluator)
       transformers: compileTransformers(circuit.transformers, evaluator, logFunction)
       board: compileBoard(circuit.board, evaluator)
       assets: createAssets(circuit.assets, evaluator)
-    io: initializeIo(gameCode.circuits, RW.findCircuitIds(gameCode.circuits))
+    io: initializeIo(gameCode.circuits)
   }
 
 unloadGame = (loadedGame) ->
@@ -234,7 +243,7 @@ onRepeatPlayFrame = ->
     isPlaying = false
     playFrameReporter(new Error("Errors in playing"))
   else 
-    lastMemory = applyMemoryPatchesInCircuits(result.memoryPatches, lastMemory)
+    lastMemory = applyMemoryPatchesInCircuits(lastPlayedFrame.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatPlayFrame) # Loop!
 
 playBackFrame = (outputIoData) ->
