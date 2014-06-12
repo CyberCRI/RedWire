@@ -470,5 +470,6 @@ RW.io.charts =
             chart[capitalizeFirstLetter(chartData.type)](chartData.data, chartOptions)
 
       destroy: -> 
-        for chartName, canvas of charts then canvas.remove()
+        for circuitId, circuitCharts of charts
+          for chartName, canvas of circuitCharts then canvas.remove()
     }

@@ -562,7 +562,7 @@
         "lasers",
         "screenSize"
       ],
-      "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[0]) laser[0] = laser[0] + 20;\n    else delete lasers[key]; \n}\nreturn lasers;"
+      "body": "var lasers = RW.cloneData(lasers);\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[0] < screenSize[0]) laser[0] = laser[0] + 20;\n    else delete lasers[key]; \n}\nreturn lasers;"
     },
     "moveEnemy": {
       "args": [

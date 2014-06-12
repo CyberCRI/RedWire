@@ -88,14 +88,14 @@ angular.module('gamEvolve.game.player', [])
             sendMessage("updateFrames", { memory: gameHistory.data.frames[gameTime.currentFrameNumber].memory, inputIoDataFrames })
           else
             # Else just record the first frame
-            initialMemoryData = buildInitialMemoryData(gameCode.memory)
+            initialMemoryData = buildInitialMemoryData(gameCode.circuits)
             sendMessage("recordFrame", { memory: initialMemoryData })
       when "recordFrame"
         if message.type is "error" then throw new Error("Cannot deal with recordFrame error message")
 
         $scope.$apply ->
           # Set the first frame
-          initialMemoryData = buildInitialMemoryData(gameCode.memory)
+          initialMemoryData = buildInitialMemoryData(gameCode.circuits)
           newFrame = extendFrameResults(message.value, initialMemoryData)
 
           if message.value.errors
