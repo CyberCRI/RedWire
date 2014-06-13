@@ -773,7 +773,7 @@ describe "RedWire", ->
         io: io
         outputIoData: outputIoData
 
-      expect(io.myService.establishData).toHaveBeenCalledWith({ main: 1 }, [{}])
+      expect(io.myService.establishData).toHaveBeenCalledWith({ main: 1 }, { main: {} })
       expect(_.size(result.memoryPatches)).toBe(0)
       expect(_.size(result.ioPatches)).toBe(0)
 
@@ -812,7 +812,7 @@ describe "RedWire", ->
         io: io
         inputIoData: inputIoData
 
-      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } }, [{}])
+      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } }, { main: {} })
       expect(result.memoryPatches.main).toBeEmpty()
       expect(result.ioPatches.main.length).toEqual(1)
 
@@ -852,8 +852,8 @@ describe "RedWire", ->
             transformers: transformers
         io: io
 
-      expect(io.myService.provideData).toHaveBeenCalledWith([{}])
-      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } }, [{}])
+      expect(io.myService.provideData).toHaveBeenCalledWith({ main: {} })
+      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } }, { main: {} })
       expect(result.memoryPatches).toDeeplyEqual({ main: [] })
 
     it "rejects conflicting patches", ->

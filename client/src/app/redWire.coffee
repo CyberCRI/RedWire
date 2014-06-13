@@ -78,7 +78,7 @@ RW.makeEvaluationContext = (circuitMeta, constants, bindings) ->
   context = 
     memory: constants.memoryData[circuitMeta.id]
     io: constants.ioData[circuitMeta.id]
-    assets: constants.circuits[circuitMeta.type].assets.data
+    assets: constants.circuits[circuitMeta.type].assets
     transformers: constants.circuits[circuitMeta.type].transformers
     bindings: {}
   # Setup bindings
@@ -517,10 +517,8 @@ RW.stepLoop = (options) ->
     outputIoData: null 
     establishOutput: true
 
-  # Repackage assets as a map from circuitId to asset data
-  assetsByCircuit = {}
-  for circuitId, circuit of options.circuits
-    assetsByCircuit[circuitId] = circuit.assets.data
+  # Repackage assets as a map from circuitId to assets
+  assetsByCircuit = RW.pluckToObject(options.circuits, "assets")
 
   # Initialize return data
   memoryPatches = {}
