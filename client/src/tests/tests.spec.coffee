@@ -159,7 +159,7 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
+        processors: processors
       RW.stimulateCircuits(constants)
       expect(isCalled).toBeTruthy()
 
@@ -194,8 +194,8 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
-            switches: switches
+        processors: processors
+        switches: switches
       RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(3)
 
@@ -272,9 +272,9 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
-            switches: switches
-            transformers: transformers
+        processors: processors
+        switches: switches
+        transformers: transformers
         memoryData: 
           main: memoryData
         ioData: 
@@ -345,7 +345,7 @@ describe "RedWire", ->
           main: new RW.Circuit
             board: board
             assets: assets
-            processors: processors
+        processors: processors
         memoryData: 
           main: oldMemory
       results = RW.stimulateCircuits(constants)
@@ -462,8 +462,8 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
-            switches: switches
+        processors: processors
+        switches: switches
         memoryData: 
           main: memories[0]
       results = RW.stimulateCircuits(constants)
@@ -477,8 +477,8 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
-            switches: switches
+        processors: processors
+        switches: switches
         memoryData: 
           main: memories[1]
       results = RW.stimulateCircuits(constants)
@@ -525,7 +525,7 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
+        processors: processors
       RW.stimulateCircuits(constants)
 
       expect(processors.getName.update).toHaveBeenCalled()
@@ -571,7 +571,7 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
+        processors: processors
         memoryData: 
           main: oldMemory
       results = RW.stimulateCircuits(constants)
@@ -614,7 +614,7 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
+        processors: processors
         memoryData: 
           main: oldMemory
       results = RW.stimulateCircuits(constants)
@@ -647,7 +647,7 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
+        processors: processors
         ioData: 
           main: oldIoData
       results = RW.stimulateCircuits(constants)
@@ -687,17 +687,18 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            processors: processors
-            switches: switches
+        processors: processors
+        switches: switches
       RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(1)
 
     it "handles multiple circuits", ->
+      switches = 
+        doAll: 
+          pinDefs: {}
+
       circuits = 
         main: new RW.Circuit
-          switches:
-            doAll: 
-              pinDefs: {}
           board:
             switch: "doAll"
             children: [
@@ -740,6 +741,7 @@ describe "RedWire", ->
 
       constants = new RW.ChipVisitorConstants
         circuits: circuits 
+        switches: switches
         memoryData: memoryData
         ioData: ioData
       results = RW.stimulateCircuits(constants)
@@ -808,7 +810,7 @@ describe "RedWire", ->
         circuits: 
           main: new RW.Circuit
             board: board
-            processors: processors 
+        processors: processors 
         io: io
         inputIoData: inputIoData
 
@@ -848,8 +850,8 @@ describe "RedWire", ->
         circuits:
           main: new RW.Circuit
             board: board
-            processors: processors 
-            transformers: transformers
+        processors: processors 
+        transformers: transformers
         io: io
 
       expect(io.myService.provideData).toHaveBeenCalledWith({ main: {} })
@@ -903,8 +905,8 @@ describe "RedWire", ->
         circuits:
           main: new RW.Circuit
             board: boardA
-            switches: switches
-            processors: processors 
+        switches: switches
+        processors: processors 
         memoryData: 
           main: oldData
       expect(results.errors[0].stage).toBe("patchMemory")
@@ -934,7 +936,7 @@ describe "RedWire", ->
         circuits:
           main: new RW.Circuit
             board: boardB 
-            switches: switches
-            processors: processors 
+        switches: switches
+        processors: processors 
         io: io
       expect(results.errors[0].stage).toBe("patchIo")

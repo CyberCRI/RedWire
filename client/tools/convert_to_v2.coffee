@@ -31,13 +31,13 @@ for inputFileName in process.argv[2..]
   outputGame = 
     name: inputGame.name
     fileVersion: OUTPUT_VERSION
+    processors: inputGame.processors
+    switches: inputGame.switches
+    transformers: inputGame.transformers
     circuits: 
       main:
         memory: inputGame.memory
         board: inputGame.board
-        processors: inputGame.processors
-        switches: inputGame.switches
-        transformers: inputGame.transformers
         assets: inputGame.assets
         io: inputGame.io
 

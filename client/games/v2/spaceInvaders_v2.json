@@ -1,6 +1,283 @@
 {
   "name": "Space Invaders Coop (proto)",
   "fileVersion": 0.2,
+  "processors": {
+    "Change Parameter through Keyboard": {
+      "pinDefs": {
+        "parameter": {
+          "direction": "inout"
+        },
+        "keysDown": null,
+        "keyMap": null
+      },
+      "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
+    },
+    "Move thing with arrow keys": {
+      "pinDefs": {
+        "keysDown": {
+          "direction": "in",
+          "default": ""
+        },
+        "position": {
+          "direction": "inout",
+          "default": null
+        },
+        "speed": {
+          "direction": "in",
+          "default": "1"
+        }
+      },
+      "update": "if(pins.keysDown[37]) pins.position[0] -= pins.speed;\nif(pins.keysDown[39]) pins.position[0] += pins.speed;\n/*\nif(pins.keysDown[38]) pins.position[1] -= pins.speed;\nif(pins.keysDown[40]) pins.position[1] += pins.speed;\n*/"
+    },
+    "Detect Mouse": {
+      "pinDefs": {
+        "shapes": null,
+        "shape": {
+          "direction": "inout"
+        },
+        "mousePosition": null,
+        "mouseDown": null,
+        "state": {
+          "direction": "inout"
+        },
+        "dragStartPosition": {
+          "direction": "inout"
+        },
+        "minimumDragDistance": {
+          "default": "5"
+        }
+      },
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+    }
+  },
+  "switches": {
+    "Do in Parallel": {
+      "doc": "Just to place children under it",
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
+    "Do in Sequence": {
+      "pinDefs": {
+        "activeChild": {
+          "direction": "inout",
+          "default": 0
+        }
+      },
+      "listActiveChildren": "return [children[pins.activeChild]];",
+      "handleSignals": "if (signals[pins.activeChild] == RW.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return RW.signals.DONE;\n}"
+    },
+    "Do for Some Time": {
+      "pinDefs": {
+        "time": null,
+        "timer": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return children;",
+      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return RW.signals.DONE;\n}"
+    },
+    "Do While": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return !!pins.value ? children : [];",
+      "handleSignals": "if (!pins.value)\n  return RW.signals.DONE;"
+    },
+    "Do Forever": {
+      "pinDefs": {},
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
+    "When": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "if(RW.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
+    },
+    "If": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return pins.value ? [children[0]] : children.length > 1 ? [children[1]] : [];"
+    },
+    "Sandwhich": {
+      "pinDefs": {
+        "condition": null,
+        "started": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [children[0]];\n  } else {\n    pins.track = true;\n    return [children[1]];\n  }\n} else {\n  if (pins.condition) {\n    return [children[1]];\n  } else {\n    pins.track = false;\n    return [children[2]];\n  }\n}"
+    },
+    "Limit Rate": {
+      "pinDefs": {
+        "currentTime": null,
+        "minTime": null,
+        "lastTime": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
+      "handleSignals": "if(signals[0] == RW.signals.DONE) pins.lastTime = pins.currentTime;"
+    }
+  },
+  "transformers": {
+    "drawShape": {
+      "args": [
+        "shape",
+        "oldShapes"
+      ],
+      "body": "var shapes = oldShapes || {};\nshapes[_.uniqueId()] = shape;\nreturn shapes;"
+    },
+    "drawShapes": {
+      "args": [
+        "shapes"
+      ],
+      "body": "var that = transformers;\nreturn _.reduce(shapes, function (memo, shape) {\n  return that.drawShape(shape, memo);\n}, {});"
+    },
+    "pointIntersectsShape": {
+      "args": [
+        "point",
+        "shape"
+      ],
+      "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.center);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(point));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var pointInShapeFrame = Vector.create(point);\n  if (shape.translation)\n    pointInShapeFrame = pointInShapeFrame.subtract(shape.translation);\n  return pointInShapeFrame.elements[0] >= shape.position[0] && pointInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && pointInShapeFrame.elements[1] >= shape.position[1] && pointInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
+    },
+    "removeElement": {
+      "args": [
+        "tab",
+        "index"
+      ],
+      "body": "var newArray = [];\nfor (var i = 0; i < tab.length; i++) {\n  if (i != index)\n    newArray.push(tab[i]);\n}\nreturn newArray;"
+    },
+    "replace": {
+      "args": [
+        "oldPiece",
+        "newPiece",
+        "pieces"
+      ],
+      "body": "for (var i in pieces) {\n  var piece = pieces[i];\n  if (piece.col === oldPiece.col && piece.row === oldPiece.row) {\n    result = pieces.slice(0, i).concat(newPiece).concat(pieces.slice(i + 1, pieces.length));\n    return result;\n  }\n}\nreturn pieces;"
+    },
+    "coordinatesToString": {
+      "args": [
+        "coordinates"
+      ],
+      "body": "var x = coordinates[0] || coordinates.x;\nvar y = coordinates[1] || coordinates.y;\nreturn '[' + x + ', ' + y + ']';"
+    },
+    "pieceToString": {
+      "args": [
+        "piece"
+      ],
+      "body": "if (piece)\n  return '{col:' + piece.col + ', row:' + piece.row + ', type:' + piece.type + '}';\nelse\n  return piece;"
+    },
+    "piecesToString": {
+      "args": [
+        "pieces"
+      ],
+      "body": "var prvared = '{';\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (prvared !== '{') {\n    prvared += ', ';\n  }\n  prvared += transformers.pieceToString(piece);\n}\nprvared += '}';\nreturn prvared;"
+    },
+    "distance": {
+      "args": [
+        "povar1",
+        "povar2"
+      ],
+      "body": "var povar1x = povar1[0] || povar1.x;\nvar povar1y = povar1[1] || povar1.y;\nvar povar2x = povar2[0] || povar2.x;\nvar povar2y = povar2[1] || povar2.y;\nvar diffX = povar1x - povar2x;\nvar diffY = povar1y - povar2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
+    },
+    "calculateRotationAngle": {
+      "args": [
+        "center",
+        "mousePosition"
+      ],
+      "body": "var h = [\n    mousePosition[0] - center[0],\n    mousePosition[1] - center[1]\n  ];\nvar omDistance = Math.sqrt(h[0] * h[0] + h[1] * h[1]);\nvar ratio = -h[1] / omDistance;\nvar angle = 0;\nif (omDistance !== 0) {\n  var absValueAngle = Math.acos(ratio) * 180 / Math.PI;\n  if (h[0] <= 0) {\n    angle = -absValueAngle;\n  } else {\n    angle = absValueAngle;\n  }\n}\nreturn angle;"
+    },
+    "calculateRotationOffset": {
+      "args": [
+        "rotation",
+        "center",
+        "mousePosition"
+      ],
+      "body": "return rotation - transformers.calculateRotationAngle(center, mousePosition);"
+    },
+    "calculateRotation": {
+      "args": [
+        "rotationOffset",
+        "center",
+        "mousePosition"
+      ],
+      "body": "return transformers.calculateRotationAngle(center, mousePosition) + rotationOffset;"
+    },
+    "childByName": {
+      "args": [
+        "children",
+        "value"
+      ],
+      "body": "var childIndex = RW.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
+    },
+    "initializeStarfield": {
+      "args": [
+        "count",
+        "screenSize"
+      ],
+      "body": "var stars = []; \nfor(var i = 0; i < count; i++) { \n    stars.push({ \n        position: [Math.random()*screenSize[0], \n        Math.random()*screenSize[1]], \n        velocity: 1 + Math.random() * 5\n    }); \n} \nreturn stars;"
+    },
+    "updateStarfield": {
+      "args": [
+        "starfield",
+        "screenSize"
+      ],
+      "body": "/*\nvar stars = []; \nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    if(star.position[0] < 0) {\n        stars.push({ \n            position: [screenSize[0], Math.random() * screenSize[1]],\n            velocity: star.velocity\n        });\n    }\n    else { \n        stars.push({ position: [star.position[0] - star.velocity, star.position[1]], velocity: star.velocity }); \n    } \n}\nreturn stars;\n*/\n\nreturn starfield;"
+    },
+    "drawStarfield": {
+      "args": [
+        "starfield"
+      ],
+      "body": "var shapes = []; \n\nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    shapes.push({ \n        type: 'image', \n        asset: 'star', \n        layer: 'stars', \n        position: star.position \n    }); \n} \n\nreturn transformers.drawShapes(shapes);"
+    },
+    "updateLasers": {
+      "args": [
+        "lasers",
+        "screenSize"
+      ],
+      "body": "lasers = RW.cloneData(lasers);\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[1] > 0) laser[1] = laser[1] - 20;\n    else delete lasers[key]; \n}\nreturn lasers;"
+    },
+    "moveEnemy": {
+      "args": [
+        "enemy",
+        "frameNumber",
+        "enemySpeed"
+      ],
+      "body": "return [ \n    enemy.position[0] - enemySpeed, \n    enemy.startingPosition[1] + 100 * Math.sin(frameNumber / 20) \n];"
+    },
+    "shapesIntersect": {
+      "args": [
+        "left",
+        "right",
+        "assets"
+      ],
+      "body": "function makeSatObject(shape) {\n    switch(shape.type) {\n        case \"circle\":\n            return new SAT.Circle(new SAT.Vector(shape.position[0], shape.position[1]), shape.radius);\n        case \"rectangle\":\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), shape.size[0], shape.size[1]).toPolygon();\n        case \"image\":\n            var img = assets[shape.asset];\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), img.naturalWidth, img.naturalHeight).toPolygon();\n        default:\n            throw new Error(\"Cannot check intersection for shape of type: \" + shape.type);\n    }\n}\n\nfunction testIntersection(left, right) {\n    var leftSat = makeSatObject(left);\n    var rightSat = makeSatObject(right); \n    \n    if(leftSat instanceof SAT.Circle && rightSat instanceof SAT.Circle) {\n        return SAT.testCircleCircle(leftSat, rightSat);\n    }\n    \n    if (leftSat instanceof SAT.Circle && rightSat instanceof SAT.Polygon) {\n        return SAT.testCirclePolygon(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Circle) {\n        return SAT.testPolygonCircle(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Polygon) {\n        return SAT.testPolygonPolygon(leftSat, rightSat);\n    }\n    \n    throw new Error(\"Cannot test intersections between shapes of types \" + left.type + \" and \" + right.type);\n}\n\n// Convert to arrays if necessary\nvar leftList = _.isArray(left) ? left : [left];\nvar rightList = _.isArray(right) ? right : [right];\n\n// Check all intersections \nfor(var i = 0; i < leftList.length; i++) {\n    for(var j = 0; j < rightList.length; j++) {\n        if(testIntersection(leftList[i], rightList[j])) return [leftList[i], rightList[j]];  \n    }\n}\nreturn null; // No intersection"
+    },
+    "getAssetSize": {
+      "args": [
+        "asset"
+      ],
+      "body": "return [asset.naturalWidth, asset.naturalHeight];"
+    },
+    "makeLaserShapes": {
+      "args": [
+        "lasers",
+        "asset"
+      ],
+      "body": "var shapes = []; \nfor(var key in lasers) {  \n    var laser = lasers[key]; \n    shapes.push({ \n        type: 'image', \n        asset: asset, \n        layer: 'attacks', \n        position: laser }); \n} \nreturn shapes;    "
+    },
+    "makeSpriteShape": {
+      "args": [
+        "spriteSheet",
+        "position",
+        "frame",
+        "layer"
+      ],
+      "body": "// Assuming the frames are set left to right\nvar framesPerLine = spriteSheet.sheetSize[0] / spriteSheet.frameSize[0];\nvar imageCoords = [frame % framesPerLine, Math.floor(frame / framesPerLine)];\n\nreturn {\n    type: \"image\",\n    asset: spriteSheet.asset,\n    position: position,\n    offset: [imageCoords[0] * spriteSheet.frameSize[0], imageCoords[1] * spriteSheet.frameSize[1]],\n    size: spriteSheet.frameSize,\n    layer: layer\n};"
+    }
+  },
   "circuits": {
     "main": {
       "memory": {
@@ -336,283 +613,6 @@
             ]
           }
         ]
-      },
-      "processors": {
-        "Change Parameter through Keyboard": {
-          "pinDefs": {
-            "parameter": {
-              "direction": "inout"
-            },
-            "keysDown": null,
-            "keyMap": null
-          },
-          "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
-        },
-        "Move thing with arrow keys": {
-          "pinDefs": {
-            "keysDown": {
-              "direction": "in",
-              "default": ""
-            },
-            "position": {
-              "direction": "inout",
-              "default": null
-            },
-            "speed": {
-              "direction": "in",
-              "default": "1"
-            }
-          },
-          "update": "if(pins.keysDown[37]) pins.position[0] -= pins.speed;\nif(pins.keysDown[39]) pins.position[0] += pins.speed;\n/*\nif(pins.keysDown[38]) pins.position[1] -= pins.speed;\nif(pins.keysDown[40]) pins.position[1] += pins.speed;\n*/"
-        },
-        "Detect Mouse": {
-          "pinDefs": {
-            "shapes": null,
-            "shape": {
-              "direction": "inout"
-            },
-            "mousePosition": null,
-            "mouseDown": null,
-            "state": {
-              "direction": "inout"
-            },
-            "dragStartPosition": {
-              "direction": "inout"
-            },
-            "minimumDragDistance": {
-              "default": "5"
-            }
-          },
-          "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
-        }
-      },
-      "switches": {
-        "Do in Parallel": {
-          "doc": "Just to place children under it",
-          "listActiveChildren": "return children;",
-          "handleSignals": ""
-        },
-        "Do in Sequence": {
-          "pinDefs": {
-            "activeChild": {
-              "direction": "inout",
-              "default": 0
-            }
-          },
-          "listActiveChildren": "return [children[pins.activeChild]];",
-          "handleSignals": "if (signals[pins.activeChild] == RW.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return RW.signals.DONE;\n}"
-        },
-        "Do for Some Time": {
-          "pinDefs": {
-            "time": null,
-            "timer": {
-              "direction": "inout"
-            }
-          },
-          "listActiveChildren": "return children;",
-          "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return RW.signals.DONE;\n}"
-        },
-        "Do While": {
-          "pinDefs": {
-            "value": null
-          },
-          "listActiveChildren": "return !!pins.value ? children : [];",
-          "handleSignals": "if (!pins.value)\n  return RW.signals.DONE;"
-        },
-        "Do Forever": {
-          "pinDefs": {},
-          "listActiveChildren": "return children;",
-          "handleSignals": ""
-        },
-        "When": {
-          "pinDefs": {
-            "value": null
-          },
-          "listActiveChildren": "if(RW.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
-        },
-        "If": {
-          "pinDefs": {
-            "value": null
-          },
-          "listActiveChildren": "return pins.value ? [children[0]] : children.length > 1 ? [children[1]] : [];"
-        },
-        "Sandwhich": {
-          "pinDefs": {
-            "condition": null,
-            "started": {
-              "direction": "inout"
-            }
-          },
-          "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [children[0]];\n  } else {\n    pins.track = true;\n    return [children[1]];\n  }\n} else {\n  if (pins.condition) {\n    return [children[1]];\n  } else {\n    pins.track = false;\n    return [children[2]];\n  }\n}"
-        },
-        "Limit Rate": {
-          "pinDefs": {
-            "currentTime": null,
-            "minTime": null,
-            "lastTime": {
-              "direction": "inout"
-            }
-          },
-          "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
-          "handleSignals": "if(signals[0] == RW.signals.DONE) pins.lastTime = pins.currentTime;"
-        }
-      },
-      "transformers": {
-        "drawShape": {
-          "args": [
-            "shape",
-            "oldShapes"
-          ],
-          "body": "var shapes = oldShapes || {};\nshapes[_.uniqueId()] = shape;\nreturn shapes;"
-        },
-        "drawShapes": {
-          "args": [
-            "shapes"
-          ],
-          "body": "var that = transformers;\nreturn _.reduce(shapes, function (memo, shape) {\n  return that.drawShape(shape, memo);\n}, {});"
-        },
-        "pointIntersectsShape": {
-          "args": [
-            "point",
-            "shape"
-          ],
-          "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.center);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(point));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var pointInShapeFrame = Vector.create(point);\n  if (shape.translation)\n    pointInShapeFrame = pointInShapeFrame.subtract(shape.translation);\n  return pointInShapeFrame.elements[0] >= shape.position[0] && pointInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && pointInShapeFrame.elements[1] >= shape.position[1] && pointInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
-        },
-        "removeElement": {
-          "args": [
-            "tab",
-            "index"
-          ],
-          "body": "var newArray = [];\nfor (var i = 0; i < tab.length; i++) {\n  if (i != index)\n    newArray.push(tab[i]);\n}\nreturn newArray;"
-        },
-        "replace": {
-          "args": [
-            "oldPiece",
-            "newPiece",
-            "pieces"
-          ],
-          "body": "for (var i in pieces) {\n  var piece = pieces[i];\n  if (piece.col === oldPiece.col && piece.row === oldPiece.row) {\n    result = pieces.slice(0, i).concat(newPiece).concat(pieces.slice(i + 1, pieces.length));\n    return result;\n  }\n}\nreturn pieces;"
-        },
-        "coordinatesToString": {
-          "args": [
-            "coordinates"
-          ],
-          "body": "var x = coordinates[0] || coordinates.x;\nvar y = coordinates[1] || coordinates.y;\nreturn '[' + x + ', ' + y + ']';"
-        },
-        "pieceToString": {
-          "args": [
-            "piece"
-          ],
-          "body": "if (piece)\n  return '{col:' + piece.col + ', row:' + piece.row + ', type:' + piece.type + '}';\nelse\n  return piece;"
-        },
-        "piecesToString": {
-          "args": [
-            "pieces"
-          ],
-          "body": "var prvared = '{';\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (prvared !== '{') {\n    prvared += ', ';\n  }\n  prvared += transformers.pieceToString(piece);\n}\nprvared += '}';\nreturn prvared;"
-        },
-        "distance": {
-          "args": [
-            "povar1",
-            "povar2"
-          ],
-          "body": "var povar1x = povar1[0] || povar1.x;\nvar povar1y = povar1[1] || povar1.y;\nvar povar2x = povar2[0] || povar2.x;\nvar povar2y = povar2[1] || povar2.y;\nvar diffX = povar1x - povar2x;\nvar diffY = povar1y - povar2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
-        },
-        "calculateRotationAngle": {
-          "args": [
-            "center",
-            "mousePosition"
-          ],
-          "body": "var h = [\n    mousePosition[0] - center[0],\n    mousePosition[1] - center[1]\n  ];\nvar omDistance = Math.sqrt(h[0] * h[0] + h[1] * h[1]);\nvar ratio = -h[1] / omDistance;\nvar angle = 0;\nif (omDistance !== 0) {\n  var absValueAngle = Math.acos(ratio) * 180 / Math.PI;\n  if (h[0] <= 0) {\n    angle = -absValueAngle;\n  } else {\n    angle = absValueAngle;\n  }\n}\nreturn angle;"
-        },
-        "calculateRotationOffset": {
-          "args": [
-            "rotation",
-            "center",
-            "mousePosition"
-          ],
-          "body": "return rotation - transformers.calculateRotationAngle(center, mousePosition);"
-        },
-        "calculateRotation": {
-          "args": [
-            "rotationOffset",
-            "center",
-            "mousePosition"
-          ],
-          "body": "return transformers.calculateRotationAngle(center, mousePosition) + rotationOffset;"
-        },
-        "childByName": {
-          "args": [
-            "children",
-            "value"
-          ],
-          "body": "var childIndex = RW.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
-        },
-        "initializeStarfield": {
-          "args": [
-            "count",
-            "screenSize"
-          ],
-          "body": "var stars = []; \nfor(var i = 0; i < count; i++) { \n    stars.push({ \n        position: [Math.random()*screenSize[0], \n        Math.random()*screenSize[1]], \n        velocity: 1 + Math.random() * 5\n    }); \n} \nreturn stars;"
-        },
-        "updateStarfield": {
-          "args": [
-            "starfield",
-            "screenSize"
-          ],
-          "body": "/*\nvar stars = []; \nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    if(star.position[0] < 0) {\n        stars.push({ \n            position: [screenSize[0], Math.random() * screenSize[1]],\n            velocity: star.velocity\n        });\n    }\n    else { \n        stars.push({ position: [star.position[0] - star.velocity, star.position[1]], velocity: star.velocity }); \n    } \n}\nreturn stars;\n*/\n\nreturn starfield;"
-        },
-        "drawStarfield": {
-          "args": [
-            "starfield"
-          ],
-          "body": "var shapes = []; \n\nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    shapes.push({ \n        type: 'image', \n        asset: 'star', \n        layer: 'stars', \n        position: star.position \n    }); \n} \n\nreturn transformers.drawShapes(shapes);"
-        },
-        "updateLasers": {
-          "args": [
-            "lasers",
-            "screenSize"
-          ],
-          "body": "lasers = RW.cloneData(lasers);\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if(laser[1] > 0) laser[1] = laser[1] - 20;\n    else delete lasers[key]; \n}\nreturn lasers;"
-        },
-        "moveEnemy": {
-          "args": [
-            "enemy",
-            "frameNumber",
-            "enemySpeed"
-          ],
-          "body": "return [ \n    enemy.position[0] - enemySpeed, \n    enemy.startingPosition[1] + 100 * Math.sin(frameNumber / 20) \n];"
-        },
-        "shapesIntersect": {
-          "args": [
-            "left",
-            "right",
-            "assets"
-          ],
-          "body": "function makeSatObject(shape) {\n    switch(shape.type) {\n        case \"circle\":\n            return new SAT.Circle(new SAT.Vector(shape.position[0], shape.position[1]), shape.radius);\n        case \"rectangle\":\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), shape.size[0], shape.size[1]).toPolygon();\n        case \"image\":\n            var img = assets[shape.asset];\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), img.naturalWidth, img.naturalHeight).toPolygon();\n        default:\n            throw new Error(\"Cannot check intersection for shape of type: \" + shape.type);\n    }\n}\n\nfunction testIntersection(left, right) {\n    var leftSat = makeSatObject(left);\n    var rightSat = makeSatObject(right); \n    \n    if(leftSat instanceof SAT.Circle && rightSat instanceof SAT.Circle) {\n        return SAT.testCircleCircle(leftSat, rightSat);\n    }\n    \n    if (leftSat instanceof SAT.Circle && rightSat instanceof SAT.Polygon) {\n        return SAT.testCirclePolygon(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Circle) {\n        return SAT.testPolygonCircle(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Polygon) {\n        return SAT.testPolygonPolygon(leftSat, rightSat);\n    }\n    \n    throw new Error(\"Cannot test intersections between shapes of types \" + left.type + \" and \" + right.type);\n}\n\n// Convert to arrays if necessary\nvar leftList = _.isArray(left) ? left : [left];\nvar rightList = _.isArray(right) ? right : [right];\n\n// Check all intersections \nfor(var i = 0; i < leftList.length; i++) {\n    for(var j = 0; j < rightList.length; j++) {\n        if(testIntersection(leftList[i], rightList[j])) return [leftList[i], rightList[j]];  \n    }\n}\nreturn null; // No intersection"
-        },
-        "getAssetSize": {
-          "args": [
-            "asset"
-          ],
-          "body": "return [asset.naturalWidth, asset.naturalHeight];"
-        },
-        "makeLaserShapes": {
-          "args": [
-            "lasers",
-            "asset"
-          ],
-          "body": "var shapes = []; \nfor(var key in lasers) {  \n    var laser = lasers[key]; \n    shapes.push({ \n        type: 'image', \n        asset: asset, \n        layer: 'attacks', \n        position: laser }); \n} \nreturn shapes;    "
-        },
-        "makeSpriteShape": {
-          "args": [
-            "spriteSheet",
-            "position",
-            "frame",
-            "layer"
-          ],
-          "body": "// Assuming the frames are set left to right\nvar framesPerLine = spriteSheet.sheetSize[0] / spriteSheet.frameSize[0];\nvar imageCoords = [frame % framesPerLine, Math.floor(frame / framesPerLine)];\n\nreturn {\n    type: \"image\",\n    asset: spriteSheet.asset,\n    position: position,\n    offset: [imageCoords[0] * spriteSheet.frameSize[0], imageCoords[1] * spriteSheet.frameSize[1]],\n    size: spriteSheet.frameSize,\n    layer: layer\n};"
-        }
       },
       "assets": {
         "SAT.min.js": "data:text/javascript;base64,LyogU0FULmpzIC0gVmVyc2lvbiAwLjMgLSBDb3B5cmlnaHQgMjAxMyAtIEppbSBSaWVja2VuIDxqaW1yQGppbXIuY2E+IC0gcmVsZWFzZWQgdW5kZXIgdGhlIE1JVCBMaWNlbnNlLiBodHRwczovL2dpdGh1Yi5jb20vanJpZWNrZW4vc2F0LWpzICovCmZ1bmN0aW9uIHgoKXtmdW5jdGlvbiBjKGIsZCl7dGhpcy54PWJ8fDA7dGhpcy55PWR8fDB9ZnVuY3Rpb24gayhiLGQpe3RoaXMucG9zPWJ8fG5ldyBjO3RoaXMucG9pbnRzPWR8fFtdO3RoaXMucmVjYWxjKCl9ZnVuY3Rpb24gdihiLGQsYSl7dGhpcy5wb3M9Ynx8bmV3IGM7dGhpcy53PWR8fDA7dGhpcy5oPWF8fDB9ZnVuY3Rpb24gdygpe3RoaXMuYj10aGlzLmE9bnVsbDt0aGlzLm92ZXJsYXBOPW5ldyBjO3RoaXMub3ZlcmxhcFY9bmV3IGM7dGhpcy5jbGVhcigpfWZ1bmN0aW9uIEEoYixkLGEpe2Zvcih2YXIgbD1OdW1iZXIuTUFYX1ZBTFVFLGM9LU51bWJlci5NQVhfVkFMVUUsZT1iLmxlbmd0aCxoPTA7aDxlO2grKyl7dmFyIGc9YltoXS5jKGQpO2c8bCYmKGw9Zyk7Zz5jJiYoYz1nKX1hWzBdPWw7YVsxXT1jfWZ1bmN0aW9uIEIoYixkLGEsbCxjLG0pe3ZhciBoPXEucG9wKCksZz1xLnBvcCgpO2I9ZS5wb3AoKS5jb3B5KGQpLnN1YihiKTtkPWIuYyhjKTtBKGEsYyxoKTtBKGwsYywKZyk7Z1swXSs9ZDtnWzFdKz1kO2lmKGhbMF0+Z1sxXXx8Z1swXT5oWzFdKXJldHVybiBlLnB1c2goYikscS5wdXNoKGgpLHEucHVzaChnKSwhMDttJiYoYT0wLGhbMF08Z1swXT8obS5hSW5CPSExLGhbMV08Z1sxXT8oYT1oWzFdLWdbMF0sbS5iSW5BPSExKTooYT1oWzFdLWdbMF0sbD1nWzFdLWhbMF0sYT1hPGw/YTotbCkpOihtLmJJbkE9ITEsaFsxXT5nWzFdPyhhPWhbMF0tZ1sxXSxtLmFJbkI9ITEpOihhPWhbMV0tZ1swXSxsPWdbMV0taFswXSxhPWE8bD9hOi1sKSksbD1NYXRoLmFicyhhKSxsPG0ub3ZlcmxhcCYmKG0ub3ZlcmxhcD1sLG0ub3ZlcmxhcE4uY29weShjKSwwPmEmJm0ub3ZlcmxhcE4ucmV2ZXJzZSgpKSk7ZS5wdXNoKGIpO3EucHVzaChoKTtxLnB1c2goZyk7cmV0dXJuITF9ZnVuY3Rpb24geShiLGQpe3ZhciBhPWIuZCgpLGM9ZC5jKGIpO3JldHVybiAwPmM/LTE6Yz5hPzE6MH1mdW5jdGlvbiBDKGIsZCxhKXtmb3IodmFyIGM9ZS5wb3AoKS5jb3B5KGQucG9zKS5zdWIoYi5wb3MpLAp0PWQucixtPXQqdCxoPWIucG9pbnRzLGc9aC5sZW5ndGgsZj1lLnBvcCgpLHA9ZS5wb3AoKSxrPTA7azxnO2srKyl7dmFyIHM9az09PWctMT8wOmsrMSxxPTA9PT1rP2ctMTprLTEsdT0wLHI9bnVsbDtmLmNvcHkoYi5lZGdlc1trXSk7cC5jb3B5KGMpLnN1YihoW2tdKTthJiZwLmQoKT5tJiYoYS5hSW5CPSExKTt2YXIgbj15KGYscCk7aWYoLTE9PT1uKXtmLmNvcHkoYi5lZGdlc1txXSk7cz1lLnBvcCgpLmNvcHkoYykuc3ViKGhbcV0pO249eShmLHMpO2lmKDE9PT1uKXtuPXAuZSgpO2lmKG4+dClyZXR1cm4gZS5wdXNoKGMpLGUucHVzaChmKSxlLnB1c2gocCksZS5wdXNoKHMpLCExO2EmJihhLmJJbkE9ITEscj1wLm5vcm1hbGl6ZSgpLHU9dC1uKX1lLnB1c2gocyl9ZWxzZSBpZigxPT09bil7aWYoZi5jb3B5KGIuZWRnZXNbc10pLHAuY29weShjKS5zdWIoaFtzXSksbj15KGYscCksLTE9PT1uKXtuPXAuZSgpO2lmKG4+dClyZXR1cm4gZS5wdXNoKGMpLGUucHVzaChmKSxlLnB1c2gocCksCiExO2EmJihhLmJJbkE9ITEscj1wLm5vcm1hbGl6ZSgpLHU9dC1uKX19ZWxzZXtzPWYuZigpLm5vcm1hbGl6ZSgpO249cC5jKHMpO3E9TWF0aC5hYnMobik7aWYoMDxuJiZxPnQpcmV0dXJuIGUucHVzaChjKSxlLnB1c2gocyksZS5wdXNoKHApLCExO2EmJihyPXMsdT10LW4sMDw9bnx8dTwyKnQpJiYoYS5iSW5BPSExKX1yJiZhJiZNYXRoLmFicyh1KTxNYXRoLmFicyhhLm92ZXJsYXApJiYoYS5vdmVybGFwPXUsYS5vdmVybGFwTi5jb3B5KHIpKX1hJiYoYS5hPWIsYS5iPWQsYS5vdmVybGFwVi5jb3B5KGEub3ZlcmxhcE4pLnNjYWxlKGEub3ZlcmxhcCkpO2UucHVzaChjKTtlLnB1c2goZik7ZS5wdXNoKHApO3JldHVybiEwfWZ1bmN0aW9uIEQoYixkLGEpe2Zvcih2YXIgYz1iLnBvaW50cyxlPWMubGVuZ3RoLGY9ZC5wb2ludHMsaD1mLmxlbmd0aCxnPTA7ZzxlO2crKylpZihCKGIucG9zLGQucG9zLGMsZixiLm5vcm1hbHNbZ10sYSkpcmV0dXJuITE7Zm9yKGc9MDtnPGg7ZysrKWlmKEIoYi5wb3MsCmQucG9zLGMsZixkLm5vcm1hbHNbZ10sYSkpcmV0dXJuITE7YSYmKGEuYT1iLGEuYj1kLGEub3ZlcmxhcFYuY29weShhLm92ZXJsYXBOKS5zY2FsZShhLm92ZXJsYXApKTtyZXR1cm4hMH12YXIgZj17fTtmLlZlY3Rvcj1jO2YuVj1jO2MucHJvdG90eXBlLmNvcHk9Yy5wcm90b3R5cGUuY29weT1mdW5jdGlvbihiKXt0aGlzLng9Yi54O3RoaXMueT1iLnk7cmV0dXJuIHRoaXN9O2MucHJvdG90eXBlLnBlcnA9Yy5wcm90b3R5cGUuZj1mdW5jdGlvbigpe3ZhciBiPXRoaXMueDt0aGlzLng9dGhpcy55O3RoaXMueT0tYjtyZXR1cm4gdGhpc307Yy5wcm90b3R5cGUucm90YXRlPWMucHJvdG90eXBlLnJvdGF0ZT1mdW5jdGlvbihiKXt2YXIgZD10aGlzLngsYT10aGlzLnk7dGhpcy54PWQqTWF0aC5jb3MoYiktYSpNYXRoLnNpbihiKTt0aGlzLnk9ZCpNYXRoLnNpbihiKSthKk1hdGguY29zKGIpO3JldHVybiB0aGlzfTtjLnByb3RvdHlwZS5yZXZlcnNlPWMucHJvdG90eXBlLnJldmVyc2U9ZnVuY3Rpb24oKXt0aGlzLng9Ci10aGlzLng7dGhpcy55PS10aGlzLnk7cmV0dXJuIHRoaXN9O2MucHJvdG90eXBlLm5vcm1hbGl6ZT1jLnByb3RvdHlwZS5ub3JtYWxpemU9ZnVuY3Rpb24oKXt2YXIgYj10aGlzLmUoKTswPGImJih0aGlzLngvPWIsdGhpcy55Lz1iKTtyZXR1cm4gdGhpc307Yy5wcm90b3R5cGUuYWRkPWMucHJvdG90eXBlLmFkZD1mdW5jdGlvbihiKXt0aGlzLngrPWIueDt0aGlzLnkrPWIueTtyZXR1cm4gdGhpc307Yy5wcm90b3R5cGUuc3ViPWMucHJvdG90eXBlLnN1Yj1mdW5jdGlvbihiKXt0aGlzLngtPWIueDt0aGlzLnktPWIueTtyZXR1cm4gdGhpc307Yy5wcm90b3R5cGUuc2NhbGU9Yy5wcm90b3R5cGUuc2NhbGU9ZnVuY3Rpb24oYixkKXt0aGlzLngqPWI7dGhpcy55Kj1kfHxiO3JldHVybiB0aGlzfTtjLnByb3RvdHlwZS5wcm9qZWN0PWMucHJvdG90eXBlLmc9ZnVuY3Rpb24oYil7dmFyIGQ9dGhpcy5jKGIpL2IuZCgpO3RoaXMueD1kKmIueDt0aGlzLnk9ZCpiLnk7cmV0dXJuIHRoaXN9OwpjLnByb3RvdHlwZS5wcm9qZWN0Tj1jLnByb3RvdHlwZS5pPWZ1bmN0aW9uKGIpe3ZhciBkPXRoaXMuYyhiKTt0aGlzLng9ZCpiLng7dGhpcy55PWQqYi55O3JldHVybiB0aGlzfTtjLnByb3RvdHlwZS5yZWZsZWN0PWZ1bmN0aW9uKGIpe3ZhciBkPXRoaXMueCxhPXRoaXMueTt0aGlzLmcoYikuc2NhbGUoMik7dGhpcy54LT1kO3RoaXMueS09YTtyZXR1cm4gdGhpc307Yy5wcm90b3R5cGUucmVmbGVjdE49ZnVuY3Rpb24oYil7dmFyIGQ9dGhpcy54LGE9dGhpcy55O3RoaXMuaShiKS5zY2FsZSgyKTt0aGlzLngtPWQ7dGhpcy55LT1hO3JldHVybiB0aGlzfTtjLnByb3RvdHlwZS5kb3Q9Yy5wcm90b3R5cGUuYz1mdW5jdGlvbihiKXtyZXR1cm4gdGhpcy54KmIueCt0aGlzLnkqYi55fTtjLnByb3RvdHlwZS5sZW4yPWMucHJvdG90eXBlLmQ9ZnVuY3Rpb24oKXtyZXR1cm4gdGhpcy5jKHRoaXMpfTtjLnByb3RvdHlwZS5sZW49Yy5wcm90b3R5cGUuZT1mdW5jdGlvbigpe3JldHVybiBNYXRoLnNxcnQodGhpcy5kKCkpfTsKZi5DaXJjbGU9ZnVuY3Rpb24oYixkKXt0aGlzLnBvcz1ifHxuZXcgYzt0aGlzLnI9ZHx8MH07Zi5Qb2x5Z29uPWs7ay5wcm90b3R5cGUucmVjYWxjPWsucHJvdG90eXBlLnJlY2FsYz1mdW5jdGlvbigpe3RoaXMuZWRnZXM9W107dGhpcy5ub3JtYWxzPVtdO2Zvcih2YXIgYj10aGlzLnBvaW50cyxkPWIubGVuZ3RoLGE9MDthPGQ7YSsrKXt2YXIgbD1iW2FdLGw9KG5ldyBjKS5jb3B5KGE8ZC0xP2JbYSsxXTpiWzBdKS5zdWIobCksZT0obmV3IGMpLmNvcHkobCkuZigpLm5vcm1hbGl6ZSgpO3RoaXMuZWRnZXMucHVzaChsKTt0aGlzLm5vcm1hbHMucHVzaChlKX1yZXR1cm4gdGhpc307ay5wcm90b3R5cGUucm90YXRlPWsucHJvdG90eXBlLnJvdGF0ZT1mdW5jdGlvbihiKXt2YXIgZCxhPXRoaXMucG9pbnRzLGM9dGhpcy5lZGdlcyxlPXRoaXMubm9ybWFscyxmPWEubGVuZ3RoO2ZvcihkPTA7ZDxmO2QrKylhW2RdLnJvdGF0ZShiKSxjW2RdLnJvdGF0ZShiKSxlW2RdLnJvdGF0ZShiKTtyZXR1cm4gdGhpc307CmsucHJvdG90eXBlLnRyYW5zbGF0ZT1rLnByb3RvdHlwZS50cmFuc2xhdGU9ZnVuY3Rpb24oYixkKXt2YXIgYSxjPXRoaXMucG9pbnRzLGU9Yy5sZW5ndGg7Zm9yKGE9MDthPGU7YSsrKWNbYV0ueCs9YixjW2FdLnkrPWQ7cmV0dXJuIHRoaXN9O2YuQm94PXY7di5wcm90b3R5cGUudG9Qb2x5Z29uPXYucHJvdG90eXBlLmo9ZnVuY3Rpb24oKXt2YXIgYj10aGlzLnBvcyxkPXRoaXMudyxhPXRoaXMuaDtyZXR1cm4gbmV3IGsobmV3IGMoYi54LGIueSksW25ldyBjLG5ldyBjKGQsMCksbmV3IGMoZCxhKSxuZXcgYygwLGEpXSl9O2YuUmVzcG9uc2U9dzt3LnByb3RvdHlwZS5jbGVhcj13LnByb3RvdHlwZS5jbGVhcj1mdW5jdGlvbigpe3RoaXMuYkluQT10aGlzLmFJbkI9ITA7dGhpcy5vdmVybGFwPU51bWJlci5NQVhfVkFMVUU7cmV0dXJuIHRoaXN9O2Zvcih2YXIgZT1bXSxyPTA7MTA+cjtyKyspZS5wdXNoKG5ldyBjKTtmb3IodmFyIHE9W10scj0wOzU+cjtyKyspcS5wdXNoKFtdKTt2YXIgej0KbmV3IHcsRT0obmV3IHYobmV3IGMsMSwxKSkuaigpO2YucG9pbnRJbkNpcmNsZT1mdW5jdGlvbihiLGMpe3JldHVybiBlLnBvcCgpLmNvcHkoYikuc3ViKGMucG9zKS5kKCk8PWMucipjLnJ9O2YucG9pbnRJblBvbHlnb249ZnVuY3Rpb24oYixjKXtFLnBvcy5jb3B5KGIpO3ouY2xlYXIoKTt2YXIgYT1EKEUsYyx6KTthJiYoYT16LmFJbkIpO3JldHVybiBhfTtmLnRlc3RDaXJjbGVDaXJjbGU9ZnVuY3Rpb24oYixjLGEpe3ZhciBmPWUucG9wKCkuY29weShjLnBvcykuc3ViKGIucG9zKSxrPWIucitjLnIsbT1mLmQoKTtpZihtPmsqaylyZXR1cm4gZS5wdXNoKGYpLCExO2EmJihtPU1hdGguc3FydChtKSxhLmE9YixhLmI9YyxhLm92ZXJsYXA9ay1tLGEub3ZlcmxhcE4uY29weShmLm5vcm1hbGl6ZSgpKSxhLm92ZXJsYXBWLmNvcHkoZikuc2NhbGUoYS5vdmVybGFwKSxhLmFJbkI9Yi5yPD1jLnImJm08PWMuci1iLnIsYS5iSW5BPWMucjw9Yi5yJiZtPD1iLnItYy5yKTtlLnB1c2goZik7CnJldHVybiEwfTtmLnRlc3RQb2x5Z29uQ2lyY2xlPUM7Zi50ZXN0Q2lyY2xlUG9seWdvbj1mdW5jdGlvbihiLGMsYSl7aWYoKGI9QyhjLGIsYSkpJiZhKXtjPWEuYTt2YXIgZT1hLmFJbkI7YS5vdmVybGFwTi5yZXZlcnNlKCk7YS5vdmVybGFwVi5yZXZlcnNlKCk7YS5hPWEuYjthLmI9YzthLmFJbkI9YS5iSW5BO2EuYkluQT1lfXJldHVybiBifTtmLnRlc3RQb2x5Z29uUG9seWdvbj1EO3JldHVybiBmfSJmdW5jdGlvbiI9PT10eXBlb2YgZGVmaW5lJiZkZWZpbmUuYW1kP2RlZmluZSh4KToib2JqZWN0Ij09PXR5cGVvZiBleHBvcnRzP21vZHVsZS5leHBvcnRzPXgoKTp0aGlzLlNBVD14KCk7",

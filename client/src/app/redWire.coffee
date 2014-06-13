@@ -13,15 +13,15 @@ RW.Circuit = class
     _.defaults this, options,
       board: {}
       assets: {}
-      processors: {}
-      switches: {}
-      transformers: {}
 
 RW.ChipVisitorConstants = class 
   constructor: (options) -> 
     _.defaults this, options,
       circuits: 
         main: new RW.Circuit()
+      processors: {}
+      switches: {}
+      transformers: {}
       memoryData: {} # Map of circuitIds to data
       ioData: {} # Map of circuitIds to data
 
@@ -79,7 +79,7 @@ RW.makeEvaluationContext = (circuitMeta, constants, bindings) ->
     memory: constants.memoryData[circuitMeta.id]
     io: constants.ioData[circuitMeta.id]
     assets: constants.circuits[circuitMeta.type].assets
-    transformers: constants.circuits[circuitMeta.type].transformers
+    transformers: constants.transformers
     bindings: {}
   # Setup bindings
   for bindingName, bindingValue of bindings
@@ -267,7 +267,7 @@ RW.evaluateInputPinExpressions = (circuitMeta, path, constants, evaluationContex
     else if pinOptions.default? 
       pinFunction = pinOptions.default
     else 
-      throw RW.makeExecutionError("Missing input pin expression function for pin '#{pinName}'", ciruitMeta, path)
+      throw RW.makeExecutionError("Missing input pin expression function for pin '#{pinName}'", circuitMeta, path)
     
     try
       # Get the value
@@ -277,7 +277,7 @@ RW.evaluateInputPinExpressions = (circuitMeta, path, constants, evaluationContex
       if pinOptions.direction is "inout"
         evaluatedPins[pinName] = RW.cloneData(evaluatedPins[pinName]) 
     catch error
-      throw RW.makeExecutionError("Error evaluating the input pin expression expression '#{pinFunction}' for pin '#{pinName}': #{RW.formatStackTrace(error)}", ciruitMeta, path)
+      throw RW.makeExecutionError("Error evaluating the input pin expression expression '#{pinFunction}' for pin '#{pinName}': #{RW.formatStackTrace(error)}", circuitMeta, path)
   return evaluatedPins
 
 # Updates the evaluation context by evaluating the output pin expressions
@@ -287,7 +287,7 @@ RW.evaluateOutputPinExpressions = (circuitMeta, path, constants, bindings, evalu
     try
       outputValue = RW.evaluateExpressionFunction(evaluationContext, pinFunction, evaluatedPins)
     catch error
-      throw RW.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{RW.formatStackTrace(error)}\nPin values were #{JSON.stringify(evaluatedPins)}.", ciruitMeta, path)
+      throw RW.makeExecutionError("Error evaluating the output pin expression '#{pinFunction}' for pin '#{pinName}': #{RW.formatStackTrace(error)}\nPin values were #{JSON.stringify(evaluatedPins)}.", circuitMeta, path)
 
     RW.derivePatches(circuitMeta, path, bindings, evaluationContext, result, pinName, outputValue)
 
@@ -309,7 +309,7 @@ RW.calculateBindingSet = (circuitMeta, path, chip, constants, oldBindings) ->
           # If the where clause evaluates to false, don't add it
           if RW.evaluateExpressionFunction(evaluationContext, chip.splitter.where) then bindingSet.push(newBindings)
         catch error
-          throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{RW.formatStackTrace(error)}", ciruitMeta, path)
+          throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{RW.formatStackTrace(error)}", circuitMeta, path)
       else
         bindingSet.push(newBindings)
   else if _.isString(chip.splitter.from)
@@ -333,7 +333,7 @@ RW.calculateBindingSet = (circuitMeta, path, chip, constants, oldBindings) ->
           # If the where clause evaluates to false, don't add it
           if RW.evaluateExpressionFunction(evaluationContext, chip.splitter.where) then bindingSet.push(newBindings)
         catch error
-          throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{RW.formatStackTrace(error)}", ciruitMeta, path)
+          throw RW.makeExecutionError("Error evaluating the where expression '#{chip.splitter.where}' for splitter chip '#{chip}': #{RW.formatStackTrace(error)}", circuitMeta, path)
       else
         bindingSet.push(newBindings)
   else
@@ -342,9 +342,9 @@ RW.calculateBindingSet = (circuitMeta, path, chip, constants, oldBindings) ->
   return bindingSet
 
 RW.visitProcessorChip = (circuitMeta, path, chip, constants, bindings) ->
-  if chip.processor not of constants.circuits[circuitMeta.type].processors then throw RW.makeExecutionError("Cannot find processor '#{chip.processor}'", ciruitMeta, path)
+  if chip.processor not of constants.processors then throw RW.makeExecutionError("Cannot find processor '#{chip.processor}'", circuitMeta, path)
 
-  processor = constants.circuits[circuitMeta.type].processors[chip.processor]
+  processor = constants.processors[chip.processor]
 
   result = new RW.ChipVisitorResult()
   RW.transformersLogger = RW.makeLogFunction(circuitMeta, path, result)
@@ -354,7 +354,7 @@ RW.visitProcessorChip = (circuitMeta, path, chip, constants, bindings) ->
   evaluatedPins = RW.evaluateInputPinExpressions(circuitMeta, path, constants, evaluationContext, processor.pinDefs, chip.pins)
 
   try
-    result.signal = processor.update(evaluatedPins, constants.circuits[circuitMeta.id].transformers, RW.transformersLogger)
+    result.signal = processor.update(evaluatedPins, constants.transformers, RW.transformersLogger)
     RW.evaluateOutputPinExpressions(circuitMeta, path, constants, bindings, evaluationContext, result, processor.pinDefs, chip.pins, evaluatedPins)
   catch e
     result.signal = RW.signals.ERROR
@@ -363,9 +363,9 @@ RW.visitProcessorChip = (circuitMeta, path, chip, constants, bindings) ->
   return result
 
 RW.visitSwitchChip = (circuitMeta, path, chip, constants, bindings) ->
-  if chip.switch not of constants.circuits[circuitMeta.type].switches then throw RW.makeExecutionError("Cannot find switch '#{chip.switch}'", circuitMeta, path)
+  if chip.switch not of constants.switches then throw RW.makeExecutionError("Cannot find switch '#{chip.switch}'", circuitMeta, path)
 
-  switchChip = constants.circuits[circuitMeta.type].switches[chip.switch]
+  switchChip = constants.switches[chip.switch]
   # Keys of arrays are given as strings, so we need to convert them back to numbers
   childNames = if chip.children? then (child.name ? parseInt(index)) for index, child of chip.children else []
 
@@ -396,7 +396,7 @@ RW.visitSwitchChip = (circuitMeta, path, chip, constants, bindings) ->
   try
     for activeChildName in activeChildren
       childIndex = RW.indexOf(childNames, activeChildName)
-      if childIndex is -1 then throw new RW.makeExecutionError("Switch referenced a child '#{activeChildName}' that doesn't exist", ciruitMeta, path)
+      if childIndex is -1 then throw new RW.makeExecutionError("Switch referenced a child '#{activeChildName}' that doesn't exist", circuitMeta, path)
       childResult = RW.visitChip(circuitMeta, RW.appendToArray(path, childIndex.toString()), chip.children[childIndex], constants, bindings)
       childSignals[childIndex] = childResult.signal
       result.append(childResult)
@@ -444,7 +444,7 @@ RW.visitEmitterChip = (circuitMeta, path, chip, constants, bindings) ->
     try
       outputValue = RW.evaluateExpressionFunction(evaluationContext, expressionFunction)
     catch error
-      throw RW.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{RW.formatStackTrace(error)}", ciruitMeta, path)
+      throw RW.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{RW.formatStackTrace(error)}", circuitMeta, path)
 
     RW.derivePatches(circuitMeta, path, bindings, evaluationContext, result, dest, outputValue)
   
@@ -487,7 +487,7 @@ RW.visitChip = (circuitMeta, path, chip, constants, bindings = {}) ->
 # Starts the RW.visitChip() recursive chain with the starting parameters
 RW.stimulateCircuits = (constants) -> RW.visitChip(new RW.CircuitMeta("main", "main"), [], constants.circuits.main.board, constants, {})
 
-# The argument "options" can values for "circuits", "circuitIds", "memoryData", "ioData", "inputIoData", "outputIoData", and "establishOutput". 
+# The argument "options" can values for "circuits", "processors", "switches", "transformers", "circuitIds", "memoryData", "ioData", "inputIoData", "outputIoData", and "establishOutput". 
 # circuits is a map of a circuit names to RW.Circuit objects.
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
 # If outputIoData is not null, the loop is not stepped, and the data is sent directly to the io. In this case, no memory patches are returned.
@@ -511,6 +511,9 @@ RW.stepLoop = (options) ->
     circuits: 
       main: new RW.Circuit()
     circuitIds: ["main"]
+    processors: {}
+    switches: {}
+    transformers: {}
     memoryData: {}
     io: {}
     inputIoData: null
@@ -538,6 +541,9 @@ RW.stepLoop = (options) ->
     try
       result = RW.stimulateCircuits new RW.ChipVisitorConstants
         memoryData: options.memoryData
+        processors: options.processors
+        switches: options.switches
+        transformers: options.transformers
         ioData: options.inputIoData
         circuits: options.circuits
     catch e 

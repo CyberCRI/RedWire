@@ -8,6 +8,7 @@ GAME_DIMENSIONS = [960, 540]
 
 loadedGame = null
 lastMemory = null
+loadedAssets = null
 
 isRecording = false
 recordedFrames = [] # Contains objects like {memoryPatches: [], inputIoData: {}, ioPatches: []}
@@ -182,21 +183,22 @@ createAssets = (inputAssets, evaluator) ->
 
   return { urls: inputAssets, data: assetNamesToData }
 
-loadGameCode = (gameCode, logFunction) ->
+loadGame = (gameCode, logFunction) ->
   evaluator = eval
-  return {
-    circuits: RW.mapObject gameCode.circuits, (circuit) ->
-      processors: compileProcessors(circuit.processors, evaluator)
-      switches: compileSwitches(circuit.switches, evaluator)
-      transformers: compileTransformers(circuit.transformers, evaluator, logFunction)
+  loadedAssets = RW.mapObject(gameCode.circuits, (circuit) -> createAssets(circuit.assets, evaluator))
+  loadedGame =
+    circuits: RW.mapObject gameCode.circuits, (circuit, circuitId) ->
       board: compileBoard(circuit.board, evaluator)
-      assets: createAssets(circuit.assets, evaluator)
+      assets: loadedAssets[circuitId].data
+    processors: compileProcessors(gameCode.processors, evaluator)
+    switches: compileSwitches(gameCode.switches, evaluator)
+    transformers: compileTransformers(gameCode.transformers, evaluator, logFunction)
     io: initializeIo(gameCode.circuits)
-  }
 
-unloadGame = (loadedGame) ->
-  for circuitId, circuit of loadedGame.circuits
+unloadGame = ->
+  for circuitId, circuit of loadedAssets
     destroyAssets(circuit.assets)
+  loadedAssets = null
   destroyIo(loadedGame.io)
 
 applyMemoryPatchesInCircuits = (patches, memory) ->
@@ -215,6 +217,9 @@ onRecordFrame = (memory) ->
   RW.deepFreeze(memory) 
 
   return RW.stepLoop
+    processors: loadedGame.processors
+    switches: loadedGame.switches
+    transformers: loadedGame.transformers
     circuits: loadedGame.circuits
     memoryData: memory
     io: loadedGame.io
@@ -248,6 +253,9 @@ onRepeatPlayFrame = ->
 
 playBackFrame = (outputIoData) ->
   RW.stepLoop
+    processors: loadedGame.processors
+    switches: loadedGame.switches
+    transformers: loadedGame.transformers
     circuits: loadedGame.circuits
     io: loadedGame.io
     outputIoData: outputIoData 
@@ -258,6 +266,9 @@ updateFrame = (memory, inputIoData) ->
   RW.deepFreeze(inputIoData)
 
   return RW.stepLoop
+    processors: loadedGame.processors
+    switches: loadedGame.switches
+    transformers: loadedGame.transformers
     circuits: loadedGame.circuits
     memoryData: memory
     io: loadedGame.io
@@ -296,8 +307,8 @@ window.addEventListener 'message', (e) ->
           "transform": "scale(#{message.value})"
         reporter(null)
       when "loadGameCode"
-        if loadedGame? then unloadGame(loadedGame)
-        loadedGame = loadGameCode(message.value)
+        if loadedGame? then unloadGame()
+        loadGame(message.value)
         reporter(null)
       when "startRecording"
         lastMemory = message.value.memory

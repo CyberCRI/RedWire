@@ -1,6 +1,9 @@
 # These properties need to be converted from JSON strings to objects upon loading, and back to JSON for saving
 JSON_PROPERTIES = [
-  'circuits'
+  "circuits"
+  "processors"
+  "switches"
+  "transformers"
 ]
 
 META_PROPERTIES = [

@@ -32,6 +32,29 @@
 			"required": true,
 			"id": "circuits",
 			"order": 3
-		}
-	}
+		},
+		"processors": {
+			"name": "processors",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "processors",
+			"order": 4
+		},
+		"switches": {
+			"name": "switches",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "switches",
+			"order": 5
+		},
+		"transformers": {
+			"name": "transformers",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "transformers",
+			"order": 6
+		}	}
 }

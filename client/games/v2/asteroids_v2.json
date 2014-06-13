@@ -1,6 +1,356 @@
 {
   "name": "Asteroids",
   "fileVersion": 0.2,
+  "processors": {
+    "Change Parameter through Keyboard": {
+      "pinDefs": {
+        "parameter": {
+          "direction": "inout"
+        },
+        "keysDown": null,
+        "keyMap": null
+      },
+      "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
+    },
+    "Move thing with arrow keys": {
+      "pinDefs": {
+        "keysDown": {
+          "direction": "in",
+          "default": ""
+        },
+        "position": {
+          "direction": "inout",
+          "default": null
+        },
+        "speed": {
+          "direction": "in",
+          "default": "1"
+        }
+      },
+      "update": "if(pins.keysDown[37]) pins.position[0] -= pins.speed;\nif(pins.keysDown[39]) pins.position[0] += pins.speed;\nif(pins.keysDown[38]) pins.position[1] -= pins.speed;\nif(pins.keysDown[40]) pins.position[1] += pins.speed;"
+    },
+    "Detect Mouse": {
+      "pinDefs": {
+        "shapes": null,
+        "shape": {
+          "direction": "inout"
+        },
+        "mousePosition": null,
+        "mouseDown": null,
+        "state": {
+          "direction": "inout"
+        },
+        "dragStartPosition": {
+          "direction": "inout"
+        },
+        "minimumDragDistance": {
+          "default": "5"
+        }
+      },
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+    }
+  },
+  "switches": {
+    "Do in Parallel": {
+      "doc": "Just to place children under it",
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
+    "Do in Sequence": {
+      "pinDefs": {
+        "activeChild": {
+          "direction": "inout",
+          "default": 0
+        }
+      },
+      "listActiveChildren": "return [pins.activeChild];",
+      "handleSignals": "if (signals[pins.activeChild] == RW.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return RW.signals.DONE;\n}"
+    },
+    "Do for Some Time": {
+      "pinDefs": {
+        "time": null,
+        "timer": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return children;",
+      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return RW.signals.DONE;\n}"
+    },
+    "Do While": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return !!pins.value ? children : [];",
+      "handleSignals": "if (!pins.value)\n  return RW.signals.DONE;"
+    },
+    "Do Forever": {
+      "pinDefs": {},
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
+    "When": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return transformers.childByName(children, pins.value);"
+    },
+    "If": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return pins.value ? [0] : children.length > 1 ? [1] : [];"
+    },
+    "Sandwhich": {
+      "pinDefs": {
+        "condition": null,
+        "started": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
+    },
+    "Limit Rate": {
+      "pinDefs": {
+        "currentTime": null,
+        "minTime": null,
+        "lastTime": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
+      "handleSignals": "if(signals[0] == RW.signals.DONE) pins.lastTime = pins.currentTime;"
+    }
+  },
+  "transformers": {
+    "drawShape": {
+      "args": [
+        "shape",
+        "oldShapes"
+      ],
+      "body": "var shapes = oldShapes || {};\nshapes[_.uniqueId()] = shape;\nreturn shapes;"
+    },
+    "drawShapes": {
+      "args": [
+        "shapes"
+      ],
+      "body": "var that = transformers;\nreturn _.reduce(shapes, function (memo, shape) {\n  return that.drawShape(shape, memo);\n}, {});"
+    },
+    "pointIntersectsShape": {
+      "args": [
+        "point",
+        "shape"
+      ],
+      "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.center);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(point));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var pointInShapeFrame = Vector.create(point);\n  if (shape.translation)\n    pointInShapeFrame = pointInShapeFrame.subtract(shape.translation);\n  return pointInShapeFrame.elements[0] >= shape.position[0] && pointInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && pointInShapeFrame.elements[1] >= shape.position[1] && pointInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
+    },
+    "removeElement": {
+      "args": [
+        "tab",
+        "index"
+      ],
+      "body": "var newArray = [];\nfor (var i = 0; i < tab.length; i++) {\n  if (i != index)\n    newArray.push(tab[i]);\n}\nreturn newArray;"
+    },
+    "replace": {
+      "args": [
+        "oldPiece",
+        "newPiece",
+        "pieces"
+      ],
+      "body": "for (var i in pieces) {\n  var piece = pieces[i];\n  if (piece.col === oldPiece.col && piece.row === oldPiece.row) {\n    result = pieces.slice(0, i).concat(newPiece).concat(pieces.slice(i + 1, pieces.length));\n    return result;\n  }\n}\nreturn pieces;"
+    },
+    "coordinatesToString": {
+      "args": [
+        "coordinates"
+      ],
+      "body": "var x = coordinates[0] || coordinates.x;\nvar y = coordinates[1] || coordinates.y;\nreturn '[' + x + ', ' + y + ']';"
+    },
+    "pieceToString": {
+      "args": [
+        "piece"
+      ],
+      "body": "if (piece)\n  return '{col:' + piece.col + ', row:' + piece.row + ', type:' + piece.type + '}';\nelse\n  return piece;"
+    },
+    "piecesToString": {
+      "args": [
+        "pieces"
+      ],
+      "body": "var prvared = '{';\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (prvared !== '{') {\n    prvared += ', ';\n  }\n  prvared += transformers.pieceToString(piece);\n}\nprvared += '}';\nreturn prvared;"
+    },
+    "distance": {
+      "args": [
+        "povar1",
+        "povar2"
+      ],
+      "body": "var povar1x = povar1[0] || povar1.x;\nvar povar1y = povar1[1] || povar1.y;\nvar povar2x = povar2[0] || povar2.x;\nvar povar2y = povar2[1] || povar2.y;\nvar diffX = povar1x - povar2x;\nvar diffY = povar1y - povar2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
+    },
+    "calculateRotationAngle": {
+      "args": [
+        "center",
+        "mousePosition"
+      ],
+      "body": "var h = [\n    mousePosition[0] - center[0],\n    mousePosition[1] - center[1]\n  ];\nvar omDistance = Math.sqrt(h[0] * h[0] + h[1] * h[1]);\nvar ratio = -h[1] / omDistance;\nvar angle = 0;\nif (omDistance !== 0) {\n  var absValueAngle = Math.acos(ratio) * 180 / Math.PI;\n  if (h[0] <= 0) {\n    angle = -absValueAngle;\n  } else {\n    angle = absValueAngle;\n  }\n}\nreturn angle;"
+    },
+    "calculateRotationOffset": {
+      "args": [
+        "rotation",
+        "center",
+        "mousePosition"
+      ],
+      "body": "return rotation - transformers.calculateRotationAngle(center, mousePosition);"
+    },
+    "calculateRotation": {
+      "args": [
+        "rotationOffset",
+        "center",
+        "mousePosition"
+      ],
+      "body": "return transformers.calculateRotationAngle(center, mousePosition) + rotationOffset;"
+    },
+    "childByName": {
+      "args": [
+        "children",
+        "value"
+      ],
+      "body": "var childIndex = RW.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
+    },
+    "initializeStarfield": {
+      "args": [
+        "count",
+        "screenSize"
+      ],
+      "body": "var stars = []; \nfor(var i = 0; i < count; i++) { \n    stars.push({ \n        position: [Math.random()*screenSize[0], \n        Math.random()*screenSize[1]], \n        velocity: 1 + Math.random() * 5\n    }); \n} \nreturn stars;"
+    },
+    "updateStarfield": {
+      "args": [
+        "starfield",
+        "screenSize"
+      ],
+      "body": "var stars = []; \nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    if(star.position[0] < 0) {\n        stars.push({ \n            position: [screenSize[0], Math.random() * screenSize[1]],\n            velocity: star.velocity\n        });\n    }\n    else { \n        stars.push({ position: [star.position[0] - star.velocity, star.position[1]], velocity: star.velocity }); \n    } \n}\nreturn stars;"
+    },
+    "drawStarfield": {
+      "args": [
+        "starfield"
+      ],
+      "body": "var shapes = []; \n\nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    shapes.push({ \n        type: 'circle',\n        radius: 2,\n        fillStyle: 'white',\n        layer: 'stars', \n        position: star.position \n    }); \n} \n\nreturn transformers.drawShapes(shapes);"
+    },
+    "updateLasers": {
+      "args": [
+        "lasers",
+        "screenSize"
+      ],
+      "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if (laser.position[0] < screenSize[0]) {\n        var rad = laser.direction * Math.PI / 180;\n        var x = Math.cos(rad) * 20;\n        var y = Math.sin(rad) * 20;\n        laser.position[0] += x;\n        laser.position[1] += y;\n    } else {\n        delete lasers[key];\n    }\n}\nreturn lasers;"
+    },
+    "moveEnemy": {
+      "args": [
+        "enemy",
+        "frameNumber",
+        "enemySpeed"
+      ],
+      "body": "return [ \n    enemy.position[0] - enemySpeed, \n    enemy.startingPosition[1] + 100 * Math.sin(frameNumber / 20) \n];"
+    },
+    "shapesIntersect": {
+      "args": [
+        "left",
+        "right",
+        "assets"
+      ],
+      "body": "function makeSatObject(shape) {\n    switch(shape.type) {\n        case 'circle':\n            return new SAT.Circle(new SAT.Vector(shape.position[0], shape.position[1]), shape.radius);\n        case 'rectangle':\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), shape.size[0], shape.size[1]).toPolygon();\n        case 'image':\n            var img = assets[shape.asset];\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), img.naturalWidth, img.naturalHeight).toPolygon();\n        default:\n            throw new Error('Cannot check intersection for shape of type: ' + shape.type);\n    }\n}\n\nfunction testIntersection(left, right) {\n    var leftSat = makeSatObject(left);\n    var rightSat = makeSatObject(right); \n    \n    if(leftSat instanceof SAT.Circle && rightSat instanceof SAT.Circle) {\n        return SAT.testCircleCircle(leftSat, rightSat);\n    }\n    \n    if (leftSat instanceof SAT.Circle && rightSat instanceof SAT.Polygon) {\n        return SAT.testCirclePolygon(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Circle) {\n        return SAT.testPolygonCircle(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Polygon) {\n        return SAT.testPolygonPolygon(leftSat, rightSat);\n    }\n    \n    throw new Error(\"Cannot test intersections between shapes of types \" + left.type + \" and \" + right.type);\n}\n\n// Convert to arrays if necessary\nvar leftList = _.isArray(left) ? left : [left];\nvar rightList = _.isArray(right) ? right : [right];\n\n// Check all intersections \nfor(var i = 0; i < leftList.length; i++) {\n    for(var j = 0; j < rightList.length; j++) {\n        if(testIntersection(leftList[i], rightList[j])) return [leftList[i], rightList[j]];  \n    }\n}\nreturn null; // No intersection"
+    },
+    "getAssetSize": {
+      "args": [
+        "asset"
+      ],
+      "body": "return [asset.naturalWidth, asset.naturalHeight];"
+    },
+    "makeLaserShapes": {
+      "args": [
+        "lasers",
+        "asset"
+      ],
+      "body": "var shapes = []; \nfor(var key in lasers) {  \n    var laser = lasers[key]; \n    shapes.push({ \n        type: 'image',\n        asset: 'star',\n        layer: 'attacks', \n        position: laser.position\n    }); \n} \nreturn shapes;    "
+    },
+    "makeSpriteShape": {
+      "args": [
+        "spriteSheet",
+        "position",
+        "frame",
+        "layer"
+      ],
+      "body": "// Assuming the frames are set left to right\nvar framesPerLine = spriteSheet.sheetSize[0] / spriteSheet.frameSize[0];\nvar imageCoords = [frame % framesPerLine, Math.floor(frame / framesPerLine)];\n\nreturn {\n    type: \"image\",\n    asset: spriteSheet.asset,\n    position: position,\n    offset: [imageCoords[0] * spriteSheet.frameSize[0], imageCoords[1] * spriteSheet.frameSize[1]],\n    size: spriteSheet.frameSize,\n    layer: layer\n};"
+    },
+    "addVectors": {
+      "args": [
+        "a",
+        "b"
+      ],
+      "body": "return [ a[0] + b[0], a[1] + b[1] ];"
+    },
+    "computeAcceleration": {
+      "args": [
+        "direction",
+        "speed"
+      ],
+      "body": "var ACCELERATION = 0.7;\nvar rad = direction * Math.PI / 180;\nvar x = Math.cos(rad) * ACCELERATION;\nvar y = Math.sin(rad) * ACCELERATION;\nreturn transformers.addVectors(\n    [x, y],\n    transformers.computeDeceleration(speed)\n)"
+    },
+    "computeDeceleration": {
+      "args": [
+        "speed"
+      ],
+      "body": "var rate = 0.1;\nvar dX = Math.sqrt(Math.abs(speed[0])) * rate;\nvar dY = Math.sqrt(Math.abs(speed[1])) * rate;\n\nvar x = 0;\nvar y = 0;\n\nif (speed[0] > 0) {\n    x -= dX;\n} else if (speed[0] < 0) {\n    x += dX;\n}\n\nif (speed[1] > 0) {\n    y -= dY;\n} else if (speed[1] < 0) {\n    y += dY;\n}\n\nreturn [x, y];"
+    },
+    "moveObject": {
+      "args": [
+        "speed",
+        "position",
+        "screenSize"
+      ],
+      "body": "var x = position[0] + speed[0];\nvar y = position[1] + speed[1];\n\nif (x > screenSize[0]) {\n    x -= screenSize[0];\n} else if (x < 0) {\n    x += screenSize[0];\n}\n\nif (y > screenSize[1]) {\n    y -= screenSize[1];\n} else if (y < 0) {\n    y += screenSize[1];\n}\n\nreturn [x, y];"
+    },
+    "computeLaserSpeed": {
+      "args": [
+        "direction",
+        "initialSpeed"
+      ],
+      "body": "var rad = direction * Math.PI / 180;\r\nvar x = Math.cos(rad) * 20;\r\nvar y = Math.sin(rad) * 20;\r\nx += initialSpeed[0];\r\ny += initialSpeed[1];\r\nreturn [x, y];"
+    },
+    "moveLasers": {
+      "args": [
+        "lasers",
+        "screenSize"
+      ],
+      "body": "lasers = RW.cloneData(lasers);\n\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    laser.position[0] += laser.speed[0];\n    laser.position[1] += laser.speed[1];\n    if ( isOutOfBounds(laser) ) {\n        delete lasers[key];\n    }\n}\n\nfunction isOutOfBounds(laser) {\n    return laser.position[0] > screenSize[0]\n        || laser.position[0] < 0\n        || laser.position[1] > screenSize[1]\n        || laser.position[1] < 0;\n}\n\nreturn lasers;"
+    },
+    "createAsteroids": {
+      "args": [],
+      "body": "\nlog.info('Create Asteroids');\n\nvar asteroids = {};\n\nfor (var i = 0; i < 5; i++) {\n    var asteroid = {\n        position: randomPosition(),\n        speed: [randomSpeed(), randomSpeed()],\n        direction: Math.random() * 360,\n    };\n    asteroid.shape = createShape(asteroid);\n    RW.addUnique(asteroids, asteroid);\n}\n\nfunction randomPosition() {\n    var x = Math.random() - 0.5;\n    x *= 960;\n    return [x, 0];\n}\n\nfunction randomSpeed() {\n    return (Math.random() - 0.5) * 20;\n}\n\nfunction createShape(asteroid) {\n    var start = [-20 + r(), -20 + r()];\n    return { \n        layer: 'asteroids', \n        type: 'path',\n        points: [\n            start,\n            [-30 + r(), 0 + r()],\n            [-20 + r(), 10 + r()],\n            [0 + r(), 30 + r()],\n            [20 + r(), 20 + r()],\n            [30 + r(), 0 + r()],\n            [20 + r(), -20 + r()],\n            [0 + r(), -30 + r()],\n            start\n        ],\n        rotation: asteroid.direction,\n        strokeStyle: 'white',\n        lineWidth: 10\n    };\n}\n\nfunction r() {\n    var n = Math.random() - 0.5;\n    return n * 7;\n}\n\nreturn asteroids;"
+    },
+    "getTranslatedAsteroidShapes": {
+      "args": [
+        "asteroids"
+      ],
+      "body": "var shapes = [];\nfor (var key in asteroids) {\n    var asteroid = asteroids[key];\n    var shape = asteroid.shape;\n    shape.translation = asteroid.position,\n    shapes.push(shape);\n}\nreturn shapes;"
+    },
+    "isHit": {
+      "args": [
+        "target",
+        "lasers"
+      ],
+      "body": "var targetCollisionBox = satCircle(target.position, target.radius);\n\nfunction satCircle(position, radius) {\n    return new SAT.Circle(new SAT.Vector(position[0], position[1]), radius);\n}\n\nvar hit = false;\n\nfor (var key in lasers) {\n    log.info(key);\n    var laserCollisionBox = satCircle(lasers[key].position, 3);\n    if ( SAT.testCircleCircle(targetCollisionBox, laserCollisionBox) ) {\n        hit = true;\n    }\n}\n\nreturn hit;"
+    },
+    "moveAsteroid": {
+      "args": [
+        "asteroid",
+        "screenSize"
+      ],
+      "body": "asteroid = RW.cloneData(asteroid);\n\nasteroid.position = transformers.moveObject(asteroid.speed, asteroid.position, screenSize)\n\nasteroid.shape.translation = asteroid.position;\n\nreturn asteroid;"
+    },
+    "shipHitsAsteroid": {
+      "args": [
+        "ship",
+        "asteroids"
+      ],
+      "body": "var hit = false;\n\nvar targetCollisionBox = satCircle(ship.position, 15);\n\nfunction satCircle(position, radius) {\n    return new SAT.Circle(new SAT.Vector(position[0], position[1]), radius);\n}\n\nfor (var key in asteroids) {\n    var asteroidCollisionBox = satCircle(asteroids[key].position, 35);\n    if ( SAT.testCircleCircle(targetCollisionBox, asteroidCollisionBox) ) {\n        hit = true;\n    }\n}\n\nreturn hit;"
+    }
+  },
   "circuits": {
     "main": {
       "memory": {
@@ -451,356 +801,6 @@
             ]
           }
         ]
-      },
-      "processors": {
-        "Change Parameter through Keyboard": {
-          "pinDefs": {
-            "parameter": {
-              "direction": "inout"
-            },
-            "keysDown": null,
-            "keyMap": null
-          },
-          "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
-        },
-        "Move thing with arrow keys": {
-          "pinDefs": {
-            "keysDown": {
-              "direction": "in",
-              "default": ""
-            },
-            "position": {
-              "direction": "inout",
-              "default": null
-            },
-            "speed": {
-              "direction": "in",
-              "default": "1"
-            }
-          },
-          "update": "if(pins.keysDown[37]) pins.position[0] -= pins.speed;\nif(pins.keysDown[39]) pins.position[0] += pins.speed;\nif(pins.keysDown[38]) pins.position[1] -= pins.speed;\nif(pins.keysDown[40]) pins.position[1] += pins.speed;"
-        },
-        "Detect Mouse": {
-          "pinDefs": {
-            "shapes": null,
-            "shape": {
-              "direction": "inout"
-            },
-            "mousePosition": null,
-            "mouseDown": null,
-            "state": {
-              "direction": "inout"
-            },
-            "dragStartPosition": {
-              "direction": "inout"
-            },
-            "minimumDragDistance": {
-              "default": "5"
-            }
-          },
-          "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
-        }
-      },
-      "switches": {
-        "Do in Parallel": {
-          "doc": "Just to place children under it",
-          "listActiveChildren": "return children;",
-          "handleSignals": ""
-        },
-        "Do in Sequence": {
-          "pinDefs": {
-            "activeChild": {
-              "direction": "inout",
-              "default": 0
-            }
-          },
-          "listActiveChildren": "return [pins.activeChild];",
-          "handleSignals": "if (signals[pins.activeChild] == RW.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return RW.signals.DONE;\n}"
-        },
-        "Do for Some Time": {
-          "pinDefs": {
-            "time": null,
-            "timer": {
-              "direction": "inout"
-            }
-          },
-          "listActiveChildren": "return children;",
-          "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return RW.signals.DONE;\n}"
-        },
-        "Do While": {
-          "pinDefs": {
-            "value": null
-          },
-          "listActiveChildren": "return !!pins.value ? children : [];",
-          "handleSignals": "if (!pins.value)\n  return RW.signals.DONE;"
-        },
-        "Do Forever": {
-          "pinDefs": {},
-          "listActiveChildren": "return children;",
-          "handleSignals": ""
-        },
-        "When": {
-          "pinDefs": {
-            "value": null
-          },
-          "listActiveChildren": "return transformers.childByName(children, pins.value);"
-        },
-        "If": {
-          "pinDefs": {
-            "value": null
-          },
-          "listActiveChildren": "return pins.value ? [0] : children.length > 1 ? [1] : [];"
-        },
-        "Sandwhich": {
-          "pinDefs": {
-            "condition": null,
-            "started": {
-              "direction": "inout"
-            }
-          },
-          "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
-        },
-        "Limit Rate": {
-          "pinDefs": {
-            "currentTime": null,
-            "minTime": null,
-            "lastTime": {
-              "direction": "inout"
-            }
-          },
-          "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
-          "handleSignals": "if(signals[0] == RW.signals.DONE) pins.lastTime = pins.currentTime;"
-        }
-      },
-      "transformers": {
-        "drawShape": {
-          "args": [
-            "shape",
-            "oldShapes"
-          ],
-          "body": "var shapes = oldShapes || {};\nshapes[_.uniqueId()] = shape;\nreturn shapes;"
-        },
-        "drawShapes": {
-          "args": [
-            "shapes"
-          ],
-          "body": "var that = transformers;\nreturn _.reduce(shapes, function (memo, shape) {\n  return that.drawShape(shape, memo);\n}, {});"
-        },
-        "pointIntersectsShape": {
-          "args": [
-            "point",
-            "shape"
-          ],
-          "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.center);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(point));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var pointInShapeFrame = Vector.create(point);\n  if (shape.translation)\n    pointInShapeFrame = pointInShapeFrame.subtract(shape.translation);\n  return pointInShapeFrame.elements[0] >= shape.position[0] && pointInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && pointInShapeFrame.elements[1] >= shape.position[1] && pointInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
-        },
-        "removeElement": {
-          "args": [
-            "tab",
-            "index"
-          ],
-          "body": "var newArray = [];\nfor (var i = 0; i < tab.length; i++) {\n  if (i != index)\n    newArray.push(tab[i]);\n}\nreturn newArray;"
-        },
-        "replace": {
-          "args": [
-            "oldPiece",
-            "newPiece",
-            "pieces"
-          ],
-          "body": "for (var i in pieces) {\n  var piece = pieces[i];\n  if (piece.col === oldPiece.col && piece.row === oldPiece.row) {\n    result = pieces.slice(0, i).concat(newPiece).concat(pieces.slice(i + 1, pieces.length));\n    return result;\n  }\n}\nreturn pieces;"
-        },
-        "coordinatesToString": {
-          "args": [
-            "coordinates"
-          ],
-          "body": "var x = coordinates[0] || coordinates.x;\nvar y = coordinates[1] || coordinates.y;\nreturn '[' + x + ', ' + y + ']';"
-        },
-        "pieceToString": {
-          "args": [
-            "piece"
-          ],
-          "body": "if (piece)\n  return '{col:' + piece.col + ', row:' + piece.row + ', type:' + piece.type + '}';\nelse\n  return piece;"
-        },
-        "piecesToString": {
-          "args": [
-            "pieces"
-          ],
-          "body": "var prvared = '{';\nfor (var i in pieces) {\n  var piece = pieces[i];\n  if (prvared !== '{') {\n    prvared += ', ';\n  }\n  prvared += transformers.pieceToString(piece);\n}\nprvared += '}';\nreturn prvared;"
-        },
-        "distance": {
-          "args": [
-            "povar1",
-            "povar2"
-          ],
-          "body": "var povar1x = povar1[0] || povar1.x;\nvar povar1y = povar1[1] || povar1.y;\nvar povar2x = povar2[0] || povar2.x;\nvar povar2y = povar2[1] || povar2.y;\nvar diffX = povar1x - povar2x;\nvar diffY = povar1y - povar2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
-        },
-        "calculateRotationAngle": {
-          "args": [
-            "center",
-            "mousePosition"
-          ],
-          "body": "var h = [\n    mousePosition[0] - center[0],\n    mousePosition[1] - center[1]\n  ];\nvar omDistance = Math.sqrt(h[0] * h[0] + h[1] * h[1]);\nvar ratio = -h[1] / omDistance;\nvar angle = 0;\nif (omDistance !== 0) {\n  var absValueAngle = Math.acos(ratio) * 180 / Math.PI;\n  if (h[0] <= 0) {\n    angle = -absValueAngle;\n  } else {\n    angle = absValueAngle;\n  }\n}\nreturn angle;"
-        },
-        "calculateRotationOffset": {
-          "args": [
-            "rotation",
-            "center",
-            "mousePosition"
-          ],
-          "body": "return rotation - transformers.calculateRotationAngle(center, mousePosition);"
-        },
-        "calculateRotation": {
-          "args": [
-            "rotationOffset",
-            "center",
-            "mousePosition"
-          ],
-          "body": "return transformers.calculateRotationAngle(center, mousePosition) + rotationOffset;"
-        },
-        "childByName": {
-          "args": [
-            "children",
-            "value"
-          ],
-          "body": "var childIndex = RW.indexOf(children, value);\nreturn childIndex != -1 ? [childIndex] : [];"
-        },
-        "initializeStarfield": {
-          "args": [
-            "count",
-            "screenSize"
-          ],
-          "body": "var stars = []; \nfor(var i = 0; i < count; i++) { \n    stars.push({ \n        position: [Math.random()*screenSize[0], \n        Math.random()*screenSize[1]], \n        velocity: 1 + Math.random() * 5\n    }); \n} \nreturn stars;"
-        },
-        "updateStarfield": {
-          "args": [
-            "starfield",
-            "screenSize"
-          ],
-          "body": "var stars = []; \nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    if(star.position[0] < 0) {\n        stars.push({ \n            position: [screenSize[0], Math.random() * screenSize[1]],\n            velocity: star.velocity\n        });\n    }\n    else { \n        stars.push({ position: [star.position[0] - star.velocity, star.position[1]], velocity: star.velocity }); \n    } \n}\nreturn stars;"
-        },
-        "drawStarfield": {
-          "args": [
-            "starfield"
-          ],
-          "body": "var shapes = []; \n\nfor(var i = 0; i < starfield.length; i++) { \n    var star = starfield[i]; \n    shapes.push({ \n        type: 'circle',\n        radius: 2,\n        fillStyle: 'white',\n        layer: 'stars', \n        position: star.position \n    }); \n} \n\nreturn transformers.drawShapes(shapes);"
-        },
-        "updateLasers": {
-          "args": [
-            "lasers",
-            "screenSize"
-          ],
-          "body": "\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    if (laser.position[0] < screenSize[0]) {\n        var rad = laser.direction * Math.PI / 180;\n        var x = Math.cos(rad) * 20;\n        var y = Math.sin(rad) * 20;\n        laser.position[0] += x;\n        laser.position[1] += y;\n    } else {\n        delete lasers[key];\n    }\n}\nreturn lasers;"
-        },
-        "moveEnemy": {
-          "args": [
-            "enemy",
-            "frameNumber",
-            "enemySpeed"
-          ],
-          "body": "return [ \n    enemy.position[0] - enemySpeed, \n    enemy.startingPosition[1] + 100 * Math.sin(frameNumber / 20) \n];"
-        },
-        "shapesIntersect": {
-          "args": [
-            "left",
-            "right",
-            "assets"
-          ],
-          "body": "function makeSatObject(shape) {\n    switch(shape.type) {\n        case 'circle':\n            return new SAT.Circle(new SAT.Vector(shape.position[0], shape.position[1]), shape.radius);\n        case 'rectangle':\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), shape.size[0], shape.size[1]).toPolygon();\n        case 'image':\n            var img = assets[shape.asset];\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), img.naturalWidth, img.naturalHeight).toPolygon();\n        default:\n            throw new Error('Cannot check intersection for shape of type: ' + shape.type);\n    }\n}\n\nfunction testIntersection(left, right) {\n    var leftSat = makeSatObject(left);\n    var rightSat = makeSatObject(right); \n    \n    if(leftSat instanceof SAT.Circle && rightSat instanceof SAT.Circle) {\n        return SAT.testCircleCircle(leftSat, rightSat);\n    }\n    \n    if (leftSat instanceof SAT.Circle && rightSat instanceof SAT.Polygon) {\n        return SAT.testCirclePolygon(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Circle) {\n        return SAT.testPolygonCircle(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Polygon) {\n        return SAT.testPolygonPolygon(leftSat, rightSat);\n    }\n    \n    throw new Error(\"Cannot test intersections between shapes of types \" + left.type + \" and \" + right.type);\n}\n\n// Convert to arrays if necessary\nvar leftList = _.isArray(left) ? left : [left];\nvar rightList = _.isArray(right) ? right : [right];\n\n// Check all intersections \nfor(var i = 0; i < leftList.length; i++) {\n    for(var j = 0; j < rightList.length; j++) {\n        if(testIntersection(leftList[i], rightList[j])) return [leftList[i], rightList[j]];  \n    }\n}\nreturn null; // No intersection"
-        },
-        "getAssetSize": {
-          "args": [
-            "asset"
-          ],
-          "body": "return [asset.naturalWidth, asset.naturalHeight];"
-        },
-        "makeLaserShapes": {
-          "args": [
-            "lasers",
-            "asset"
-          ],
-          "body": "var shapes = []; \nfor(var key in lasers) {  \n    var laser = lasers[key]; \n    shapes.push({ \n        type: 'image',\n        asset: 'star',\n        layer: 'attacks', \n        position: laser.position\n    }); \n} \nreturn shapes;    "
-        },
-        "makeSpriteShape": {
-          "args": [
-            "spriteSheet",
-            "position",
-            "frame",
-            "layer"
-          ],
-          "body": "// Assuming the frames are set left to right\nvar framesPerLine = spriteSheet.sheetSize[0] / spriteSheet.frameSize[0];\nvar imageCoords = [frame % framesPerLine, Math.floor(frame / framesPerLine)];\n\nreturn {\n    type: \"image\",\n    asset: spriteSheet.asset,\n    position: position,\n    offset: [imageCoords[0] * spriteSheet.frameSize[0], imageCoords[1] * spriteSheet.frameSize[1]],\n    size: spriteSheet.frameSize,\n    layer: layer\n};"
-        },
-        "addVectors": {
-          "args": [
-            "a",
-            "b"
-          ],
-          "body": "return [ a[0] + b[0], a[1] + b[1] ];"
-        },
-        "computeAcceleration": {
-          "args": [
-            "direction",
-            "speed"
-          ],
-          "body": "var ACCELERATION = 0.7;\nvar rad = direction * Math.PI / 180;\nvar x = Math.cos(rad) * ACCELERATION;\nvar y = Math.sin(rad) * ACCELERATION;\nreturn transformers.addVectors(\n    [x, y],\n    transformers.computeDeceleration(speed)\n)"
-        },
-        "computeDeceleration": {
-          "args": [
-            "speed"
-          ],
-          "body": "var rate = 0.1;\nvar dX = Math.sqrt(Math.abs(speed[0])) * rate;\nvar dY = Math.sqrt(Math.abs(speed[1])) * rate;\n\nvar x = 0;\nvar y = 0;\n\nif (speed[0] > 0) {\n    x -= dX;\n} else if (speed[0] < 0) {\n    x += dX;\n}\n\nif (speed[1] > 0) {\n    y -= dY;\n} else if (speed[1] < 0) {\n    y += dY;\n}\n\nreturn [x, y];"
-        },
-        "moveObject": {
-          "args": [
-            "speed",
-            "position",
-            "screenSize"
-          ],
-          "body": "var x = position[0] + speed[0];\nvar y = position[1] + speed[1];\n\nif (x > screenSize[0]) {\n    x -= screenSize[0];\n} else if (x < 0) {\n    x += screenSize[0];\n}\n\nif (y > screenSize[1]) {\n    y -= screenSize[1];\n} else if (y < 0) {\n    y += screenSize[1];\n}\n\nreturn [x, y];"
-        },
-        "computeLaserSpeed": {
-          "args": [
-            "direction",
-            "initialSpeed"
-          ],
-          "body": "var rad = direction * Math.PI / 180;\r\nvar x = Math.cos(rad) * 20;\r\nvar y = Math.sin(rad) * 20;\r\nx += initialSpeed[0];\r\ny += initialSpeed[1];\r\nreturn [x, y];"
-        },
-        "moveLasers": {
-          "args": [
-            "lasers",
-            "screenSize"
-          ],
-          "body": "lasers = RW.cloneData(lasers);\n\nfor(var key in lasers) { \n    var laser = lasers[key]; \n    laser.position[0] += laser.speed[0];\n    laser.position[1] += laser.speed[1];\n    if ( isOutOfBounds(laser) ) {\n        delete lasers[key];\n    }\n}\n\nfunction isOutOfBounds(laser) {\n    return laser.position[0] > screenSize[0]\n        || laser.position[0] < 0\n        || laser.position[1] > screenSize[1]\n        || laser.position[1] < 0;\n}\n\nreturn lasers;"
-        },
-        "createAsteroids": {
-          "args": [],
-          "body": "\nlog.info('Create Asteroids');\n\nvar asteroids = {};\n\nfor (var i = 0; i < 5; i++) {\n    var asteroid = {\n        position: randomPosition(),\n        speed: [randomSpeed(), randomSpeed()],\n        direction: Math.random() * 360,\n    };\n    asteroid.shape = createShape(asteroid);\n    RW.addUnique(asteroids, asteroid);\n}\n\nfunction randomPosition() {\n    var x = Math.random() - 0.5;\n    x *= 960;\n    return [x, 0];\n}\n\nfunction randomSpeed() {\n    return (Math.random() - 0.5) * 20;\n}\n\nfunction createShape(asteroid) {\n    var start = [-20 + r(), -20 + r()];\n    return { \n        layer: 'asteroids', \n        type: 'path',\n        points: [\n            start,\n            [-30 + r(), 0 + r()],\n            [-20 + r(), 10 + r()],\n            [0 + r(), 30 + r()],\n            [20 + r(), 20 + r()],\n            [30 + r(), 0 + r()],\n            [20 + r(), -20 + r()],\n            [0 + r(), -30 + r()],\n            start\n        ],\n        rotation: asteroid.direction,\n        strokeStyle: 'white',\n        lineWidth: 10\n    };\n}\n\nfunction r() {\n    var n = Math.random() - 0.5;\n    return n * 7;\n}\n\nreturn asteroids;"
-        },
-        "getTranslatedAsteroidShapes": {
-          "args": [
-            "asteroids"
-          ],
-          "body": "var shapes = [];\nfor (var key in asteroids) {\n    var asteroid = asteroids[key];\n    var shape = asteroid.shape;\n    shape.translation = asteroid.position,\n    shapes.push(shape);\n}\nreturn shapes;"
-        },
-        "isHit": {
-          "args": [
-            "target",
-            "lasers"
-          ],
-          "body": "var targetCollisionBox = satCircle(target.position, target.radius);\n\nfunction satCircle(position, radius) {\n    return new SAT.Circle(new SAT.Vector(position[0], position[1]), radius);\n}\n\nvar hit = false;\n\nfor (var key in lasers) {\n    log.info(key);\n    var laserCollisionBox = satCircle(lasers[key].position, 3);\n    if ( SAT.testCircleCircle(targetCollisionBox, laserCollisionBox) ) {\n        hit = true;\n    }\n}\n\nreturn hit;"
-        },
-        "moveAsteroid": {
-          "args": [
-            "asteroid",
-            "screenSize"
-          ],
-          "body": "asteroid = RW.cloneData(asteroid);\n\nasteroid.position = transformers.moveObject(asteroid.speed, asteroid.position, screenSize)\n\nasteroid.shape.translation = asteroid.position;\n\nreturn asteroid;"
-        },
-        "shipHitsAsteroid": {
-          "args": [
-            "ship",
-            "asteroids"
-          ],
-          "body": "var hit = false;\n\nvar targetCollisionBox = satCircle(ship.position, 15);\n\nfunction satCircle(position, radius) {\n    return new SAT.Circle(new SAT.Vector(position[0], position[1]), radius);\n}\n\nfor (var key in asteroids) {\n    var asteroidCollisionBox = satCircle(asteroids[key].position, 35);\n    if ( SAT.testCircleCircle(targetCollisionBox, asteroidCollisionBox) ) {\n        hit = true;\n    }\n}\n\nreturn hit;"
-        }
       },
       "assets": {
         "enemy.png": "data:image/png;base64,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",
