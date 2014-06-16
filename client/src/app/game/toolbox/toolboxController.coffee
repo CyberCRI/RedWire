@@ -3,15 +3,15 @@ angular.module('gamEvolve.game.toolbox', [])
 
   MODALS = 
     processors:
-      templateUrl: 'game/processors/editProcessor.tpl.html'
+      templateUrl: 'game/toolbox/editProcessor.tpl.html'
       controller: 'EditProcessorDialogCtrl'
       renamedEvent: ProcessorRenamedEvent
     switches:
-      templateUrl: 'game/switches/editSwitch.tpl.html'
+      templateUrl: 'game/toolbox/editSwitch.tpl.html'
       controller: 'EditSwitchDialogCtrl'
       renamedEvent: SwitchRenamedEvent
     transformers:
-      templateUrl: 'game/transformers/editTransformer.tpl.html'
+      templateUrl: 'game/toolbox/editTransformer.tpl.html'
       controller: 'EditTransformerDialogCtrl'
       renamedEvent: TransformerRenamedEvent
 
