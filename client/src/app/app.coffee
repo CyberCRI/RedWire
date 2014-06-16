@@ -6,6 +6,7 @@ angular.module( 'gamEvolve', [
   'ui.router'
   'ui.state'
   'ui.ace'
+  'ui.sortable'
   'gamEvolve.model.cache'
   'gamEvolve.model.games'
   'gamEvolve.model.users'

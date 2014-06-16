@@ -1,23 +1,22 @@
 angular.module('gamEvolve.game.transformers', [
   'ui.bootstrap',
 ])
-.controller 'TransformersListCtrl', ($scope, $modal, currentGame, editorContext) ->
+.controller 'TransformersListCtrl', ($scope, $modal, currentGame) ->
   # Get the transformers object from the currentGame service, and keep it updated
   $scope.transformers = {}
   $scope.transformerNames = []
 
   # Bring currentGame into scope so we can watch it 
   updateTransformers = ->
-    if not currentGame.version then return
-    $scope.transformers = currentGame.getCurrentCircuitData().transformers
-    $scope.transformerNames = _.keys(currentGame.getCurrentCircuitData().transformers)
+    if currentGame.version?.transformers?
+      $scope.transformers = currentGame.version.transformers
+      $scope.transformerNames = _.keys(currentGame.version.transformers)
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", updateTransformers, true)
-  $scope.$watch((-> editorContext.currentCircuitMeta), updateTransformers, true)
 
   $scope.remove = (transformerName) ->
     if window.confirm("Are you sure you want to delete this transformer?")
-      delete currentGame.getCurrentCircuitData().transformers[transformerName]
+      delete currentGame.version.transformers[transformerName]
       currentGame.updateLocalVersion()
 
   $scope.add = () ->
@@ -35,7 +34,7 @@ angular.module('gamEvolve.game.transformers', [
               arguments: []
               body: ""
             done: (model) ->
-              currentGame.getCurrentCircuitData().transformers[model.name] = 
+              currentGame.version.transformers[model.name] = 
                 args: model.arguments
                 body: model.body
               currentGame.updateLocalVersion()
@@ -46,7 +45,7 @@ angular.module('gamEvolve.game.transformers', [
           }
 
   $scope.edit = (transformerName) -> 
-    transformer = currentGame.getCurrentCircuitData().transformers[transformerName]
+    transformer = currentGame.version.transformers[transformerName]
     editTransformerDialog = $modal.open
       backdrop: "static"
       templateUrl: 'game/transformers/editTransformer.tpl.html'
@@ -63,9 +62,9 @@ angular.module('gamEvolve.game.transformers', [
             done: (model) ->
               # Handle rename case
               if model.name isnt transformerName
-                delete currentGame.getCurrentCircuitData().transformers[transformerName]
+                delete currentGame.version.transformers[transformerName]
 
-              currentGame.getCurrentCircuitData().transformers[model.name] = 
+              currentGame.version.transformers[model.name] = 
                 args: model.arguments
                 body: model.body
 

@@ -150,11 +150,11 @@ initializeIo = (circuits) ->
       throw new Error("Error initializing io '#{ioName}'. #{error}")
   return currentIo
 
-destroyAssets = (oldAssets) ->
-  for name, dataUrl of oldAssets.urls
+destroyAssets = ->
+  for name, dataUrl of loadedAssets.urls
     splitUrl = RW.splitDataUrl(dataUrl)
     # Cannot unload JS or images
-    if splitUrl.mimeType == "text/css" then oldAssets.data[name].remove()
+    if splitUrl.mimeType == "text/css" then loadedAssets.data[name].remove()
 
 # The evaluator is initialized with any JS assets.
 # Returns object containing two maps: { urls: , data: }
