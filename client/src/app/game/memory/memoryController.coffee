@@ -60,7 +60,7 @@ angular.module('gamEvolve.game.memory', [])
 
     # Update the frame memory
     newMemory = RW.cloneData(editor.get())
-    gameHistory.data.frames[gameTime.currentFrameNumber].circuits[editorContext.currentCircuitMeta.id].memory = newMemory
+    gameHistory.data.frames[gameTime.currentFrameNumber].memory[editorContext.currentCircuitMeta.id] = newMemory
     gameHistory.meta.version++
 
     # If we are on the first frame, update the game memory as well
