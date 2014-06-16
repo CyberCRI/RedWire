@@ -39,7 +39,7 @@ angular.module('gamEvolve.game.memory', [])
       if gameTime.currentFrameNumber is 0
         currentGame.getCurrentCircuitData().memory
       else
-        gameHistory.data.frames[gameTime.currentFrameNumber].circuits[editorContext.currentCircuitMeta.id].memory
+        gameHistory.data.frames[gameTime.currentFrameNumber].memory[editorContext.currentCircuitMeta.id]
 
     if _.isEqual(memoryModel, editor.get()) then return 
 

@@ -16,10 +16,11 @@ angular.module('gamEvolve.game.log', [])
       for error in gameHistory.data.compilationErrors
         $scope.text += "  #{error}\n"
     for index, frame of gameHistory.data.frames
-      if frame.logMessages.length > 0
-        $scope.text += "FRAME #{parseInt(index) + 1}:\n"
-        for message in frame.logMessages
-          $scope.text += "  #{message.level}#{formatMessageOrigin(message)}: #{messageToString(message.message)}\n"
+      for circuitId, logMessages of frame.logMessages
+        if logMessages.length > 0
+          $scope.text += "FRAME #{parseInt(index) + 1}:\n"
+          for message in logMessages
+            $scope.text += "  #{message.level}#{formatMessageOrigin(message)}: #{messageToString(message.message)}\n"
       if frame.errors then break # Stop on first frame where error is found
 
   $scope.text = ""

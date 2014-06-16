@@ -85,7 +85,7 @@ angular.module('gamEvolve.game.processors', [
               editProcessorDialog.close()
           }
 
-.controller 'EditProcessorDialogCtrl', ($scope, processor) ->
+.controller 'EditProcessorDialogCtrl', ($scope, liaison) ->
   # Convert between "pinDef form" used in game serialization and "pin form" used in GUI
   toPins = (pinDefs) ->
     for pinName, pinDef of pinDefs
@@ -104,16 +104,16 @@ angular.module('gamEvolve.game.processors', [
 
   # Need to put 2-way data binding under an object
   $scope.exchange = {}
-  $scope.exchange.name = processor.model.name
-  $scope.exchange.pins = toPins(processor.model.pinDefs)
-  $scope.exchange.updateText = processor.model.update
+  $scope.exchange.name = liaison.model.name
+  $scope.exchange.pins = toPins(liaison.model.pinDefs)
+  $scope.exchange.updateText = liaison.model.update
 
   $scope.addPin = -> $scope.exchange.pins.push({ name: "", direction: "in" })
   $scope.removePin = (index) -> $scope.exchange.pins.splice(index, 1)
 
   # Reply with the new data
-  $scope.done = -> processor.done 
+  $scope.done = -> liaison.done 
     name: $scope.exchange.name
     pinDefs: toPinDefs($scope.exchange.pins)
     update: $scope.exchange.updateText
-  $scope.cancel = -> processor.cancel() 
+  $scope.cancel = -> liaison.cancel() 

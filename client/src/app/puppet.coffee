@@ -201,10 +201,6 @@ unloadGame = ->
   loadedAssets = null
   destroyIo(loadedGame.io)
 
-applyMemoryPatchesInCircuits = (patches, memory) ->
-  RW.mapObject memory, (circuitMemory, circuitId) ->
-    RW.applyPatches(patches[circuitId], circuitMemory)
-
 makeReporter = (destinationWindow, destinationOrigin, operation) ->
   return (err, value) ->
     if err 
@@ -235,7 +231,7 @@ onRepeatRecordFrame = ->
     isRecording = false
     recordFrameReporter(new Error("Errors in recording"))
   else 
-    lastMemory = applyMemoryPatchesInCircuits(result.memoryPatches, lastMemory)
+    lastMemory = RW.applyPatchesInCircuits(result.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatRecordFrame) # Loop!
 
 onRepeatPlayFrame = ->
@@ -248,7 +244,7 @@ onRepeatPlayFrame = ->
     isPlaying = false
     playFrameReporter(new Error("Errors in playing"))
   else 
-    lastMemory = applyMemoryPatchesInCircuits(lastPlayedFrame.memoryPatches, lastMemory)
+    lastMemory = RW.applyPatchesInCircuits(lastPlayedFrame.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatPlayFrame) # Loop!
 
 playBackFrame = (outputIoData) ->
@@ -284,7 +280,7 @@ onUpdateFrames = (memory, inputIoDataFrames) ->
     results.push(result)
     if results.errors then return results # Return right away
 
-    lastMemory = applyMemoryPatchesInCircuits(result.memoryPatches, lastMemory)
+    lastMemory = RW.applyPatchesInCircuits(result.memoryPatches, lastMemory)
   return results
 
 # MAIN

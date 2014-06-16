@@ -123,7 +123,7 @@ angular.module('gamEvolve.game.player', [])
 
           # Calculate memory going into the next frame
           lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
-          lastMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+          lastMemory = RW.applyPatchesInCircuits(lastFrame.memoryPatches, lastFrame.memory)
 
           # Add in the new results
           for results in message.value
@@ -135,7 +135,7 @@ angular.module('gamEvolve.game.player', [])
               break
 
             # Calcuate the next memory to be used
-            lastMemory = RW.applyPatches(results.memoryPatches, lastMemory)
+            lastMemory = RW.applyPatchesInCircuits(results.memoryPatches, lastMemory)
 
           if metError 
             overlay.makeNotification("error")
@@ -200,7 +200,7 @@ angular.module('gamEvolve.game.player', [])
               break # Stop updating when error is found
 
             # Calcuate the next memory to be used
-            lastMemory = RW.applyPatches(results.memoryPatches, lastMemory)
+            lastMemory = RW.applyPatchesInCircuits(results.memoryPatches, lastMemory)
 
           if metError 
             overlay.makeNotification("error")
@@ -264,7 +264,7 @@ angular.module('gamEvolve.game.player', [])
   onUpdateFrame = (frameNumber) ->
     if not gameCode? then return
     frameResult = gameHistory.data.frames[frameNumber]
-    outputIoData = RW.applyPatches(frameResult.ioPatches, frameResult.inputIoData)
+    outputIoData = RW.applyPatchesInCircuits(frameResult.ioPatches, frameResult.inputIoData)
     sendMessage("playBackFrame", { outputIoData: outputIoData })
   $scope.$watch('gameTime.currentFrameNumber', onUpdateFrame, true)
 
@@ -274,7 +274,7 @@ angular.module('gamEvolve.game.player', [])
       if gameTime.currentFrameNumber < gameHistory.data.frames.length
         # Start playing on next frame (assumes recordFrame() has been done in editor)
         lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
-        nextMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+        nextMemory = RW.applyPatchesInCircuits(lastFrame.memoryPatches, lastFrame.memory)
       else
         # Just start with initial memory (like in play-only mode)
         nextMemory = buildInitialMemoryData(gameCode.circuits)

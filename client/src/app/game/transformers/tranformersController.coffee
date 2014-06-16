@@ -74,21 +74,21 @@ angular.module('gamEvolve.game.transformers', [
               editTransformerDialog.close()
           }
 
-.controller 'EditTransformerDialogCtrl', ($scope, transformer) ->
+.controller 'EditTransformerDialogCtrl', ($scope, liaison) ->
   # Need to put 2-way data binding under an object
   $scope.exchange = {}
-  $scope.exchange.name = transformer.model.name
-  $scope.exchange.arguments = for argument in transformer.model.arguments 
+  $scope.exchange.name = liaison.model.name
+  $scope.exchange.arguments = for argument in liaison.model.arguments 
     { value: argument } 
-  $scope.exchange.body = transformer.model.body
+  $scope.exchange.body = liaison.model.body
 
   $scope.addArgument = -> $scope.exchange.arguments.push({ value: "" })
   $scope.removeArgument = (index) -> $scope.exchange.arguments.splice(index, 1)
 
   # Reply with the new data
-  $scope.done = -> transformer.done 
+  $scope.done = -> liaison.done 
     name: $scope.exchange.name
     arguments: for argument in $scope.exchange.arguments
       argument.value
     body: $scope.exchange.body
-  $scope.cancel = -> transformer.cancel() 
+  $scope.cancel = -> liaison.cancel() 

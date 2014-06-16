@@ -26,3 +26,4 @@ createEventType = (name) ->
 createEventType('GameVersionUpdatedEvent')
 createEventType('SwitchRenamedEvent')
 createEventType('ProcessorRenamedEvent')
+createEventType('TransformerRenamedEvent')

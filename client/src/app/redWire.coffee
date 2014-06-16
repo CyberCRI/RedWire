@@ -645,3 +645,8 @@ RW.splitAddress = (address) -> _.reject(address.split(/[\.\[\]]/), (part) -> par
 
 # Combine a path like ["a", "b", 1, 2] into "a/b/1/2
 RW.joinPathParts = (pathParts) -> "/#{pathParts.join('/')}"
+
+# Wrapper around RW.applyPatches to allow it apply patches within circuits
+RW.applyPatchesInCircuits = (patches, data) ->
+  RW.mapObject data, (circuitData, circuitId) ->
+    if patches[circuitId] then  RW.applyPatches(patches[circuitId], circuitData) else circuitData

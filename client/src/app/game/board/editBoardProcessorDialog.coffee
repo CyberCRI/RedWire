@@ -56,11 +56,11 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
   if 'processor' of liaison.model
     $scope.kind = 'Processor'
     $scope.type = liaison.model.processor
-    typeDef = currentGame.getCurrentCircuitData().processors[$scope.type]
+    typeDef = currentGame.version.processors[$scope.type]
   else if 'switch' of liaison.model
     $scope.kind = 'Switch'
     $scope.type = liaison.model.switch
-    typeDef = currentGame.getCurrentCircuitData().switches[$scope.type]
+    typeDef = currentGame.version.switches[$scope.type]
   else
     throw new Error('Model is not a processor or switch')
 

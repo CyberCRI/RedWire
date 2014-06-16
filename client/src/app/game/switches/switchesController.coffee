@@ -33,7 +33,7 @@ angular.module('gamEvolve.game.switches', [
       controller: 'EditSwitchDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
-        switchIntermediary: ->
+        liaison: ->
           {
             model:
               name: ""
@@ -61,7 +61,7 @@ angular.module('gamEvolve.game.switches', [
       controller: 'EditSwitchDialogCtrl'
       resolve:
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
-        switchIntermediary: ->
+        liaison: ->
           {
             model:
               name: switchName
@@ -87,7 +87,7 @@ angular.module('gamEvolve.game.switches', [
               editSwitchDialog.close()
           }
 
-.controller 'EditSwitchDialogCtrl', ($scope, switchIntermediary) ->
+.controller 'EditSwitchDialogCtrl', ($scope, liaison) ->
   # Convert between "pinDef form" used in game serialization and "pin form" used in GUI
   toPins = (pinDefs) ->
     for pinName, pinDef of pinDefs
@@ -106,18 +106,18 @@ angular.module('gamEvolve.game.switches', [
 
   # Need to put 2-way data binding under an object
   $scope.exchange = {}
-  $scope.exchange.name = switchIntermediary.model.name
-  $scope.exchange.pins = toPins(switchIntermediary.model.pinDefs)
-  $scope.exchange.listActiveChildrenText = switchIntermediary.model.listActiveChildren
-  $scope.exchange.handleSignalsText = switchIntermediary.model.handleSignals
+  $scope.exchange.name = liaison.model.name
+  $scope.exchange.pins = toPins(liaison.model.pinDefs)
+  $scope.exchange.listActiveChildrenText = liaison.model.listActiveChildren
+  $scope.exchange.handleSignalsText = liaison.model.handleSignals
 
   $scope.addPin = -> $scope.exchange.pins.push({ name: "", direction: "in" })
   $scope.removePin = (index) -> $scope.exchange.pins.splice(index, 1)
 
   # Reply with the new data
-  $scope.done = -> switchIntermediary.done 
+  $scope.done = -> liaison.done 
     name: $scope.exchange.name
     pinDefs: toPinDefs($scope.exchange.pins)
     listActiveChildren: $scope.exchange.listActiveChildrenText
     handleSignals: $scope.exchange.handleSignalsText
-  $scope.cancel = -> switchIntermediary.cancel() 
+  $scope.cancel = -> liaison.cancel() 

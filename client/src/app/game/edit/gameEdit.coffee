@@ -24,15 +24,6 @@ angular.module('gamEvolve.game.edit', [
   # Used by toolbox list
   # TODO: put in own controller
   $scope.isFirstOpen = true
-
-
-.controller 'BasicChipLibraryCtrl', ($scope) ->
-
-  $scope.newSplitter = ->
-    splitter:
-      from: ''
-      bindTo: ''
-      index: ''
       
 .controller 'LogoCtrl', ($scope, aboutDialog) ->
   $scope.aboutDialog = aboutDialog
