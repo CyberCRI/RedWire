@@ -6,14 +6,19 @@ angular.module('gamEvolve.game.boardTree', [
   'treeRepeat'
   'gamEvolve.game.boardLabel'
   'gamEvolve.model.chips'
-  'gamEvolve.game.boardLabel'
+  'gamEvolve.game.boardNodes'
+  'gamEvolve.model.editorContext'
 ])
 
-.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes) ->
+.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, editorContext) ->
   $scope.currentGame = currentGame
   $scope.treeDrag = treeDrag
-  $scope.chips = chips
+  $scope.chips = chips 
   $scope.boardNodes = boardNodes
+
+  $scope.getCurrentBoard = -> 
+    if not currentGame.version then return {}
+    return currentGame.version.circuits[editorContext.currentCircuitMeta.type].board
 
   $scope.isPreviewedAsSource = (chip) ->
     return false unless chip
@@ -96,7 +101,7 @@ angular.module('gamEvolve.game.boardTree', [
 
   $scope.drop = (source, target, sourceParent, targetParent) ->
     return if source is target
-    return if source is currentGame.getCurrentCircuitData().board # Ignore Main node DnD
+    return if source is $scope.getCurrentBoard() # Ignore Main node DnD
     if treeDrag.dropBefore
       moveBeforeTarget(source, target, sourceParent, targetParent)
     else if chips.acceptsChildren(target)

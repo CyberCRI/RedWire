@@ -1,5 +1,5 @@
 angular.module('gamEvolve.game.toolbox', [])
-.controller 'ToolboxCtrl', ($scope, $modal, currentGame, ProcessorRenamedEvent, SwitchRenamedEvent, TransformerRenamedEvent) ->
+.controller 'ToolboxCtrl', ($scope, $modal, currentGame, editorContext, ProcessorRenamedEvent, SwitchRenamedEvent, TransformerRenamedEvent, CircuitRenamedEvent) ->
 
   MODALS = 
     processors:
@@ -14,15 +14,20 @@ angular.module('gamEvolve.game.toolbox', [])
       templateUrl: 'game/toolbox/editTransformer.tpl.html'
       controller: 'EditTransformerDialogCtrl'
       renamedEvent: TransformerRenamedEvent
+    circuits:
+      templateUrl: 'game/toolbox/editCircuit.tpl.html'
+      controller: 'EditCircuitDialogCtrl'
+      renamedEvent: CircuitRenamedEvent
 
   $scope.processors = []
   $scope.switches = []
   $scope.transformers = []
+  $scope.circuits = []
 
   # Watch currentGame and update our scope
   updateItems = ->
     if not currentGame.version then return 
-    for itemType in ["processors", "switches", "transformers"]
+    for itemType in ["processors", "switches", "transformers", "circuits"]
       $scope[itemType] = _.keys(currentGame.version[itemType])
   $scope.$watch((-> currentGame.localVersion), updateItems)
 
@@ -57,6 +62,8 @@ angular.module('gamEvolve.game.toolbox', [])
         name: name
         arguments: currentGame.version.transformers[name].args
         body: currentGame.version.transformers[name].body
+      when "circuits"
+        name: name
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -74,7 +81,23 @@ angular.module('gamEvolve.game.toolbox', [])
       when "transformers"
         currentGame.version.transformers[model.name] = 
           args: model.arguments
-          body: model.body      
+          body: model.body
+      when "circuits"
+        # If the circuit doesn't exist, create it with empty data
+        if model.name not of currentGame.version.circuits
+          currentGame.version.circuits[model.name] = 
+            board: 
+              switch: "Do in Parallel"
+              comment: model.name
+              pins:
+                in: {}
+                out: {}
+            assets: {}
+            memory: {}
+            io: 
+              layers: []
+        # Set the data returned by the user
+        currentGame.version.circuits[model.name].name = model.name
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -93,6 +116,8 @@ angular.module('gamEvolve.game.toolbox', [])
         name: ""
         arguments: []
         body: ""
+      when "circuits"
+        name: ""
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -115,6 +140,9 @@ angular.module('gamEvolve.game.toolbox', [])
         pins:
           in: {}
           out: {}
+      when "circuits"
+        circuit: name
+        id: RW.makeGuid()
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -134,7 +162,14 @@ angular.module('gamEvolve.game.toolbox', [])
         MODALS[itemType].renamedEvent.send
           oldName: name
           newName: newModel.name
+
+        # Move the data to the new name 
+        currentGame.version[itemType][newModel.name] = currentGame.version[itemType][name]
         delete currentGame.version[itemType][name]
 
       setModelFromDialog(itemType, newModel)
       currentGame.updateLocalVersion()
+
+  $scope.changeCircuit = (circuitName) ->
+    # Switch to editing the circuit type, not a particular instance
+    editorContext.currentCircuitMeta = new RW.CircuitMeta(null, circuitName)

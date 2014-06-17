@@ -12,7 +12,8 @@ angular.module('gamEvolve.game.assets', [
   # Transform assets to array so we can loop over it easier
   copyFromGameToScope = -> 
     if currentGame.version?
-      $scope.assets = ({ name: name, data: data } for name, data of currentGame.getCurrentCircuitData().assets)
+      currentCircuitData = currentGame.version.circuits[editorContext.currentCircuitMeta.type]
+      $scope.assets = ({ name: name, data: data } for name, data of currentCircuitData.assets)
 
   # Bring currentGame into scope so we can watch it 
   $scope.currentGame = currentGame
@@ -24,9 +25,10 @@ angular.module('gamEvolve.game.assets', [
     if $scope.assets == null then return 
 
     assetsAsObject = _.object(([asset.name, asset.data] for asset in $scope.assets))
-    if _.isEqual(assetsAsObject, currentGame.version.assets) then return 
+    currentCircuitData = currentGame.version.circuits[editorContext.currentCircuitMeta.type]
+    if _.isEqual(assetsAsObject, currentCircuitData.assets) then return 
 
-    currentGame.getCurrentCircuitData().assets = assetsAsObject
+    currentCircuitData.assets = assetsAsObject
     currentGame.updateLocalVersion()
   $scope.$watch("assets", copyFromScopeToGame, true)
 

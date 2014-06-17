@@ -14,7 +14,8 @@ angular.module('gamEvolve.game.layers', [])
   # Bring currentGame into scope so we can watch it 
   copyFromGameToScope = ->
     if not currentGame.version then return 
-    $scope.layers = RW.cloneData(currentGame.getCurrentCircuitData().io?.layers)
+    currentCircuitData = currentGame.version.circuits[editorContext.currentCircuitMeta.type]
+    $scope.layers = RW.cloneData(currentCircuitData.io.layers)
 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", copyFromGameToScope, true)
@@ -22,9 +23,10 @@ angular.module('gamEvolve.game.layers', [])
 
   copyFromScopeToGame = ->
     if not currentGame.version then return 
-    if _.isEqual(currentGame.getCurrentCircuitData().io?.layers, $scope.layers) then return 
+    currentCircuitData = currentGame.version.circuits[editorContext.currentCircuitMeta.type]
+    if _.isEqual(currentCircuitData.io.layers, $scope.layers) then return 
 
-    currentGame.getCurrentCircuitData().io.layers = $scope.layers
+    currentCircuitData.io.layers = $scope.layers
     currentGame.updateLocalVersion()
   $scope.$watch("layers", copyFromScopeToGame, true)
 

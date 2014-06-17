@@ -31,6 +31,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.play'
   'gamEvolve.game.player'
   'gamEvolve.game.toolbox'
+  'gamEvolve.game.toolbox.circuits'
   'gamEvolve.game.toolbox.processors'
   'gamEvolve.game.toolbox.switches'
   'gamEvolve.game.toolbox.transformers'

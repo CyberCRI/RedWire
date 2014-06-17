@@ -37,9 +37,16 @@ angular.module('gamEvolve.game.memory', [])
 
     memoryModel = 
       if gameTime.currentFrameNumber is 0
-        currentGame.getCurrentCircuitData().memory
+        # Get the initial data for the circuit type
+        currentGame.version.circuits[editorContext.currentCircuitMeta.type].memory
       else
-        gameHistory.data.frames[gameTime.currentFrameNumber].memory[editorContext.currentCircuitMeta.id]
+        # Get the current data for the circuit instance
+        if editorContext.currentCircuitMeta.id?
+          gameHistory.data.frames[gameTime.currentFrameNumber].memory[editorContext.currentCircuitMeta.id]
+        else 
+          # No data to edit
+          # TODO: disable the editor
+          {} 
 
     if _.isEqual(memoryModel, editor.get()) then return 
 
@@ -59,11 +66,12 @@ angular.module('gamEvolve.game.memory', [])
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
 
     # Update the frame memory
-    newMemory = RW.cloneData(editor.get())
-    gameHistory.data.frames[gameTime.currentFrameNumber].memory[editorContext.currentCircuitMeta.id] = newMemory
-    gameHistory.meta.version++
+    if editorContext.currentCircuitMeta.id?
+      newMemory = RW.cloneData(editor.get())
+      gameHistory.data.frames[gameTime.currentFrameNumber].memory[editorContext.currentCircuitMeta.id] = newMemory
+      gameHistory.meta.version++
 
     # If we are on the first frame, update the game memory as well
-    if gameTime.currentFrameNumber == 0 
-      currentGame.getCurrentCircuitData().memory = newMemory
+    if gameTime.currentFrameNumber == 0 and editorContext.currentCircuitMeta.type?
+      currentGame.version.circuits[editorContext.currentCircuitMeta.type].memory = newMemory
       currentGame.updateLocalVersion()

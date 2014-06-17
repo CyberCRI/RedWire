@@ -199,3 +199,10 @@ RW.pluckToObject = (obj, attribute) ->
   for key, val of obj
     newObj[key] = val[attribute]
   return newObj
+
+# From http://stackoverflow.com/a/2117523/209505
+RW.makeGuid = ->
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace /[xy]/g, (c) ->
+    r = Math.random()*16|0
+    v = if c == 'x' then r else (r&0x3|0x8)
+    return v.toString(16)
