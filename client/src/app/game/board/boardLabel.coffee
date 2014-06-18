@@ -21,4 +21,5 @@ angular.module('gamEvolve.game.boardLabel', [
       when "processor" then chip.processor
       when "emitter" then "Emitter"
       when "splitter" then "Splitter"
+      when "circuit" then "Circuit"
       else "Unknown Type"
