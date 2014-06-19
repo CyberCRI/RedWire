@@ -16,10 +16,6 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.chips = chips 
   $scope.boardNodes = boardNodes
 
-  $scope.getCurrentBoard = -> 
-    if not currentGame.version then return {}
-    return currentGame.version.circuits[editorContext.currentCircuitMeta.type].board
-
   $scope.isPreviewedAsSource = (chip) ->
     return false unless chip
     return false if chips.isRoot(chip)
@@ -101,7 +97,7 @@ angular.module('gamEvolve.game.boardTree', [
 
   $scope.drop = (source, target, sourceParent, targetParent) ->
     return if source is target
-    return if source is $scope.getCurrentBoard() # Ignore Main node DnD
+    return if source is chips.getCurrentBoard() # Ignore Main node DnD
     if treeDrag.dropBefore
       moveBeforeTarget(source, target, sourceParent, targetParent)
     else if chips.acceptsChildren(target)

@@ -1,6 +1,4 @@
-
 angular.module('gamEvolve.model.chips', [])
-
 
 .factory 'chips', (currentGame, editorContext, GameVersionUpdatedEvent) ->
 
@@ -19,14 +17,17 @@ angular.module('gamEvolve.model.chips', [])
     "processor"
     "emitter"
     "splitter"
+    "circuit"
   ]
 
   getType: (chip) ->
     return "null" unless chip
+
     if "switch" of chip then "switch"
     else if "processor" of chip then "processor"
     else if "emitter" of chip then "emitter"
     else if "splitter" of chip then "splitter"
+    else if "circuit" of chip then "circuit"
     else "unknown"
 
   acceptsChildren: (chip) ->
@@ -42,4 +43,6 @@ angular.module('gamEvolve.model.chips', [])
     return chip && chip.children && chip.children.length > 0
 
   isRoot: (chip) ->
-    return chip is currentGame.version?.circuits[editorContext.currentCircuitMeta.type].board
+    return chip is @getCurrentBoard()
+
+  getCurrentBoard: -> currentGame.version?.circuits[editorContext.currentCircuitMeta.type].board

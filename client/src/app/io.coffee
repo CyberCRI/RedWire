@@ -11,7 +11,7 @@ RW.io = {}
 RW.io.keyboard = 
   meta:
     visual: false
-  factory: (options = {}) ->
+  factory: (options) ->
     eventNamespace = _.uniqueId('keyboard')
 
     keysDown = {}
@@ -29,7 +29,7 @@ RW.io.keyboard =
     return {
       provideData: -> 
         result = { 'keysDown': keysDown }
-        return RW.mapToObject(options.circuitIds, -> result)
+        return RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> result)
 
       establishData: -> # NOOP. Input io does not take data
 
@@ -41,7 +41,7 @@ RW.io.keyboard =
 RW.io.mouse = 
   meta:
     visual: false
-  factory: (options = {}) ->
+  factory: (options) ->
     eventNamespace = _.uniqueId('mouse')
 
     mouse =
@@ -78,7 +78,7 @@ RW.io.mouse =
           justUp: not mouse.down and lastMouse.down
         lastMouse = RW.cloneData(mouse)
 
-        return RW.mapToObject(options.circuitIds, -> info)
+        return RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> info)
 
       establishData: (data) -> 
         # TODO: how to handle contention for cursor across circuits?
@@ -95,10 +95,11 @@ RW.io.mouse =
 RW.io.canvas =  
   meta:
     visual: true
-  factory: (options = {}) ->
+  factory: (options) ->
     CANVAS_CSS = "position: absolute; left: 0px; top: 0px;"
 
     makeLayerId = (circuitId, layerName) -> "#{circuitId}.#{layerName}"
+    deconstructLayerId = (layerId) -> layerId.split(".")
 
     createLayers = ->
       # Convert layers to ordered
@@ -210,9 +211,6 @@ RW.io.canvas =
         else throw new Error('Unknown or missing shape type')
       ctx.restore()
 
-    options = _.defaults options,
-      layers: []
-
     layers = createLayers()
 
     return {
@@ -220,14 +218,14 @@ RW.io.canvas =
         result =
           size: options.size
           shapes: {}
-        return RW.mapToObject(options.circuitIds, -> result)
+        return RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> result)
 
-      establishData: (data, assets) -> 
+      establishData: (data) -> 
         # Clear layers and create shapeArrays
         shapeArrays = {}
-        for layerName, canvas of layers
+        for layerId, canvas of layers
           canvas[0].getContext('2d').clearRect(0, 0, options.size[0], options.size[1])
-          shapeArrays[layerName] = []
+          shapeArrays[layerId] = []
 
         # Copy shapes from object into arrays based on their layer
         for circuitId, circuitData of data
@@ -239,22 +237,25 @@ RW.io.canvas =
             shapeArrays[layerId].push(shape)
 
         # For each layer, sort shapes and then draw them
-        for layerName, shapeArray of shapeArrays
+        for layerId, shapeArray of shapeArrays
           shapeArray.sort(shapeSorter)
 
-          ctx = layers[layerName][0].getContext('2d')
-          for shape in shapeArray then drawShape(shape, ctx, assets[circuitId])
+          ctx = layers[layerId][0].getContext('2d')
+          [circuitId, layerName] = deconstructLayerId(layerId)
+          circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
+          circuitAssets = options.assets[circuitType]
+          for shape in shapeArray then drawShape(shape, ctx, circuitAssets)
 
       destroy: -> 
-        for layerName, canvas of layers then canvas.remove()
+        for layerId, canvas of layers then canvas.remove()
     }
 
 # Define HTML input io
 RW.io.html =  
   meta:
     visual: true
-  factory: (options = {}) ->
-    state = RW.mapToObject options.circuitIds, ->
+  factory: (options) ->
+    state = RW.mapToObject _.pluck(options.circuitMetas, "id"), ->
       templates: {}
       layers: {}
       views: {}
@@ -289,11 +290,11 @@ RW.io.html =
 
     return {
       provideData: -> 
-        return RW.mapToObject options.circuitIds, (circuitId) -> 
+        return RW.mapToObject _.pluck(options.circuitMetas, "id"), (circuitId) -> 
           receive: state[circuitId].templates
           send: {}
 
-      establishData: (data, assets) -> 
+      establishData: (data) -> 
         for circuitId, circuitData of data
           newTemplateData = circuitData.send 
 
@@ -313,7 +314,7 @@ RW.io.html =
           # Add new templates 
           for templateName in _.difference(newTemplates, existingTemplates) 
             # Create template
-            templateHtml = assets[circuitId][newTemplateData[templateName].asset]
+            templateHtml = options.assets[circuitId][newTemplateData[templateName].asset]
             # TODO: create all layers before hand?
             layerOptions = _.findWhere(options.layers, { circuitId: circuitId, name: templateName })
             depth = layerOptions?.depth ? 100 # Default to 100
@@ -355,10 +356,10 @@ RW.io.html =
 RW.io.time =  
   meta:
     visual: false
-  factory: (options = {}) ->
+  factory: (options) ->
     provideData: -> 
       result = Date.now()
-      return RW.mapToObject(options.circuitIds, -> result)
+      return RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> result)
     establishData: -> # NOP
     destroy: -> # NOP
 
@@ -366,18 +367,18 @@ RW.io.time =
 RW.io.http =  
   meta:
     visual: false
-  factory: (options = {}) ->
-    state = RW.mapToObject options.circuitIds, -> 
+  factory: (options) ->
+    state = RW.mapToObject _.pluck(options.circuitMetas, "id"), -> 
       requests: {}
       responses: {}
 
     io =
       provideData: () -> return state
 
-      establishData: (ioData, assets) -> 
+      establishData: (ioData) -> 
         # Expecting a format like { requests: { id: { method:, url:, data:, cache:, contentType: }, ... }, { responses: { id: { code:, data: }, ... }
 
-        for circuitId in options.circuitIds 
+        for circuitId in _.pluck(options.circuitMetas, "id") 
           # Create new requests
           for requestName in _.difference(_.keys(ioData[circuitId].requests), _.keys(state[circuitId].requests)) 
             do (requestName) ->
@@ -412,24 +413,24 @@ RW.io.http =
 RW.io.charts =  
   meta:
     visual: true
-  factory: (options = {}) ->
+  factory: (options) ->
     makeChartId = (circuitId, chartName) -> "#{circuitId}.#{chartName}"
 
     capitalizeFirstLetter = (str) -> str[0].toUpperCase() + str.slice(1)
 
     # Format { circuitId: { name: { canvas:, data: }}} 
-    charts = RW.mapToObject(options.circuitIds, -> {})
+    charts = RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> {})
 
     removeChart = (circuitId, chartId) ->
       charts[circuitId][chartId].canvas.remove()
       delete charts[circuitId][chartId]
 
     return {
-      provideData: -> RW.mapToObject(options.circuitIds, -> {})
+      provideData: -> RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> {})
 
-      establishData: (ioData, assets) -> 
+      establishData: (ioData) -> 
         # Expecting ioData like { chartA: { size:, position:, depth:, data:, options: }}
-        for circuitId in options.circuitIds
+        for circuitId in _.pluck(options.circuitMetas, "id")
           # Remove old charts 
           for chartName in _.difference(_.keys(charts[circuitId]), _.keys(ioData[circuitId])) then removeChart(circuitId, chartName)
 
