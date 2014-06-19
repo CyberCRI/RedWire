@@ -532,8 +532,18 @@ RW.stepLoop = (options) ->
         for ioName, io of options.io
           inputIoDataByIoName[ioName] = RW.cloneData(io.provideData())
         options.inputIoData = RW.reverseKeys(inputIoDataByIoName)
+        # TODO: freeze options.inputIoData?
       catch e 
         return makeErrorResponse("readIo", e)
+
+    # If any circuits are mising inputIoData, get it from the global
+    # OPT: do this outside of stepLoop()
+    preparedInputIoData = {}
+    for circuitMeta in options.circuitMetas
+      preparedInputIoData[circuitMeta.id] = options.inputIoData[circuitMeta.id] || options.inputIoData.global
+      for ioName of options.io
+        if ioName not of preparedInputIoData[circuitMeta.id]
+          preparedInputIoData[circuitMeta.id][ioName] = options.inputIoData.global[ioName]
 
     try
       result = RW.stimulateCircuits new RW.ChipVisitorConstants
@@ -541,7 +551,7 @@ RW.stepLoop = (options) ->
         processors: options.processors
         switches: options.switches
         transformers: options.transformers
-        ioData: options.inputIoData
+        ioData: preparedInputIoData
         circuits: options.circuits
 
       # If any circuits don't have results, add in empty results there
@@ -564,7 +574,7 @@ RW.stepLoop = (options) ->
         conflicts = RW.detectPatchConflicts(result.circuitResults[circuitMeta.id].ioPatches)
         if conflicts.length > 0 then throw new Error("IO patches conflict for circuit #{circuitMeta.id}: #{JSON.stringify(conflicts)}")
         ioPatches[circuitMeta.id] = result.circuitResults[circuitMeta.id].ioPatches
-        options.outputIoData[circuitMeta.id] = RW.applyPatches(result.circuitResults[circuitMeta.id].ioPatches, options.inputIoData[circuitMeta.id])
+        options.outputIoData[circuitMeta.id] = RW.applyPatches(result.circuitResults[circuitMeta.id].ioPatches, preparedInputIoData[circuitMeta.id])
     catch e 
       return makeErrorResponse("patchIo", e)
 

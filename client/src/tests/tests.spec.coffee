@@ -785,6 +785,9 @@ describe "RedWire", ->
           establishData: jasmine.createSpy()
 
       inputIoData = 
+        global:
+          myService:
+            a: 0
         main:
           myService:
             a: 1

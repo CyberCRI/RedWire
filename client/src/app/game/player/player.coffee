@@ -84,8 +84,19 @@ angular.module('gamEvolve.game.player', [])
             timing.updateFrames = Date.now()
             # If there are already frames, then update them starting with the current frame
             inputIoDataFrames = _.pluck(gameHistory.data.frames[gameTime.currentFrameNumber..], "inputIoData")
+
+            # If there are new circuits added, create memory and IO data for them
+            frameMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
+            circuitMetas = RW.listCircuitMeta(gameCode.circuits)
+            oldCircuitIds = _.keys(frameMemory)
+            circuitIds = _.pluck(circuitMetas, "id")
+            for newCircuitId in _.difference(circuitIds, oldCircuitIds)
+              frameMemory[newCircuitId] = RW.cloneData(gameCode.circuits[_.findWhere(circuitMetas, { id: newCircuitId }).type].memory)
+              for inputIoDataFrame in inputIoDataFrames
+                inputIoDataFrame[newCircuitId] = inputIoDataFrame.global
+
             # The memory stored in the current frame
-            sendMessage("updateFrames", { memory: gameHistory.data.frames[gameTime.currentFrameNumber].memory, inputIoDataFrames })
+            sendMessage("updateFrames", { memory: frameMemory, inputIoDataFrames })
           else
             # Else just record the first frame
             initialMemoryData = buildInitialMemoryData(gameCode.circuits)
@@ -264,7 +275,7 @@ angular.module('gamEvolve.game.player', [])
   onUpdateFrame = (frameNumber) ->
     if not gameCode? then return
     frameResult = gameHistory.data.frames[frameNumber]
-    outputIoData = RW.applyPatchesInCircuits(frameResult.ioPatches, frameResult.inputIoData)
+    outputIoData = RW.applyPatchesInCircuits(frameResult.ioPatches, _.omit(frameResult.inputIoData, "global"))
     sendMessage("playBackFrame", { outputIoData: outputIoData })
   $scope.$watch('gameTime.currentFrameNumber', onUpdateFrame, true)
 

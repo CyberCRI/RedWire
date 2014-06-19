@@ -28,8 +28,8 @@ RW.io.keyboard =
 
     return {
       provideData: -> 
-        result = { 'keysDown': keysDown }
-        return RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> result)
+        global: 
+          keysDown: keysDown
 
       establishData: -> # NOOP. Input io does not take data
 
@@ -77,8 +77,10 @@ RW.io.mouse =
           justDown: mouse.down and not lastMouse.down
           justUp: not mouse.down and lastMouse.down
         lastMouse = RW.cloneData(mouse)
-
-        return RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> info)
+        return {
+          global:
+            info
+          }
 
       establishData: (data) -> 
         # TODO: how to handle contention for cursor across circuits?
@@ -215,10 +217,9 @@ RW.io.canvas =
 
     return {
       provideData: -> 
-        result =
+        global:
           size: options.size
           shapes: {}
-        return RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> result)
 
       establishData: (data) -> 
         # Clear layers and create shapeArrays
@@ -290,9 +291,13 @@ RW.io.html =
 
     return {
       provideData: -> 
-        return RW.mapToObject _.pluck(options.circuitMetas, "id"), (circuitId) -> 
+        result = RW.mapToObject _.pluck(options.circuitMetas, "id"), (circuitId) -> 
           receive: state[circuitId].templates
           send: {}
+        result.global = 
+          receive: {}
+          send: {}
+        return result
 
       establishData: (data) -> 
         for circuitId, circuitData of data
@@ -358,8 +363,7 @@ RW.io.time =
     visual: false
   factory: (options) ->
     provideData: -> 
-      result = Date.now()
-      return RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> result)
+      global: Date.now()
     establishData: -> # NOP
     destroy: -> # NOP
 
@@ -373,7 +377,7 @@ RW.io.http =
       responses: {}
 
     io =
-      provideData: () -> return state
+      provideData: -> _.extend({}, state, global: { requests: {}, responses: {} }) 
 
       establishData: (ioData) -> 
         # Expecting a format like { requests: { id: { method:, url:, data:, cache:, contentType: }, ... }, { responses: { id: { code:, data: }, ... }
@@ -426,7 +430,8 @@ RW.io.charts =
       delete charts[circuitId][chartId]
 
     return {
-      provideData: -> RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> {})
+      provideData: -> 
+        global: {}
 
       establishData: (ioData) -> 
         # Expecting ioData like { chartA: { size:, position:, depth:, data:, options: }}
