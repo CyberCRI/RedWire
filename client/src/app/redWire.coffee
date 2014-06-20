@@ -73,6 +73,10 @@ RW.listCircuitMeta = (circuits) ->
 
 RW.makeCircuitId = (parentId, childId) -> "#{parentId}.#{childId}"
 
+RW.getParentCircuitId = (circuitId) -> _.initial(circuitId.split(".")).join(".")
+
+RW.getChildCircuitId = (circuitId) -> _.last(circuitId.split("."))
+
 # Used to evaluate expressions against with RW.evaluateExpressionFunction
 RW.makeEvaluationContext = (circuitMeta, constants, bindings) ->
   context = 

@@ -1,6 +1,6 @@
 angular.module('gamEvolve.model.chips', [])
 
-.factory 'chips', (currentGame, editorContext, GameVersionUpdatedEvent) ->
+.factory 'chips', (currentGame, circuits, GameVersionUpdatedEvent) ->
 
   GameVersionUpdatedEvent.listen (newVersion) ->
     for circuitId, circuit of newVersion.circuits
@@ -45,4 +45,4 @@ angular.module('gamEvolve.model.chips', [])
   isRoot: (chip) ->
     return chip is @getCurrentBoard()
 
-  getCurrentBoard: -> currentGame.version?.circuits[editorContext.currentCircuitMeta.type].board
+  getCurrentBoard: -> currentGame.version?.circuits[circuits.currentCircuitMeta.type].board

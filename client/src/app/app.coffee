@@ -10,7 +10,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.cache'
   'gamEvolve.model.games'
   'gamEvolve.model.users'
-  'gamEvolve.model.editorContext'
+  'gamEvolve.model.circuits'
   'gamEvolve.util.eventBus'
   'gamEvolve.util.logger'
   'gamEvolve.util.gameConverter'

@@ -7,10 +7,10 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.game.boardLabel'
   'gamEvolve.model.chips'
   'gamEvolve.game.boardNodes'
-  'gamEvolve.model.editorContext'
+  'gamEvolve.model.circuits'
 ])
 
-.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, editorContext) ->
+.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, circuits) ->
   $scope.currentGame = currentGame
   $scope.treeDrag = treeDrag
   $scope.chips = chips 
@@ -104,6 +104,7 @@ angular.module('gamEvolve.game.boardTree', [
       moveInsideTarget(source, target, sourceParent)
     else
       moveAfterTarget(source, target, sourceParent, targetParent)
+    
     currentGame.updateLocalVersion()
 
   moveBeforeTarget = (source, target, sourceParent, targetParent) ->

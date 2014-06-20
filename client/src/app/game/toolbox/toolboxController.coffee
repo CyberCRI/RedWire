@@ -1,5 +1,5 @@
 angular.module('gamEvolve.game.toolbox', [])
-.controller 'ToolboxCtrl', ($scope, $modal, currentGame, editorContext, ProcessorRenamedEvent, SwitchRenamedEvent, TransformerRenamedEvent, CircuitRenamedEvent) ->
+.controller 'ToolboxCtrl', ($scope, $modal, currentGame, circuits, ProcessorRenamedEvent, SwitchRenamedEvent, TransformerRenamedEvent, CircuitRenamedEvent) ->
 
   MODALS = 
     processors:
@@ -172,4 +172,4 @@ angular.module('gamEvolve.game.toolbox', [])
 
   $scope.changeCircuit = (circuitName) ->
     # Switch to editing the circuit type, not a particular instance
-    editorContext.currentCircuitMeta = new RW.CircuitMeta(null, circuitName)
+    circuits.currentCircuitMeta = new RW.CircuitMeta(null, circuitName)

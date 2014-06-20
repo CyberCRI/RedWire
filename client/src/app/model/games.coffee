@@ -2,7 +2,7 @@
 angular.module('gamEvolve.model.games', [])
 
 
-.factory 'currentGame', (GameVersionUpdatedEvent, editorContext) ->
+.factory 'currentGame', (GameVersionUpdatedEvent, WillChangeLocalVersionEvent) ->
 
   version: null
   setVersion: (newVersion) ->
@@ -18,7 +18,10 @@ angular.module('gamEvolve.model.games', [])
     @creator = null
     @localVersion = _.uniqueId("v")
 
-  updateLocalVersion: -> @localVersion = _.uniqueId("v")
+  updateLocalVersion: -> 
+    # Give an opportunity to change the game code before it is updated
+    WillChangeLocalVersionEvent.send()
+    @localVersion = _.uniqueId("v")
 
   enumeratePinDestinations: ->
     destinations = @enumerateMemoryKeys(@version.memory)
