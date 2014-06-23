@@ -18,6 +18,7 @@ angular.module('gamEvolve.util.gameConverter', [])
       id: gameVersionJson.id
       gameId: gameVersionJson.gameId
       versionNumber: gameVersionJson.versionNumber
+      fileVersion: gameVersionJson.fileVersion
     for propertyName in JSON_PROPERTIES
       gameVersion[propertyName] = JSON.parse(gameVersionJson[propertyName])
     return gameVersion
@@ -27,6 +28,7 @@ angular.module('gamEvolve.util.gameConverter', [])
       id: gameVersion.id
       gameId: gameVersion.gameId
       versionNumber: gameVersion.versionNumber
+      fileVersion: gameVersion.fileVersion
     for propertyName in JSON_PROPERTIES
       gameVersionJson[propertyName] = JSON.stringify(gameVersion[propertyName], null, 2)
     return gameVersionJson

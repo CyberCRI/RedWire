@@ -142,7 +142,7 @@ angular.module('gamEvolve.game.toolbox', [])
           out: {}
       when "circuits"
         circuit: name
-        id: RW.makeGuid()
+        id: name
       else 
         throw new Error("Unknown item type '#{itemType}'")
 

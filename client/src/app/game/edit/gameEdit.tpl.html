@@ -69,11 +69,20 @@
                                 <h4>Layers</h4>
                                 <ul ui-sortable ng-model="layers">
                                     <li ng-repeat="layer in layers">
-                                        <span class="glyphicon glyphicon-align-justify"></span>
-                                        <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
-                                        -
-                                        <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
-                                        <a class="btn btn-default btn-sm" ng-click="removeLayer($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                                        <div ng-switch on="layer.type">
+                                            <div ng-switch-when="circuit">
+                                                <span class="glyphicon glyphicon-align-justify"></span>
+                                                <span>{{ layer.name }}</a>
+                                                -
+                                                <span>Circuit</span>
+                                            </div>
+                                            <div ng-switch-default>
+                                                <span class="glyphicon glyphicon-align-justify"></span>
+                                                <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
+                                                -
+                                                <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
+                                                <a class="btn btn-default btn-sm" ng-click="removeLayer($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                                            </div>
                                     </li>
                                 </ul>
 
