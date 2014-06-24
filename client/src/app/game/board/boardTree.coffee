@@ -75,6 +75,13 @@ angular.module('gamEvolve.game.boardTree', [
     node.muted = !node.muted
     currentGame.updateLocalVersion()
 
+  $scope.switchCircuit = (circuitNode) ->
+    if circuits.currentCircuitMeta.id
+      # We are in a circuit instance, so load a new instance
+      circuits.currentCircuitMeta = new RW.CircuitMeta(RW.makeCircuitId(circuits.currentCircuitMeta.id, circuitNode.id), circuitNode.circuit)
+    else
+      circuits.currentCircuitMeta = new RW.CircuitMeta(null, circuitNode.circuit)
+
   showDialog = (templateUrl, controller, model, onDone) ->
     dialog = $modal.open
       backdrop: "static"

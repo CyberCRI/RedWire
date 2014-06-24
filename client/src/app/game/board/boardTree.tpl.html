@@ -17,6 +17,7 @@
             </span>
             &nbsp;
             <span ng-hide="chips.isRoot(node)">
+                <button ng-if="node.circuit" class="btn btn-xs" ng-click="switchCircuit(node)"><span class="font-icon-resize-full-alt"></span></button>
                 <button class="btn btn-xs" ng-click="edit(node)"><span class="glyphicon glyphicon-pencil"></span></button>
                 <button class="btn btn-xs" ng-click="mute(node)" ng-class="{'btn-danger': node.muted, active: node.muted}">
                     {{node.muted ? 'Unmute' : 'Mute'}}

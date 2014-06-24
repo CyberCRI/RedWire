@@ -49,6 +49,13 @@
                         </block-container>
                         <block-splitter></block-splitter>
                         <block-container class="scrollable">
+                            <ol class="breadcrumb">
+                                <li><a href="" ng-click="switchToMainCircuit()"><span class="glyphicon glyphicon-home"></span></a></li>
+                                <li ng-repeat="circuitPart in getCircuitParts()">
+                                    <a ng-if="!$last" href="" ng-click="switchCircuit($index)">{{ circuitPart }}</a>
+                                    <span ng-if="$last" class="active">{{ circuitPart }}</span>
+                                </li>
+                            </ol>
                             <h4>Board</h4>
                             <ng-include src="'game/board/boardTree.tpl.html'" ng-controller="BoardTreeCtrl"></ng-include>
                         </block-container>
