@@ -3,6 +3,7 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.game.board.editEmitterDialog'
   'gamEvolve.game.board.editProcessorDialog'
   'gamEvolve.game.board.editSplitterDialog'
+  'gamEvolve.game.board.editCircuitDialog'
   'treeRepeat'
   'gamEvolve.game.boardLabel'
   'gamEvolve.model.chips'
@@ -60,6 +61,15 @@ angular.module('gamEvolve.game.boardTree', [
       when "splitter"
         showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+      when "circuit"
+        showDialog 'game/board/editBoardCircuitDialog.tpl.html', 'EditBoardCircuitDialogCtrl', chip, (model) ->
+          if chip.id isnt model.id
+            # Rename circuit layer
+            parentCircuit = currentGame.version.circuits[circuits.currentCircuitMeta.type] 
+            circuitLayer = _.findWhere(parentCircuit.io.layers, { name: chip.id })
+            if circuitLayer then circuitLayer.name = model.id
+
+          _.extend(chip, model)
 
   $scope.mute = (node) ->
     node.muted = !node.muted
@@ -67,8 +77,6 @@ angular.module('gamEvolve.game.boardTree', [
 
   showDialog = (templateUrl, controller, model, onDone) ->
     dialog = $modal.open
-      backdrop: true
-      dialogFade: true
       backdrop: "static"
       templateUrl: templateUrl
       controller: controller
@@ -98,6 +106,26 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.drop = (source, target, sourceParent, targetParent) ->
     return if source is target
     return if source is chips.getCurrentBoard() # Ignore Main node DnD
+    
+    # IDs must be unique for this parent, like for ciruits
+    if "id" of source 
+      siblings = if treeDrag.dropBefore 
+          targetParent.children
+        else if chips.acceptsChildren(target) 
+          target.children
+        else 
+          targetParent.children
+
+      # Keep trying new names until one fits
+      existingIds = _.pluck(siblings, "id")
+      nextId = source.id
+      nextIndex = 2
+      while nextId in existingIds
+        nextId = "#{source.id} #{nextIndex}"
+        nextIndex++
+      source.id = nextId
+
+    # Put the dropped node into the right place
     if treeDrag.dropBefore
       moveBeforeTarget(source, target, sourceParent, targetParent)
     else if chips.acceptsChildren(target)
