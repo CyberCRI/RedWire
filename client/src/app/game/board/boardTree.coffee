@@ -3,16 +3,18 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.game.board.editEmitterDialog'
   'gamEvolve.game.board.editProcessorDialog'
   'gamEvolve.game.board.editSplitterDialog'
+  'gamEvolve.game.board.editCircuitDialog'
   'treeRepeat'
   'gamEvolve.game.boardLabel'
   'gamEvolve.model.chips'
-  'gamEvolve.game.boardLabel'
+  'gamEvolve.game.boardNodes'
+  'gamEvolve.model.circuits'
 ])
 
-.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes) ->
+.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, circuits) ->
   $scope.currentGame = currentGame
   $scope.treeDrag = treeDrag
-  $scope.chips = chips
+  $scope.chips = chips 
   $scope.boardNodes = boardNodes
 
   $scope.isPreviewedAsSource = (chip) ->
@@ -59,15 +61,29 @@ angular.module('gamEvolve.game.boardTree', [
       when "splitter"
         showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
+      when "circuit"
+        showDialog 'game/board/editBoardCircuitDialog.tpl.html', 'EditBoardCircuitDialogCtrl', chip, (model) ->
+          if chip.id isnt model.id
+            # Rename circuit layer
+            parentCircuit = currentGame.version.circuits[circuits.currentCircuitMeta.type] 
+            circuitLayer = _.findWhere(parentCircuit.io.layers, { name: chip.id })
+            if circuitLayer then circuitLayer.name = model.id
+
+          _.extend(chip, model)
 
   $scope.mute = (node) ->
     node.muted = !node.muted
     currentGame.updateLocalVersion()
 
+  $scope.switchCircuit = (circuitNode) ->
+    if circuits.currentCircuitMeta.id
+      # We are in a circuit instance, so load a new instance
+      circuits.currentCircuitMeta = new RW.CircuitMeta(RW.makeCircuitId(circuits.currentCircuitMeta.id, circuitNode.id), circuitNode.circuit)
+    else
+      circuits.currentCircuitMeta = new RW.CircuitMeta(null, circuitNode.circuit)
+
   showDialog = (templateUrl, controller, model, onDone) ->
     dialog = $modal.open
-      backdrop: true
-      dialogFade: true
       backdrop: "static"
       templateUrl: templateUrl
       controller: controller
@@ -96,13 +112,34 @@ angular.module('gamEvolve.game.boardTree', [
 
   $scope.drop = (source, target, sourceParent, targetParent) ->
     return if source is target
-    return if source is currentGame.version.board # Ignore Main node DnD
+    return if source is chips.getCurrentBoard() # Ignore Main node DnD
+    
+    # IDs must be unique for this parent, like for ciruits
+    if "id" of source 
+      siblings = if treeDrag.dropBefore 
+          targetParent.children
+        else if chips.acceptsChildren(target) 
+          target.children
+        else 
+          targetParent.children
+
+      # Keep trying new names until one fits
+      existingIds = _.pluck(siblings, "id")
+      nextId = source.id
+      nextIndex = 2
+      while nextId in existingIds
+        nextId = "#{source.id} #{nextIndex}"
+        nextIndex++
+      source.id = nextId
+
+    # Put the dropped node into the right place
     if treeDrag.dropBefore
       moveBeforeTarget(source, target, sourceParent, targetParent)
     else if chips.acceptsChildren(target)
       moveInsideTarget(source, target, sourceParent)
     else
       moveAfterTarget(source, target, sourceParent, targetParent)
+    
     currentGame.updateLocalVersion()
 
   moveBeforeTarget = (source, target, sourceParent, targetParent) ->
@@ -126,12 +163,3 @@ angular.module('gamEvolve.game.boardTree', [
     removeSourceFromParent(source, sourceParent)
     targetIndex = targetParent.children.indexOf(target)
     targetParent.children.splice targetIndex + 1, 0, source
-
-  # TODO Remove or move to right place
-  # Update from gameHistory
-  onUpdateGameHistory = ->
-    if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return
-    newMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
-    if not _.isEqual($scope.memory, newMemory)
-      $scope.memory = newMemory
-  $scope.$watch('gameHistoryMeta', onUpdateGameHistory, true)

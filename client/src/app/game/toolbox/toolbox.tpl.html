@@ -1,0 +1,64 @@
+<block-container class="scrollable" id="toolbox" ng-controller="ToolboxCtrl">
+    <accordion close-others="true">
+        <accordion-group>
+            <accordion-heading><div>Circuits</div></accordion-heading>
+            <div id="circuits">
+                <ul>
+                    <li ng-repeat="circuitName in circuits" class="circuitChip">
+                        <span frang-tree-drag="{node: itemForDrag('circuits', circuitName) }">{{circuitName}}</span>
+                        <a class="btn btn-default btn-sm" ng-click="changeCircuit(circuitName)"><i class="font-icon-resize-full-alt"></i></a>
+                        <a class="btn btn-default btn-sm" ng-click="editItem('circuits', circuitName)"><i class="glyphicon glyphicon-edit"></i></a>
+                        <a class="btn btn-default btn-sm" ng-click="removeItem('circuits', circuitName)"><i class="glyphicon glyphicon-trash"></i></a>
+                    </li>
+                </ul>
+                <a class="btn btn-default" ng-click="addItem('circuits')"><i class="glyphicon glyphicon-plus"></i></a>
+            </div>
+        </accordion-group>
+        <accordion-group is-open="isFirstOpen">
+            <accordion-heading><div>Basic</div></accordion-heading>
+            <ul>
+                <li class="emitterChip"><span frang-tree-drag="{node: itemForDrag('emitters') }" emitter>Emitter</span></li>
+                <li class="splitterChip"><span frang-tree-drag="{node: itemForDrag('splitters') }" splitter>Splitter</span></li>
+            </ul>
+        </accordion-group>
+        <accordion-group>
+            <accordion-heading><div>Processors</div></accordion-heading>
+            <div id="processors">
+                <ul>
+                    <li ng-repeat="processorName in processors" class="processorChip">
+                        <span frang-tree-drag="{node: itemForDrag('processors', processorName) }">{{processorName}}</span>
+                        <a class="btn btn-default btn-sm" ng-click="editItem('processors', processorName)"><i class="glyphicon glyphicon-edit"></i></a>
+                        <a class="btn btn-default btn-sm" ng-click="removeItem('processors', processorName)"><i class="glyphicon glyphicon-trash"></i></a>
+                    </li>
+                </ul>
+                <a class="btn btn-default" ng-click="addItem('processors')"><i class="glyphicon glyphicon-plus"></i></a>
+            </div>
+        </accordion-group>
+        <accordion-group>
+            <accordion-heading><div>Switches</div></accordion-heading>
+            <div id="switches">
+                <ul>
+                    <li ng-repeat="switchName in switches" class="switchChip">
+                        <span frang-tree-drag="{node: itemForDrag('switches', switchName) }">{{switchName}}</span>
+                        <a class="btn btn-default btn-sm" ng-click="editItem('switches', switchName)"><i class="glyphicon glyphicon-edit"></i></a>
+                        <a class="btn btn-default btn-sm" ng-click="removeItem('switches', switchName)"><i class="glyphicon glyphicon-trash"></i></a>
+                    </li>
+                </ul>
+                <a class="btn btn-default" ng-click="addItem('switches')"><i class="glyphicon glyphicon-plus"></i></a>
+            </div>
+        </accordion-group>
+        <accordion-group>
+            <accordion-heading><div>Transformers</div></accordion-heading>
+            <div id="transformers">
+                <ul>
+                    <li ng-repeat="transformerName in transformers" class="transformerChip">
+                        <span>{{transformerName}}</span>
+                        <a class="btn btn-default btn-sm" ng-click="editItem('transformers', transformerName)"><i class="glyphicon glyphicon-edit"></i></a>
+                        <a class="btn btn-default btn-sm" ng-click="removeItem('transformers', transformerName)"><i class="glyphicon glyphicon-trash"></i></a>
+                    </li>
+                </ul>
+                <a class="btn btn-default" ng-click="addItem('transformers')"><i class="glyphicon glyphicon-plus"></i></a>
+            </div>
+        </accordion-group>
+    </accordion>
+</block-container>

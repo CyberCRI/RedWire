@@ -19,6 +19,13 @@ extendFrameResults = (result, memory, inputIoData) ->
   if inputIoData? then result.inputIoData = inputIoData 
   return result
 
+# Initialize the memory of each circuit
+buildInitialMemoryData = (circuits) -> 
+  circuitMetas = RW.listCircuitMeta(circuits)
+  memoryData = {}
+  for circuitMeta in circuitMetas
+    memoryData[circuitMeta.id] = RW.cloneData(circuits[circuitMeta.type].memory)
+  return memoryData
 
 angular.module('gamEvolve.game.player', [])
 .controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime, overlay) -> 
@@ -77,17 +84,30 @@ angular.module('gamEvolve.game.player', [])
             timing.updateFrames = Date.now()
             # If there are already frames, then update them starting with the current frame
             inputIoDataFrames = _.pluck(gameHistory.data.frames[gameTime.currentFrameNumber..], "inputIoData")
+
+            # If there are new circuits added, create memory and IO data for them
+            frameMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
+            circuitMetas = RW.listCircuitMeta(gameCode.circuits)
+            oldCircuitIds = _.keys(frameMemory)
+            circuitIds = _.pluck(circuitMetas, "id")
+            for newCircuitId in _.difference(circuitIds, oldCircuitIds)
+              frameMemory[newCircuitId] = RW.cloneData(gameCode.circuits[_.findWhere(circuitMetas, { id: newCircuitId }).type].memory)
+              for inputIoDataFrame in inputIoDataFrames
+                inputIoDataFrame[newCircuitId] = inputIoDataFrame.global
+
             # The memory stored in the current frame
-            sendMessage("updateFrames", { memory: gameHistory.data.frames[gameTime.currentFrameNumber].memory, inputIoDataFrames })
+            sendMessage("updateFrames", { memory: frameMemory, inputIoDataFrames })
           else
             # Else just record the first frame
-            sendMessage("recordFrame", { memory: gameCode.memory })
+            initialMemoryData = buildInitialMemoryData(gameCode.circuits)
+            sendMessage("recordFrame", { memory: initialMemoryData })
       when "recordFrame"
         if message.type is "error" then throw new Error("Cannot deal with recordFrame error message")
 
         $scope.$apply ->
           # Set the first frame
-          newFrame = extendFrameResults(message.value, gameCode.memory)
+          initialMemoryData = buildInitialMemoryData(gameCode.circuits)
+          newFrame = extendFrameResults(message.value, initialMemoryData)
 
           if message.value.errors
             console.error("Record frames errors", message.value.errors)
@@ -114,7 +134,7 @@ angular.module('gamEvolve.game.player', [])
 
           # Calculate memory going into the next frame
           lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
-          lastMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+          lastMemory = RW.applyPatchesInCircuits(lastFrame.memoryPatches, lastFrame.memory)
 
           # Add in the new results
           for results in message.value
@@ -126,7 +146,7 @@ angular.module('gamEvolve.game.player', [])
               break
 
             # Calcuate the next memory to be used
-            lastMemory = RW.applyPatches(results.memoryPatches, lastMemory)
+            lastMemory = RW.applyPatchesInCircuits(results.memoryPatches, lastMemory)
 
           if metError 
             overlay.makeNotification("error")
@@ -191,7 +211,7 @@ angular.module('gamEvolve.game.player', [])
               break # Stop updating when error is found
 
             # Calcuate the next memory to be used
-            lastMemory = RW.applyPatches(results.memoryPatches, lastMemory)
+            lastMemory = RW.applyPatchesInCircuits(results.memoryPatches, lastMemory)
 
           if metError 
             overlay.makeNotification("error")
@@ -255,7 +275,7 @@ angular.module('gamEvolve.game.player', [])
   onUpdateFrame = (frameNumber) ->
     if not gameCode? then return
     frameResult = gameHistory.data.frames[frameNumber]
-    outputIoData = RW.applyPatches(frameResult.ioPatches, frameResult.inputIoData)
+    outputIoData = RW.applyPatchesInCircuits(frameResult.ioPatches, _.omit(frameResult.inputIoData, "global"))
     sendMessage("playBackFrame", { outputIoData: outputIoData })
   $scope.$watch('gameTime.currentFrameNumber', onUpdateFrame, true)
 
@@ -265,10 +285,10 @@ angular.module('gamEvolve.game.player', [])
       if gameTime.currentFrameNumber < gameHistory.data.frames.length
         # Start playing on next frame (assumes recordFrame() has been done in editor)
         lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
-        nextMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+        nextMemory = RW.applyPatchesInCircuits(lastFrame.memoryPatches, lastFrame.memory)
       else
         # Just start with initial memory (like in play-only mode)
-        nextMemory = gameCode.memory
+        nextMemory = buildInitialMemoryData(gameCode.circuits)
 
       if gameTime.inRecordMode
         # Notify the user

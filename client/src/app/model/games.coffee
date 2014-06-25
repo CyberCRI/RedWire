@@ -2,7 +2,7 @@
 angular.module('gamEvolve.model.games', [])
 
 
-.factory 'currentGame', (GameVersionUpdatedEvent) ->
+.factory 'currentGame', (GameVersionUpdatedEvent, WillChangeLocalVersionEvent) ->
 
   version: null
   setVersion: (newVersion) ->
@@ -18,7 +18,10 @@ angular.module('gamEvolve.model.games', [])
     @creator = null
     @localVersion = _.uniqueId("v")
 
-  updateLocalVersion: -> @localVersion = _.uniqueId("v")
+  updateLocalVersion: -> 
+    # Give an opportunity to change the game code before it is updated
+    WillChangeLocalVersionEvent.send()
+    @localVersion = _.uniqueId("v")
 
   enumeratePinDestinations: ->
     destinations = @enumerateMemoryKeys(@version.memory)
@@ -36,7 +39,6 @@ angular.module('gamEvolve.model.games', [])
     for name of ioServices
       keys.push(['io', name].join('.'))
     return keys
-
 
 .factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->
 

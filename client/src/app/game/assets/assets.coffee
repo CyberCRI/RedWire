@@ -3,7 +3,7 @@ angular.module('gamEvolve.game.assets', [
   'omr.angularFileDnD'
   'xeditable'
 ])
-.controller 'AssetsCtrl', ($scope, currentGame) ->
+.controller 'AssetsCtrl', ($scope, currentGame, circuits) ->
   # Get the actions object from the currentGame service, and keep it updated
   $scope.assets = null
   $scope.fileName = ""
@@ -11,21 +11,24 @@ angular.module('gamEvolve.game.assets', [
 
   # Transform assets to array so we can loop over it easier
   copyFromGameToScope = -> 
-    if currentGame.version?.assets
-      $scope.assets = ({ name: name, data: data } for name, data of currentGame.version.assets)
+    if currentGame.version?
+      currentCircuitData = currentGame.version.circuits[circuits.currentCircuitMeta.type]
+      $scope.assets = ({ name: name, data: data } for name, data of currentCircuitData.assets)
 
   # Bring currentGame into scope so we can watch it 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", copyFromGameToScope, true)
+  $scope.$watch((-> circuits.currentCircuitMeta), copyFromGameToScope)
 
   # Transform assets back to object so we can loop over it easier
   copyFromScopeToGame = -> 
     if $scope.assets == null then return 
 
     assetsAsObject = _.object(([asset.name, asset.data] for asset in $scope.assets))
-    if _.isEqual(assetsAsObject, currentGame.version.assets) then return 
+    currentCircuitData = currentGame.version.circuits[circuits.currentCircuitMeta.type]
+    if _.isEqual(assetsAsObject, currentCircuitData.assets) then return 
 
-    currentGame.version.assets = assetsAsObject
+    currentCircuitData.assets = assetsAsObject
     currentGame.updateLocalVersion()
   $scope.$watch("assets", copyFromScopeToGame, true)
 

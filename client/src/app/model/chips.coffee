@@ -1,11 +1,10 @@
-
 angular.module('gamEvolve.model.chips', [])
 
-
-.factory 'chips', (currentGame, GameVersionUpdatedEvent) ->
+.factory 'chips', (currentGame, circuits, GameVersionUpdatedEvent) ->
 
   GameVersionUpdatedEvent.listen (newVersion) ->
-    removeHashKeys(newVersion.board)
+    for circuitId, circuit of newVersion.circuits
+      removeHashKeys(circuit.board)
 
   removeHashKeys = (node) ->
     if "$$hashKey" of node then delete node["$$hashKey"]
@@ -18,14 +17,17 @@ angular.module('gamEvolve.model.chips', [])
     "processor"
     "emitter"
     "splitter"
+    "circuit"
   ]
 
   getType: (chip) ->
     return "null" unless chip
+
     if "switch" of chip then "switch"
     else if "processor" of chip then "processor"
     else if "emitter" of chip then "emitter"
     else if "splitter" of chip then "splitter"
+    else if "circuit" of chip then "circuit"
     else "unknown"
 
   acceptsChildren: (chip) ->
@@ -41,4 +43,6 @@ angular.module('gamEvolve.model.chips', [])
     return chip && chip.children && chip.children.length > 0
 
   isRoot: (chip) ->
-    return currentGame.version && currentGame.version.board is chip
+    return chip is @getCurrentBoard()
+
+  getCurrentBoard: -> currentGame.version?.circuits[circuits.currentCircuitMeta.type].board

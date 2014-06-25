@@ -1,12 +1,9 @@
 # These properties need to be converted from JSON strings to objects upon loading, and back to JSON for saving
 JSON_PROPERTIES = [
-  'memory'
-  'board'
-  'io'
-  'processors'
-  'switches'
-  'transformers'
-  'assets'
+  "circuits"
+  "processors"
+  "switches"
+  "transformers"
 ]
 
 META_PROPERTIES = [
@@ -21,6 +18,7 @@ angular.module('gamEvolve.util.gameConverter', [])
       id: gameVersionJson.id
       gameId: gameVersionJson.gameId
       versionNumber: gameVersionJson.versionNumber
+      fileVersion: gameVersionJson.fileVersion
     for propertyName in JSON_PROPERTIES
       gameVersion[propertyName] = JSON.parse(gameVersionJson[propertyName])
     return gameVersion
@@ -30,6 +28,7 @@ angular.module('gamEvolve.util.gameConverter', [])
       id: gameVersion.id
       gameId: gameVersion.gameId
       versionNumber: gameVersion.versionNumber
+      fileVersion: gameVersion.fileVersion
     for propertyName in JSON_PROPERTIES
       gameVersionJson[propertyName] = JSON.stringify(gameVersion[propertyName], null, 2)
     return gameVersionJson
