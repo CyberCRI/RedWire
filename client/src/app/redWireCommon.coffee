@@ -18,6 +18,12 @@ RW.logLevels = RW.makeConstantSet("ERROR", "WARN", "INFO")
 
 RW.signals = RW.makeConstantSet("DONE", "ERROR")
 
+RW.extensions =
+  IMAGE: ["png", "gif", "jpeg", "jpg"]
+  JS: ["js"]
+  CSS: ["css"]
+  HTML: ["html"]
+
 # Looks for the first element in the array or object which is equal to value, using the _.isEqual() test
 # If no element exists, returns -1
 RW.indexOf = (collection, value) ->
@@ -102,6 +108,13 @@ RW.mapObject = (obj, f) ->
     mapped[key] = f(value, key)
   return mapped
 
+# Creates an object with the provided keys, where map[key] = f(key)
+RW.mapToObject = (keys, f) -> 
+  mapped = {}
+  for key in keys 
+    mapped[key] = f(key)
+  return mapped
+
 # Returns an object { mimeType: String, base64: Bool, data: String}
 RW.splitDataUrl = (url) -> 
   matches = url.match(/data:([^;]+);([^,]*),(.*)/)
@@ -170,3 +183,26 @@ RW.formatStackTrace = (error) ->
   if error.stack then stack += "\n" + error.stack
   else if error.fileName then stack += " (#{error.fileName}:#{error.lineNumber}.#{error.columnNumber})"
   return stack
+
+# Reverses the order of the 1st and 2nd level keys of nested objects
+RW.reverseKeys = (obj) ->
+  newObj = {}
+  for keyA, valA of obj
+    for keyB, valB of valA
+      if keyB not of newObj then newObj[keyB] = {}
+      newObj[keyB][keyA] = valB
+  return newObj
+
+# Plucks a single attribute out of the values of obj, compiles them into an object
+RW.pluckToObject = (obj, attribute) ->
+  newObj = {}
+  for key, val of obj
+    newObj[key] = val[attribute]
+  return newObj
+
+# From http://stackoverflow.com/a/2117523/209505
+RW.makeGuid = ->
+  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace /[xy]/g, (c) ->
+    r = Math.random()*16|0
+    v = if c == 'x' then r else (r&0x3|0x8)
+    return v.toString(16)

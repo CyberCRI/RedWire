@@ -21,7 +21,7 @@ restoreExpandedNodes = (node, save) ->
 
 angular.module('gamEvolve.game.memory', [])
 
-.controller 'MemoryCtrl', ($scope, gameHistory, gameTime, currentGame) ->
+.controller 'MemoryCtrl', ($scope, gameHistory, gameTime, currentGame, circuits) ->
   $scope.gameHistoryMeta = gameHistory.meta 
   $scope.gameTime = gameTime
 
@@ -37,9 +37,16 @@ angular.module('gamEvolve.game.memory', [])
 
     memoryModel = 
       if gameTime.currentFrameNumber is 0
-        currentGame.version.memory
+        # Get the initial data for the circuit type
+        currentGame.version.circuits[circuits.currentCircuitMeta.type].memory
       else
-        gameHistory.data.frames[gameTime.currentFrameNumber].memory
+        # Get the current data for the circuit instance
+        if circuits.currentCircuitMeta.id?
+          gameHistory.data.frames[gameTime.currentFrameNumber].memory[circuits.currentCircuitMeta.id]
+        else 
+          # No data to edit
+          # TODO: disable the editor
+          {} 
 
     if _.isEqual(memoryModel, editor.get()) then return 
 
@@ -51,13 +58,20 @@ angular.module('gamEvolve.game.memory', [])
     restoreExpandedNodes(editor.node, save)
 
   $scope.$watch('gameHistoryMeta', onUpdateMemoryModel, true)
+  $scope.$watch((-> circuits.currentCircuitMeta), onUpdateMemoryModel)
   $scope.$watch('gameTime.currentFrameNumber', onUpdateMemoryModel)
 
   # Write back to gameHistory
   onUpdateMemoryEditor = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
 
-    # If we are on the first frame, update the game memory
-    if gameTime.currentFrameNumber == 0 
-      currentGame.version.memory = RW.cloneData(editor.get())
+    # Update the frame memory
+    if circuits.currentCircuitMeta.id?
+      newMemory = RW.cloneData(editor.get())
+      gameHistory.data.frames[gameTime.currentFrameNumber].memory[circuits.currentCircuitMeta.id] = newMemory
+      gameHistory.meta.version++
+
+    # If we are on the first frame, update the game memory as well
+    if gameTime.currentFrameNumber == 0 and circuits.currentCircuitMeta.type?
+      currentGame.version.circuits[circuits.currentCircuitMeta.type].memory = newMemory
       currentGame.updateLocalVersion()

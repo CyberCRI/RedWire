@@ -1,4 +1,4 @@
-<div id="gameEditor"> 
+<div id="gameEditor">
 
     <!-- Header -->
     <div ng-include src="'game/edit/header/header.tpl.html'" id="headerBarContainer"></div>
@@ -11,7 +11,7 @@
                 <block-container init="340">
                     <flexy-layout orientation="vertical">
                         <block-container style="font-size:13px;">
-                            <div id="memoryEditor" ng-class="{ notEditable: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl"></div>
+                            <div id="memoryEditor" ng-class="{ notFirstFrame: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl"></div>
                         </block-container>
                         <block-splitter></block-splitter>
                         <block-container class="scrollable">
@@ -49,8 +49,15 @@
                         </block-container>
                         <block-splitter></block-splitter>
                         <block-container class="scrollable">
+                            <ol class="breadcrumb">
+                                <li><a href="" ng-click="switchToMainCircuit()"><span class="glyphicon glyphicon-home"></span></a></li>
+                                <li ng-repeat="circuitPart in getCircuitParts()">
+                                    <a ng-if="!$last" href="" ng-click="switchCircuit($index)">{{ circuitPart }}</a>
+                                    <span ng-if="$last" class="active">{{ circuitPart }}</span>
+                                </li>
+                            </ol>
                             <h4>Board</h4>
-                            <board-tree></board-tree>
+                            <ng-include src="'game/board/boardTree.tpl.html'" ng-controller="BoardTreeCtrl"></ng-include>
                         </block-container>
                     </flexy-layout>
                 </block-container>
@@ -58,65 +65,31 @@
                 <block-splitter></block-splitter>
 
                 <!-- East Column-->
-                <block-container init="300" id="toolbox">
-                    <flexy-layout orientation="vertical">
-                        <block-container class="scrollable">
-                            <accordion close-others="true">
-                                <accordion-group heading="Basic" is-open="isFirstOpen" id>
-                                    <ul>
-                                        <li class="emitterChip"><span class="jstree-draggable" emitter>Emitter</span></li>
-                                        <li class="splitterChip"><span href="" class="jstree-draggable" splitter>Splitter</span></li>
-                                    </ul>
-                                </accordion-group>
-                                <accordion-group heading="Processors">
-                                    <div id="processors" ng-controller="ProcessorsListCtrl">
-                                        <ul>
-                                            <li ng-repeat="processorName in processorNames" class="processorChip">
-                                                <span class="jstree-draggable" processor-id="{{processorName}}">{{processorName}}</span>
-                                                <a class="btn btn-default btn-sm" ng-click="edit(processorName)"><i class="glyphicon glyphicon-edit"></i></a>
-                                                <a class="btn btn-default btn-sm" ng-click="remove(processorName)"><i class="glyphicon glyphicon-trash"></i></a>
-                                            </li>
-                                        </ul>
-                                        <a class="btn btn-default" ng-click="add()"><i class="glyphicon glyphicon-plus"></i></a>
-                                    </div>
-                                </accordion-group>
-                                <accordion-group heading="Switches">
-                                    <div id="switches" ng-controller="SwitchesListCtrl">
-                                        <ul>
-                                            <li ng-repeat="switchName in switchNames" class="switchChip">
-                                                <span class="jstree-draggable" switch-id="{{switchName}}">{{switchName}}</span>
-                                                <a class="btn btn-default btn-sm" ng-click="edit(switchName)"><i class="glyphicon glyphicon-edit"></i></a>
-                                                <a class="btn btn-default btn-sm" ng-click="remove(switchName)"><i class="glyphicon glyphicon-trash"></i></a>
-                                            </li>
-                                        </ul>
-                                        <a class="btn btn-default" ng-click="add()"><i class="glyphicon glyphicon-plus"></i></a>
-                                    </div>
-                                </accordion-group>
-                                <accordion-group heading="Transformers">
-                                    <div id="transformers" ng-controller="TransformersListCtrl">
-                                        <ul>
-                                            <li ng-repeat="transformerName in transformerNames" class="transformerChip">
-                                                <span>{{transformerName}}</span>
-                                                <a class="btn btn-default btn-sm" ng-click="edit(transformerName)"><i class="glyphicon glyphicon-edit"></i></a>
-                                                <a class="btn btn-default btn-sm" ng-click="remove(transformerName)"><i class="glyphicon glyphicon-trash"></i></a>
-                                            </li>
-                                        </ul>
-                                        <a class="btn btn-default" ng-click="add()"><i class="glyphicon glyphicon-plus"></i></a>
-                                    </div>
-                                </accordion-group>
-                            </accordion>
-                        </block-container>
+                <block-container init="300">
+                    <flexy-layout orientation="vertical" >
+                        <ng-include src="'game/toolbox/toolbox.tpl.html'" ng-controller="ToolboxCtrl"></ng-include>
+
                         <block-splitter></block-splitter>
-                        <block-container class="scrollable"> 
+                        
+                        <block-container class="scrollable">
                             <div ng-controller="LayersCtrl" id="layersList">
                                 <h4>Layers</h4>
                                 <ul ui-sortable ng-model="layers">
                                     <li ng-repeat="layer in layers">
-                                        <span class="glyphicon glyphicon-align-justify"></span>
-                                        <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
-                                        -
-                                        <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
-                                        <a class="btn btn-default btn-sm" ng-click="removeLayer($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                                        <div ng-switch on="layer.type">
+                                            <div ng-switch-when="circuit">
+                                                <span class="glyphicon glyphicon-align-justify"></span>
+                                                <span>{{ layer.name }}</a>
+                                                -
+                                                <span>Circuit</span>
+                                            </div>
+                                            <div ng-switch-default>
+                                                <span class="glyphicon glyphicon-align-justify"></span>
+                                                <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
+                                                -
+                                                <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
+                                                <a class="btn btn-default btn-sm" ng-click="removeLayer($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                                            </div>
                                     </li>
                                 </ul>
 

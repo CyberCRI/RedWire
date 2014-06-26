@@ -2,9 +2,13 @@
 angular.module('gamEvolve.model.games', [])
 
 
-.factory 'currentGame', ->
-  info: null
+.factory 'currentGame', (GameVersionUpdatedEvent, WillChangeLocalVersionEvent) ->
+
   version: null
+  setVersion: (newVersion) ->
+    @version = newVersion
+    GameVersionUpdatedEvent.send(newVersion)
+  info: null
   creator: null
   localVersion: _.uniqueId("v")
 
@@ -14,7 +18,10 @@ angular.module('gamEvolve.model.games', [])
     @creator = null
     @localVersion = _.uniqueId("v")
 
-  updateLocalVersion: -> @localVersion = _.uniqueId("v")
+  updateLocalVersion: -> 
+    # Give an opportunity to change the game code before it is updated
+    WillChangeLocalVersionEvent.send()
+    @localVersion = _.uniqueId("v")
 
   enumeratePinDestinations: ->
     destinations = @enumerateMemoryKeys(@version.memory)
@@ -33,7 +40,6 @@ angular.module('gamEvolve.model.games', [])
       keys.push(['io', name].join('.'))
     return keys
 
-
 .factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->
 
   saveInfo = ->
@@ -51,7 +57,7 @@ angular.module('gamEvolve.model.games', [])
   saveVersion = ->
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
     $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
-      .then (savedGameVersion) -> currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)
+      .then (savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data))
 
   saveActions:
     saveNewVersion:
@@ -107,7 +113,7 @@ angular.module('gamEvolve.model.games', [])
     getCreator = $http.get("/users?id=#{game.ownerId}")
     updateCurrentGame = ([version, creator]) ->
       currentGame.info = game
-      currentGame.version = gameConverter.convertGameVersionFromEmbeddedJson(version.data[0])
+      currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(version.data[0]))
       currentGame.updateLocalVersion()
       currentGame.creator = creator.data.username
     onError = (error) -> 

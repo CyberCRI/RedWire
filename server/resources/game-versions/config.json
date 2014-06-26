@@ -17,37 +17,29 @@
 			"id": "versionNumber",
 			"order": 1
 		},
+		"fileVersion": {
+			"name": "fileVersion",
+			"type": "number",
+			"typeLabel": "number",
+			"required": true,
+			"id": "fileVersion",
+			"order": 2
+		},
+		"circuits": {
+			"name": "circuits",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "circuits",
+			"order": 3
+		},
 		"processors": {
 			"name": "processors",
 			"type": "string",
 			"typeLabel": "string",
 			"required": true,
 			"id": "processors",
-			"order": 2
-		},
-		"assets": {
-			"name": "assets",
-			"type": "string",
-			"typeLabel": "string",
-			"required": true,
-			"id": "assets",
-			"order": 3
-		},
-		"board": {
-			"name": "board",
-			"type": "string",
-			"typeLabel": "string",
-			"required": true,
-			"id": "board",
 			"order": 4
-		},
-		"memory": {
-			"name": "memory",
-			"type": "string",
-			"typeLabel": "string",
-			"required": true,
-			"id": "memory",
-			"order": 5
 		},
 		"switches": {
 			"name": "switches",
@@ -55,15 +47,7 @@
 			"typeLabel": "string",
 			"required": true,
 			"id": "switches",
-			"order": 6
-		},
-		"io": {
-			"name": "io",
-			"type": "string",
-			"typeLabel": "string",
-			"required": true,
-			"id": "io",
-			"order": 7
+			"order": 5
 		},
 		"transformers": {
 			"name": "transformers",
@@ -71,7 +55,6 @@
 			"typeLabel": "string",
 			"required": true,
 			"id": "transformers",
-			"order": 8
-		}
-	}
+			"order": 6
+		}	}
 }

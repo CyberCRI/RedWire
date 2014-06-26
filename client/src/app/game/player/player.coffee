@@ -19,6 +19,13 @@ extendFrameResults = (result, memory, inputIoData) ->
   if inputIoData? then result.inputIoData = inputIoData 
   return result
 
+# Initialize the memory of each circuit
+buildInitialMemoryData = (circuits) -> 
+  circuitMetas = RW.listCircuitMeta(circuits)
+  memoryData = {}
+  for circuitMeta in circuitMetas
+    memoryData[circuitMeta.id] = RW.cloneData(circuits[circuitMeta.type].memory)
+  return memoryData
 
 angular.module('gamEvolve.game.player', [])
 .controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime, overlay) -> 
@@ -34,6 +41,8 @@ angular.module('gamEvolve.game.player', [])
   # Bring services into the scope
   $scope.currentGame = currentGame
   $scope.gameTime = gameTime
+  $scope.gameHistoryMeta = gameHistory.meta
+  lastGameVersion = -1
 
   # TODO: take out this "global" message handler?
   window.addEventListener 'message', (e) -> 
@@ -58,39 +67,54 @@ angular.module('gamEvolve.game.player', [])
           $scope.$apply ->
             gameHistory.data.compilationErrors = [message.error]
             overlay.makeNotification("error")
-            gameHistory.meta.version++
+            lastGameVersion = ++gameHistory.meta.version
         else
           # The game loaded successfully
           $scope.$apply ->
             gameHistory.data.compilationErrors = []
-            gameHistory.meta.version++
+            lastGameVersion = ++gameHistory.meta.version
 
           # Don't bother updating if we're playing right now
           if gameTime.isPlaying then return
 
           if gameHistory.data.frames.length > 0 and gameHistory.data.frames[0].inputIoData
-            # If there are already frames, then update them 
             # Notify the user
             overlay.makeNotification("updating", true)
-            inputIoDataFrames = _.pluck(gameHistory.data.frames, "inputIoData")
+
             timing.updateFrames = Date.now()
-            sendMessage("updateFrames", { memory: gameCode.memory, inputIoDataFrames })
+            # If there are already frames, then update them starting with the current frame
+            inputIoDataFrames = _.pluck(gameHistory.data.frames[gameTime.currentFrameNumber..], "inputIoData")
+
+            # If there are new circuits added, create memory and IO data for them
+            frameMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
+            circuitMetas = RW.listCircuitMeta(gameCode.circuits)
+            oldCircuitIds = _.keys(frameMemory)
+            circuitIds = _.pluck(circuitMetas, "id")
+            for newCircuitId in _.difference(circuitIds, oldCircuitIds)
+              frameMemory[newCircuitId] = RW.cloneData(gameCode.circuits[_.findWhere(circuitMetas, { id: newCircuitId }).type].memory)
+              for inputIoDataFrame in inputIoDataFrames
+                inputIoDataFrame[newCircuitId] = inputIoDataFrame.global
+
+            # The memory stored in the current frame
+            sendMessage("updateFrames", { memory: frameMemory, inputIoDataFrames })
           else
             # Else just record the first frame
-            sendMessage("recordFrame", { memory: gameCode.memory })
+            initialMemoryData = buildInitialMemoryData(gameCode.circuits)
+            sendMessage("recordFrame", { memory: initialMemoryData })
       when "recordFrame"
         if message.type is "error" then throw new Error("Cannot deal with recordFrame error message")
 
         $scope.$apply ->
           # Set the first frame
-          newFrame = extendFrameResults(message.value, gameCode.memory)
+          initialMemoryData = buildInitialMemoryData(gameCode.circuits)
+          newFrame = extendFrameResults(message.value, initialMemoryData)
 
           if message.value.errors
             console.error("Record frames errors", message.value.errors)
             overlay.makeNotification("error")
 
           gameHistory.data.frames = [newFrame]
-          gameHistory.meta.version++
+          lastGameVersion = ++gameHistory.meta.version
           gameTime.currentFrameNumber = 0
       when "recording"
         if message.type isnt "error" then new Error("Cannot deal with recording success message")
@@ -110,7 +134,7 @@ angular.module('gamEvolve.game.player', [])
 
           # Calculate memory going into the next frame
           lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
-          lastMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+          lastMemory = RW.applyPatchesInCircuits(lastFrame.memoryPatches, lastFrame.memory)
 
           # Add in the new results
           for results in message.value
@@ -122,7 +146,7 @@ angular.module('gamEvolve.game.player', [])
               break
 
             # Calcuate the next memory to be used
-            lastMemory = RW.applyPatches(results.memoryPatches, lastMemory)
+            lastMemory = RW.applyPatchesInCircuits(results.memoryPatches, lastMemory)
 
           if metError 
             overlay.makeNotification("error")
@@ -133,7 +157,7 @@ angular.module('gamEvolve.game.player', [])
           gameTime.currentFrameNumber = gameHistory.data.frames.length - 1
 
           # Update the version
-          gameHistory.meta.version++
+          lastGameVersion = ++gameHistory.meta.version
       when "playing"
         if message.type isnt "error" then new Error("Cannot deal with playing success message")
 
@@ -166,7 +190,7 @@ angular.module('gamEvolve.game.player', [])
           gameTime.currentFrameNumber = gameHistory.data.frames.length - 1
 
           # Update the version
-          gameHistory.meta.version++
+          lastGameVersion = ++gameHistory.meta.version
       when "updateFrames" 
         if message.type is "error" then throw new Error("Cannot deal with updateFrames error")
         console.log("Update frames took puppet #{Date.now() - timing.updateFrames} ms")
@@ -175,10 +199,11 @@ angular.module('gamEvolve.game.player', [])
           metError = false
 
           # Replace existing frames by the new results, until an error is found
-          lastMemory = gameCode.memory
+          lastMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
           for index, results of message.value
             # Copy over old inputIoData
-            gameHistory.data.frames[index] = extendFrameResults(results, lastMemory, gameHistory.data.frames[index].inputIoData)
+            frameIndex = gameTime.currentFrameNumber + parseInt(index)
+            gameHistory.data.frames[frameIndex] = extendFrameResults(results, lastMemory, gameHistory.data.frames[frameIndex].inputIoData)
 
             if results.errors 
               console.error("Update frames errors", results.errors)
@@ -186,7 +211,7 @@ angular.module('gamEvolve.game.player', [])
               break # Stop updating when error is found
 
             # Calcuate the next memory to be used
-            lastMemory = RW.applyPatches(results.memoryPatches, lastMemory)
+            lastMemory = RW.applyPatchesInCircuits(results.memoryPatches, lastMemory)
 
           if metError 
             overlay.makeNotification("error")
@@ -194,7 +219,7 @@ angular.module('gamEvolve.game.player', [])
             overlay.clearNotification() # Clear "updating" status
 
           # Update the version
-          gameHistory.meta.version++
+          lastGameVersion = ++gameHistory.meta.version
           # Display the current frame
           # TODO: go to the frame of first error
           onUpdateFrame(gameTime.currentFrameNumber)
@@ -205,6 +230,7 @@ angular.module('gamEvolve.game.player', [])
     console.log("Sending #{operation} message to puppet");
     $('#gamePlayer')[0].contentWindow.postMessage({operation: operation, value: value}, '*')
 
+  # Call onUpdateCode() when the code changes 
   onUpdateCode = ->
     if not currentGame.version? then return
     if not puppetIsAlive then return
@@ -213,6 +239,13 @@ angular.module('gamEvolve.game.player', [])
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
   $scope.$watch("currentGame", onUpdateCode, true)
+
+  # Call onUpdateGode() if the game history changes 
+  onUpdateGameHistory = ->
+    # To check that we haven't updated the game version ourselves
+    if gameHistory.meta.version isnt lastGameVersion
+      onUpdateCode()
+  $scope.$watch('gameHistoryMeta.version', onUpdateGameHistory, true)
 
   onResize = -> 
     if not puppetIsAlive then return
@@ -242,7 +275,7 @@ angular.module('gamEvolve.game.player', [])
   onUpdateFrame = (frameNumber) ->
     if not gameCode? then return
     frameResult = gameHistory.data.frames[frameNumber]
-    outputIoData = RW.applyPatches(frameResult.ioPatches, frameResult.inputIoData)
+    outputIoData = RW.applyPatchesInCircuits(frameResult.ioPatches, _.omit(frameResult.inputIoData, "global"))
     sendMessage("playBackFrame", { outputIoData: outputIoData })
   $scope.$watch('gameTime.currentFrameNumber', onUpdateFrame, true)
 
@@ -252,10 +285,10 @@ angular.module('gamEvolve.game.player', [])
       if gameTime.currentFrameNumber < gameHistory.data.frames.length
         # Start playing on next frame (assumes recordFrame() has been done in editor)
         lastFrame = gameHistory.data.frames[gameTime.currentFrameNumber]
-        nextMemory = RW.applyPatches(lastFrame.memoryPatches, lastFrame.memory)
+        nextMemory = RW.applyPatchesInCircuits(lastFrame.memoryPatches, lastFrame.memory)
       else
         # Just start with initial memory (like in play-only mode)
-        nextMemory = gameCode.memory
+        nextMemory = buildInitialMemoryData(gameCode.circuits)
 
       if gameTime.inRecordMode
         # Notify the user

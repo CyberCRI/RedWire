@@ -1,4 +1,8 @@
 #toolbox {
+	ul { 
+		padding-left: 20px;
+	}
+
 	.emitterChip {
 		list-style-image: url(/assets/images/emitter.png);
 		cursor: move;
@@ -18,4 +22,13 @@
 		list-style-image: url(/assets/images/switch.png);
 		cursor: move;
 	}
+
+	.circuitChip {
+		list-style-image: url(/assets/images/circuit.png);
+		cursor: move;
+	}
 }
+
+@import 'editProcessors.less';
+@import 'editSwitches.less';
+@import 'editTransformers.less';

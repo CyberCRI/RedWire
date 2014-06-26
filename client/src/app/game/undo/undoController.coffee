@@ -4,7 +4,7 @@ isModalShowing = -> $(".modal, .large-modal").length > 0
 
 
 angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
-.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache) -> 
+.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache, WillChangeLocalVersionEvent) -> 
   currentLocalVersion = 0
 
   # Bring canUndo() and canRedo() into scope
@@ -17,12 +17,14 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
 
     [currentGame.localVersion, currentGame.version] = undo.undo()
     currentLocalVersion = currentGame.localVersion
+    WillChangeLocalVersionEvent.send()
 
   $scope.redo = -> 
     if not undo.canRedo() then return 
 
     [currentGame.localVersion, currentGame.version] = undo.redo()
     currentLocalVersion = currentGame.localVersion
+    WillChangeLocalVersionEvent.send()
 
   onUpdateCurrentGame = ->
     if not currentGame.version then return 
@@ -38,7 +40,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
             undo.changeValue(currentGame.localVersion, currentGame.version)
             
             # Now update with the new version
-            currentGame.version = cachedCode
+            currentGame.setVersion(cachedCode)
             currentGame.updateLocalVersion()
           else
             cache.remove(currentGame.info.id)

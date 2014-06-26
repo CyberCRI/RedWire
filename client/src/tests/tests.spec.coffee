@@ -1,8 +1,6 @@
 # Get alias for the global scope
 globals = @
 
-makeEvaluator = -> eval
-
 compileExpression = (expression) -> RW.compileExpression(expression, eval)
 
 
@@ -132,7 +130,7 @@ describe "RedWire", ->
       conflicts = RW.detectPatchConflicts(patches)
       expect(conflicts.length).toBe(1)
 
-  describe "visitChip()", ->
+  describe "stimulateCircuits()", ->
     it "calls processors", ->
       isCalled = false
 
@@ -158,9 +156,11 @@ describe "RedWire", ->
             x: compileExpression("1 + 1")
 
       constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
-        evaluator: makeEvaluator()
-      RW.visitChip([], board, constants, {})
+      RW.stimulateCircuits(constants)
       expect(isCalled).toBeTruthy()
 
     it "calls children of switches", ->
@@ -191,9 +191,12 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
         switches: switches
-      RW.visitChip([], board, constants, {})
+      RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(3)
 
     it "returns the path for patches", ->
@@ -266,16 +269,22 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
-        memoryData: memoryData
-        ioData: ioData
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
         switches: switches
-        evaluator: eval
         transformers: transformers
-      results = RW.visitChip([], board, constants, {})
+        memoryData: 
+          main: memoryData
+        ioData: 
+          main: ioData
+      results = RW.stimulateCircuits(constants)
 
-      expect(results.memoryPatches.length).toBe(3)
-      for memoryPatch in results.memoryPatches
+      mainResults = results.circuitResults.main
+
+      expect(mainResults.memoryPatches.length).toBe(3)
+      for memoryPatch in mainResults.memoryPatches
         if memoryPatch.replace is "/a"
           expect(memoryPatch.path).toDeeplyEqual(["0"])
         else if memoryPatch.replace is "/b"
@@ -285,14 +294,14 @@ describe "RedWire", ->
         else 
           throw new Error("Memory patch affects wrong attribute")
 
-      expect(results.ioPatches.length).toBe(1)
-      expect(results.ioPatches[0].path).toDeeplyEqual(["2"])
+      expect(mainResults.ioPatches.length).toBe(1)
+      expect(mainResults.ioPatches[0].path).toDeeplyEqual(["2"])
 
-      expect(results.logMessages.length).toBe(2)
-      expect(results.logMessages[0].path).toDeeplyEqual(["3"])
-      expect(results.logMessages[1].path).toDeeplyEqual(["4"])
+      expect(mainResults.logMessages.length).toBe(2)
+      expect(mainResults.logMessages[0].path).toDeeplyEqual(["3"])
+      expect(mainResults.logMessages[1].path).toDeeplyEqual(["4"])
 
-    it "evaluates pineters for processors", ->
+    it "evaluates pins for processors", ->
       oldMemory = 
         a: 1
         b: 10
@@ -331,13 +340,16 @@ describe "RedWire", ->
             "memory.b": compileExpression("pins.y")
             "memory.c": compileExpression("pins.z")
 
-      constants = new RW.ChipVisitorConstants 
-        memoryData: oldMemory, 
-        assets: assets
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+            assets: assets
         processors: processors
-        evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
-      newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
+        memoryData: 
+          main: oldMemory
+      results = RW.stimulateCircuits(constants)
+      newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
 
       # The new memory should be changed, but the old one shouldn't be
       expect(oldMemory.a).toBe(1)
@@ -365,12 +377,16 @@ describe "RedWire", ->
           "io.s.a": compileExpression("-5")
 
       constants = new RW.ChipVisitorConstants
-        memoryData: oldMemory
-        ioData: oldIoData
-        evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
-      newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
-      newIoData = RW.applyPatches(results.ioPatches, oldIoData)
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        memoryData: 
+          main: oldMemory
+        ioData: 
+          main: oldIoData
+      results = RW.stimulateCircuits(constants)
+      newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
+      newIoData = RW.applyPatches(results.circuitResults.main.ioPatches, oldIoData)
 
       # The new memory and io should be changed, but the old ones shouldn't be
       expect(oldMemory.a.a1).toBe(1)
@@ -443,24 +459,30 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
-        memoryData: memories[0]
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
         switches: switches
-        evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
-      memories[1] = RW.applyPatches(results.memoryPatches, memories[0])
+        memoryData: 
+          main: memories[0]
+      results = RW.stimulateCircuits(constants)
+      memories[1] = RW.applyPatches(results.circuitResults.main.memoryPatches, memories[0])
 
       expect(memories[1].child0TimesCalled).toBe(1)
       expect(memories[1].child1TimesCalled).toBe(0)
       expect(memories[1].activeChild).toBe(1)
       
       constants = new RW.ChipVisitorConstants
-        memoryData: memories[1]
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
         switches: switches
-        evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
-      memories[2] = RW.applyPatches(results.memoryPatches, memories[1])
+        memoryData: 
+          main: memories[1]
+      results = RW.stimulateCircuits(constants)
+      memories[2] = RW.applyPatches(results.circuitResults.main.memoryPatches, memories[1])
 
       expect(memories[2].child0TimesCalled).toBe(1)
       expect(memories[2].child1TimesCalled).toBe(1)
@@ -500,9 +522,11 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
-        evaluator: makeEvaluator()
-      RW.visitChip([], board, constants, {})
+      RW.stimulateCircuits(constants)
 
       expect(processors.getName.update).toHaveBeenCalled()
 
@@ -544,11 +568,14 @@ describe "RedWire", ->
         ]
 
       constants = new RW.ChipVisitorConstants
-        memoryData: oldMemory
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
-        evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
-      newMemory = RW.applyPatches(results.memoryPatches, oldMemory)
+        memoryData: 
+          main: oldMemory
+      results = RW.stimulateCircuits(constants)
+      newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
 
       expect(newMemory.people[0].last).toBe("bill")
       expect(newMemory.people[1].last).toBe("joe")
@@ -584,10 +611,13 @@ describe "RedWire", ->
       spyOn(processors.getName, "update").andCallThrough()
 
       constants = new RW.ChipVisitorConstants
-        memoryData: oldMemory
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
-        evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
+        memoryData: 
+          main: oldMemory
+      results = RW.stimulateCircuits(constants)
 
       expect(processors.getName.update).toHaveBeenCalled()
 
@@ -614,11 +644,14 @@ describe "RedWire", ->
             "io.serviceA": compileExpression("pins.service")
 
       constants = new RW.ChipVisitorConstants
-        ioData: oldIoData
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
-        evaluator: makeEvaluator()
-      results = RW.visitChip([], board, constants, {})
-      newIoData = RW.applyPatches(results.ioPatches, oldIoData)
+        ioData: 
+          main: oldIoData
+      results = RW.stimulateCircuits(constants)
+      newIoData = RW.applyPatches(results.circuitResults.main.ioPatches, oldIoData)
 
       expect(newIoData.serviceA.a).toBe(2)
 
@@ -651,10 +684,81 @@ describe "RedWire", ->
 
       # Only one of these chips should have been called
       constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
         processors: processors
         switches: switches
-      RW.visitChip([], board, constants, {})
+      RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(1)
+
+    it "handles multiple circuits", ->
+      switches = 
+        doAll: 
+          pinDefs: {}
+
+      circuits = 
+        main: new RW.Circuit
+          board:
+            switch: "doAll"
+            children: [
+              { 
+                emitter: 
+                  "memory.a.a1": compileExpression("2")
+                  "memory.b": compileExpression("memory.c")
+                  "io.s.a": compileExpression("-5")
+              }
+              { 
+                circuit: "sub"
+                id: "subId"
+              }
+            ]
+        sub: new RW.Circuit
+          board: 
+            emitter: 
+              "memory.a": compileExpression("99")
+              "memory.b": compileExpression("memory.c")
+              "io.s.a": compileExpression("100")
+
+      memoryData = 
+        main: 
+          a: 
+            a1: 1
+          b: 10
+          c: "hi"
+        "main.subId":
+          a: 32
+          b: "hi"
+          c: "bye"
+
+      ioData = 
+        main: 
+          s: 
+            a: -1
+        "main.subId":
+          s: 
+            a: -1
+
+      constants = new RW.ChipVisitorConstants
+        circuits: circuits 
+        switches: switches
+        memoryData: memoryData
+        ioData: ioData
+      results = RW.stimulateCircuits(constants)
+
+      newMemory = {}
+      newIo = {}
+      for name in ["main", "main.subId"]
+        newMemory[name] = RW.applyPatches(results.circuitResults[name].memoryPatches, memoryData[name])
+        newIo[name] = RW.applyPatches(results.circuitResults[name].ioPatches, ioData[name])
+
+      expect(newMemory.main.a.a1).toBe(2)
+      expect(newMemory.main.b).toBe("hi")
+      expect(newIo.main.s.a).toBe(-5)
+      expect(newMemory["main.subId"].a).toBe(99)
+      expect(newMemory["main.subId"].b).toBe("bye")
+      expect(newMemory["main.subId"].c).toBe("bye")
+      expect(newIo["main.subId"].s.a).toBe(100)
 
   describe "stepLoop()", ->
     it "sends output data directly to io", ->
@@ -663,25 +767,30 @@ describe "RedWire", ->
           establishData: jasmine.createSpy()
 
       outputIoData = 
-        myService:
-          a = 1
+        main: 
+          myService:
+            a = 1
 
       result = RW.stepLoop 
         io: io
         outputIoData: outputIoData
 
-      expect(io.myService.establishData).toHaveBeenCalledWith(outputIoData.myService, {}, {})
-      expect(result.memoryPatches).toBeEmpty()
-      expect(result.ioPatches).toBeEmpty()
+      expect(io.myService.establishData).toHaveBeenCalledWith({ main: 1 })
+      expect(_.size(result.memoryPatches)).toBe(0)
+      expect(_.size(result.ioPatches)).toBe(0)
 
-    it "sends io input data to visitChip()", ->
+    it "sends io input data to stimulateCircuits()", ->
       io = 
         myService:
           establishData: jasmine.createSpy()
 
       inputIoData = 
-        myService:
-          a: 1
+        global:
+          myService:
+            a: 0
+        main:
+          myService:
+            a: 1
 
       processors = 
         incrementIoData: 
@@ -701,27 +810,27 @@ describe "RedWire", ->
             "io.myService": compileExpression("pins.service")
 
       result = RW.stepLoop 
-        chip: board
+        circuits: 
+          main: new RW.Circuit
+            board: board
         processors: processors 
         io: io
         inputIoData: inputIoData
-        evaluator: makeEvaluator()
 
-      expect(io.myService.establishData).toHaveBeenCalledWith({ a: 2 }, {}, {})
-      expect(result.memoryPatches).toBeEmpty()
-      expect(result.ioPatches.length).toEqual(1)
+      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } })
+      expect(result.memoryPatches.main).toBeEmpty()
+      expect(result.ioPatches.main.length).toEqual(1)
 
     it "gathers io input data, visits chips, uses transformers, and gives output to io", ->
       io = 
         myService:
-          provideData: -> return { a: 1 }
+          provideData: -> { main: { a: 1 } }
           establishData: jasmine.createSpy()
 
       spyOn(io.myService, "provideData").andCallThrough()
 
-      transformers = {
+      transformers =
         testTransformer: (arg1, arg2) -> return {_1: arg1, _2: arg2};
-      }
 
       processors = 
         incrementIoData: 
@@ -740,19 +849,17 @@ describe "RedWire", ->
           out:
             "io.myService": compileExpression("pins.service")
 
-      ioConfig = { configA: 1 }
-
       result = RW.stepLoop 
-        chip: board
+        circuits:
+          main: new RW.Circuit
+            board: board
         processors: processors 
         transformers: transformers
         io: io
-        ioConfig: ioConfig
-        evaluator: makeEvaluator()
 
-      expect(io.myService.provideData).toHaveBeenCalledWith(ioConfig, {})
-      expect(io.myService.establishData).toHaveBeenCalledWith({ a: 2 }, ioConfig, {})
-      expect(result.memoryPatches).toBeEmpty()
+      expect(io.myService.provideData).toHaveBeenCalledWith()
+      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } })
+      expect(result.memoryPatches).toDeeplyEqual({ main: [] })
 
     it "rejects conflicting patches", ->
       # Create old data, new data, and the patches between
@@ -761,7 +868,7 @@ describe "RedWire", ->
 
       io = 
         myService:
-          provideData: -> return { a: 0 }
+          provideData: -> return { main: { a: 0 } }
           establishData: jasmine.createSpy()
 
       switches = 
@@ -783,7 +890,7 @@ describe "RedWire", ->
             processor: "setDataTo"
             pins:
               in:
-               value: 1
+               value: compileExpression("1")
               out:
                 "memory.a": compileExpression("pins.var")
           },
@@ -791,28 +898,30 @@ describe "RedWire", ->
             processor: "setDataTo"
             pins:
               in:
-               value: 2
+               value: compileExpression("2")
               out:
                 "memory.a": compileExpression("pins.var")
           }
         ]
 
       results = RW.stepLoop 
-        chip: boardA
-        memoryData: oldData
+        circuits:
+          main: new RW.Circuit
+            board: boardA
         switches: switches
         processors: processors 
-        evaluator: makeEvaluator()
-      expect(results.errors.length).not.toBeEmpty()
+        memoryData: 
+          main: oldData
+      expect(results.errors[0].stage).toBe("patchMemory")
       
       boardB = 
-        processor: "group"
+        switch: "group"
         children: [
           {
             processor: "setDataTo"
             pins:
              in:
-               value: compileExpression("2")
+               value: compileExpression("1")
               out:
                 "io.myService.a": compileExpression("pins.var")
           },
@@ -820,15 +929,17 @@ describe "RedWire", ->
             processor: "setDataTo"
             pins:
              in:
-               value: compileExpression(2)
+               value: compileExpression("2")
               out:
                 "io.myService.a": compileExpression("pins.var")
           }
         ]
 
       results = RW.stepLoop 
-        chip: boardB 
+        circuits:
+          main: new RW.Circuit
+            board: boardB 
+        switches: switches
         processors: processors 
         io: io
-        evaluator: makeEvaluator()
-      expect(results.errors.length).not.toBeEmpty()
+      expect(results.errors[0].stage).toBe("patchIo")
