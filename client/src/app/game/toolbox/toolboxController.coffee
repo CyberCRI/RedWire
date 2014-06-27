@@ -64,6 +64,7 @@ angular.module('gamEvolve.game.toolbox', [])
         body: currentGame.version.transformers[name].body
       when "circuits"
         name: name
+        pinDefs: currentGame.version.circuits[name].pinDefs
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -98,6 +99,7 @@ angular.module('gamEvolve.game.toolbox', [])
               layers: []
         # Set the data returned by the user
         currentGame.version.circuits[model.name].name = model.name
+        currentGame.version.circuits[model.name].pinDefs = model.pinDefs
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -118,6 +120,7 @@ angular.module('gamEvolve.game.toolbox', [])
         body: ""
       when "circuits"
         name: ""
+        pinDefs: {}
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -143,6 +146,9 @@ angular.module('gamEvolve.game.toolbox', [])
       when "circuits"
         circuit: name
         id: name
+        pins:
+          in: {}
+          out: {}
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
