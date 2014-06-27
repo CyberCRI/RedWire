@@ -760,6 +760,63 @@ describe "RedWire", ->
       expect(newMemory["main.subId"].c).toBe("bye")
       expect(newIo["main.subId"].s.a).toBe(100)
 
+    it "circuits can have pins", ->
+      switches = 
+        doAll: 
+          pinDefs: {}
+
+      circuits = 
+        main: new RW.Circuit
+          board:
+            switch: "doAll"
+            children: [
+              { 
+                emitter: 
+                  "memory.a": compileExpression("2")
+              }
+              { 
+                circuit: "sub"
+                id: "subId"
+                pins: 
+                  in: 
+                    p: compileExpression("10")
+                    q: compileExpression("20")
+                  out:
+                    "memory.b": compileExpression("pins.q")
+              }
+            ]
+        sub: new RW.Circuit
+          pinDefs:
+            p: 
+              direction: "in"
+            q: 
+              direction: "inout"
+          board: 
+            emitter: 
+              "memory.a": compileExpression("99")
+              "circuit.q": compileExpression("circuit.p + circuit.q")
+
+      memoryData = 
+        main: 
+          a: 0
+          b: 0
+        "main.subId":
+          a: 32
+
+      constants = new RW.ChipVisitorConstants
+        circuits: circuits 
+        switches: switches
+        memoryData: memoryData
+      results = RW.stimulateCircuits(constants)
+
+      newMemory = {}
+      for name in ["main", "main.subId"]
+        newMemory[name] = RW.applyPatches(results.circuitResults[name].memoryPatches, memoryData[name])
+
+      expect(newMemory.main.a).toBe(2)
+      expect(newMemory.main.b).toBe(30)
+      expect(newMemory["main.subId"].a).toBe(99)
+
   describe "stepLoop()", ->
     it "sends output data directly to io", ->
       io = 
