@@ -61,14 +61,17 @@ angular.module('gamEvolve.game.boardTree', [
         showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
       when "circuit"
-        showDialog 'game/board/editBoardChipPinsDialog.tpl.html', 'EditBoardChipPinsDialogCtrl', chip, (model) ->
-          if chip.id isnt model.id
+        # Rename id -> comment and back again
+        newChip = _.extend({}, chip, { comment: chip.id })
+        showDialog 'game/board/editBoardChipPinsDialog.tpl.html', 'EditBoardChipPinsDialogCtrl', newChip, (model) ->
+          newModel = _.extend({}, model, { id: model.comment })
+          if chip.id isnt model.comment
             # Rename circuit layer
             parentCircuit = currentGame.version.circuits[circuits.currentCircuitMeta.type] 
             circuitLayer = _.findWhere(parentCircuit.io.layers, { name: chip.id })
-            if circuitLayer then circuitLayer.name = model.id
+            if circuitLayer then circuitLayer.name = newModel.id
 
-          _.extend(chip, model)
+          _.extend(chip, newModel)
 
   $scope.mute = (node) ->
     node.muted = !node.muted
