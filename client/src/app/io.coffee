@@ -154,6 +154,12 @@ RW.io.canvas =
 
       switch shape.type
         when 'rectangle' 
+          # Fill in defaults
+          if "fillStyle" not of shape and "strokeStyle" not of shape then shape.fillStyle = "#cf0404"
+          _.defaults shape, 
+            size: [100, 100]
+            position: [100, 100]
+
           if shape.fillStyle
             ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
             ctx.fillRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
@@ -163,6 +169,10 @@ RW.io.canvas =
             ctx.strokeRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
         when 'image'
           if shape.asset not of assets then throw new Error("Cannot find asset '#{shape.asset}' for shape '#{JSON.stringify(shape)}'")
+
+          # Fill in defaults
+          if "position" not of shape then shape.position = [100, 100]
+
           img = assets[shape.asset]
           size = if shape.size
               # Clamp size to image size
@@ -176,6 +186,14 @@ RW.io.canvas =
           catch error
             throw new Error("Error drawing image shape #{JSON.stringify(shape)}: #{RW.formatStackTrace(error)}")
         when 'text'
+          # Fill in defaults
+          if "fillStyle" not of shape and "strokeStyle" not of shape then shape.fillStyle = "#cf0404"
+          _.defaults shape, 
+            position: [200, 200]
+            text: "RedWire"
+            font: "40px Courier New"
+            align: "left"
+
           text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
           ctx.font = shape.font
           ctx.textAlign = shape.align
@@ -186,7 +204,13 @@ RW.io.canvas =
             ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
             ctx.strokeText(text, shape.position[0], shape.position[1])
         when 'path'
-          ctx.beginPath();
+          # Fill in defaults
+          if "fillStyle" not of shape and "strokeStyle" not of shape then shape.strokeStyle = "#cf0404"
+          _.defaults shape, 
+            points: [ [200, 200], [400, 200], [300, 100] ]
+            lineWidth: 10
+
+          ctx.beginPath()
           ctx.moveTo(shape.points[0][0], shape.points[0][1])
           for point in shape.points[1..] then ctx.lineTo(point[0], point[1])
           if shape.fillStyle
@@ -200,6 +224,12 @@ RW.io.canvas =
             if shape.miterLimit then ctx.miterLimit = shape.miterLimit
             ctx.stroke()
         when 'circle'
+          # Fill in defaults
+          if "fillStyle" not of shape and "strokeStyle" not of shape then shape.fillStyle = "#cf0404"
+          _.defaults shape, 
+            position: [300, 300]
+            radius: 50
+
           ctx.beginPath();
           ctx.moveTo(shape.position[0], shape.position[1])
           ctx.arc(shape.position[0], shape.position[1], shape.radius, 0, 2 * Math.PI)
@@ -217,35 +247,38 @@ RW.io.canvas =
 
     return {
       provideData: -> 
-        global:
-          size: options.size
-          shapes: {}
+        # Return a global size, as well as an empty object of shapes for each layer per circuit
+        data = 
+          global:
+            size: options.size
+            layers: {}
+        for circuitMeta in options.circuitMetas
+          data[circuitMeta.id] = {}
+        for layer in options.layers
+          data[layer.circuitId][layer.name] = {}
+        return data
 
       establishData: (data) -> 
-        # Clear layers and create shapeArrays
-        shapeArrays = {}
+        # Clear layers 
         for layerId, canvas of layers
           canvas[0].getContext('2d').clearRect(0, 0, options.size[0], options.size[1])
-          shapeArrays[layerId] = []
-
-        # Copy shapes from object into arrays based on their layer
-        for circuitId, circuitData of data
-          for id, shape of circuitData.shapes
-            if not shape.layer then throw new Error("Missing layer for shape '#{JSON.stringify(shape)}'")
-            layerId = makeLayerId(circuitId, shape.layer)
-            if layerId not of layers then throw new Error("Invalid layer for shape '#{JSON.stringify(shape)}'")
-
-            shapeArrays[layerId].push(shape)
 
         # For each layer, sort shapes and then draw them
-        for layerId, shapeArray of shapeArrays
-          shapeArray.sort(shapeSorter)
-
-          ctx = layers[layerId][0].getContext('2d')
-          [circuitId, layerName] = deconstructLayerId(layerId)
+        for circuitId, circuitData of data
           circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
           circuitAssets = options.assets[circuitType]
-          for shape in shapeArray then drawShape(shape, ctx, circuitAssets)
+
+          for layerName, shapeObject of circuitData when layerName isnt "size"
+            layerId = makeLayerId(circuitId, layerName)
+            if layerId not of layers then throw new Error("Invalid layer '#{layerName}' in circuit '#{circuitId}'")
+
+            shapeArray = _.values(shapeObject)
+            shapeArray.sort(shapeSorter)
+
+            ctx = layers[layerId][0].getContext('2d')
+            for shape in shapeArray then drawShape(shape, ctx, circuitAssets)
+
+        return null # avoid accumulating results
 
       destroy: -> 
         for layerId, canvas of layers then canvas.remove()

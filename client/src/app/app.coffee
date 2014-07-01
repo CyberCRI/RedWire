@@ -14,6 +14,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.eventBus'
   'gamEvolve.util.logger'
   'gamEvolve.util.gameConverter'
+  'gamEvolve.util.pins'
   'gamEvolve.game.about'
   'gamEvolve.game.assets'
   'gamEvolve.game.boardTree'

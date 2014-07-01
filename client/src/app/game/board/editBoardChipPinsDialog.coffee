@@ -1,9 +1,9 @@
 
-angular.module('gamEvolve.game.board.editProcessorDialog', [
+angular.module('gamEvolve.game.board.editChipPinsDialog', [
   'ui.bootstrap'
 ])
 
-.controller 'EditBoardProcessorDialogCtrl', ($scope, liaison, currentGame) ->
+.controller 'EditBoardChipPinsDialogCtrl', ($scope, liaison, currentGame, pins) ->
   # Source must start with 'memory' or 'services', then a dot, then some more text or indexing
   sourceIsSimple = (source) -> /^(memory|services)\.[\w.\[\]]+$/.test(source)
 
@@ -44,13 +44,13 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
     return result
 
   $scope.LINKAGES = ['simple', 'custom']
-  $scope.DESTINATIONS = currentGame.enumeratePinDestinations()
+  $scope.DESTINATIONS = pins.enumeratePinDestinations()
 
   $scope.exchange = {}
   $scope.exchange.name = liaison.model.comment
   $scope.exchange.childName = if liaison.model.name? then JSON.stringify(liaison.model.name) else ""
 
-  # Depending on if this is an processor or a switch, get the right kind of data
+  # Depending on if this is an processor, switch, or circuit, get the right kind of data
   # TODO: move this to calling controller?
   typeDef = null
   if 'processor' of liaison.model
@@ -61,8 +61,12 @@ angular.module('gamEvolve.game.board.editProcessorDialog', [
     $scope.kind = 'Switch'
     $scope.type = liaison.model.switch
     typeDef = currentGame.version.switches[$scope.type]
+  else if 'circuit' of liaison.model
+    $scope.kind = 'Circuit'
+    $scope.type = liaison.model.circuit
+    typeDef = currentGame.version.circuits[$scope.type]
   else
-    throw new Error('Model is not a processor or switch')
+    throw new Error('Model is not a processor, switch, or circuit')
 
   # TODO: refactor into function
   $scope.exchange.pins = []

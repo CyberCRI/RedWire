@@ -1,9 +1,8 @@
 angular.module('gamEvolve.game.boardTree', [
   'ui.bootstrap'
   'gamEvolve.game.board.editEmitterDialog'
-  'gamEvolve.game.board.editProcessorDialog'
+  'gamEvolve.game.board.editChipPinsDialog'
   'gamEvolve.game.board.editSplitterDialog'
-  'gamEvolve.game.board.editCircuitDialog'
   'treeRepeat'
   'gamEvolve.game.boardLabel'
   'gamEvolve.model.chips'
@@ -50,10 +49,10 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.edit = (chip) ->
     switch chips.getType(chip) # Type of dialog depends on type of chip
       when "switch"
-        showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
+        showDialog 'game/board/editBoardChipPinsDialog.tpl.html', 'EditBoardChipPinsDialogCtrl', chip, (model) ->
           _.extend(chip, model)
       when "processor"
-        showDialog 'game/board/editBoardProcessorDialog.tpl.html', 'EditBoardProcessorDialogCtrl', chip, (model) ->
+        showDialog 'game/board/editBoardChipPinsDialog.tpl.html', 'EditBoardChipPinsDialogCtrl', chip, (model) ->
           _.extend(chip, model)
       when "emitter"
         showDialog 'game/board/editBoardEmitterDialog.tpl.html', 'EditBoardEmitterDialogCtrl', chip, (model) ->
@@ -62,14 +61,17 @@ angular.module('gamEvolve.game.boardTree', [
         showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
           _.extend(chip, model)
       when "circuit"
-        showDialog 'game/board/editBoardCircuitDialog.tpl.html', 'EditBoardCircuitDialogCtrl', chip, (model) ->
-          if chip.id isnt model.id
+        # Rename id -> comment and back again
+        newChip = _.extend({}, chip, { comment: chip.id })
+        showDialog 'game/board/editBoardChipPinsDialog.tpl.html', 'EditBoardChipPinsDialogCtrl', newChip, (model) ->
+          newModel = _.extend({}, model, { id: model.comment })
+          if chip.id isnt model.comment
             # Rename circuit layer
             parentCircuit = currentGame.version.circuits[circuits.currentCircuitMeta.type] 
             circuitLayer = _.findWhere(parentCircuit.io.layers, { name: chip.id })
-            if circuitLayer then circuitLayer.name = model.id
+            if circuitLayer then circuitLayer.name = newModel.id
 
-          _.extend(chip, model)
+          _.extend(chip, newModel)
 
   $scope.mute = (node) ->
     node.muted = !node.muted

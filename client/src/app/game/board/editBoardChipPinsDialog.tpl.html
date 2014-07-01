@@ -27,7 +27,7 @@
 					<td class="pin-in">
 						<input ng-model="pin.simpleDestination" ng-show="pin.linkage == 'simple' && (pin.direction == 'in' || pin.direction == 'inout')" placeholder="input/output value" class="input-small" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
 
-						<div ng-show="pin.linkage == 'custom'">
+						<div ng-show="pin.linkage == 'custom' && (pin.direction == 'in' || pin.direction == 'inout')">
 							<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="pin.customDestinations.in"></div>
 						</div>
 					</td>
