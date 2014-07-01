@@ -3,8 +3,8 @@ angular.module('gamEvolve.game.board.editEmitterDialog', [
   'ui.bootstrap',
 ])
 
-.controller 'EditBoardEmitterDialogCtrl', ($scope, liaison, currentGame) ->
-  $scope.DESTINATIONS = currentGame.enumeratePinDestinations()
+.controller 'EditBoardEmitterDialogCtrl', ($scope, liaison, currentGame, pins) ->
+  $scope.DESTINATIONS = pins.enumeratePinDestinations()
 
   $scope.exchange = {}
   $scope.exchange.childName = if liaison.model.name? then JSON.stringify(liaison.model.name) else ""

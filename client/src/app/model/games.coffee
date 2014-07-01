@@ -23,23 +23,6 @@ angular.module('gamEvolve.model.games', [])
     WillChangeLocalVersionEvent.send()
     @localVersion = _.uniqueId("v")
 
-  enumeratePinDestinations: ->
-    destinations = @enumerateMemoryKeys(@version.memory)
-    @enumerateIoKeys(RW.io, destinations)
-    return destinations
-
-  enumerateMemoryKeys: (memory, prefix = ['memory'], keys = []) ->
-    for name, value of memory
-      keys.push(RW.appendToArray(prefix, name).join('.'))
-      if RW.isOnlyObject(value) then @enumerateMemoryKeys(value, RW.appendToArray(prefix, name), keys)
-    return keys
-
-  enumerateIoKeys: (ioServices,  keys = []) ->
-    # TODO: dig down a bit into what values the io provides
-    for name of ioServices
-      keys.push(['io', name].join('.'))
-    return keys
-
 .factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->
 
   saveInfo = ->

@@ -3,7 +3,7 @@ angular.module('gamEvolve.game.board.editChipPinsDialog', [
   'ui.bootstrap'
 ])
 
-.controller 'EditBoardChipPinsDialogCtrl', ($scope, liaison, currentGame) ->
+.controller 'EditBoardChipPinsDialogCtrl', ($scope, liaison, currentGame, pins) ->
   # Source must start with 'memory' or 'services', then a dot, then some more text or indexing
   sourceIsSimple = (source) -> /^(memory|services)\.[\w.\[\]]+$/.test(source)
 
@@ -44,7 +44,7 @@ angular.module('gamEvolve.game.board.editChipPinsDialog', [
     return result
 
   $scope.LINKAGES = ['simple', 'custom']
-  $scope.DESTINATIONS = currentGame.enumeratePinDestinations()
+  $scope.DESTINATIONS = pins.enumeratePinDestinations()
 
   $scope.exchange = {}
   $scope.exchange.name = liaison.model.comment
