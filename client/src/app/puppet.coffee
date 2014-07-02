@@ -199,6 +199,11 @@ createAssets = (inputAssets, evaluator) ->
         image.onerror = -> console.error("Cannot load image '#{name}'")
         
         assetNamesToData[name] = image
+      else if splitUrl.mimeType.indexOf("audio/") == 0
+        audio = new Audio(dataUrl)
+        assetNamesToData[name] = audio
+        # arrayBuffer = RW.dataURLToArrayBuffer(dataUrl)
+        # assetNamesToData[name] = arrayBuffer
       else
         assetNamesToData[name] = atob(splitUrl.data)
 

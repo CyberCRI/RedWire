@@ -512,3 +512,63 @@ RW.io.charts =
         for circuitId, circuitCharts of charts
           for chartName, canvas of circuitCharts then canvas.remove()
     }
+
+# Define audio output io
+RW.io.sound =  
+  meta: 
+    audio: true
+  factory: (options) ->
+    ###
+    makeChannelId = (circuitId, channelName) -> "#{circuitId}.#{channelName}"
+    deconstructChannelId = (channelId) -> channelId.split(".")
+
+    createChannels = ->
+      # Convert channels to ordered
+      createdChannels = {}
+      for { circuitId, name, depth } in options.channels
+        channelId = makeChannelId(circuitId, name)
+        channel = $("<canvas id='canvasChannel-#{channelId}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{depth}; #{CANVAS_CSS}' />")
+        $(options.elementSelector).append(channel)
+        createdChannels[channelId] = channel
+
+      return createdChannels
+
+    channels = createChannels()
+    ###
+
+    context = new AudioContext()
+    lineOut = new WebAudiox.LineOut(context)
+
+    return {
+      provideData: -> 
+        data = 
+          global: {}
+        return data
+
+      establishData: (data) -> 
+        for circuitId, circuitData of data
+          circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
+          circuitAssets = options.assets[circuitType]
+
+          for key, assetName of circuitData
+            audio = circuitAssets[assetName]
+            audio.play()
+            ###
+            source = context.createMediaElementSource(audio)
+            source.connect(lineOut.destination)
+            source.start(0)
+            ###
+            ###
+            arrayBuffer = circuitAssets[assetName]
+            context.decodeAudioData arrayBuffer, (buffer) -> 
+              source = context.createBufferSource()
+              source.buffer = buffer
+              source.connect(lineOut.destination)
+              source.start(0)
+            ###
+
+        return null # avoid accumulating results
+
+      destroy: -> 
+        # TODO:
+    }

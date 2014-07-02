@@ -77,7 +77,8 @@ module.exports = {
       'vendor/Chart.js/Chart.js',
       'vendor/jsoneditor/jsoneditor.js',
       'vendor/moment/moment.js',
-      'vendor/mousetrap/mousetrap.js'
+      'vendor/mousetrap/mousetrap.js',
+      'vendor/webaudiox/build/webaudiox.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
