@@ -1,4 +1,4 @@
-formatDate = -> moment().format("HH:MM:SS")
+formatDate = -> moment().format("HH:mm:ss")
 
 isModalShowing = -> $(".modal, .large-modal").length > 0
 
@@ -10,7 +10,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
   # Bring canUndo() and canRedo() into scope
   $scope.canUndo = -> undo.canUndo()
   $scope.canRedo = -> undo.canRedo()
-  $scope.text = "" 
+  $scope.getStatusMessage = -> currentGame.statusMessage 
 
   $scope.undo = -> 
     if not undo.canUndo() then return 
@@ -49,7 +49,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
           else
             cache.remove(currentGame.info.id)
       catch error
-        $scope.text = "Offline saving unavailable"
+        currentGame.statusMessage = "Offline saving unavailable"
         console.error(error)
 
     # Check that we're not already updated
@@ -59,9 +59,9 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
       currentLocalVersion = currentGame.localVersion
       try 
         cache.save(currentGame.info.id, currentGame.version)
-        $scope.text = "Saved at #{formatDate()}"
+        currentGame.statusMessage = "Saved at #{formatDate()}"
       catch error
-        $scope.text = "Offline saving unavailable"
+        currentGame.statusMessage = "Offline saving unavailable"
         console.error(error)
 
   $scope.currentGame = currentGame
