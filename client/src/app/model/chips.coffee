@@ -1,16 +1,10 @@
 angular.module('gamEvolve.model.chips', [])
 
-.factory 'chips', (currentGame, circuits, GameVersionUpdatedEvent) ->
+.factory 'chips', (currentGame, circuits, gameConverter, GameVersionUpdatedEvent) ->
 
   GameVersionUpdatedEvent.listen (newVersion) ->
     for circuitId, circuit of newVersion.circuits
-      removeHashKeys(circuit.board)
-
-  removeHashKeys = (node) ->
-    if "$$hashKey" of node then delete node["$$hashKey"]
-    for key, value of node
-      if _.isObject(value) then removeHashKeys(value)
-    return node
+      gameConverter.removeHashKeys(circuit.board)
 
   types: [
     "switch"

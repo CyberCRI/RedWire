@@ -4,7 +4,7 @@ isModalShowing = -> $(".modal, .large-modal").length > 0
 
 
 angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
-.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache, WillChangeLocalVersionEvent) -> 
+.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache, gameConverter, WillChangeLocalVersionEvent) -> 
   currentLocalVersion = 0
 
   # Bring canUndo() and canRedo() into scope
@@ -34,6 +34,10 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
       # Check if code exists in offline cache
       try 
         cachedCode = cache.load(currentGame.info.id)
+        # Remove hash keys to get good comparaison
+        gameConverter.removeHashKeys(cachedCode)
+        gameConverter.removeHashKeys(currentGame.version)
+
         if cachedCode and not _.isEqual(currentGame.version, cachedCode)
           if window.confirm("You have some changes saved offline. Restore your offline version?")
             # Put the old version as the first in the undo stack
