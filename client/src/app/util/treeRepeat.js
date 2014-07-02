@@ -1,11 +1,19 @@
 'use strict';
 
+function getDraggedData(event) {
+    var json = event.dataTransfer.getData('application/json');
+    return json && JSON.parse(json) || null;
+}
+
+function setDraggedData(event, data) {
+    event.dataTransfer.setData('application/json', JSON.stringify(data)); 
+}
+
 angular.module('treeRepeat', ['ngAnimate'])
 
     .factory('treeDrag', function() {
         return {
 
-            // data
             // lastEnterTime
             // lastHovered
             // dropBefore
@@ -405,10 +413,10 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (e.stopPropagation) e.stopPropagation();
                         e.dataTransfer.effectAllowed = 'move';
-                        e.dataTransfer.setData('Text', 'nothing'); // Firefox requires some data
+                        var data = parsedDrag(scope)
+                        setDraggedData(e, data);
                         element.addClass('tree-drag');
-                        treeDrag.data = parsedDrag(scope);
-                        boardNodes.close(treeDrag.data.node);
+                        boardNodes.close(data.node);
                         return false;
                     },
                     false
@@ -418,7 +426,6 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (e.stopPropagation) e.stopPropagation();
                         element.removeClass('tree-drag');
-                        treeDrag.data = null;
                         treeDrag.lastHovered = null;
                         return false;
                     },
@@ -462,7 +469,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragover',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
+                        if (parsedAllowDrop(scope, {dragData: getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             e.dataTransfer.dropEffect = 'move'; // allow drop
                             if (e.preventDefault) { e.preventDefault(); }
@@ -474,7 +481,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragenter',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
+                        if (parsedAllowDrop(scope, {dragData: getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             scope.$apply(function () {
                                 treeDrag.lastHovered = scope.node;
@@ -495,7 +502,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragleave',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
+                        if (parsedAllowDrop(scope, {dragData: getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                         }
                         return false;
@@ -505,12 +512,11 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'drop',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: treeDrag.data})) {
+                        if (parsedAllowDrop(scope, {dragData: getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             scope.$apply(function () {
-                                parsedDrop(scope, {dragData: treeDrag.data});
+                                parsedDrop(scope, {dragData: getDraggedData(e)});
                             });
-                            treeDrag.data = null;
                             treeDrag.lastHovered = null;
                             if (e.preventDefault) { e.preventDefault(); }
                         }
