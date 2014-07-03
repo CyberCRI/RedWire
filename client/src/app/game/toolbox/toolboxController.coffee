@@ -97,6 +97,7 @@ angular.module('gamEvolve.game.toolbox', [])
             memory: {}
             io: 
               layers: []
+              channels: []
         # Set the data returned by the user
         currentGame.version.circuits[model.name].name = model.name
         currentGame.version.circuits[model.name].pinDefs = model.pinDefs

@@ -513,11 +513,14 @@ RW.io.charts =
           for chartName, canvas of circuitCharts then canvas.remove()
     }
 
+
 # Define audio output io
 RW.io.sound =  
   meta: 
     audio: true
   factory: (options) ->
+    lineOut = new WebAudiox.LineOut(RW.audioContext)
+
     ###
     makeChannelId = (circuitId, channelName) -> "#{circuitId}.#{channelName}"
     deconstructChannelId = (channelId) -> channelId.split(".")
@@ -536,8 +539,6 @@ RW.io.sound =
     channels = createChannels()
     ###
 
-    context = new AudioContext()
-    lineOut = new WebAudiox.LineOut(context)
 
     return {
       provideData: -> 
@@ -551,13 +552,11 @@ RW.io.sound =
           circuitAssets = options.assets[circuitType]
 
           for key, assetName of circuitData
-            audio = circuitAssets[assetName]
-            audio.play()
-            ###
-            source = context.createMediaElementSource(audio)
+            source  = circuitAssets[assetName]
+
             source.connect(lineOut.destination)
             source.start(0)
-            ###
+            
             ###
             arrayBuffer = circuitAssets[assetName]
             context.decodeAudioData arrayBuffer, (buffer) -> 
@@ -570,5 +569,5 @@ RW.io.sound =
         return null # avoid accumulating results
 
       destroy: -> 
-        # TODO:
+        lineOut = null
     }

@@ -1,10 +1,21 @@
-# CONSTANTS
+# Get alias for the global scope
+globals = @
+
+# All will be in the "RW" namespace
+RW = globals.RW ? {}
+globals.RW = RW
 
 # TODO: this should be configurable
 GAME_DIMENSIONS = [960, 540]
 
 
-# GLOBALS
+# CONSTANTS
+
+# TODO: find a way to not make this a global
+RW.audioContext = new AudioContext()
+
+
+# SHARED VARIABLES
 
 loadedGame = null
 lastMemory = null
@@ -134,9 +145,9 @@ destroyIo = (currentIo) ->
     io.destroy()
 
 # Converts the nested layers description into a simple list, ordered by depth
-flattenLayerList = (circuits) -> 
+flattenLayerList = (type, circuits) -> 
   flattenRecursive = (parentCircuitId, circuitType, layerList) -> 
-    for layer in circuits[circuitType].io.layers
+    for layer in circuits[circuitType].io[type]
       if layer.type is "circuit" 
         circuitId = RW.makeCircuitId(parentCircuitId, layer.name)
         circuitMeta = _.findWhere(circuitMetas, { id: circuitId })
@@ -150,7 +161,8 @@ flattenLayerList = (circuits) ->
 
 initializeIo = (circuits) ->
   # Get flattened list of layers
-  layerList = flattenLayerList(circuits)
+  layerList = flattenLayerList("layers", circuits)
+  channelList = flattenLayerList("channels", circuits)
   assetDataByCircuit = RW.mapObject(loadedAssets, (assets) -> assets.data)
 
   # Create new io
@@ -165,6 +177,9 @@ initializeIo = (circuits) ->
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
           { circuitId: layer.circuitId, name: layer.name, depth: depth } 
+      if ioData.meta.visual
+        options.channels = for depth, channel of channelList when channel.type is ioName
+          { circuitId: channel.circuitId, name: channel.name, depth: depth } 
 
       currentIo[ioName] = ioData.factory(options)
     catch error
@@ -201,9 +216,8 @@ createAssets = (inputAssets, evaluator) ->
         assetNamesToData[name] = image
       else if splitUrl.mimeType.indexOf("audio/") == 0
         audio = new Audio(dataUrl)
-        assetNamesToData[name] = audio
-        # arrayBuffer = RW.dataURLToArrayBuffer(dataUrl)
-        # assetNamesToData[name] = arrayBuffer
+        source = RW.audioContext.createMediaElementSource(audio)
+        assetNamesToData[name] = source
       else
         assetNamesToData[name] = atob(splitUrl.data)
 
