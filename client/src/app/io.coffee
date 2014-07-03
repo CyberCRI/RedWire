@@ -553,9 +553,9 @@ RW.io.sound =
 
           for key, assetName of circuitData
             source  = circuitAssets[assetName]
-
+            source.disconnect()
             source.connect(lineOut.destination)
-            source.start(0)
+            source.mediaElement.play()
             
             ###
             arrayBuffer = circuitAssets[assetName]
