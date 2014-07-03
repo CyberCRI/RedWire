@@ -1,12 +1,16 @@
 'use strict';
 
 function getDraggedData(event) {
-    var json = event.dataTransfer.getData('application/json');
+    // On Chrome, we have to use local storage because of security restrictions
+    var json = event.dataTransfer.getData('application/json') || localStorage.getItem("dnd");
     return json && JSON.parse(json) || null;
 }
 
 function setDraggedData(event, data) {
-    event.dataTransfer.setData('application/json', JSON.stringify(data)); 
+    // On Chrome, we have to use local storage because of security restrictions
+    var json = JSON.stringify(data);
+    event.dataTransfer.setData('application/json', json); 
+    localStorage.setItem("dnd", json);
 }
 
 angular.module('treeRepeat', ['ngAnimate'])
