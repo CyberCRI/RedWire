@@ -45,7 +45,7 @@ angular.module('gamEvolve.util.dndHelper', [])
     # Get chip data
     [chipType, chipName] = chips.getChipTypeAndName(chip)
 
-    chipsToCopy = @listChipsToCopy(sourceGameCode, chipType, chipName)
+    chipsToCopy = @listChipsToCopy(sourceGameCode, chip)
     copiedChipCount = 0
     for chipToCopy in chipsToCopy
       if @copySingleChip(sourceGameCode, currentGame.version, chipToCopy...) then copiedChipCount++
@@ -70,15 +70,17 @@ angular.module('gamEvolve.util.dndHelper', [])
     return nextName
 
   # Return list of dependencies like [[chipAType, chipAName], [chipBType, chipBName], ... ]
-  listChipsToCopy: (sourceGameCode, chipType, chipName) ->
+  listChipsToCopy: (sourceGameCode, chip) ->
     listChipTree = (chip, list = []) =>
-      list.push(chips.getChipTypeAndName(chip))
+      list.push(chip)
       if chip.children
         for child in chip.children
           listChipTree(child, list)
       return list
 
-    recursiveSearch = (chipType, chipName, dependencies) =>
+    recursiveSearch = (chip, dependencies) =>
+      [chipType, chipName] = chips.getChipTypeAndName(chip)
+
       # Add self to list
       if chipType not in ["emitter", "splitter"]
         dependencies.push([chipType, chipName])
@@ -87,32 +89,42 @@ angular.module('gamEvolve.util.dndHelper', [])
       if chipType is "circuit"
         circuitDependencies = listChipTree(sourceGameCode.circuits[chipName].board)
         for circuitDependency in circuitDependencies
-          recursiveSearch(circuitDependency..., dependencies)
+          recursiveSearch(circuitDependency, dependencies)
 
       # Add references for transformers referenced in the code
       transformerReferences = []
-      chipCollection = chips.getChipCollection(sourceGameCode, chipType)
       switch chipType
         when "processor"
-          @getTransformerReferences(chipCollection[chipName].update, transformerReferences)
+          @getTransformerReferences(sourceGameCode.processors[chipName].update, transformerReferences)
         when "switch"
-          @getTransformerReferences(chipCollection[chipName].listActiveChildren, transformerReferences)
-          @getTransformerReferences(chipCollection[chipName].handleSignals, transformerReferences)
+          @getTransformerReferences(sourceGameCode.switches[chipName].listActiveChildren, transformerReferences)
+          @getTransformerReferences(sourceGameCode.switches[chipName].handleSignals, transformerReferences)
         when "transformer"
-          @getTransformerReferences(chipCollection[chipName].body, transformerReferences)
+          @getTransformerReferences(sourceGameCode.transformers[chipName].body, transformerReferences)
 
-      for transformerReference in transformerReferences
-        recursiveSearch(transformerReference..., dependencies)
+      # Add references for transformers referenced in pins
+      switch chipType
+        when "emitter"
+          for pinName, pinExpression of chip.emitter
+            @getTransformerReferences(pinExpression, transformerReferences)
+        when "processor", "switch"
+          for pinName, pinExpression of chip.pins.in
+            @getTransformerReferences(pinExpression, transformerReferences)
+          for pinName, pinExpression of chip.pins.out
+            @getTransformerReferences(pinExpression, transformerReferences)
+
+      for tranformerName in transformerReferences
+        recursiveSearch({ transformer: tranformerName }, dependencies)
 
       return dependencies
 
-    return recursiveSearch(chipType, chipName, [])
+    return recursiveSearch(chip, [])
 
   getTransformerReferences: (code, references = []) ->
     r = /transformers.(\w+)|transfromers\[(\w*)\]/g
     loop
       match = r.exec(code)
       if not match then break
-      references.push(["transformer", match[1]])
+      references.push(match[1])
     return references 
 
