@@ -21,29 +21,43 @@ angular.module('gamEvolve.util.dndHelper', [])
     if not sourceGameJson then throw new Error("Cannot find game from local storage")
     return JSON.parse(sourceGameJson).data
 
+  # Returns true if the copy is successful, else false
+  # Does not update local version
+  copySingleChip: (sourceGameCode, targetGameCode, chipType, chipName) ->
+    sourceChipCollection = chips.getChipCollection(sourceGameCode, chipType)
+    targetChipCollection = chips.getChipCollection(targetGameCode, chipType)
+
+    # Don't bother copying if the things are identical
+    if _.isEqual(sourceChipCollection[chipName], targetChipCollection[chipName]) then return false
+
+    # Find new name
+    newChipName = if @isChipNameTaken(chipType, chipName) then @findNewChipName(chipType, chipName) else chipName
+
+    # Copy over chip
+    targetChipCollection[newChipName] = sourceChipCollection[chipName]
+    return true
+
+  # Returns number of chips copied
   copyChip: (gameId, versionId, chip) ->
     # Get source game from localStorage
     sourceGameCode = @getGameCodeForCopy(gameId, versionId)
 
     # Get chip data
     [chipType, chipName] = chips.getChipTypeAndName(chip)
-    if chipType in ["emitter", "splitter"] then return null # Nothing to do 
 
-    sourceChipCollection = chips.getChipCollection(sourceGameCode, chipType)
-    targetChipCollection = chips.getChipCollection(currentGame.version, chipType)
+    chipsToCopy = @listChipsToCopy(sourceGameCode, chipType, chipName)
+    copiedChipCount = 0
+    for chipToCopy in chipsToCopy
+      if @copySingleChip(sourceGameCode, currentGame.version, chipToCopy...) then copiedChipCount++
 
-    # Find new name
-    newChipName = if @isChipNameTaken(chipType, chipName) then @findChipName(chipType, chipName) else chipName
-
-    # Copy over chip
-    targetChipCollection[newChipName] = sourceChipCollection[chipName]
-    currentGame.updateLocalVersion()
+    if copiedChipCount > 0 then currentGame.updateLocalVersion()
+    return copiedChipCount
 
   isChipNameTaken: (chipType, chipName) ->
     chipCollection = chips.getChipCollection(currentGame.version, chipType)
     return chipName of chipCollection
 
-  findChipName: (chipType, chipName) ->
+  findNewChipName: (chipType, chipName) ->
     chipCollection = chips.getChipCollection(currentGame.version, chipType)
     return @findNewName(_.keys(chipCollection), chipName)
 
@@ -55,44 +69,32 @@ angular.module('gamEvolve.util.dndHelper', [])
       nextIndex++
     return nextName
 
-  getDependencies: (gameId, versionId, chip) ->
-    getTransformerReferences: (code) ->
-      r = /transformers.(\w+)|transfromers\[(\w*)\]/g
-      matches = loop
-        match = r.exec(code)
-        if match then match[1] else break
-      return matches 
+  # Return list of dependencies like [[chipAType, chipAName], [chipBType, chipBName], ... ]
+  listChipsToCopy: (sourceGameCode, chipType, chipName) ->
+    listChipTree = (chip, list = []) ->
+      list.push(chips.getChipTypeAndName(chip))
+      if chip.children
+        for child in chip.children
+          listChipTree(child, list)
+      return list
 
-    isChipNameTaken: (chip) ->
-      if "processor" of chip then return chip.processor of currentGame.version.processors
-      if "switch" of chip then return chip.switch of currentGame.version.switches
-      if "circuit" of chip then return chip.circuit of currentGame.version.circuits
-      return false
+    recursiveSearch = (chipType, chipName, dependencies) ->
+      if chipType not in ["emitter", "splitter"]
+        dependencies.push([chipType, chipName])
 
-    getNewName: (existingNames, currentName) ->
-      nextName = currentName
-      nextIndex = 2
-      while nextName in existingNames
-        nextName = "#{source.name} #{nextIndex}"
-        nextIndex++
-      return nextName
+      if chipType is "circuit"
+        circuitDependencies = listChipTree(sourceGameCode.circuits[chipName].board)
+        for circuitDependency in circuitDependencies
+          recursiveSearch(circuitDependency..., dependencies)
 
-    ###
-      "processor": RW.visitProcessorChip
-      "switch": RW.visitSwitchChip
-      "splitter": RW.visitSplitterChip
-      "emitter": RW.visitEmitterChip
-      "circuit": RW.visitCircuitChip
-    ###
+      return dependencies
 
-    listDependenciesForTransformer: (transformer) ->
+    return recursiveSearch(chipType, chipName, [])
 
+  getTransformerReferences: (code) ->
+    r = /transformers.(\w+)|transfromers\[(\w*)\]/g
+    matches = loop
+      match = r.exec(code)
+      if match then match[1] else break
+    return matches 
 
-    listDependencies: (chip, list) ->
-
-    # Get source game from localStorage
-    sourceGameJson = localStorage.getItem(gameId)
-    if not sourceGameJson then throw new Error("Cannot find game from local storage")
-    sourceGame = JSON.parse(sourceGameJson)
-
-    return recursiveSearch(chip, [])
