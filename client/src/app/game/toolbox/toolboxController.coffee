@@ -180,15 +180,21 @@ angular.module('gamEvolve.game.toolbox', [])
     # Switch to editing the circuit type, not a particular instance
     circuits.currentCircuitMeta = new RW.CircuitMeta(null, circuitName)
 
-.directive "toolboxDropzone", (currentGame, dndHelper) ->
+.directive "toolboxDropzone", (currentGame, dndHelper, chips) ->
   restrict: 'A',
   link: (scope, element, attrs) ->
+    acceptDrop = (event) ->
+      if dndHelper.dragIsFromSameWindow(event) then return false 
+      draggedData = dndHelper.getDraggedData(event)
+      [chipType, chipName] = chips.getChipTypeAndName(draggedData.node) 
+      return chipType not in ["emitter", "splitter"] 
+
     el = element[0]
     dragster = new Dragster(el)
     el.addEventListener "dragster:enter", (event) ->
       # The data transfer info is hidden under detail
       event.dataTransfer = event.detail.dataTransfer
-      if dndHelper.dragIsFromSameWindow(event) then return false 
+      if not acceptDrop(event) then return false
 
       console.log("enter")
       el.classList.add('drag-over')
@@ -196,20 +202,20 @@ angular.module('gamEvolve.game.toolbox', [])
     el.addEventListener "dragster:leave", (event) ->
       # The data transfer info is hidden under detail
       event.dataTransfer = event.detail.dataTransfer
-      if dndHelper.dragIsFromSameWindow(event) then return false 
+      if not acceptDrop(event) then return false
 
       console.log("leave")
       el.classList.remove('drag-over')
       return false
     el.addEventListener "dragover", (event) -> 
-      if dndHelper.dragIsFromSameWindow(event) then return false 
+      if not acceptDrop(event) then return false
 
       event.preventDefault?() 
       event.stopPropogation?() 
       event.dataTransfer.dropEffect = 'move'
       return false
     el.addEventListener "drop", (event) -> 
-      if dndHelper.dragIsFromSameWindow(event) then return false 
+      if not acceptDrop(event) then return false
 
       event.preventDefault?() 
       event.stopPropogation?() 
