@@ -1,7 +1,7 @@
 <ul frang-tree class="board">
     <li frang-tree-repeat="node in [chips.getCurrentBoard()]"
         frang-tree-drag="{node: node, parent: $parent.node}"
-        frang-tree-drop="drop(dragData.node, node, dragData.parent, $parent.node)"
+        frang-tree-drop="drop(dragData, node, $parent.node)"
         frang-tree-enter="enter(node)"
         frang-tree-allow-drop="allowDrop(dragData.node)">
         <div class="drop-before" ng-hide="isPreviewedAsSource(node)"></div>

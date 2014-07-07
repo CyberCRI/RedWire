@@ -12,7 +12,7 @@ angular.module('gamEvolve.util.dndHelper', [])
     event.dataTransfer.setData('application/json', json)
     localStorage.setItem("dnd", json)
 
-  dragIsFromSameWindow: (event) -> @getDraggedData(event)?.windowId is currentGame.windowId
+  dragIsFromSameWindow: (dragData) -> dragData.windowId is currentGame.windowId
 
   getGameCodeForCopy: (gameId, versionId) ->
     # Get source game from localStorage
@@ -38,6 +38,7 @@ angular.module('gamEvolve.util.dndHelper', [])
     return true
 
   # Returns number of chips copied
+  # Does not update local version
   copyChip: (gameId, versionId, chip) ->
     # Get source game from localStorage
     sourceGameCode = @getGameCodeForCopy(gameId, versionId)
@@ -50,7 +51,6 @@ angular.module('gamEvolve.util.dndHelper', [])
     for chipToCopy in chipsToCopy
       if @copySingleChip(sourceGameCode, currentGame.version, chipToCopy...) then copiedChipCount++
 
-    if copiedChipCount > 0 then currentGame.updateLocalVersion()
     return copiedChipCount
 
   isChipNameTaken: (chipType, chipName) ->

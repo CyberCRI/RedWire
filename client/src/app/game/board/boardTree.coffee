@@ -10,7 +10,7 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.model.circuits'
 ])
 
-.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, circuits) ->
+.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, circuits, dndHelper) ->
   $scope.currentGame = currentGame
   $scope.treeDrag = treeDrag
   $scope.chips = chips 
@@ -112,9 +112,15 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.enter = (node) ->
     boardNodes.open(node) unless treeDrag.dropBefore
 
-  $scope.drop = (source, target, sourceParent, targetParent) ->
+  $scope.drop = (dragData, target, targetParent) ->
+    source = dragData.node
+    sourceParent = dragData.parent
     return if source is target
     return if source is chips.getCurrentBoard() # Ignore Main node DnD
+
+    if not dndHelper.dragIsFromSameWindow(dragData)
+      # Copy chip dependencies
+      copiedChipCount = dndHelper.copyChip(dragData.gameId, dragData.versionId, dragData.node)
     
     # IDs must be unique for this parent, like for ciruits
     if "id" of source 

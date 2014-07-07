@@ -186,8 +186,8 @@ angular.module('gamEvolve.game.toolbox', [])
   restrict: 'A',
   link: (scope, element, attrs) ->
     acceptDrop = (event) ->
-      if dndHelper.dragIsFromSameWindow(event) then return false 
       draggedData = dndHelper.getDraggedData(event)
+      if dndHelper.dragIsFromSameWindow(draggedData) then return false 
       [chipType, chipName] = chips.getChipTypeAndName(draggedData.node) 
       return chipType not in ["emitter", "splitter"] 
 
