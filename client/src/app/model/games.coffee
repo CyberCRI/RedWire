@@ -11,6 +11,7 @@ angular.module('gamEvolve.model.games', [])
   info: null
   creator: null
   localVersion: _.uniqueId("v")
+  windowId: RW.makeGuid() # Used to identify windows across drag and drop
 
   statusMessage: ""
 

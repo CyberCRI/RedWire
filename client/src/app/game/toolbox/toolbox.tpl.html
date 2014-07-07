@@ -1,11 +1,11 @@
-<block-container class="scrollable" id="toolbox" ng-controller="ToolboxCtrl">
+<block-container class="scrollable" id="toolbox" toolbox-dropzone ng-controller="ToolboxCtrl">
     <accordion close-others="true">
         <accordion-group>
             <accordion-heading><div>Circuits</div></accordion-heading>
             <div id="circuits">
                 <ul>
                     <li ng-repeat="circuitName in circuits" class="circuitChip">
-                        <span frang-tree-drag="{node: itemForDrag('circuits', circuitName) }">{{circuitName}}</span>
+                        <span frang-tree-drag="{node: itemForDrag('circuits', circuitName)}">{{circuitName}}</span>
                         <a class="btn btn-default btn-sm" ng-click="changeCircuit(circuitName)"><i class="font-icon-resize-full-alt"></i></a>
                         <a class="btn btn-default btn-sm" ng-click="editItem('circuits', circuitName)"><i class="glyphicon glyphicon-edit"></i></a>
                         <a class="btn btn-default btn-sm" ng-click="removeItem('circuits', circuitName)"><i class="glyphicon glyphicon-trash"></i></a>

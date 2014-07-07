@@ -1,18 +1,5 @@
 'use strict';
 
-function getDraggedData(event) {
-    // On Chrome, we have to use local storage because of security restrictions
-    var json = event.dataTransfer.getData('application/json') || localStorage.getItem("dnd");
-    return json && JSON.parse(json) || null;
-}
-
-function setDraggedData(event, data) {
-    // On Chrome, we have to use local storage because of security restrictions
-    var json = JSON.stringify(data);
-    event.dataTransfer.setData('application/json', json); 
-    localStorage.setItem("dnd", json);
-}
-
 angular.module('treeRepeat', ['ngAnimate'])
 
     .factory('treeDrag', function() {
@@ -405,7 +392,7 @@ angular.module('treeRepeat', ['ngAnimate'])
         };
     })
 
-    .directive('frangTreeDrag', function($parse, treeDrag, boardNodes) {
+    .directive('frangTreeDrag', function($parse, treeDrag, boardNodes, currentGame, dndHelper) {
         return {
             restrict: 'A',
             link: function(scope, element, attrs) {
@@ -417,8 +404,14 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (e.stopPropagation) e.stopPropagation();
                         e.dataTransfer.effectAllowed = 'move';
-                        var data = parsedDrag(scope)
-                        setDraggedData(e, data);
+                        
+                        // Include data about the current version of the game
+                        var data = _.extend(parsedDrag(scope), {
+                            gameId: currentGame.version.gameId,
+                            versionId: currentGame.version.id,
+                            windowId: currentGame.windowId
+                        });
+                        dndHelper.setDraggedData(e, data);
                         element.addClass('tree-drag');
                         boardNodes.close(data.node);
                         return false;
@@ -439,7 +432,7 @@ angular.module('treeRepeat', ['ngAnimate'])
         };
     })
 
-    .directive('frangTreeDrop', function($parse, $timeout, treeDrag) {
+    .directive('frangTreeDrop', function($parse, $timeout, treeDrag, dndHelper) {
         return {
             restrict: 'A',
             require: '^frangTree',
@@ -473,7 +466,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragover',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: getDraggedData(e)})) {
+                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             e.dataTransfer.dropEffect = 'move'; // allow drop
                             if (e.preventDefault) { e.preventDefault(); }
@@ -485,7 +478,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragenter',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: getDraggedData(e)})) {
+                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             scope.$apply(function () {
                                 treeDrag.lastHovered = scope.node;
@@ -506,7 +499,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragleave',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: getDraggedData(e)})) {
+                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                         }
                         return false;
@@ -516,10 +509,10 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'drop',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: getDraggedData(e)})) {
+                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             scope.$apply(function () {
-                                parsedDrop(scope, {dragData: getDraggedData(e)});
+                                parsedDrop(scope, {dragData: dndHelper.getDraggedData(e)});
                             });
                             treeDrag.lastHovered = null;
                             if (e.preventDefault) { e.preventDefault(); }
