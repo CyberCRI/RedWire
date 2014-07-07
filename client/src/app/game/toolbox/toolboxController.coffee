@@ -149,6 +149,8 @@ angular.module('gamEvolve.game.toolbox', [])
         pins:
           in: {}
           out: {}
+      when "transformers"
+        transformer: name
       else 
         throw new Error("Unknown item type '#{itemType}'")
 

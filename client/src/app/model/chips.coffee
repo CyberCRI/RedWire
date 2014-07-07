@@ -30,6 +30,7 @@ angular.module('gamEvolve.model.chips', [])
       when "processor" then gameCode.processors
       when "circuit" then gameCode.circuits
       when "switch" then gameCode.switches
+      when "transformer" then gameCode.transformers
       else throw new Error("No collection for chip '#{chipType}'")
 
   getChipTypeAndName: (chip) ->
@@ -40,6 +41,7 @@ angular.module('gamEvolve.model.chips', [])
     else if "circuit" of chip then ["circuit", chip.circuit]
     else if "emitter" of chip then ["emitter", chip.comment]
     else if "splitter" of chip then ["splitter", chip.comment]
+    else if "transformer" of chip then ["transformer", chip.transformer]
     else throw new Error("Unknown chip type for chip '#{JSON.stringify(chip)}'")
 
   acceptsChildren: (chip) ->

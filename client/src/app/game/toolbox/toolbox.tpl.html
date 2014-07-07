@@ -52,7 +52,7 @@
             <div id="transformers">
                 <ul>
                     <li ng-repeat="transformerName in transformers" class="transformerChip">
-                        <span>{{transformerName}}</span>
+                        <span frang-tree-drag="{node: itemForDrag('transformers', transformerName)}">{{transformerName}}</span>
                         <a class="btn btn-default btn-sm" ng-click="editItem('transformers', transformerName)"><i class="glyphicon glyphicon-edit"></i></a>
                         <a class="btn btn-default btn-sm" ng-click="removeItem('transformers', transformerName)"><i class="glyphicon glyphicon-trash"></i></a>
                     </li>

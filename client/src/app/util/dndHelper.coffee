@@ -71,30 +71,48 @@ angular.module('gamEvolve.util.dndHelper', [])
 
   # Return list of dependencies like [[chipAType, chipAName], [chipBType, chipBName], ... ]
   listChipsToCopy: (sourceGameCode, chipType, chipName) ->
-    listChipTree = (chip, list = []) ->
+    listChipTree = (chip, list = []) =>
       list.push(chips.getChipTypeAndName(chip))
       if chip.children
         for child in chip.children
           listChipTree(child, list)
       return list
 
-    recursiveSearch = (chipType, chipName, dependencies) ->
+    recursiveSearch = (chipType, chipName, dependencies) =>
+      # Add self to list
       if chipType not in ["emitter", "splitter"]
         dependencies.push([chipType, chipName])
 
+      # Add references to chips in the board
       if chipType is "circuit"
         circuitDependencies = listChipTree(sourceGameCode.circuits[chipName].board)
         for circuitDependency in circuitDependencies
           recursiveSearch(circuitDependency..., dependencies)
 
+      # Add references for transformers referenced in the code
+      transformerReferences = []
+      chipCollection = chips.getChipCollection(sourceGameCode, chipType)
+      switch chipType
+        when "processor"
+          @getTransformerReferences(chipCollection[chipName].update, transformerReferences)
+        when "switch"
+          @getTransformerReferences(chipCollection[chipName].listActiveChildren, transformerReferences)
+          @getTransformerReferences(chipCollection[chipName].handleSignals, transformerReferences)
+        when "transformer"
+          @getTransformerReferences(chipCollection[chipName].body, transformerReferences)
+
+      for transformerReference in transformerReferences
+        recursiveSearch(transformerReference..., dependencies)
+
       return dependencies
 
     return recursiveSearch(chipType, chipName, [])
 
-  getTransformerReferences: (code) ->
+  getTransformerReferences: (code, references = []) ->
     r = /transformers.(\w+)|transfromers\[(\w*)\]/g
-    matches = loop
+    loop
       match = r.exec(code)
-      if match then match[1] else break
-    return matches 
+      if not match then break
+      references.push(["transformer", match[1]])
+    return references 
 
