@@ -32,9 +32,28 @@ angular.module('gamEvolve.util.dndHelper', [])
     sourceChipCollection = chips.getChipCollection(sourceGameCode, chipType)
     targetChipCollection = chips.getChipCollection(currentGame.version, chipType)
 
+    # Find new name
+    newChipName = if @isChipNameTaken(chipType, chipName) then @findChipName(chipType, chipName) else chipName
+
     # Copy over chip
-    targetChipCollection[chipName] = sourceChipCollection[chipName]
+    targetChipCollection[newChipName] = sourceChipCollection[chipName]
     currentGame.updateLocalVersion()
+
+  isChipNameTaken: (chipType, chipName) ->
+    chipCollection = chips.getChipCollection(currentGame.version, chipType)
+    return chipName of chipCollection
+
+  findChipName: (chipType, chipName) ->
+    chipCollection = chips.getChipCollection(currentGame.version, chipType)
+    return @findNewName(_.keys(chipCollection), chipName)
+
+  findNewName: (existingNames, currentName) ->
+    nextName = currentName
+    nextIndex = 2
+    while nextName in existingNames
+      nextName = "#{currentName} #{nextIndex}"
+      nextIndex++
+    return nextName
 
   getDependencies: (gameId, versionId, chip) ->
     getTransformerReferences: (code) ->
