@@ -572,7 +572,9 @@ RW.io.sound =
                 playingMusic[channelId] = channelData
               when "fx"
                 for key, sound of channelData
-                  buffer = WebAudiox.getBufferFromJsfx(RW.audioContext, sound)
+                  _.defaults sound, 
+                    fx: ["square",0.0000,0.4000,0.0000,0.3200,0.0000,0.2780,20.0000,496.0000,2400.0000,0.4640,0.0000,0.0000,0.0100,0.0003,0.0000,0.0000,0.0000,0.0235,0.0000,0.0000,0.0000,0.0000,1.0000,0.0000,0.0000,0.0000,0.0000] 
+                  buffer = WebAudiox.getBufferFromJsfx(RW.audioContext, sound.fx)
                   source = RW.audioContext.createBufferSource()
                   source.buffer = buffer
                   source.connect(lineOut.destination)
