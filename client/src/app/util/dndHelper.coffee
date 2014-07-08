@@ -81,6 +81,11 @@ angular.module('gamEvolve.util.dndHelper', [])
 
     recursiveSearch = (chip, dependencies) =>
       [chipType, chipName] = chips.getChipTypeAndName(chip)
+      # If our item is already in the list, return early
+      if _.contains(dependencies, [chipType, chipName]) then return dependencies
+      # If our item doesn't exist, skip it
+      chipCollection = chips.getChipCollection(sourceGameCode, chipType)
+      if chipName not of chipCollection then return dependencies
 
       # Add self to list
       if chipType not in ["emitter", "splitter"]
@@ -114,18 +119,18 @@ angular.module('gamEvolve.util.dndHelper', [])
           for pinName, pinExpression of chip.pins.out
             @getTransformerReferences(pinExpression, transformerReferences)
 
-      for tranformerName in transformerReferences
-        recursiveSearch({ transformer: tranformerName }, dependencies)
+      for transformerName in transformerReferences
+        recursiveSearch({ transformer: transformerName }, dependencies)
 
       return dependencies
 
     return recursiveSearch(chip, [])
 
   getTransformerReferences: (code, references = []) ->
-    r = /transformers.(\w+)|transfromers\[(\w*)\]/g
+    r = /transformers.(\w+)|transformers\[["'](\w*)["']\]/g
     loop
       match = r.exec(code)
       if not match then break
-      references.push(match[1])
+      references.push(match[1] || match[2])
     return references 
 
