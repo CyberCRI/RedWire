@@ -570,7 +570,13 @@ RW.io.sound =
                   source.mediaElement.play()
 
                 playingMusic[channelId] = channelData
-
+              when "fx"
+                for key, sound of channelData
+                  buffer = WebAudiox.getBufferFromJsfx(RW.audioContext, sound)
+                  source = RW.audioContext.createBufferSource()
+                  source.buffer = buffer
+                  source.connect(lineOut.destination)
+                  source.start(0)
               else 
                 throw new Error("Unknown channel type '#{channelMeta.type}'")
 

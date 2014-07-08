@@ -92,11 +92,11 @@
                                             </div>
                                     </li>
                                 </ul>
+                                
+                                <a class="btn btn-default" ng-click="addLayer()"><i class="glyphicon glyphicon-plus"></i></a>
                             </div>
 
                             <div ng-controller="ChannelsCtrl" id="channelsList">
-                                <a class="btn btn-default" ng-click="addLayer()"><i class="glyphicon glyphicon-plus"></i></a>
-
                                 <h4>Channels</h4>
                                 <ul ui-sortable ng-model="channels">
                                     <li ng-repeat="channel in channels">
