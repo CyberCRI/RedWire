@@ -3,6 +3,7 @@ angular.module('gamEvolve.game.assets', [
   'omr.angularFileDnD'
   'xeditable'
 ])
+
 .controller 'AssetsCtrl', ($scope, currentGame, circuits) ->
   # Get the actions object from the currentGame service, and keep it updated
   $scope.assets = null
@@ -43,3 +44,42 @@ angular.module('gamEvolve.game.assets', [
     # Reset this so that the same filename dragged twice in a row will be taken into account
     $scope.fileName = ""  
     $scope.file = null
+
+.directive 'assetDrag', ($parse, dndHelper) ->
+    restrict: 'A'
+    link: (scope, element, attrs) ->
+      el = element[0]
+      parsedDrag = $parse(attrs.assetDrag)
+      el.draggable = true
+
+      el.addEventListener "dragstart", (e) ->
+        e?.stopPropagation()
+        e.dataTransfer.effectAllowed = 'copy'
+        data = parsedDrag(scope)
+        dndHelper.setDraggedData(e, { asset: data })
+        return false
+
+      el.addEventListener "dragend", (e) ->
+        e?.stopPropagation()
+        return false;
+
+.directive "assetDropzone", (currentGame, dndHelper, circuits) ->
+  restrict: 'A',
+  link: (scope, element, attrs) ->
+    acceptDrop = (event) -> dndHelper.getDraggedData(event)?.asset?
+
+    el = element[0]
+    el.addEventListener "drop", (event) -> 
+      if not acceptDrop(event) then return false
+
+      event.preventDefault?() 
+      event.stopPropogation?() 
+      console.log("drop asset")
+
+      draggedData = dndHelper.getDraggedData(event)
+      
+      currentCircuitData = currentGame.version.circuits[circuits.currentCircuitMeta.type]
+      currentCircuitData.assets[draggedData.asset.name] = draggedData.asset.data
+      currentGame.updateLocalVersion()
+
+      return false

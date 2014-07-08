@@ -1,16 +1,17 @@
 angular.module('gamEvolve.util.dndHelper', [])
 
 .factory "dndHelper", (currentGame, chips) ->
+  # On Chrome, we have to use local storage instead of the HTML5 drag and drop API because of security restrictions.
+  # We set a special MIME type "application/redwire" in dataTransfer and store the actual data in local storage 
   getDraggedData: (event) ->
-    # On Chrome, we have to use local storage because of security restrictions
-    json = event.dataTransfer.getData('application/json') || localStorage.getItem("dnd")
+    if "application/redwire" not in event.dataTransfer.types then return null
+    json = localStorage.getItem("dnd")
     return json && JSON.parse(json) || null
 
   setDraggedData: (event, data) ->
-    # On Chrome, we have to use local storage because of security restrictions
     json = JSON.stringify(data)
-    event.dataTransfer.setData('application/json', json)
     localStorage.setItem("dnd", json)
+    event.dataTransfer.setData('application/redwire', "dnd")
 
   dragIsFromSameWindow: (dragData) -> dragData.windowId is currentGame.windowId
 

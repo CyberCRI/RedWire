@@ -19,14 +19,14 @@
                                 <h4>Assets</h4>
 
                                 <ul>
-                                    <li ng-repeat="asset in assets">
+                                    <li ng-repeat="asset in assets" asset-drag="asset">
                                         <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
                                         <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
                                         <a class="btn btn-default btn-sm" ng-click="remove($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                     </li>
                                 </ul>
 
-                                <div file-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop new assets here</span></div>
+                                <div file-dropzone asset-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop new assets here</span></div>
                             </div>
                         </block-container>
                     </flexy-layout>

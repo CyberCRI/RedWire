@@ -226,6 +226,7 @@ angular.module('gamEvolve.game.toolbox', [])
       dragster.reset()
 
       draggedData = dndHelper.getDraggedData(event)
-      dndHelper.copyChip(draggedData.gameId, draggedData.versionId, draggedData.node)
+      copiedChipCount = dndHelper.copyChip(draggedData.gameId, draggedData.versionId, draggedData.node)
+      if copiedChipCount > 0 then currentGame.updateLocalVersion()
 
       return false
