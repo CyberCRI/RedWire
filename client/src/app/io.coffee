@@ -519,29 +519,17 @@ RW.io.sound =
   meta: 
     audio: true
   factory: (options) ->
+
+    makeChannelId = (circuitId, channelName) -> "#{circuitId}.#{channelName}"
+    deconstructLayerId = (channelId) -> channelId.split(".")
+
     lineOut = new WebAudiox.LineOut(RW.audioContext)
 
-    ###
-    makeChannelId = (circuitId, channelName) -> "#{circuitId}.#{channelName}"
-    deconstructChannelId = (channelId) -> channelId.split(".")
-
-    createChannels = ->
-      # Convert channels to audio graph
-      createdChannels = {}
-      for { circuitId, name, type } in options.channels
-        channelId = makeChannelId(circuitId, name)
-        createdChannels[channelId] = channel
-
-      return createdChannels
-
-    channels = createChannels()
-    ###
+    playingMusic = {}
 
     return {
       provideData: -> 
-        data = 
-          global: {}
-        return data
+        global: { } 
 
       establishData: (data) -> 
         for circuitId, circuitData of data
@@ -561,11 +549,37 @@ RW.io.sound =
                   source.disconnect()
                   source.connect(lineOut.destination)
                   source.mediaElement.play()
+              when "music" 
+                # Channel data should be like { asset: "qsdf" } or null
+                channelId = makeChannelId(circuitId, channelName)
+                if _.isEqual(playingMusic[channelId], channelData) then continue
+
+                # Stop music if its playing
+                # TODO: handle volume changes of same music
+                if playingMusic[channelId]
+                  source = circuitAssets[playingMusic[channelId].asset]
+                  source.mediaElement.stop()
+
+                # Play new music
+                if channelData
+                  # TODO: handle crossfading
+                  source = circuitAssets[channelData.asset]
+                  source.disconnect()
+                  source.connect(lineOut.destination)
+                  source.mediaElement.loop = true
+                  source.mediaElement.play()
+
+                playingMusic[channelId] = channelData
+
               else 
                 throw new Error("Unknown channel type '#{channelMeta.type}'")
 
         return null # avoid accumulating results
 
       destroy: -> 
+        # Stop all playing sounds
+        for channelId, channelData of playingMusic
+          if channelData.asset then circuitAssets[channelData.asset].mediaElement.stop()
+
         lineOut = null
     }
