@@ -9,6 +9,7 @@ angular.module('treeRepeat', ['ngAnimate'])
             // lastHovered
             // dropBefore
 
+            // currentDragEvent
         };
     })
 
@@ -469,6 +470,10 @@ angular.module('treeRepeat', ['ngAnimate'])
                         if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             e.dataTransfer.dropEffect = 'move'; // allow drop
+
+                            // treeDrag.currentDragEvent = e;
+                            // console.log("*** drag over: setting currentDragEvent");
+
                             if (e.preventDefault) { e.preventDefault(); }
                         }
                         return false;
@@ -480,6 +485,8 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
+                            treeDrag.currentDragEvent = e;
+                            console.log("*** drag enter: setting currentDragEvent");
                             scope.$apply(function () {
                                 treeDrag.lastHovered = scope.node;
                                 treeDrag.lastEnterTime = new Date().getTime();
@@ -501,6 +508,9 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
+
+                            //console.log("*** drag leave: clearing currentDragEvent");
+                            //treeDrag.currentDragEvent = null;
                         }
                         return false;
                     },
@@ -515,6 +525,8 @@ angular.module('treeRepeat', ['ngAnimate'])
                                 parsedDrop(scope, {dragData: dndHelper.getDraggedData(e)});
                             });
                             treeDrag.lastHovered = null;
+                            console.log("*** drop: clearing currentDragEvent");
+                            treeDrag.currentDragEvent = null;
                             if (e.preventDefault) { e.preventDefault(); }
                         }
                         return false;
