@@ -16,12 +16,7 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.chips = chips 
   $scope.boardNodes = boardNodes
 
-  $scope.getTreeDragData = -> 
-    if treeDrag.currentDragEvent 
-      data = dndHelper.getDraggedData(treeDrag.currentDragEvent) 
-      console.log("has drag data?", !!data)
-    else 
-      null
+  $scope.getTreeDragData = -> dndHelper.getDraggedData()
 
   $scope.isPreviewedAsSource = (chip) ->
     return false unless chip

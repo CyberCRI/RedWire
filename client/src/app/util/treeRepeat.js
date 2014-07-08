@@ -8,8 +8,6 @@ angular.module('treeRepeat', ['ngAnimate'])
             // lastEnterTime
             // lastHovered
             // dropBefore
-
-            // currentDragEvent
         };
     })
 
@@ -412,7 +410,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                             versionId: currentGame.version.id,
                             windowId: currentGame.windowId
                         });
-                        dndHelper.setDraggedData(e, data);
+                        dndHelper.setDraggedData(data);
                         element.addClass('tree-drag');
                         boardNodes.close(data.node);
                         return false;
@@ -425,6 +423,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                         if (e.stopPropagation) e.stopPropagation();
                         element.removeClass('tree-drag');
                         treeDrag.lastHovered = null;
+                        dndHelper.clearDraggedData();
                         return false;
                     },
                     false
@@ -467,13 +466,9 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragover',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
+                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData()})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             e.dataTransfer.dropEffect = 'move'; // allow drop
-
-                            // treeDrag.currentDragEvent = e;
-                            // console.log("*** drag over: setting currentDragEvent");
-
                             if (e.preventDefault) { e.preventDefault(); }
                         }
                         return false;
@@ -483,7 +478,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragenter',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
+                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData()})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             treeDrag.currentDragEvent = e;
                             console.log("*** drag enter: setting currentDragEvent");
@@ -506,11 +501,8 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragleave',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
+                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData()})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
-
-                            //console.log("*** drag leave: clearing currentDragEvent");
-                            //treeDrag.currentDragEvent = null;
                         }
                         return false;
                     },
@@ -519,14 +511,13 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'drop',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData(e)})) {
+                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData()})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             scope.$apply(function () {
-                                parsedDrop(scope, {dragData: dndHelper.getDraggedData(e)});
+                                parsedDrop(scope, {dragData: dndHelper.getDraggedData()});
                             });
                             treeDrag.lastHovered = null;
-                            console.log("*** drop: clearing currentDragEvent");
-                            treeDrag.currentDragEvent = null;
+                            dndHelper.clearDraggedData();
                             if (e.preventDefault) { e.preventDefault(); }
                         }
                         return false;
