@@ -526,19 +526,16 @@ RW.io.sound =
     deconstructChannelId = (channelId) -> channelId.split(".")
 
     createChannels = ->
-      # Convert channels to ordered
+      # Convert channels to audio graph
       createdChannels = {}
-      for { circuitId, name, depth } in options.channels
+      for { circuitId, name, type } in options.channels
         channelId = makeChannelId(circuitId, name)
-        channel = $("<canvas id='canvasChannel-#{channelId}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{depth}; #{CANVAS_CSS}' />")
-        $(options.elementSelector).append(channel)
         createdChannels[channelId] = channel
 
       return createdChannels
 
     channels = createChannels()
     ###
-
 
     return {
       provideData: -> 
@@ -551,20 +548,21 @@ RW.io.sound =
           circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
           circuitAssets = options.assets[circuitType]
 
-          for key, assetName of circuitData
-            source  = circuitAssets[assetName]
-            source.disconnect()
-            source.connect(lineOut.destination)
-            source.mediaElement.play()
-            
-            ###
-            arrayBuffer = circuitAssets[assetName]
-            context.decodeAudioData arrayBuffer, (buffer) -> 
-              source = context.createBufferSource()
-              source.buffer = buffer
-              source.connect(lineOut.destination)
-              source.start(0)
-            ###
+          for channelName, channelData of circuitData
+            channelMeta = _.findWhere(options.channels, { circuitId: circuitId, name: channelName })
+
+            switch channelMeta.type
+              when "clip" 
+                for key, sound of channelData
+                  if sound.asset not of circuitAssets 
+                    throw new Error("Cannot find asset '#{sound.asset}' for circuit '#{circuitId}'")
+
+                  source = circuitAssets[sound.asset]
+                  source.disconnect()
+                  source.connect(lineOut.destination)
+                  source.mediaElement.play()
+              else 
+                throw new Error("Unknown channel type '#{channelMeta.type}'")
 
         return null # avoid accumulating results
 

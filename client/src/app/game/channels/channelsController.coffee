@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.channels', [])
 
 .controller 'ChannelsCtrl', ($scope, currentGame, circuits) ->
-  $scope.TYPES = ["fx", "music"]
+  $scope.TYPES = ["clip", "music", "fx"]
 
   # Get the actions object from the currentGame service, and keep it updated
   $scope.channels = []

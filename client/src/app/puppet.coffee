@@ -177,9 +177,9 @@ initializeIo = (circuits) ->
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
           { circuitId: layer.circuitId, name: layer.name, depth: depth } 
-      if ioData.meta.visual
-        options.channels = for depth, channel of channelList when channel.type is ioName
-          { circuitId: channel.circuitId, name: channel.name, depth: depth } 
+      if ioData.meta.audio
+        options.channels = for depth, channel of channelList
+          { circuitId: channel.circuitId, name: channel.name, type: channel.type } 
 
       currentIo[ioName] = ioData.factory(options)
     catch error

@@ -202,7 +202,8 @@
       },
       "assets": {},
       "io": {
-        "layers": []
+        "layers": [],
+        "channels": []
       }
     }
   }
