@@ -138,7 +138,7 @@ RW.deepSet = (root, pathParts, value) ->
 # Compare new object and old object to create list of patches.
 # The top-level oldValue must be an object
 # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
-# TODO: handle arrays
+# Array analysis is taken from the jsondiffpatch library
 # TODO: handle escape syntax
 RW.makePatches = (oldValue, newValue, path = null, prefix = "", patches = []) ->
   if _.isEqual(newValue, oldValue) then return patches
@@ -149,11 +149,33 @@ RW.makePatches = (oldValue, newValue, path = null, prefix = "", patches = []) ->
     patches.push { remove: prefix, path: path }
   else if not _.isObject(newValue) or not _.isObject(oldValue) or typeof(oldValue) != typeof(newValue)
     patches.push { replace: prefix, value: newValue, path: path }
-  else if _.isArray(oldValue) and oldValue.length != newValue.length
-    # In the case that we modified an array, we need to replace the whole thing  
-    patches.push { replace: prefix, value: newValue, path: path }
+  else if _.isArray(oldValue) 
+    commonHead = 0
+    commonTail = 0
+    len1 = oldValue.length 
+    len2 = newValue.length
+
+    # Find common head
+    while commonHead < len1 && commonHead < len2 && _.isEqual(oldValue[commonHead], newValue[commonHead])
+      commonHead++
+
+    # Find common tail 
+    while commonTail + commonHead < len1 && commonTail + commonHead < len2 && _.isEqual(oldValue[len1 - 1 - commonTail], newValue[len2 - 1 - commonTail])
+      commonTail++
+
+    if commonHead + commonTail == len1
+      # Trivial case, a block (1 or more consecutive items) was added
+      for index in _.range(commonHead, len2 - commonTail) 
+        patches.push { add: "#{prefix}/#{index}", value: newValue[index], path: path }
+    else if commonHead + commonTail == len2
+      # Trivial case, a block (1 or more consecutive items) was removed
+      for index in _.range(commonHead, len1 - commonTail) 
+        patches.push { remove: "#{prefix}/#{index}", path: path }
+    else
+      # TODO: handle LCS
+      patches.push { replace: prefix, value: newValue, path: path }
   else 
-    # both elements are objects or arrays
+    # both elements are objects 
     keys = _.union(_.keys(oldValue), _.keys(newValue))
     RW.makePatches(oldValue[key], newValue[key], path, "#{prefix}/#{key}", patches) for key in keys
 
@@ -172,7 +194,8 @@ RW.applyPatches = (patches, oldValue, prefix = "") ->
   for patch in patches
     if "remove" of patch
       [parent, key] = RW.getParentAndKey(value, splitPath(patch.remove))
-      delete parent[key]
+      if _.isArray(parent) then parent.splice(key, 1)
+      else delete parent[key]
     else if "add" of patch
       [parent, key] = RW.getParentAndKey(value, splitPath(patch.add))
       if _.isArray(parent) then parent.splice(key, 0, patch.value)

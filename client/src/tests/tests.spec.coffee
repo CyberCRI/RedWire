@@ -107,6 +107,25 @@ describe "RedWire", ->
       conflicts = RW.detectPatchConflicts(allPatches)
       expect(conflicts).toBeEmpty()
 
+    it "merges arrays", ->
+      # Test changing same attribute
+      oldData = 
+        a: [1, 2, 3]
+      newDataA = 
+        a: [1, 2, 3, 4]
+      newDataB = 
+        a: [2, 3]
+      
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
+
+      conflicts = RW.detectPatchConflicts(allPatches)
+      expect(conflicts).toBeEmpty()
+
+      result = RW.applyPatches(allPatches, oldData)
+      expect(result).toDeeplyEqual([2, 3, 4])
+
     # Issue #299
     it "detects more conflicting patches", ->
       patches = [
