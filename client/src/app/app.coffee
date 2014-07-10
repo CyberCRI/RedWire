@@ -45,6 +45,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.undo'
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
+  'gamEvolve.util.dndHelper'
   'xeditable'
   'treeRepeat'
 ])

@@ -11,6 +11,9 @@ angular.module('gamEvolve.model.games', [])
   info: null
   creator: null
   localVersion: _.uniqueId("v")
+  windowId: RW.makeGuid() # Used to identify windows across drag and drop
+
+  statusMessage: ""
 
   reset: -> 
     @info = null
@@ -40,7 +43,8 @@ angular.module('gamEvolve.model.games', [])
   saveVersion = ->
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
     $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
-      .then (savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data))
+      .then((savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)))
+      .then(-> currentGame.statusMessage = "Published at #{moment().format("HH:mm:ss")}")
 
   saveActions:
     saveNewVersion:

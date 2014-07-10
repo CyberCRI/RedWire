@@ -43,3 +43,9 @@ angular.module('gamEvolve.util.gameConverter', [])
   convertGameToJson: (currentGame) ->    
     filteredObject = _.extend({}, _.pick(currentGame.info, META_PROPERTIES...), _.pick(currentGame.version, JSON_PROPERTIES...))
     return JSON.stringify(filteredObject, null, 2)
+
+  removeHashKeys: (node) ->
+    if "$$hashKey" of node then delete node["$$hashKey"]
+    for key, value of node
+      if _.isObject(value) then @removeHashKeys(value)
+    return node
