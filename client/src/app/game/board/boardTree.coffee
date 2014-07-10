@@ -88,6 +88,20 @@ angular.module('gamEvolve.game.boardTree', [
     else
       circuits.currentCircuitMeta = new RW.CircuitMeta(null, circuitNode.circuit)
 
+  $scope.listOtherCircuitTypes = ->
+    if not currentGame.version? then return []
+
+    circuitType for circuitType of currentGame.version.circuits when circuitType isnt circuits.currentCircuitMeta.type
+
+  $scope.moveChipToCircuit = (node, parent, circuitType) ->
+    index = parent.children.indexOf(node)
+    parent.children.splice(index, 1) # Remove that child
+
+    destinationCircuit = currentGame.version.circuits[circuitType]
+    destinationCircuit.board.children.push(node)
+
+    currentGame.updateLocalVersion()
+
   showDialog = (templateUrl, controller, model, onDone) ->
     dialog = $modal.open
       backdrop: "static"

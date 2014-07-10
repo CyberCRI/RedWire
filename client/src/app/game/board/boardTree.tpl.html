@@ -9,7 +9,6 @@
             <board-label node="getDraggedData().node"></board-label>
         </div>
         <div ng-hide="isPreviewedAsSource(node)">
-                <!--ng-hide="getDraggedData().node === node && treeDrag.lastHovered != node && treeDrag.lastHovered.children[0] != node">-->
             <span ng-click="boardNodes.labelClicked(node)">
                 <span class="arrow"
                       ng-class="{collapsed: !boardNodes.isOpen(node), expanded: boardNodes.isOpen(node), leaf: !chips.hasChildren(node) || chips.isRoot(node)}"></span>
@@ -22,6 +21,20 @@
                 <button class="btn btn-xs" ng-click="mute(node)" ng-class="{'btn-danger': node.muted, active: node.muted}">
                     {{node.muted ? 'Unmute' : 'Mute'}}
                 </button>
+
+                <div class="btn-group" dropdown>
+                  <button type="button" class="btn btn-xs dropdown-toggle">
+                    <span class="glyphicon glyphicon-arrow-right"></span></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li class="moveDropdownHeader">Move to</li>
+                    <li class="divider"></li>
+                    <li class="moveDropdownOption" ng-repeat="circuitType in listOtherCircuitTypes()"> 
+                        <a href="" ng-click="moveChipToCircuit(node, $parent.$parent.node, circuitType)"><span></span> {{ circuitType }}</a>
+                    </li>
+                  </ul>
+                </div>
+
                 <button class="btn btn-xs" ng-click="remove(node, $parent.node)"><span class="glyphicon glyphicon-trash"></span></button>
             </span>
         </div>

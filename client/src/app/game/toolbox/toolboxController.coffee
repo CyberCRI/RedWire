@@ -93,6 +93,7 @@ angular.module('gamEvolve.game.toolbox', [])
               pins:
                 in: {}
                 out: {}
+              children: []
             assets: {}
             memory: {}
             io: 
