@@ -6,10 +6,10 @@
         frang-tree-allow-drop="allowDrop(dragData.node)">
         <div class="drop-before" ng-hide="isPreviewedAsSource(node)"></div>
         <div class="preview before" ng-if="isPreviewedAsTarget(node) && treeDrag.dropBefore && !chips.isRoot(node)">
-            <board-label node="getTreeDragData().node"></board-label>
+            <board-label node="getDraggedData().node"></board-label>
         </div>
         <div ng-hide="isPreviewedAsSource(node)">
-                <!--ng-hide="getTreeDragData().node === node && treeDrag.lastHovered != node && treeDrag.lastHovered.children[0] != node">-->
+                <!--ng-hide="getDraggedData().node === node && treeDrag.lastHovered != node && treeDrag.lastHovered.children[0] != node">-->
             <span ng-click="boardNodes.labelClicked(node)">
                 <span class="arrow"
                       ng-class="{collapsed: !boardNodes.isOpen(node), expanded: boardNodes.isOpen(node), leaf: !chips.hasChildren(node) || chips.isRoot(node)}"></span>
@@ -28,7 +28,7 @@
         <div class="preview after"
              ng-class="{child: chips.acceptsChildren(node)}"
              ng-if="isPreviewedAsTarget(node) && !treeDrag.dropBefore">
-            <board-label node="getTreeDragData().node"></board-label>
+            <board-label node="getDraggedData().node"></board-label>
         </div>
         <ul ng-if="chips.hasChildren(node) && boardNodes.isOpen(node)"
             frang-tree-insert-children="node.children">

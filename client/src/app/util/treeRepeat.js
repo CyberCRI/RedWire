@@ -5,9 +5,11 @@ angular.module('treeRepeat', ['ngAnimate'])
     .factory('treeDrag', function() {
         return {
 
+            // data
             // lastEnterTime
             // lastHovered
             // dropBefore
+
         };
     })
 
@@ -391,7 +393,7 @@ angular.module('treeRepeat', ['ngAnimate'])
         };
     })
 
-    .directive('frangTreeDrag', function($parse, treeDrag, boardNodes, currentGame, dndHelper) {
+    .directive('frangTreeDrag', function($parse, treeDrag, boardNodes, dndHelper, currentGame) {
         return {
             restrict: 'A',
             link: function(scope, element, attrs) {
@@ -403,15 +405,16 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (e.stopPropagation) e.stopPropagation();
                         e.dataTransfer.effectAllowed = 'move';
-                        
+                        e.dataTransfer.setData('Text', 'nothing'); // Firefox requires some data
+                        element.addClass('tree-drag');
                         // Include data about the current version of the game
                         var data = _.extend(parsedDrag(scope), {
                             gameId: currentGame.version.gameId,
                             versionId: currentGame.version.id,
                             windowId: currentGame.windowId
                         });
+                        treeDrag.data = data;
                         dndHelper.setDraggedData(data);
-                        element.addClass('tree-drag');
                         boardNodes.close(data.node);
                         return false;
                     },
@@ -422,8 +425,12 @@ angular.module('treeRepeat', ['ngAnimate'])
                     function(e) {
                         if (e.stopPropagation) e.stopPropagation();
                         element.removeClass('tree-drag');
+                        
+                        // clear the correct data
+                        if (treeDrag.data) treeDrag.data = null;
+                        else dndHelper.clearDraggedData();
+
                         treeDrag.lastHovered = null;
-                        dndHelper.clearDraggedData();
                         return false;
                     },
                     false
@@ -466,7 +473,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragover',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData()})) {
+                        if (parsedAllowDrop(scope, {dragData: treeDrag.data || dndHelper.getDraggedData()})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             e.dataTransfer.dropEffect = 'move'; // allow drop
                             if (e.preventDefault) { e.preventDefault(); }
@@ -478,10 +485,8 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragenter',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData()})) {
+                        if (parsedAllowDrop(scope, {dragData: treeDrag.data || dndHelper.getDraggedData()})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
-                            treeDrag.currentDragEvent = e;
-                            console.log("*** drag enter: setting currentDragEvent");
                             scope.$apply(function () {
                                 treeDrag.lastHovered = scope.node;
                                 treeDrag.lastEnterTime = new Date().getTime();
@@ -501,7 +506,7 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'dragleave',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData()})) {
+                        if (parsedAllowDrop(scope, {dragData: treeDrag.data || dndHelper.getDraggedData()})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                         }
                         return false;
@@ -511,13 +516,17 @@ angular.module('treeRepeat', ['ngAnimate'])
                 el.addEventListener(
                     'drop',
                     function(e) {
-                        if (parsedAllowDrop(scope, {dragData: dndHelper.getDraggedData()})) {
+                        if (parsedAllowDrop(scope, {dragData: treeDrag.data || dndHelper.getDraggedData()})) {
                             if (e.stopPropagation) { e.stopPropagation(); }
                             scope.$apply(function () {
-                                parsedDrop(scope, {dragData: dndHelper.getDraggedData()});
+                                parsedDrop(scope, {dragData: treeDrag.data || dndHelper.getDraggedData()});
                             });
+
+                            // clear the correct data
+                            if (treeDrag.data) treeDrag.data = null;
+                            else dndHelper.clearDraggedData();
+
                             treeDrag.lastHovered = null;
-                            dndHelper.clearDraggedData();
                             if (e.preventDefault) { e.preventDefault(); }
                         }
                         return false;

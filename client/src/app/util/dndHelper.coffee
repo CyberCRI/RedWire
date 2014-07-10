@@ -2,15 +2,23 @@ angular.module('gamEvolve.util.dndHelper', [])
 
 .factory "dndHelper", (currentGame, chips) ->
   # On Chrome, we have to use local storage instead of the HTML5 drag and drop API because of security restrictions.
+  # Becuase Angular doesn't like object identity to change at each check, we cache the last object and return it as long as the value doesn't change
+  lastDraggedData = null
   getDraggedData: ->
     json = localStorage.getItem("dnd")
-    return json && JSON.parse(json) || null
+    newData = json && JSON.parse(json) || null
+    if not _.isEqual(newData, lastDraggedData) 
+      console.log("***** updating lastDraggedData from", lastDraggedData, "to", newData, "patches", RW.makePatches(lastDraggedData, newData))
+      lastDraggedData = newData
+    return lastDraggedData
 
   setDraggedData: (data) ->
     json = JSON.stringify(data)
     localStorage.setItem("dnd", json)
 
-  clearDraggedData: -> localStorage.removeItem("dnd")
+  clearDraggedData: -> 
+    console.log("**** clearing drag data")
+    localStorage.removeItem("dnd")
 
   dragIsFromSameWindow: (dragData) -> dragData.windowId is currentGame.windowId
 
@@ -82,12 +90,13 @@ angular.module('gamEvolve.util.dndHelper', [])
       [chipType, chipName] = chips.getChipTypeAndName(chip)
       # If our item is already in the list, return early
       if _.contains(dependencies, [chipType, chipName]) then return dependencies
-      # If our item doesn't exist, skip it
-      chipCollection = chips.getChipCollection(sourceGameCode, chipType)
-      if chipName not of chipCollection then return dependencies
 
-      # Add self to list
       if chipType not in ["emitter", "splitter"]
+        # If our item doesn't exist, skip it
+        chipCollection = chips.getChipCollection(sourceGameCode, chipType)
+        if chipName not of chipCollection then return dependencies
+
+        # Add self to list
         dependencies.push([chipType, chipName])
 
       # Add references to chips in the board

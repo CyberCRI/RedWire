@@ -16,7 +16,9 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.chips = chips 
   $scope.boardNodes = boardNodes
 
-  $scope.getTreeDragData = -> dndHelper.getDraggedData()
+  # Because object identity is used to identify nodes, we need to use the local drag objects if possible
+  $scope.getDraggedData = ->
+    if treeDrag.data then treeDrag.data else dndHelper.getDraggedData()
 
   $scope.isPreviewedAsSource = (chip) ->
     return false unless chip
@@ -24,11 +26,11 @@ angular.module('gamEvolve.game.boardTree', [
     isDraggedAsSource(chip) && !isDraggedOverItself()
 
   isDraggedAsSource = (chip) ->
-    source = $scope.getTreeDragData()?.node
+    source = $scope.getDraggedData()?.node
     chip is source
 
   isDraggedOverItself = ->
-    source = $scope.getTreeDragData()?.node
+    source = $scope.getDraggedData()?.node
     target = treeDrag.lastHovered
     source is target or isFirstChildOf(source, target)
 
@@ -119,11 +121,11 @@ angular.module('gamEvolve.game.boardTree', [
     sourceParent = dragData.parent
     return if source is target
     return if source is chips.getCurrentBoard() # Ignore Main node DnD
-
+    
     if not dndHelper.dragIsFromSameWindow(dragData)
       # Copy chip dependencies
       copiedChipCount = dndHelper.copyChip(dragData.gameId, dragData.versionId, dragData.node)
-    
+
     # IDs must be unique for this parent, like for ciruits
     if "id" of source 
       siblings = if treeDrag.dropBefore 

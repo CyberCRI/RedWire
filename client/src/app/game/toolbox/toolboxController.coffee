@@ -133,22 +133,26 @@ angular.module('gamEvolve.game.toolbox', [])
           from: ''
           bindTo: ''
           index: ''
+        children: []
       when "processors"
         processor: name
         pins:
           in: {}
           out: {}
+        children: []
       when "switches"
         switch: name
         pins:
           in: {}
           out: {}
+        children: []
       when "circuits"
         circuit: name
         id: name
         pins:
           in: {}
           out: {}
+        children: []
       when "transformers"
         transformer: name
       else 
@@ -186,7 +190,7 @@ angular.module('gamEvolve.game.toolbox', [])
   restrict: 'A',
   link: (scope, element, attrs) ->
     acceptDrop = (event) ->
-      draggedData = dndHelper.getDraggedData(event)
+      draggedData = dndHelper.getDraggedData()
       if dndHelper.dragIsFromSameWindow(draggedData) then return false 
       [chipType, chipName] = chips.getChipTypeAndName(draggedData.node) 
       return chipType not in ["emitter", "splitter"] 
@@ -225,7 +229,7 @@ angular.module('gamEvolve.game.toolbox', [])
       el.classList.remove('drag-over')
       dragster.reset()
 
-      draggedData = dndHelper.getDraggedData(event)
+      draggedData = dndHelper.getDraggedData()
       copiedChipCount = dndHelper.copyChip(draggedData.gameId, draggedData.versionId, draggedData.node)
       if copiedChipCount > 0 then currentGame.updateLocalVersion()
 
