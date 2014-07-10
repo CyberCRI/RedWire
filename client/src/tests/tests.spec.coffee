@@ -107,25 +107,6 @@ describe "RedWire", ->
       conflicts = RW.detectPatchConflicts(allPatches)
       expect(conflicts).toBeEmpty()
 
-    it "merges arrays", ->
-      # Test changing same attribute
-      oldData = 
-        a: [1, 2, 3]
-      newDataA = 
-        a: [1, 2, 3, 4]
-      newDataB = 
-        a: [2, 3]
-      
-      patchesA = RW.makePatches(oldData, newDataA, "a")
-      patchesB = RW.makePatches(oldData, newDataB, "b")
-      allPatches = RW.concatenate(patchesA, patchesB)
-
-      conflicts = RW.detectPatchConflicts(allPatches)
-      expect(conflicts).toBeEmpty()
-
-      result = RW.applyPatches(allPatches, oldData)
-      expect(result).toDeeplyEqual([2, 3, 4])
-
     # Issue #299
     it "detects more conflicting patches", ->
       patches = [
@@ -148,6 +129,42 @@ describe "RedWire", ->
 
       conflicts = RW.detectPatchConflicts(patches)
       expect(conflicts.length).toBe(1)
+
+    it "adds and removes to arrays", ->
+      oldData = 
+        a: [1, 2, 3]
+      newDataA = 
+        a: [1, 2, 3, 4]
+      newDataB = 
+        a: [2, 3]
+      
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
+
+      conflicts = RW.detectPatchConflicts(allPatches)
+      expect(conflicts).toBeEmpty()
+
+      result = RW.applyPatches(allPatches, oldData)
+      expect(result).toDeeplyEqual({ a: [2, 3, 4] })
+
+    it "modifies within arrays", ->
+      oldData = 
+        a: [{ b: 1 }, { c: 2 }, { e: 4 }]
+      newDataA = 
+        a: [{ b: 1 }, { c: -2 }, { d: 3 }, { e: 4 }]
+      newDataB = 
+        a: [{ b: -1 }, { c: 2 }, { e: 4 }, { f: 5 }]
+      
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
+
+      # conflicts = RW.detectPatchConflicts(allPatches)
+      # expect(conflicts).toBeEmpty()
+
+      result = RW.applyPatches(allPatches, oldData)
+      expect(result).toDeeplyEqual({ a: [{ b: -1 }, { c: -2 }, { d: 3 }, { e: 4 }, { f: 5 }] })
 
   describe "stimulateCircuits()", ->
     it "calls processors", ->

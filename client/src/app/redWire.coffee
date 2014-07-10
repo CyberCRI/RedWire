@@ -150,30 +150,7 @@ RW.makePatches = (oldValue, newValue, path = null, prefix = "", patches = []) ->
   else if not _.isObject(newValue) or not _.isObject(oldValue) or typeof(oldValue) != typeof(newValue)
     patches.push { replace: prefix, value: newValue, path: path }
   else if _.isArray(oldValue) 
-    commonHead = 0
-    commonTail = 0
-    len1 = oldValue.length 
-    len2 = newValue.length
-
-    # Find common head
-    while commonHead < len1 && commonHead < len2 && _.isEqual(oldValue[commonHead], newValue[commonHead])
-      commonHead++
-
-    # Find common tail 
-    while commonTail + commonHead < len1 && commonTail + commonHead < len2 && _.isEqual(oldValue[len1 - 1 - commonTail], newValue[len2 - 1 - commonTail])
-      commonTail++
-
-    if commonHead + commonTail == len1
-      # Trivial case, a block (1 or more consecutive items) was added
-      for index in _.range(commonHead, len2 - commonTail) 
-        patches.push { add: "#{prefix}/#{index}", value: newValue[index], path: path }
-    else if commonHead + commonTail == len2
-      # Trivial case, a block (1 or more consecutive items) was removed
-      for index in _.range(commonHead, len1 - commonTail) 
-        patches.push { remove: "#{prefix}/#{index}", path: path }
-    else
-      # TODO: handle LCS
-      patches.push { replace: prefix, value: newValue, path: path }
+    RW.makePatchesForArray(oldValue, newValue, path, prefix, patches)
   else 
     # both elements are objects 
     keys = _.union(_.keys(oldValue), _.keys(newValue))
