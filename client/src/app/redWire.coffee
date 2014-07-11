@@ -397,14 +397,26 @@ RW.visitProcessorChip = (circuitMeta, path, chip, constants, circuitData, bindin
 
   evaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, bindings)
   RW.fillPinDefDefaults(processor.pinDefs)
-  evaluatedPins = RW.evaluateInputPinExpressions(circuitMeta, path, constants, evaluationContext, processor.pinDefs, chip.pins)
+  try
+    evaluatedPins = RW.evaluateInputPinExpressions(circuitMeta, path, constants, evaluationContext, processor.pinDefs, chip.pins)
+  catch e
+    result.signal = RW.signals.ERROR
+    RW.transformersLogger(RW.logLevels.ERROR, "Evaluating input pin expressions raised an exception #{e}.\n#{RW.formatStackTrace(e)}")
+    return result # Quit early
 
   try
     result.signal = processor.update(evaluatedPins, constants.transformers, RW.transformersLogger)
-    RW.evaluateOutputPinExpressions(circuitMeta, path, constants, bindings, evaluationContext, result, processor.pinDefs, chip.pins, evaluatedPins)
   catch e
     result.signal = RW.signals.ERROR
     RW.transformersLogger(RW.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{RW.formatStackTrace(e)}")
+    return result # Quit early
+
+  try
+    RW.evaluateOutputPinExpressions(circuitMeta, path, constants, bindings, evaluationContext, result, processor.pinDefs, chip.pins, evaluatedPins)
+  catch e
+    result.signal = RW.signals.ERROR
+    RW.transformersLogger(RW.logLevels.ERROR, "Evaluating output pin expressions raised an exception #{e}.\n#{RW.formatStackTrace(e)}")
+    return result # Quit early
 
   return result
 
@@ -420,7 +432,12 @@ RW.visitSwitchChip = (circuitMeta, path, chip, constants, circuitData, bindings)
 
   evaluationContext = new RW.makeEvaluationContext(circuitMeta, constants, circuitData, bindings)
   RW.fillPinDefDefaults(switchChip.pinDefs)
-  evaluatedPins = RW.evaluateInputPinExpressions(circuitMeta, path, constants, evaluationContext, switchChip.pinDefs, chip.pins)
+  try
+    evaluatedPins = RW.evaluateInputPinExpressions(circuitMeta, path, constants, evaluationContext, switchChip.pinDefs, chip.pins)
+  catch e
+    result.signal = RW.signals.ERROR
+    RW.transformersLogger(RW.logLevels.ERROR, "Evaluating input pin expressions raised an exception #{e}.\n#{RW.formatStackTrace(e)}")
+    return result # Quit early
 
   # check which children should be activated
   activeChildren = null
@@ -447,9 +464,14 @@ RW.visitSwitchChip = (circuitMeta, path, chip, constants, circuitData, bindings)
       childSignals[childIndex] = childResult.signal
       result.append(childResult)
   catch e
+    # RW.transformersLogger may have been reset by visit to children
+    RW.transformersLogger = RW.makeLogFunction(circuitMeta, path, result)
     RW.transformersLogger(RW.logLevels.ERROR, "Cannot run switch children.\n#{RW.formatStackTrace(e)}")
     result.signal = RW.signals.ERROR
     return result # return early
+
+  # RW.transformersLogger may have been reset by visit to children
+  RW.transformersLogger = RW.makeLogFunction(circuitMeta, path, result)
 
   # Handle signals
   if "handleSignals" of switchChip
@@ -462,7 +484,6 @@ RW.visitSwitchChip = (circuitMeta, path, chip, constants, circuitData, bindings)
       result.append(temporaryResult)
       result.signal = signalsResult # append() does not affect result
     catch
-
       RW.transformersLogger(RW.logLevels.ERROR, "Calling switch #{chip.switch}.handleSignals raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{RW.formatStackTrace(e)}")
       result.signal = RW.signals.ERROR
       return result # return early
@@ -489,8 +510,10 @@ RW.visitEmitterChip = (circuitMeta, path, chip, constants, circuitData, bindings
   for dest, expressionFunction of chip.emitter  
     try
       outputValue = RW.evaluateExpressionFunction(evaluationContext, expressionFunction)
-    catch error
-      throw RW.makeExecutionError("Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip: #{RW.formatStackTrace(error)}", circuitMeta, path)
+    catch e
+      result.signal = RW.signals.ERROR
+      RW.transformersLogger(RW.logLevels.ERROR, "Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip.\n#{RW.formatStackTrace(e)}")
+      return result # Quit early
 
     RW.derivePatches(circuitMeta, path, bindings, evaluationContext, result, dest, outputValue)
   
@@ -507,7 +530,12 @@ RW.visitCircuitChip = (circuitMeta, path, chip, constants, parentCircuitData, bi
 
   # Make circuitData for child, based on pins
   evaluationContext = RW.makeEvaluationContext(circuitMeta, constants, parentCircuitData, bindings)
-  childCircuitData = RW.evaluateInputPinExpressions(circuitMeta, path, constants, evaluationContext, circuit.pinDefs, chip.pins)
+  try
+    childCircuitData = RW.evaluateInputPinExpressions(circuitMeta, path, constants, evaluationContext, circuit.pinDefs, chip.pins)
+  catch e
+    result.signal = RW.signals.ERROR
+    RW.transformersLogger(RW.logLevels.ERROR, "Evaluating input pin expressions raised an exception #{e}.\n#{RW.formatStackTrace(e)}")
+    return result # Quit early
 
   # Visit the chip itself
   childCircuitId = RW.makeCircuitId(circuitMeta.id, chip.id)
@@ -521,6 +549,9 @@ RW.visitCircuitChip = (circuitMeta, path, chip, constants, parentCircuitData, bi
   conflicts = RW.detectPatchConflicts(childCircuitPatches)
   if conflicts.length > 0 then throw new Error("Memory patches conflict for circuit #{childCircuitId}:\n#{JSON.stringify(conflicts)}")
 
+  # RW.transformersLogger may have been reset by visit to children
+  RW.transformersLogger = RW.makeLogFunction(circuitMeta, path, result)
+
   try
     # Patch 
     newChildCircuitData = RW.applyPatches(childCircuitPatches, childCircuitData)
@@ -532,7 +563,7 @@ RW.visitCircuitChip = (circuitMeta, path, chip, constants, parentCircuitData, bi
     RW.evaluateOutputPinExpressions(circuitMeta, path, constants, bindings, evaluationContext, result, circuit.pinDefs, chip.pins, newChildCircuitData)
   catch e
     result.signal = RW.signals.ERROR
-    RW.transformersLogger(RW.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{RW.formatStackTrace(e)}")
+    RW.transformersLogger(RW.logLevels.ERROR, "Evaluating output pin expressions raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{RW.formatStackTrace(e)}")
 
   return result
 

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "devDependencies": {
     "angular": "~1.2.16",
-    "angular-mocks": "1.2.16",
+    "angular-mocks": "~1.2.16",
     "bootstrap": "~3.1.1",
     "angular-bootstrap": "~0.11.0",
     "angular-ui-router": "~0.0.1",
@@ -22,7 +22,7 @@
     "angular-ui-sortable": "~0.12.6",
     "moment": "~2.6.0",
     "mousetrap": "~1.4.6",
-    "angular-mocks": "~1.2.16"
+    "dragster": "git://github.com/CyberCRI/dragster#gh-pages"
   },
   "dependencies": {
     "angular-animate": "~1.2.16"

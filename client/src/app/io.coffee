@@ -251,7 +251,6 @@ RW.io.canvas =
         data = 
           global:
             size: options.size
-            layers: {}
         for circuitMeta in options.circuitMetas
           data[circuitMeta.id] = {}
         for layer in options.layers
@@ -265,7 +264,9 @@ RW.io.canvas =
 
         # For each layer, sort shapes and then draw them
         for circuitId, circuitData of data
-          circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
+          circuitType = _.findWhere(options.circuitMetas, { id: circuitId })?.type
+          if not circuitType? then continue # Recorded data with circuits can trip us up
+
           circuitAssets = options.assets[circuitType]
 
           for layerName, shapeArray of circuitData when layerName isnt "size"

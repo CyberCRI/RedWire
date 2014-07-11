@@ -93,6 +93,7 @@ angular.module('gamEvolve.game.toolbox', [])
               pins:
                 in: {}
                 out: {}
+              children: []
             assets: {}
             memory: {}
             io: 
@@ -133,22 +134,28 @@ angular.module('gamEvolve.game.toolbox', [])
           from: ''
           bindTo: ''
           index: ''
+        children: []
       when "processors"
         processor: name
         pins:
           in: {}
           out: {}
+        children: []
       when "switches"
         switch: name
         pins:
           in: {}
           out: {}
+        children: []
       when "circuits"
         circuit: name
         id: name
         pins:
           in: {}
           out: {}
+        children: []
+      when "transformers"
+        transformer: name
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -179,3 +186,52 @@ angular.module('gamEvolve.game.toolbox', [])
   $scope.changeCircuit = (circuitName) ->
     # Switch to editing the circuit type, not a particular instance
     circuits.currentCircuitMeta = new RW.CircuitMeta(null, circuitName)
+
+.directive "toolboxDropzone", (currentGame, dndHelper, chips) ->
+  restrict: 'A',
+  link: (scope, element, attrs) ->
+    acceptDrop = (event) ->
+      draggedData = dndHelper.getDraggedData()
+      if dndHelper.dragIsFromSameWindow(draggedData) then return false 
+      [chipType, chipName] = chips.getChipTypeAndName(draggedData.node) 
+      return chipType not in ["emitter", "splitter"] 
+
+    el = element[0]
+    dragster = new Dragster(el)
+    el.addEventListener "dragster:enter", (event) ->
+      # The data transfer info is hidden under detail
+      event.dataTransfer = event.detail.dataTransfer
+      if not acceptDrop(event) then return false
+
+      console.log("enter")
+      el.classList.add('drag-over')
+      return false
+    el.addEventListener "dragster:leave", (event) ->
+      # The data transfer info is hidden under detail
+      event.dataTransfer = event.detail.dataTransfer
+      if not acceptDrop(event) then return false
+
+      console.log("leave")
+      el.classList.remove('drag-over')
+      return false
+    el.addEventListener "dragover", (event) -> 
+      if not acceptDrop(event) then return false
+
+      event.preventDefault?() 
+      event.stopPropogation?() 
+      event.dataTransfer.dropEffect = 'move'
+      return false
+    el.addEventListener "drop", (event) -> 
+      if not acceptDrop(event) then return false
+
+      event.preventDefault?() 
+      event.stopPropogation?() 
+      console.log("drop")
+      el.classList.remove('drag-over')
+      dragster.reset()
+
+      draggedData = dndHelper.getDraggedData()
+      copiedChipCount = dndHelper.copyChip(draggedData.gameId, draggedData.versionId, draggedData.node)
+      if copiedChipCount > 0 then currentGame.updateLocalVersion()
+
+      return false

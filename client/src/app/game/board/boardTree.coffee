@@ -10,11 +10,15 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.model.circuits'
 ])
 
-.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, circuits) ->
+.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, circuits, dndHelper) ->
   $scope.currentGame = currentGame
   $scope.treeDrag = treeDrag
   $scope.chips = chips 
   $scope.boardNodes = boardNodes
+
+  # Because object identity is used to identify nodes, we need to use the local drag objects if possible
+  $scope.getDraggedData = ->
+    if treeDrag.data then treeDrag.data else dndHelper.getDraggedData()
 
   $scope.isPreviewedAsSource = (chip) ->
     return false unless chip
@@ -22,11 +26,11 @@ angular.module('gamEvolve.game.boardTree', [
     isDraggedAsSource(chip) && !isDraggedOverItself()
 
   isDraggedAsSource = (chip) ->
-    source = treeDrag.data?.node
+    source = $scope.getDraggedData()?.node
     chip is source
 
   isDraggedOverItself = ->
-    source = treeDrag.data?.node
+    source = $scope.getDraggedData()?.node
     target = treeDrag.lastHovered
     source is target or isFirstChildOf(source, target)
 
@@ -84,6 +88,20 @@ angular.module('gamEvolve.game.boardTree', [
     else
       circuits.currentCircuitMeta = new RW.CircuitMeta(null, circuitNode.circuit)
 
+  $scope.listOtherCircuitTypes = ->
+    if not currentGame.version? then return []
+
+    circuitType for circuitType of currentGame.version.circuits when circuitType isnt circuits.currentCircuitMeta.type
+
+  $scope.moveChipToCircuit = (node, parent, circuitType) ->
+    index = parent.children.indexOf(node)
+    parent.children.splice(index, 1) # Remove that child
+
+    destinationCircuit = currentGame.version.circuits[circuitType]
+    destinationCircuit.board.children.push(node)
+
+    currentGame.updateLocalVersion()
+
   showDialog = (templateUrl, controller, model, onDone) ->
     dialog = $modal.open
       backdrop: "static"
@@ -112,10 +130,16 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.enter = (node) ->
     boardNodes.open(node) unless treeDrag.dropBefore
 
-  $scope.drop = (source, target, sourceParent, targetParent) ->
+  $scope.drop = (dragData, target, targetParent) ->
+    source = dragData.node
+    sourceParent = dragData.parent
     return if source is target
     return if source is chips.getCurrentBoard() # Ignore Main node DnD
     
+    if not dndHelper.dragIsFromSameWindow(dragData)
+      # Copy chip dependencies
+      copiedChipCount = dndHelper.copyChip(dragData.gameId, dragData.versionId, dragData.node)
+
     # IDs must be unique for this parent, like for ciruits
     if "id" of source 
       siblings = if treeDrag.dropBefore 
