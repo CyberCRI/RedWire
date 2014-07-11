@@ -138,7 +138,7 @@ RW.deepSet = (root, pathParts, value) ->
 # Compare new object and old object to create list of patches.
 # The top-level oldValue must be an object
 # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
-# TODO: handle arrays
+# Array analysis is taken from the jsondiffpatch library
 # TODO: handle escape syntax
 RW.makePatches = (oldValue, newValue, path = null, prefix = "", patches = []) ->
   if _.isEqual(newValue, oldValue) then return patches
@@ -149,11 +149,10 @@ RW.makePatches = (oldValue, newValue, path = null, prefix = "", patches = []) ->
     patches.push { remove: prefix, path: path }
   else if not _.isObject(newValue) or not _.isObject(oldValue) or typeof(oldValue) != typeof(newValue)
     patches.push { replace: prefix, value: newValue, path: path }
-  else if _.isArray(oldValue) and oldValue.length != newValue.length
-    # In the case that we modified an array, we need to replace the whole thing  
-    patches.push { replace: prefix, value: newValue, path: path }
+  else if _.isArray(oldValue) 
+    RW.makePatchesForArray(oldValue, newValue, path, prefix, patches)
   else 
-    # both elements are objects or arrays
+    # both elements are objects 
     keys = _.union(_.keys(oldValue), _.keys(newValue))
     RW.makePatches(oldValue[key], newValue[key], path, "#{prefix}/#{key}", patches) for key in keys
 
@@ -162,79 +161,114 @@ RW.makePatches = (oldValue, newValue, path = null, prefix = "", patches = []) ->
 # Takes an oldValue and list of patches and creates a new value
 # The top-level oldValue must be an object
 # Using JSON patch format @ http://tools.ietf.org/html/draft-pbryan-json-patch-04
-# TODO: handle arrays
 # TODO: handle escape syntax
 RW.applyPatches = (patches, oldValue, prefix = "") ->
   splitPath = (path) -> _.rest(path.split("/"))
 
+  joinPath = (pathParts) -> pathParts.join("/")
+
+  getPatchType = (patch) -> 
+    if "remove" of patch then return "remove"
+    else if "add" of patch then return "add"
+    else if "replace" of patch then return "replace"
+    else throw new Error("Can't find type of patch")
+
+  getPatchPath = (patch) -> patch[getPatchType(patch)]
+
+  getPatchSpecificity = (patch) -> splitPath(getPatchPath(patch)).length
+
+  # Keep track of array modifications
+  arrayIndexMappings = {}
+
+  ensureIndexMapping = (arrayPath, array)->
+    # If we haven't seen this array before, create an identity mapping
+    if arrayPath not of arrayIndexMappings
+      arrayIndexMappings[arrayPath] = _.object(_.range(array.length), _.range(array.length))
+    return arrayIndexMappings[arrayPath]
+
+  handleArrayRemoval = (arrayPath, array, key) ->
+    mapping = ensureIndexMapping(arrayPath, array)
+    if key of mapping
+      # Remove the value itself
+      array.splice(key, 1)
+
+      # Remove the index, and decrement the other indexes
+      delete mapping[key]
+      for mappingKey, mappingValue of mapping when mappingKey > key
+        mapping[mappingKey] = mappingValue - 1
+
+  handleArrayReplacement = (arrayPath, array, key, newValue) ->
+    mapping = ensureIndexMapping(arrayPath, array)
+    mappedIndex = mapping[key]
+
+    # Change the value itself
+    array[mappedIndex] = newValue
+
+  handleArrayInsertion = (arrayPath, array, key, newValue) ->
+    mapping = ensureIndexMapping(arrayPath, array)
+    # Find the first index in the mapping that is greater than the original key 
+    # Because order of object keys may not be perserved, we need to extract the keys and sort them in numerical order
+    nextMappingIndex = _.chain(mapping).keys().sortBy((k) -> parseInt(k)).find((k) -> k >= key).value()
+    # Obtain the actual index in the array, or if no key is found, insert at the end of the list
+    insertIndex = if nextMappingIndex? then mapping[nextMappingIndex] else array.length
+
+    # Insert at the new index
+    array.splice(insertIndex, 0, patch.value)
+
+    # Increment the other indexes
+    for mappingKey, mappingValue of mapping when parseInt(mappingKey) >= nextMappingIndex
+      mapping[mappingKey] = mappingValue + 1
+
   value = RW.cloneData(oldValue)
 
-  for patch in patches
-    if "remove" of patch
-      [parent, key] = RW.getParentAndKey(value, splitPath(patch.remove))
-      delete parent[key]
-    else if "add" of patch
-      [parent, key] = RW.getParentAndKey(value, splitPath(patch.add))
-      if _.isArray(parent) then parent.splice(key, 0, patch.value)
-      else parent[key] = patch.value # For object
-    else if "replace" of patch
-      [parent, key] = RW.getParentAndKey(value, splitPath(patch.replace))
-      if key not of parent then throw new Error("No existing value to replace for patch #{patch}")
-      parent[key] = patch.value
+  # Sort patches by specificity (most to least) and then by type (replacement, removal, insertion)
+  sortedPatches = _.sortBy patches, (patch) ->  
+    -3 * getPatchSpecificity(patch) - switch getPatchType(patch)
+      when "replace" then 2
+      when "remove" then 1
+      when "add" then 0
+
+  for patch in sortedPatches
+    switch getPatchType(patch)
+      when "replace"
+        pathParts = splitPath(patch.replace)
+        [parent, key] = RW.getParentAndKey(value, pathParts)
+        if _.isArray(parent) 
+          handleArrayReplacement(joinPath(_.initial(pathParts)), parent, key, patch.value)
+        else
+          parent[key] = patch.value
+
+      when "remove"
+        pathParts = splitPath(patch.remove)
+        [parent, key] = RW.getParentAndKey(value, pathParts)
+        if _.isArray(parent) 
+          handleArrayRemoval(joinPath(_.initial(pathParts)), parent, key)
+        else 
+          delete parent[key]
+
+      when "add"
+        pathParts = splitPath(patch.add)
+        [parent, key] = RW.getParentAndKey(value, pathParts)
+        if _.isArray(parent)  
+          handleArrayInsertion(joinPath(_.initial(pathParts)), parent, key, patch.value)
+        else 
+          parent[key] = patch.value # For objects
 
   return value
 
-# Returns information about patches that affect the same key
+# We don't allow multiple patches to modify the same data
+# Returns a list of objects like { path: "", patches: [] }
 RW.detectPatchConflicts = (patches) ->
-  # First, mark what patches affect what keys. 
-  # Set all patches that affect a certain key to the index of that patch in the list
-  affectedKeys = {} 
-  for index, patch of patches
-    path = patch.remove or patch.add or patch.replace
-    pathParts = _.rest(path.split("/"))
+  # Only modification patches concern us.
+  # Group these patches by their path.
+  groupedPatches = _.chain(patches).filter((patch) -> "replace" of patch).groupBy((patch) -> patch.replace).value()
 
-    # Go down the keys in the patch, created objects under affectedKeys as necessary
-    parent = affectedKeys
-    for pathPart in pathParts
-      if pathPart not of parent then parent[pathPart] = { }
-      parent = parent[pathPart]
+  # Any groups with multiple patches are conflicts
+  conflicts = for path, patchGroup of groupedPatches when patchGroup.length > 1
+    path: path
+    patches: patchGroup
 
-    # "parent" is now the last parent
-    if "__patchIndexes__" not of parent then parent.__patchIndexes__ = []
-    parent.__patchIndexes__.push(index)
-
-  # Find child 
-  findChildPatchIndexes = (obj) ->
-    childIndexes = []
-    for key, value of obj when key isnt "__patchIndexes__"
-      if value.__patchIndexes__ 
-        childIndexes = RW.concatenate(childIndexes, value.__patchIndexes__)
-      childIndexes = RW.concatenate(childIndexes, findChildPatchIndexes(value))
-    return childIndexes
-
-  detectConflicts = (obj, prefix = "") ->
-    conflicts = []
-    if obj.__patchIndexes__
-      # Can't have more than one patch modifying a value
-      if obj.__patchIndexes__.length > 1 
-        conflicts.push
-          path: prefix
-          patches: (patches[index] for index in obj.__patchIndexes__)
-
-      # No child values should be modified
-      for patchIndexes in findChildPatchIndexes(obj)
-        allPatchIndexes = RW.concatenate(obj.__patchIndexes__, patchIndexes) 
-        conflicts.push
-          path: prefix
-          patches: (patches[index] for index in allPatchIndexes)
-    else
-      # Recurse, looking for patches
-      for key, value of obj 
-        conflicts = RW.concatenate(conflicts, detectConflicts(value, "#{prefix}/#{key}"))
-
-    return conflicts
-
-  return detectConflicts(affectedKeys)
+  return conflicts
 
 # Creates a patch to the outputAddress of the given outputValue and appends it to the result
 # TODO: what an unweildy function, with more parameters than lines! Need to refactor it somehow
