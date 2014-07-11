@@ -255,7 +255,7 @@ RW.io.canvas =
         for circuitMeta in options.circuitMetas
           data[circuitMeta.id] = {}
         for layer in options.layers
-          data[layer.circuitId][layer.name] = {}
+          data[layer.circuitId][layer.name] = []
         return data
 
       establishData: (data) -> 
@@ -268,11 +268,10 @@ RW.io.canvas =
           circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
           circuitAssets = options.assets[circuitType]
 
-          for layerName, shapeObject of circuitData when layerName isnt "size"
+          for layerName, shapeArray of circuitData when layerName isnt "size"
             layerId = makeLayerId(circuitId, layerName)
             if layerId not of layers then throw new Error("Invalid layer '#{layerName}' in circuit '#{circuitId}'")
 
-            shapeArray = _.values(shapeObject)
             shapeArray.sort(shapeSorter)
 
             ctx = layers[layerId][0].getContext('2d')
