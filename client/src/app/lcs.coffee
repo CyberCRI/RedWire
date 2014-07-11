@@ -86,7 +86,7 @@ RW.makePatchesForArray = (oldValue, newValue, path, prefix, patches) ->
   if commonHead + commonTail == len1
     # Trivial case, a block (1 or more consecutive items) was added
     for index in _.range(commonHead, len2 - commonTail) 
-      patches.push { add: "#{prefix}/#{index}", value: newValue[index], path: path }
+      patches.push { add: "#{prefix}/#{commonHead}", value: newValue[index], path: path }
   else if commonHead + commonTail == len2
     # Trivial case, a block (1 or more consecutive items) was removed
     for index in _.range(commonHead, len1 - commonTail) 
@@ -106,15 +106,19 @@ RW.makePatchesForArray = (oldValue, newValue, path, prefix, patches) ->
       index++
 
     index = commonHead
+    lastMatchedIndex = commonHead
     while index < len2 - commonTail
-      if not _.contains(seq.indices2, index - commonHead)
+      if _.contains(seq.indices2, index - commonHead)
+        lastMatchedIndex++
+      else
         if _.contains(removedIndexes, index)
           # OPT: there must be a better way to do this
           RW.makePatches(oldValue[index], newValue[index], path, "#{prefix}/#{index}", patches)
           removedIndexes = _.without(removedIndexes, index)
+          lastMatchedIndex++
         else
           # added
-          patches.push({ add: "#{prefix}/#{index}", value: newValue[index], path: path })
+          patches.push({ add: "#{prefix}/#{lastMatchedIndex}", value: newValue[index], path: path })
       index++
 
     for index in removedIndexes

@@ -108,7 +108,7 @@ describe "RedWire", ->
       expect(conflicts).toBeEmpty()
 
     # Issue #299
-    it "detects more conflicting patches", ->
+    it "does not consider parent removal as conflict", ->
       patches = [
         {
           "remove": "/explosions/0",
@@ -128,9 +128,9 @@ describe "RedWire", ->
       ]
 
       conflicts = RW.detectPatchConflicts(patches)
-      expect(conflicts.length).toBe(1)
+      expect(conflicts).toBeEmpty()
 
-    it "adds and removes to arrays", ->
+    it "adds to and removes from arrays", ->
       oldData = 
         a: [1, 2, 3]
       newDataA = 
@@ -150,21 +150,21 @@ describe "RedWire", ->
 
     it "modifies within arrays", ->
       oldData = 
-        a: [{ b: 1 }, { c: 2 }, { e: 4 }]
+        a: [{ b: 1 }, { c: 2 }, { f: 5 }, 6]
       newDataA = 
-        a: [{ b: 1 }, { c: -2 }, { d: 3 }, { e: 4 }]
+        a: [{ b: 1 }, { c: -2 }, { d: 3 }, { e: 4 }, { f: 5 }, 6]
       newDataB = 
-        a: [{ b: -1 }, { c: 2 }, { e: 4 }, { f: 5 }]
+        a: [{ b: -1 }, { c: 2 }, { f: 5 }, -6, { g: 7 }]
       
       patchesA = RW.makePatches(oldData, newDataA, "a")
       patchesB = RW.makePatches(oldData, newDataB, "b")
       allPatches = RW.concatenate(patchesA, patchesB)
 
-      # conflicts = RW.detectPatchConflicts(allPatches)
-      # expect(conflicts).toBeEmpty()
+      conflicts = RW.detectPatchConflicts(allPatches)
+      expect(conflicts).toBeEmpty()
 
       result = RW.applyPatches(allPatches, oldData)
-      expect(result).toDeeplyEqual({ a: [{ b: -1 }, { c: -2 }, { d: 3 }, { e: 4 }, { f: 5 }] })
+      expect(result).toDeeplyEqual({ a: [{ b: -1 }, { c: -2 }, { d: 3 }, { e: 4 }, { f: 5 }, -6, { g: 7 }] })
 
   describe "stimulateCircuits()", ->
     it "calls processors", ->
