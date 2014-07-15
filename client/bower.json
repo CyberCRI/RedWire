@@ -18,7 +18,7 @@
     "angular-xeditable": "~0.1.8",
     "Chart.js": "git://github.com/CyberCRI/Chart.js",
     "angular-ui-ace": "~0.1.1",
-    "jsoneditor": "~2.3.6",
+    "jsoneditor": "~3.0.0",
     "angular-ui-sortable": "~0.12.6",
     "moment": "~2.6.0",
     "mousetrap": "~1.4.6",
