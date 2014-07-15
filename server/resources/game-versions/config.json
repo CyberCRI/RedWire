@@ -56,5 +56,14 @@
 			"required": true,
 			"id": "transformers",
 			"order": 6
-		}	}
+		},
+		"assets": {
+			"name": "assets",
+			"type": "string",
+			"typeLabel": "string",
+			"required": true,
+			"id": "assets",
+			"order": 7
+		}	
+	}
 }
