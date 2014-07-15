@@ -4,6 +4,7 @@ JSON_PROPERTIES = [
   "processors"
   "switches"
   "transformers"
+  "assets"
 ]
 
 META_PROPERTIES = [

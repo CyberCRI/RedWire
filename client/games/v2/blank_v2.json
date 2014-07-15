@@ -192,6 +192,7 @@
       "body": "return [ a[0] + b[0], a[1] + b[1] ];"
     }
   },
+  "assets": {},
   "circuits": {
     "main": {
       "memory": {},
@@ -200,7 +201,6 @@
         "comment": "Play the game",
         "children": []
       },
-      "assets": {},
       "io": {
         "layers": []
       }

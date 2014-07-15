@@ -94,7 +94,6 @@ angular.module('gamEvolve.game.toolbox', [])
                 in: {}
                 out: {}
               children: []
-            assets: {}
             memory: {}
             io: 
               layers: []

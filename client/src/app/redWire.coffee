@@ -12,7 +12,6 @@ RW.Circuit = class
   constructor: (options) -> 
     _.defaults this, options,
       board: {}
-      assets: {}
 
 RW.ChipVisitorConstants = class 
   constructor: (options) -> 
@@ -22,6 +21,7 @@ RW.ChipVisitorConstants = class
       processors: {}
       switches: {}
       transformers: {}
+      assets: {}
       memoryData: {} # Map of circuitIds to data
       ioData: {} # Map of circuitIds to data
 
@@ -83,7 +83,7 @@ RW.makeEvaluationContext = (circuitMeta, constants, circuitData, bindings) ->
   context = 
     memory: constants.memoryData[circuitMeta.id]
     io: constants.ioData[circuitMeta.id]
-    assets: constants.circuits[circuitMeta.type].assets
+    assets: constants.assets
     transformers: constants.transformers
     circuit: circuitData
     bindings: {}
@@ -623,6 +623,7 @@ RW.stepLoop = (options) ->
     processors: {}
     switches: {}
     transformers: {}
+    assets: {}
     memoryData: {}
     io: {}
     inputIoData: null
@@ -660,6 +661,7 @@ RW.stepLoop = (options) ->
         processors: options.processors
         switches: options.switches
         transformers: options.transformers
+        assets: options.assets
         ioData: preparedInputIoData
         circuits: options.circuits
 

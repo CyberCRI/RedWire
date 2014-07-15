@@ -80,7 +80,6 @@ compileCircuits = (inputCircuits, evaluator) ->
       for circuitKey, circuitValue of value
         compiledCircuit[circuitKey] = switch circuitKey
           when "board" then compileBoard(circuitValue, evaluator)
-          when "assets" then loadedAssets[key].data
           when "pinDefs" then compilePinDefs(circuitValue, evaluator)
           else circuitValue
       return compiledCircuit
@@ -151,7 +150,6 @@ flattenLayerList = (circuits) ->
 initializeIo = (circuits) ->
   # Get flattened list of layers
   layerList = flattenLayerList(circuits)
-  assetDataByCircuit = RW.mapObject(loadedAssets, (assets) -> assets.data)
 
   # Create new io
   currentIo = {}
@@ -161,7 +159,7 @@ initializeIo = (circuits) ->
         elementSelector: '#gameContent'
         size: GAME_DIMENSIONS
         circuitMetas: circuitMetas
-        assets: assetDataByCircuit
+        assets: loadedAssets.data
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
           { circuitId: layer.circuitId, name: layer.name, depth: depth } 
@@ -207,7 +205,7 @@ createAssets = (inputAssets, evaluator) ->
 loadGame = (gameCode, logFunction) ->
   evaluator = eval
   circuitMetas = RW.listCircuitMeta(gameCode.circuits)
-  loadedAssets = RW.mapObject(gameCode.circuits, (circuit) -> createAssets(circuit.assets, evaluator))
+  loadedAssets = createAssets(gameCode.assets, evaluator)
   loadedGame =
     circuits: compileCircuits(gameCode.circuits, evaluator)
     processors: compileProcessors(gameCode.processors, evaluator)
@@ -216,8 +214,7 @@ loadGame = (gameCode, logFunction) ->
     io: initializeIo(gameCode.circuits)
 
 unloadGame = ->
-  for circuitId, circuit of loadedAssets
-    destroyAssets(circuit.assets)
+  destroyAssets()
   loadedAssets = null
   destroyIo(loadedGame.io)
 
