@@ -267,8 +267,6 @@ RW.io.canvas =
           circuitType = _.findWhere(options.circuitMetas, { id: circuitId })?.type
           if not circuitType? then continue # Recorded data with circuits can trip us up
 
-          circuitAssets = options.assets[circuitType]
-
           for layerName, shapeArray of circuitData when layerName isnt "size"
             layerId = makeLayerId(circuitId, layerName)
             if layerId not of layers then throw new Error("Invalid layer '#{layerName}' in circuit '#{circuitId}'")
@@ -276,7 +274,7 @@ RW.io.canvas =
             shapeArray.sort(shapeSorter)
 
             ctx = layers[layerId][0].getContext('2d')
-            for shape in shapeArray then drawShape(shape, ctx, circuitAssets)
+            for shape in shapeArray then drawShape(shape, ctx, options.assets)
 
         return null # avoid accumulating results
 
@@ -352,7 +350,7 @@ RW.io.html =
           # Add new templates 
           for templateName in _.difference(newTemplates, existingTemplates) 
             # Create template
-            templateHtml = options.assets[circuitId][newTemplateData[templateName].asset]
+            templateHtml = options.assets[newTemplateData[templateName].asset]
             # TODO: create all layers before hand?
             layerOptions = _.findWhere(options.layers, { circuitId: circuitId, name: templateName })
             depth = layerOptions?.depth ? 100 # Default to 100

@@ -380,10 +380,10 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            assets: assets
         processors: processors
         memoryData: 
           main: oldMemory
+        assets: assets
       results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
 
