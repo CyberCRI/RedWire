@@ -22,7 +22,8 @@
     "angular-ui-sortable": "~0.12.6",
     "moment": "~2.6.0",
     "mousetrap": "~1.4.6",
-    "dragster": "git://github.com/CyberCRI/dragster#gh-pages"
+    "dragster": "git://github.com/CyberCRI/dragster#gh-pages",
+    "bowser": "~0.7.1"
   },
   "dependencies": {
     "angular-animate": "~1.2.16"

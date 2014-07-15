@@ -78,7 +78,8 @@ module.exports = {
       'vendor/jsoneditor/jsoneditor.js',
       'vendor/moment/moment.js',
       'vendor/mousetrap/mousetrap.js',
-      'vendor/dragster/lib/dragster.js'
+      'vendor/dragster/lib/dragster.js',
+      'vendor/bowser/bowser.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
