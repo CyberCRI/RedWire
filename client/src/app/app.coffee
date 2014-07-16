@@ -69,6 +69,13 @@ angular.module( 'gamEvolve', [
       $scope.pageTitle = toState.data.pageTitle + ' | RedWire'
 )
 
-# Set options for xeditable
 .run (editableOptions) ->
+  # Set options for xeditable
   editableOptions.theme = "bs3"
+
+  # Warn about browser incompatibilities
+  if bowser.mobile or bowser.tablet or not (bowser.firefox or bowser.chrome)
+    alert """WARNING: RedWire is designed for Firefox and Chrome on the desktop.
+      
+      It may work on other browsers but we can't guarantee it!"""
+
