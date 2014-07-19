@@ -117,6 +117,12 @@
       },
       "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
       "handleSignals": "if(signals[0] == RW.signals.DONE) pins.lastTime = pins.currentTime;"
+    },
+    "When": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return pins.value ? children : [];"
     }
   },
   "transformers": {
