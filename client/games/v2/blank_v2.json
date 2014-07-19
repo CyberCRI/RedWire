@@ -88,7 +88,7 @@
       "listActiveChildren": "return children;",
       "handleSignals": ""
     },
-    "When": {
+    "Switch on Name": {
       "pinDefs": {
         "value": null
       },
@@ -189,7 +189,16 @@
         "children": []
       },
       "io": {
-        "layers": []
+        "layers": [
+          {
+            "name": "bg",
+            "type": "canvas"
+          },
+          {
+            "name": "fg",
+            "type": "canvas"
+          }
+        ]
       }
     }
   }
