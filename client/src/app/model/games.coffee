@@ -12,6 +12,7 @@ angular.module('gamEvolve.model.games', [])
   creator: null
   localVersion: _.uniqueId("v")
   windowId: RW.makeGuid() # Used to identify windows across drag and drop
+  standardLibrary: null
 
   statusMessage: ""
 
@@ -98,16 +99,18 @@ angular.module('gamEvolve.model.games', [])
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
     getVersion = $http.get("/game-versions?#{query}")
     getCreator = $http.get("/users?id=#{game.ownerId}")
-    updateCurrentGame = ([version, creator]) ->
+    getStandardLibrary = $http.get("/assets/standardLibrary.json")
+    updateCurrentGame = ([version, creator, standardLibrary]) ->
       currentGame.info = game
       currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(version.data[0]))
+      currentGame.standardLibrary = standardLibrary.data
       currentGame.updateLocalVersion()
       currentGame.creator = creator.data.username
     onError = (error) -> 
       console.error("Error loading game", error) 
       window.alert("Error loading game")
     onDone = -> overlay.clearNotification()
-    $q.all([getVersion, getCreator]).then(updateCurrentGame, onError).finally(onDone)
+    $q.all([getVersion, getCreator, getStandardLibrary]).then(updateCurrentGame, onError).finally(onDone)
 
   loadFromId: (gameId) ->
     $http.get("/games/#{gameId}")
