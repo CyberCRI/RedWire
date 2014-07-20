@@ -13,8 +13,8 @@
           ]
         },
         "topLevelActiveChild": 0,
-        "enemies": {
-          "0": {
+        "enemies": [
+          {
             "position": [
               800,
               270
@@ -25,7 +25,7 @@
               270
             ]
           }
-        },
+        ],
         "heroLasers": {},
         "lastFiringTime": 0,
         "explosionSprite": {
@@ -40,7 +40,7 @@
           "frameCount": 64,
           "asset": "explosion"
         },
-        "explosions": {},
+        "explosions": [],
         "lastEnemyCreatedAt": 0
       },
       "board": {
@@ -86,20 +86,21 @@
             "children": [
               {
                 "emitter": {
-                  "memory.enemies": "RW.addUniqueToObject(memory.enemies, {\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  health: 1,\n  startingPosition: [io.canvas.size[0], Math.random() * io.canvas.size[1]],\n})"
+                  "memory.enemies": "RW.appendToArray(memory.enemies, {\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  health: 1,\n  startingPosition: [io.canvas.size[0], Math.random() * io.canvas.size[1]],\n})"
                 },
                 "comment": "Add enemy",
-                "$$hashKey": "00K"
+                "name": null
               }
             ],
             "$$hashKey": "005"
           },
           {
             "emitter": {
-              "memory.explosions": "RW.filterObject(memory.explosions, function(explosion) {\n    return explosion.frame < memory.explosionSprite.frameCount;\n})"
+              "memory.explosions": "_.filter(memory.explosions, function(explosion) {\n    return explosion.frame < memory.explosionSprite.frameCount;\n})"
             },
             "comment": "Clean up explosions",
-            "$$hashKey": "006"
+            "$$hashKey": "006",
+            "name": null
           },
           {
             "splitter": {
@@ -121,7 +122,7 @@
                       "bindings.explosion.frame": "Math.min(bindings.explosion.frame + 1, memory.explosionSprite.frameCount)"
                     },
                     "comment": "Advance frame",
-                    "$$hashKey": "00F"
+                    "$$hashKey": "00G"
                   },
                   {
                     "emitter": {
@@ -129,10 +130,10 @@
                     },
                     "comment": "Draw explosion",
                     "name": null,
-                    "$$hashKey": "00G"
+                    "$$hashKey": "00H"
                   }
                 ],
-                "$$hashKey": "00E"
+                "$$hashKey": "00F"
               }
             ],
             "$$hashKey": "007"
@@ -212,19 +213,23 @@
                           }
                         ]
                       }
-                    ]
+                    ],
+                    "$$hashKey": "00J"
                   },
                   {
                     "comment": "Remove enemy and create explosion",
                     "emitter": {
-                      "memory.enemies": "_.omit(memory.enemies, bindings.enemyIndex)",
-                      "memory.explosions": "RW.addUniqueToObject(memory.explosions, {\n    position: bindings.enemy.position,\n    frame: 0\n})"
-                    }
+                      "memory.enemies": "RW.removeIndexFromArray(memory.enemies, bindings.enemyIndex)",
+                      "memory.explosions": "RW.appendToArray(memory.explosions, {\n    position: bindings.enemy.position,\n    frame: 0\n})"
+                    },
+                    "name": null,
+                    "$$hashKey": "00K"
                   }
-                ]
+                ],
+                "$$hashKey": "00I"
               }
             ],
-            "$$hashKey": "00H"
+            "$$hashKey": "00B"
           },
           {
             "switch": "Do One at a Time",
@@ -242,8 +247,7 @@
                 "comment": "Let there be stars!",
                 "emitter": {
                   "memory.starfield": "transformers.initializeStarfield(50, io.canvas.size)"
-                },
-                "$$hashKey": "00I"
+                }
               },
               {
                 "switch": "Do Forever",
@@ -255,11 +259,10 @@
                       "memory.starfield": "transformers.updateStarfield(memory.starfield, io.canvas.size)"
                     }
                   }
-                ],
-                "$$hashKey": "00J"
+                ]
               }
             ],
-            "$$hashKey": "00B"
+            "$$hashKey": "00C"
           },
           {
             "processor": "Move thing with arrow keys",
@@ -275,7 +278,7 @@
               }
             },
             "children": [],
-            "$$hashKey": "00C"
+            "$$hashKey": "00D"
           },
           {
             "switch": "If",
@@ -309,7 +312,7 @@
                 ]
               }
             ],
-            "$$hashKey": "00D"
+            "$$hashKey": "00E"
           }
         ],
         "$$hashKey": "001"
