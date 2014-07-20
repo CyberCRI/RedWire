@@ -11,11 +11,12 @@ getChipByPath = (parent, pathParts) ->
   throw new Error("Cannot find child chip '#{pathParts[0]}'")
 
 angular.module('gamEvolve.game.log', [])
-.controller('LogCtrl', ($scope, gameHistory, currentGame) ->
+.controller 'LogCtrl', ($scope, gameHistory, currentGame) ->
   formatMessageOrigin = (circuitId, path) -> 
     if not circuitId? or circuitId is "global" or not path? then return "" 
     
-    chip = getChipByPath(currentGame.version.circuits[circuitId].board, path)
+    circuitMeta = _.findWhere(circuitMetas, { id: circuitId })
+    chip = getChipByPath(currentGame.version.circuits[circuitMeta.type].board, path)
     chipName = chip.comment || chip.id || "Untitled #{path.join('.')}"
     return " @ '#{chipName}' "
 
@@ -41,4 +42,11 @@ angular.module('gamEvolve.game.log', [])
   # Bring gameHistory into scope so we can watch it
   $scope.gameHistoryMeta = gameHistory.meta
   $scope.$watch("gameHistoryMeta", onUpdateGameHistory, true)
-)
+
+  # Update circuit metas when the game code changes
+  circuitMetas = []
+  updateCircuitMetas = ->
+    if not currentGame.version then return 
+    circuitMetas = RW.listCircuitMeta(currentGame.version.circuits)
+
+  $scope.$watch((-> currentGame.localVersion), updateCircuitMetas)

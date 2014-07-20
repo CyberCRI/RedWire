@@ -90,7 +90,7 @@ angular.module('gamEvolve.game.toolbox', [])
         if model.name not of currentGame.version.circuits
           currentGame.version.circuits[model.name] = 
             board: 
-              switch: "Do in Parallel"
+              switch: "Do All"
               comment: model.name
               pins:
                 in: {}

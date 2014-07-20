@@ -12,7 +12,6 @@
             270
           ]
         },
-        "topLevelActiveChild": 0,
         "enemies": [
           {
             "position": [
@@ -48,12 +47,26 @@
         "comment": "",
         "children": [
           {
+            "circuit": "starfield",
+            "id": "starfield",
+            "pins": {
+              "in": {
+                "starCount": "50"
+              },
+              "out": {}
+            },
+            "children": [],
+            "$$hashKey": "00I",
+            "comment": "starfield",
+            "name": null
+          },
+          {
             "comment": "Draw space",
             "emitter": {
               "io.canvas.space": "[{ \n    type: 'rectangle', \n    position: [0, 0], \n    size: io.canvas.size, \n    fillStyle: 'black' \n}]"
             },
             "name": null,
-            "$$hashKey": "002"
+            "$$hashKey": "00J"
           },
           {
             "comment": "Draw player's spaceship",
@@ -61,14 +74,14 @@
               "io.canvas.ships": "[{ \n    type: 'image', \n    asset: 'hero.png', \n    position: memory.hero.position \n}]"
             },
             "name": null,
-            "$$hashKey": "003"
+            "$$hashKey": "00K"
           },
           {
             "emitter": {
               "memory.frameNumber": "memory.frameNumber + 1"
             },
             "comment": "Increment frame number",
-            "$$hashKey": "004"
+            "$$hashKey": "00L"
           },
           {
             "switch": "Limit Rate",
@@ -92,15 +105,15 @@
                 "name": null
               }
             ],
-            "$$hashKey": "005"
+            "$$hashKey": "00M"
           },
           {
             "emitter": {
               "memory.explosions": "_.filter(memory.explosions, function(explosion) {\n    return explosion.frame < memory.explosionSprite.frameCount;\n})"
             },
             "comment": "Clean up explosions",
-            "$$hashKey": "006",
-            "name": null
+            "name": null,
+            "$$hashKey": "00N"
           },
           {
             "splitter": {
@@ -121,30 +134,19 @@
                     "emitter": {
                       "bindings.explosion.frame": "Math.min(bindings.explosion.frame + 1, memory.explosionSprite.frameCount)"
                     },
-                    "comment": "Advance frame",
-                    "$$hashKey": "00G"
+                    "comment": "Advance frame"
                   },
                   {
                     "emitter": {
                       "io.canvas.explosions": "[transformers.makeSpriteShape(memory.explosionSprite, bindings.explosion.position, bindings.explosion.frame)]"
                     },
                     "comment": "Draw explosion",
-                    "name": null,
-                    "$$hashKey": "00H"
+                    "name": null
                   }
-                ],
-                "$$hashKey": "00F"
+                ]
               }
             ],
-            "$$hashKey": "007"
-          },
-          {
-            "comment": "Draw starfield",
-            "emitter": {
-              "io.canvas.stars": "transformers.drawStarfield(memory.starfield)"
-            },
-            "name": null,
-            "$$hashKey": "008"
+            "$$hashKey": "00O"
           },
           {
             "comment": "Draw lasers",
@@ -152,14 +154,14 @@
               "io.canvas.attacks": "transformers.makeLaserShapes(memory.heroLasers, 'blue_beam')"
             },
             "name": null,
-            "$$hashKey": "009"
+            "$$hashKey": "00P"
           },
           {
             "comment": "Move lasers",
             "emitter": {
               "memory.heroLasers": "transformers.updateLasers(memory.heroLasers, io.canvas.size)"
             },
-            "$$hashKey": "00A"
+            "$$hashKey": "00Q"
           },
           {
             "splitter": {
@@ -213,8 +215,7 @@
                           }
                         ]
                       }
-                    ],
-                    "$$hashKey": "00J"
+                    ]
                   },
                   {
                     "comment": "Remove enemy and create explosion",
@@ -222,47 +223,12 @@
                       "memory.enemies": "RW.removeIndexFromArray(memory.enemies, bindings.enemyIndex)",
                       "memory.explosions": "RW.appendToArray(memory.explosions, {\n    position: bindings.enemy.position,\n    frame: 0\n})"
                     },
-                    "name": null,
-                    "$$hashKey": "00K"
-                  }
-                ],
-                "$$hashKey": "00I"
-              }
-            ],
-            "$$hashKey": "00B"
-          },
-          {
-            "switch": "Do One at a Time",
-            "comment": "First initialize the starfield, then keep updating it",
-            "pins": {
-              "in": {
-                "activeChild": "memory.topLevelActiveChild"
-              },
-              "out": {
-                "memory.topLevelActiveChild": "pins.activeChild"
-              }
-            },
-            "children": [
-              {
-                "comment": "Let there be stars!",
-                "emitter": {
-                  "memory.starfield": "transformers.initializeStarfield(50, io.canvas.size)"
-                }
-              },
-              {
-                "switch": "Do Forever",
-                "comment": "",
-                "children": [
-                  {
-                    "comment": "Update starfield",
-                    "emitter": {
-                      "memory.starfield": "transformers.updateStarfield(memory.starfield, io.canvas.size)"
-                    }
+                    "name": null
                   }
                 ]
               }
             ],
-            "$$hashKey": "00C"
+            "$$hashKey": "00R"
           },
           {
             "processor": "Move thing with arrow keys",
@@ -278,7 +244,7 @@
               }
             },
             "children": [],
-            "$$hashKey": "00D"
+            "$$hashKey": "00S"
           },
           {
             "switch": "If",
@@ -312,39 +278,116 @@
                 ]
               }
             ],
-            "$$hashKey": "00E"
+            "$$hashKey": "00T"
           }
         ],
-        "$$hashKey": "001"
+        "$$hashKey": "00H"
       },
       "io": {
         "layers": [
           {
             "name": "space",
             "type": "canvas",
-            "$$hashKey": "03E"
+            "$$hashKey": "0G5"
           },
           {
-            "name": "stars",
-            "type": "canvas",
-            "$$hashKey": "03I"
+            "type": "circuit",
+            "name": "starfield",
+            "$$hashKey": "0G9"
           },
           {
             "name": "ships",
             "type": "canvas",
-            "$$hashKey": "03M"
+            "$$hashKey": "0G6"
           },
           {
             "name": "attacks",
             "type": "canvas",
-            "$$hashKey": "03Q"
+            "$$hashKey": "0G7"
           },
           {
             "name": "explosions",
             "type": "canvas",
-            "$$hashKey": "0YL"
+            "$$hashKey": "0G8"
           }
         ]
+      }
+    },
+    "starfield": {
+      "board": {
+        "switch": "Do All",
+        "comment": "starfield",
+        "pins": {
+          "in": {},
+          "out": {}
+        },
+        "children": [
+          {
+            "comment": "Draw starfield",
+            "emitter": {
+              "io.canvas.stars": "transformers.drawStarfield(memory.starfield)"
+            },
+            "name": null,
+            "$$hashKey": "00F"
+          },
+          {
+            "switch": "Do One at a Time",
+            "comment": "First initialize the starfield, then keep updating it",
+            "pins": {
+              "in": {
+                "activeChild": "memory.activeChild"
+              },
+              "out": {
+                "memory.activeChild": "pins.activeChild"
+              }
+            },
+            "children": [
+              {
+                "comment": "Let there be stars!",
+                "emitter": {
+                  "memory.starfield": "transformers.initializeStarfield(circuit.starCount, io.canvas.size)"
+                },
+                "$$hashKey": "00U",
+                "name": null
+              },
+              {
+                "switch": "Do Forever",
+                "comment": "",
+                "children": [
+                  {
+                    "comment": "Update starfield",
+                    "emitter": {
+                      "memory.starfield": "transformers.updateStarfield(memory.starfield, io.canvas.size)"
+                    }
+                  }
+                ],
+                "$$hashKey": "00V"
+              }
+            ],
+            "$$hashKey": "00G",
+            "name": null
+          }
+        ],
+        "$$hashKey": "00E"
+      },
+      "io": {
+        "layers": [
+          {
+            "name": "stars",
+            "type": "canvas"
+          }
+        ]
+      },
+      "name": "starfield",
+      "pinDefs": {
+        "starCount": {
+          "direction": "in",
+          "default": "50"
+        }
+      },
+      "memory": {
+        "starfield": [],
+        "activeChild": 0
       }
     }
   },
