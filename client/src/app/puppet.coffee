@@ -237,6 +237,8 @@ onRecordFrame = (memory) ->
     memoryData: memory
     io: loadedGame.io
     circuitMetas: circuitMetas
+    assets: loadedAssets.data
+
 
 onRepeatRecordFrame = ->
   if !isRecording then return  # Stop when requested
@@ -274,6 +276,7 @@ playBackFrame = (outputIoData) ->
     io: loadedGame.io
     outputIoData: outputIoData 
     circuitMetas: circuitMetas
+    assets: loadedAssets.data
 
 updateFrame = (memory, inputIoData) ->
   # Freeze memory so that game code can't effect it
@@ -289,6 +292,7 @@ updateFrame = (memory, inputIoData) ->
     io: loadedGame.io
     inputIoData: inputIoData
     circuitMetas: circuitMetas
+    assets: loadedAssets.data
 
 # Recalculate frames with different code but the same inputIoData
 # TODO: don't have stepLoop() send the output data, as an optimization

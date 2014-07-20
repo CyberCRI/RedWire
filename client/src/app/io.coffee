@@ -252,7 +252,8 @@ RW.io.canvas =
           global:
             size: options.size
         for circuitMeta in options.circuitMetas
-          data[circuitMeta.id] = {}
+          data[circuitMeta.id] = 
+            size: options.size
         for layer in options.layers
           data[layer.circuitId][layer.name] = []
         return data
