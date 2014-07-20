@@ -13,7 +13,8 @@ getChipByPath = (parent, pathParts) ->
 angular.module('gamEvolve.game.log', [])
 .controller('LogCtrl', ($scope, gameHistory, currentGame) ->
   formatMessageOrigin = (circuitId, path) -> 
-    if not circuitId? or not path? then return "" 
+    if not circuitId? or circuitId is "global" or not path? then return "" 
+    
     chip = getChipByPath(currentGame.version.circuits[circuitId].board, path)
     chipName = chip.comment || chip.id || "Untitled #{path.join('.')}"
     return " @ '#{chipName}' "
