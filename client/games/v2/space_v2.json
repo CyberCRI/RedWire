@@ -56,17 +56,10 @@
               "out": {}
             },
             "children": [],
-            "$$hashKey": "00I",
             "comment": "starfield",
-            "name": null
-          },
-          {
-            "comment": "Draw space",
-            "emitter": {
-              "io.canvas.space": "[{ \n    type: 'rectangle', \n    position: [0, 0], \n    size: io.canvas.size, \n    fillStyle: 'black' \n}]"
-            },
             "name": null,
-            "$$hashKey": "00J"
+            "muted": false,
+            "$$hashKey": "002"
           },
           {
             "comment": "Draw player's spaceship",
@@ -74,14 +67,14 @@
               "io.canvas.ships": "[{ \n    type: 'image', \n    asset: 'hero.png', \n    position: memory.hero.position \n}]"
             },
             "name": null,
-            "$$hashKey": "00K"
+            "$$hashKey": "004"
           },
           {
             "emitter": {
               "memory.frameNumber": "memory.frameNumber + 1"
             },
             "comment": "Increment frame number",
-            "$$hashKey": "00L"
+            "$$hashKey": "005"
           },
           {
             "switch": "Limit Rate",
@@ -99,13 +92,13 @@
             "children": [
               {
                 "emitter": {
-                  "memory.enemies": "RW.appendToArray(memory.enemies, {\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  health: 1,\n  startingPosition: [io.canvas.size[0], Math.random() * io.canvas.size[1]],\n})"
+                  "memory.enemies": "RW.appendToArray(memory.enemies, {\n  position: [io.canvas.size[0], io.canvas.size[1] / 2],\n  startingPosition: [io.canvas.size[0], Math.random() * io.canvas.size[1]],\n})"
                 },
                 "comment": "Add enemy",
                 "name": null
               }
             ],
-            "$$hashKey": "00M"
+            "$$hashKey": "006"
           },
           {
             "emitter": {
@@ -113,7 +106,7 @@
             },
             "comment": "Clean up explosions",
             "name": null,
-            "$$hashKey": "00N"
+            "$$hashKey": "007"
           },
           {
             "splitter": {
@@ -146,7 +139,7 @@
                 ]
               }
             ],
-            "$$hashKey": "00O"
+            "$$hashKey": "008"
           },
           {
             "comment": "Draw lasers",
@@ -154,14 +147,14 @@
               "io.canvas.attacks": "transformers.makeLaserShapes(memory.heroLasers, 'blue_beam')"
             },
             "name": null,
-            "$$hashKey": "00P"
+            "$$hashKey": "009"
           },
           {
             "comment": "Move lasers",
             "emitter": {
               "memory.heroLasers": "transformers.updateLasers(memory.heroLasers, io.canvas.size)"
             },
-            "$$hashKey": "00Q"
+            "$$hashKey": "00A"
           },
           {
             "splitter": {
@@ -172,51 +165,28 @@
             "comment": "For each enemy",
             "children": [
               {
+                "comment": "Draw enemy",
+                "emitter": {
+                  "io.canvas.ships": "[{ \n    type: 'image', \n    asset: \"enemy.png\", \n    position: bindings.enemy.position \n}]"
+                },
+                "name": null
+              },
+              {
+                "comment": "Move enemy",
+                "emitter": {
+                  "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy, memory.frameNumber, 3)"
+                }
+              },
+              {
                 "switch": "If",
-                "comment": "If the enemy is still alive",
+                "comment": "If the enemy gets hit",
                 "pins": {
                   "in": {
-                    "value": "bindings.enemy.health > 0"
-                  }
+                    "value": "transformers.shapesIntersect({\n    type: 'image', \n    asset: \"enemy.png\", \n    position: bindings.enemy.position \n}, transformers.makeLaserShapes(memory.heroLasers, \"blue_beam\"), assets)"
+                  },
+                  "out": {}
                 },
                 "children": [
-                  {
-                    "switch": "Do All",
-                    "pins": {},
-                    "children": [
-                      {
-                        "comment": "Draw enemy",
-                        "emitter": {
-                          "io.canvas.ships": "[{ \n    type: 'image', \n    asset: \"enemy.png\", \n    position: bindings.enemy.position \n}]"
-                        },
-                        "name": null
-                      },
-                      {
-                        "comment": "Move enemy",
-                        "emitter": {
-                          "bindings.enemy.position": "transformers.moveEnemy(bindings.enemy, memory.frameNumber, 3)"
-                        }
-                      },
-                      {
-                        "switch": "If",
-                        "comment": "If the enemy gets hit",
-                        "pins": {
-                          "in": {
-                            "value": "transformers.shapesIntersect({\n    type: 'image', \n    asset: \"enemy.png\", \n    position: bindings.enemy.position \n}, transformers.makeLaserShapes(memory.heroLasers, \"blue_beam\"), assets)"
-                          },
-                          "out": {}
-                        },
-                        "children": [
-                          {
-                            "comment": "Reduce health",
-                            "emitter": {
-                              "bindings.enemy.health": "bindings.enemy.health - 1"
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  },
                   {
                     "comment": "Remove enemy and create explosion",
                     "emitter": {
@@ -228,7 +198,7 @@
                 ]
               }
             ],
-            "$$hashKey": "00R"
+            "$$hashKey": "00B"
           },
           {
             "processor": "Move thing with arrow keys",
@@ -244,7 +214,7 @@
               }
             },
             "children": [],
-            "$$hashKey": "00S"
+            "$$hashKey": "00C"
           },
           {
             "switch": "If",
@@ -278,18 +248,13 @@
                 ]
               }
             ],
-            "$$hashKey": "00T"
+            "$$hashKey": "00D"
           }
         ],
-        "$$hashKey": "00H"
+        "$$hashKey": "001"
       },
       "io": {
         "layers": [
-          {
-            "name": "space",
-            "type": "canvas",
-            "$$hashKey": "0G5"
-          },
           {
             "type": "circuit",
             "name": "starfield",
@@ -347,7 +312,6 @@
                 "emitter": {
                   "memory.starfield": "transformers.initializeStarfield(circuit.starCount, io.canvas.size)"
                 },
-                "$$hashKey": "00U",
                 "name": null
               },
               {
@@ -360,12 +324,19 @@
                       "memory.starfield": "transformers.updateStarfield(memory.starfield, io.canvas.size)"
                     }
                   }
-                ],
-                "$$hashKey": "00V"
+                ]
               }
             ],
-            "$$hashKey": "00G",
-            "name": null
+            "name": null,
+            "$$hashKey": "00G"
+          },
+          {
+            "comment": "Draw space",
+            "emitter": {
+              "io.canvas.space": "[{ \n    type: 'rectangle', \n    position: [0, 0], \n    size: io.canvas.size, \n    fillStyle: 'black' \n}]"
+            },
+            "name": null,
+            "$$hashKey": "003"
           }
         ],
         "$$hashKey": "00E"
@@ -373,8 +344,14 @@
       "io": {
         "layers": [
           {
+            "name": "space",
+            "type": "canvas",
+            "$$hashKey": "08I"
+          },
+          {
             "name": "stars",
-            "type": "canvas"
+            "type": "canvas",
+            "$$hashKey": "08D"
           }
         ]
       },

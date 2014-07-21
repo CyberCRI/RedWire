@@ -105,30 +105,30 @@ angular.module('gamEvolve.util.dndHelper', [])
         for circuitDependency in circuitDependencies
           recursiveSearch(circuitDependency, dependencies)
 
-      # Add references for transformers referenced in the code
-      transformerReferences = []
+      # Add references for transformers and assets referenced in the code
+      references = []
       switch chipType
         when "processor"
-          @getTransformerReferences(sourceGameCode.processors[chipName].update, transformerReferences)
+          @getCodeReferences(sourceGameCode.processors[chipName].update, references)
         when "switch"
-          @getTransformerReferences(sourceGameCode.switches[chipName].listActiveChildren, transformerReferences)
-          @getTransformerReferences(sourceGameCode.switches[chipName].handleSignals, transformerReferences)
+          @getCodeReferences(sourceGameCode.switches[chipName].listActiveChildren, references)
+          @getCodeReferences(sourceGameCode.switches[chipName].handleSignals, references)
         when "transformer"
-          @getTransformerReferences(sourceGameCode.transformers[chipName].body, transformerReferences)
+          @getCodeReferences(sourceGameCode.transformers[chipName].body, references)
 
       # Add references for transformers referenced in pins
       switch chipType
         when "emitter"
           for pinName, pinExpression of chip.emitter
-            @getTransformerReferences(pinExpression, transformerReferences)
+            @getCodeReferences(pinExpression, references)
         when "processor", "switch"
           for pinName, pinExpression of chip.pins.in
-            @getTransformerReferences(pinExpression, transformerReferences)
+            @getCodeReferences(pinExpression, references)
           for pinName, pinExpression of chip.pins.out
-            @getTransformerReferences(pinExpression, transformerReferences)
+            @getCodeReferences(pinExpression, references)
 
-      for transformerName in transformerReferences
-        recursiveSearch({ transformer: transformerName }, dependencies)
+      for reference in references
+        recursiveSearch(reference, dependencies)
 
       return dependencies
 
@@ -139,6 +139,18 @@ angular.module('gamEvolve.util.dndHelper', [])
     loop
       match = r.exec(code)
       if not match then break
-      references.push(match[1] || match[2])
+      references.push({ transformer: match[1] || match[2] })
     return references 
 
+  getAssetReferences: (code, references = []) ->
+    r = /asset:\s*["'](\w+)["']/g
+    loop
+      match = r.exec(code)
+      if not match then break
+      references.push({ asset: match[1] })
+    return references 
+
+  getCodeReferences: (code, references = []) ->
+    @getTransformerReferences(code, references)
+    @getAssetReferences(code, references)
+    return references
