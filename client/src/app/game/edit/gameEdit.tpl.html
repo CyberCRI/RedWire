@@ -22,7 +22,7 @@
                                     <li ng-repeat="asset in assets" asset-drag="asset">
                                         <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
                                         <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
-                                        <a class="btn btn-default btn-sm" ng-click="remove($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                                        <a class="btn btn-default btn-xs" ng-click="remove($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                     </li>
                                 </ul>
 
@@ -90,7 +90,7 @@
                                                 <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
                                                 -
                                                 <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
-                                                <a class="btn btn-default btn-sm" ng-click="removeLayer($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                                                <a class="btn btn-default btn-xs" ng-click="removeLayer($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </div>
                                     </li>
                                 </ul>

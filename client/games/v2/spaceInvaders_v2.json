@@ -51,12 +51,12 @@
     }
   },
   "switches": {
-    "Do in Parallel": {
+    "Do All": {
       "doc": "Just to place children under it",
       "listActiveChildren": "return children;",
       "handleSignals": ""
     },
-    "Do in Sequence": {
+    "Do One at a Time": {
       "pinDefs": {
         "activeChild": {
           "direction": "inout",
@@ -381,7 +381,7 @@
         "lastEnemyCreatedAt": 0
       },
       "board": {
-        "switch": "Do in Parallel",
+        "switch": "Do All",
         "comment": "",
         "children": [
           {
@@ -439,7 +439,7 @@
             "comment": "For each explosion",
             "children": [
               {
-                "switch": "Do in Parallel",
+                "switch": "Do All",
                 "pins": {
                   "in": {},
                   "out": {}
@@ -480,7 +480,7 @@
             }
           },
           {
-            "switch": "Do in Sequence",
+            "switch": "Do One at a Time",
             "comment": "First initialize the starfield, then keep updating it",
             "pins": {
               "in": {
@@ -543,7 +543,7 @@
                 },
                 "children": [
                   {
-                    "switch": "Do in Parallel",
+                    "switch": "Do All",
                     "pins": {},
                     "children": [
                       {

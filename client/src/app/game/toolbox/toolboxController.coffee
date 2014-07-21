@@ -28,7 +28,9 @@ angular.module('gamEvolve.game.toolbox', [])
   updateItems = ->
     if not currentGame.version then return 
     for itemType in ["processors", "switches", "transformers", "circuits"]
-      $scope[itemType] = _.keys(currentGame.version[itemType])
+      standardNames = _.keys(currentGame.standardLibrary[itemType])
+      customNames = _.keys(currentGame.version[itemType])
+      $scope[itemType] = standardNames.concat(customNames).sort()
   $scope.$watch((-> currentGame.localVersion), updateItems)
 
   openModal = (templateUrl, dialogControllerName, model, onDone) -> 
@@ -88,7 +90,7 @@ angular.module('gamEvolve.game.toolbox', [])
         if model.name not of currentGame.version.circuits
           currentGame.version.circuits[model.name] = 
             board: 
-              switch: "Do in Parallel"
+              switch: "Do All"
               comment: model.name
               pins:
                 in: {}
@@ -157,6 +159,8 @@ angular.module('gamEvolve.game.toolbox', [])
         transformer: name
       else 
         throw new Error("Unknown item type '#{itemType}'")
+
+  $scope.isItemInGame = (itemType, name) -> return name of currentGame.version[itemType]
 
   $scope.removeItem = (itemType, name) ->
     delete currentGame.version[itemType][name]

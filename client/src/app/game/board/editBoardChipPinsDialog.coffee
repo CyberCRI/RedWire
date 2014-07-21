@@ -56,15 +56,15 @@ angular.module('gamEvolve.game.board.editChipPinsDialog', [
   if 'processor' of liaison.model
     $scope.kind = 'Processor'
     $scope.type = liaison.model.processor
-    typeDef = currentGame.version.processors[$scope.type]
+    typeDef = currentGame.version.processors[$scope.type] || currentGame.standardLibrary.processors[$scope.type]
   else if 'switch' of liaison.model
     $scope.kind = 'Switch'
     $scope.type = liaison.model.switch
-    typeDef = currentGame.version.switches[$scope.type]
+    typeDef = currentGame.version.switches[$scope.type] || currentGame.standardLibrary.switches[$scope.type]
   else if 'circuit' of liaison.model
     $scope.kind = 'Circuit'
     $scope.type = liaison.model.circuit
-    typeDef = currentGame.version.circuits[$scope.type]
+    typeDef = currentGame.version.circuits[$scope.type] || currentGame.standardLibrary.circuits[$scope.type]
   else
     throw new Error('Model is not a processor, switch, or circuit')
 

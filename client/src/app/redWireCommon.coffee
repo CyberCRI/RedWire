@@ -61,6 +61,9 @@ RW.appendToArray = (array, value) -> RW.concatenate(array, [value])
 # Return an array with all instances of the element removed
 RW.removeFromArray = (array, value) -> return (element for element in array when not _.isEqual(value, element))
 
+# Return an array with a given element removed (by index)
+RW.removeIndexFromArray = (array, index) -> return (element for key, element of array when not index is key)
+
 # If the value is not in the array, then add it, else remove it
 RW.toggleValueInArray = (array, value) ->
   return if RW.contains(array, value) then RW.removeFromArray(array, value) else RW.appendToArray(array, value)

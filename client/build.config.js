@@ -79,7 +79,8 @@ module.exports = {
       'vendor/moment/moment.js',
       'vendor/mousetrap/mousetrap.js',
       'vendor/dragster/lib/dragster.js',
-      'vendor/bowser/bowser.js'
+      'vendor/bowser/bowser.js',
+      'vendor/sat-js/SAT.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
