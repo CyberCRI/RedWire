@@ -1,20 +1,21 @@
 # TODO: this should be configurable
 GAME_DIMENSIONS = [960, 540]
 
-buildLogMessages = (result) ->
-  if not result.errors then return result.logMessages
+# Cppies error messages from stepLoop() into log messages attached to a 'global' circuit
+extendLogMessages = (result) ->
+  if not result.errors then return result
 
-  errorMessages = for error in result.errors
+  result.logMessages.global = for error in result.errors
     { 
       path: error.path
       level: RW.logLevels.ERROR
       message: [error.stage, error.message] 
     }
-  return errorMessages.concat(result.logMessages)
+  return result
 
 extendFrameResults = (result, memory, inputIoData) ->
   # Override memory, inputIoData, and log messages
-  result.logMessages = buildLogMessages(result) 
+  extendLogMessages(result) 
   if memory? then result.memory = memory
   if inputIoData? then result.inputIoData = inputIoData 
   return result
@@ -235,7 +236,11 @@ angular.module('gamEvolve.game.player', [])
     if not currentGame.version? then return
     if not puppetIsAlive then return
 
-    gameCode = currentGame.version
+    # Include the standard library in the game code
+    gameCode = RW.cloneData(currentGame.version)
+    for key, value of currentGame.standardLibrary
+      _.defaults(gameCode[key], value)
+
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
   $scope.$watch("currentGame", onUpdateCode, true)

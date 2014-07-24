@@ -27,9 +27,12 @@ angular.module('gamEvolve.game.memory', [])
 
   onEditorChange = -> $scope.$apply(onUpdateMemoryEditor)
 
-  editor = new jsoneditor.JSONEditor $("#memoryEditor")[0],
+  editor = new JSONEditor $("#memoryEditor")[0],
     change: _.debounce(onEditorChange, WAIT_TIME)
     name: "memory"
+    history: false
+    search: false
+    modes: ["tree", "code", "text"]
 
   # Update from gameHistory
   onUpdateMemoryModel = ->

@@ -1,7 +1,7 @@
 RedWire
 =========
 
-A tool for creating, sharing, and modifing online games using simple concepts. Try it online at http://redwire.io (best used with Google Chrome for the time being).
+A tool for creating, sharing, and modifing online games using simple concepts. Try it online at http://redwire.io (best used with Mozilla Firefox and Google Chrome for the time being).
 
 Inspired by both [Rich Hickey's notions of simplicity] and [Bret Victor's ideas on understanding programming], the goal of the project is to let people take other's games and easily modify them, or take several games and recombine them in novel ways. In order to do so, games must be written as a set of "atoms" that can be moved, copied, and forked with minimum refactoring hassle.
 
@@ -23,7 +23,7 @@ In terms of development, we follow [Beck's Directive]:
 Testing it
 ----------
 
-Just check out our deployed version on http://redwire.io/! Please note that this is an older version of RedWire.
+You can play with RedWire at http://redwire.io/. The [Tutorial](https://github.com/CyberCRI/RedWire/wiki/Tutorials) will take you through the basics of how it works.
 
 
 Getting Started

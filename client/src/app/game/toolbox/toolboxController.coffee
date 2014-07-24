@@ -28,7 +28,9 @@ angular.module('gamEvolve.game.toolbox', [])
   updateItems = ->
     if not currentGame.version then return 
     for itemType in ["processors", "switches", "transformers", "circuits"]
-      $scope[itemType] = _.keys(currentGame.version[itemType])
+      standardNames = _.keys(currentGame.standardLibrary[itemType])
+      customNames = _.keys(currentGame.version[itemType])
+      $scope[itemType] = standardNames.concat(customNames).sort()
   $scope.$watch((-> currentGame.localVersion), updateItems)
 
   openModal = (templateUrl, dialogControllerName, model, onDone) -> 
@@ -64,6 +66,7 @@ angular.module('gamEvolve.game.toolbox', [])
         body: currentGame.version.transformers[name].body
       when "circuits"
         name: name
+        pinDefs: currentGame.version.circuits[name].pinDefs
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -87,17 +90,18 @@ angular.module('gamEvolve.game.toolbox', [])
         if model.name not of currentGame.version.circuits
           currentGame.version.circuits[model.name] = 
             board: 
-              switch: "Do in Parallel"
+              switch: "Do All"
               comment: model.name
               pins:
                 in: {}
                 out: {}
-            assets: {}
+              children: []
             memory: {}
             io: 
               layers: []
         # Set the data returned by the user
         currentGame.version.circuits[model.name].name = model.name
+        currentGame.version.circuits[model.name].pinDefs = model.pinDefs
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -118,6 +122,7 @@ angular.module('gamEvolve.game.toolbox', [])
         body: ""
       when "circuits"
         name: ""
+        pinDefs: {}
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -130,21 +135,32 @@ angular.module('gamEvolve.game.toolbox', [])
           from: ''
           bindTo: ''
           index: ''
+        children: []
       when "processors"
         processor: name
         pins:
           in: {}
           out: {}
+        children: []
       when "switches"
         switch: name
         pins:
           in: {}
           out: {}
+        children: []
       when "circuits"
         circuit: name
         id: name
+        pins:
+          in: {}
+          out: {}
+        children: []
+      when "transformers"
+        transformer: name
       else 
         throw new Error("Unknown item type '#{itemType}'")
+
+  $scope.isItemInGame = (itemType, name) -> return name of currentGame.version[itemType]
 
   $scope.removeItem = (itemType, name) ->
     delete currentGame.version[itemType][name]
@@ -173,3 +189,52 @@ angular.module('gamEvolve.game.toolbox', [])
   $scope.changeCircuit = (circuitName) ->
     # Switch to editing the circuit type, not a particular instance
     circuits.currentCircuitMeta = new RW.CircuitMeta(null, circuitName)
+
+.directive "toolboxDropzone", (currentGame, dndHelper, chips) ->
+  restrict: 'A',
+  link: (scope, element, attrs) ->
+    acceptDrop = (event) ->
+      draggedData = dndHelper.getDraggedData()
+      if dndHelper.dragIsFromSameWindow(draggedData) then return false 
+      [chipType, chipName] = chips.getChipTypeAndName(draggedData.node) 
+      return chipType not in ["emitter", "splitter"] 
+
+    el = element[0]
+    dragster = new Dragster(el)
+    el.addEventListener "dragster:enter", (event) ->
+      # The data transfer info is hidden under detail
+      event.dataTransfer = event.detail.dataTransfer
+      if not acceptDrop(event) then return false
+
+      console.log("enter")
+      el.classList.add('drag-over')
+      return false
+    el.addEventListener "dragster:leave", (event) ->
+      # The data transfer info is hidden under detail
+      event.dataTransfer = event.detail.dataTransfer
+      if not acceptDrop(event) then return false
+
+      console.log("leave")
+      el.classList.remove('drag-over')
+      return false
+    el.addEventListener "dragover", (event) -> 
+      if not acceptDrop(event) then return false
+
+      event.preventDefault?() 
+      event.stopPropogation?() 
+      event.dataTransfer.dropEffect = 'move'
+      return false
+    el.addEventListener "drop", (event) -> 
+      if not acceptDrop(event) then return false
+
+      event.preventDefault?() 
+      event.stopPropogation?() 
+      console.log("drop")
+      el.classList.remove('drag-over')
+      dragster.reset()
+
+      draggedData = dndHelper.getDraggedData()
+      copiedChipCount = dndHelper.copyChip(draggedData.gameId, draggedData.versionId, draggedData.node)
+      if copiedChipCount > 0 then currentGame.updateLocalVersion()
+
+      return false

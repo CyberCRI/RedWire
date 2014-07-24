@@ -55,9 +55,11 @@ createGames = (cb) ->
 createGame = (gameFile, cb) ->
   gameJson = fs.readFileSync(gameFile, { encoding: "utf8"})
   game = JSON.parse(gameJson)
-  # Encode circuits as JSON
-  for property in ['processors', 'switches', 'transformers', 'circuits']
+
+  # Encode certain properties as JSON
+  for property in ['processors', 'switches', 'transformers', 'circuits', 'assets']
     game[property] = JSON.stringify(game[property], null, 2)
+
   requestOptions = 
     url:  "#{server}/games"
     json: game

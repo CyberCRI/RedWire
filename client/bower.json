@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "devDependencies": {
     "angular": "~1.2.16",
-    "angular-mocks": "1.2.16",
+    "angular-mocks": "~1.2.16",
     "bootstrap": "~3.1.1",
     "angular-bootstrap": "~0.11.0",
     "angular-ui-router": "~0.0.1",
@@ -18,11 +18,13 @@
     "angular-xeditable": "~0.1.8",
     "Chart.js": "git://github.com/CyberCRI/Chart.js",
     "angular-ui-ace": "~0.1.1",
-    "jsoneditor": "~2.3.6",
+    "jsoneditor": "~3.0.0",
     "angular-ui-sortable": "~0.12.6",
     "moment": "~2.6.0",
     "mousetrap": "~1.4.6",
-    "angular-mocks": "~1.2.16"
+    "dragster": "git://github.com/CyberCRI/dragster#gh-pages",
+    "bowser": "~0.7.1",
+    "sat-js": "git://github.com/jriecken/sat-js.git"
   },
   "dependencies": {
     "angular-animate": "~1.2.16"

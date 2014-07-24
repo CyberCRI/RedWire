@@ -4,8 +4,8 @@ angular.module('gamEvolve.game.board.editSplitterDialog', [
   'ui.bootstrap',
 ])
 
-.controller 'EditBoardSplitterDialogCtrl', ($scope, liaison, currentGame) ->
-  $scope.DESTINATIONS = currentGame.enumeratePinDestinations()
+.controller 'EditBoardSplitterDialogCtrl', ($scope, liaison, currentGame, pins) ->
+  $scope.DESTINATIONS = pins.enumeratePinDestinations()
 
   $scope.exchange = {}
   $scope.exchange.name = liaison.model.comment

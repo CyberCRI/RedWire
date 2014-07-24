@@ -33,13 +33,14 @@ compilePinDefs = (pinDefs, evaluator) ->
     try
       for pinParamKey, pinParamValue of value
         compiledPinParams[pinParamKey] = switch pinParamKey
-          when "default" then RW.compileExpression(pinParamValue, evaluator)
+          when "default" 
+            if pinParamValue then RW.compileExpression(pinParamValue, evaluator) else null
           else pinParamValue
       return compiledPinParams
     catch compilationError
       throw new Error("Error compiling pin defaults for '#{key}'. #{compilationError}")
 
-# Converts input processors (with code as strings) to compiled form with code as functions.
+# Converts input (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were
 compileProcessors = (inputProcessors, evaluator) ->
   return RW.mapObject inputProcessors, (value, key) ->
@@ -54,7 +55,7 @@ compileProcessors = (inputProcessors, evaluator) ->
     catch compilationError
       throw new Error("Error compiling processor '#{key}'. #{compilationError}")
 
-# Converts input processors (with code as strings) to compiled form with code as functions
+# Converts input (with code as strings) to compiled form with code as functions
 # Leaves non-code values as they were
 compileSwitches = (inputSwitches, evaluator) ->
   return RW.mapObject inputSwitches, (value, key) ->
@@ -69,6 +70,21 @@ compileSwitches = (inputSwitches, evaluator) ->
       return compiledSwitch
     catch compilationError
       throw new Error("Error compiling switch '#{key}'. #{compilationError}")
+
+# Converts input (with code as strings) to compiled form with code as functions
+# Leaves non-code values as they were
+compileCircuits = (inputCircuits, evaluator) ->
+  return RW.mapObject inputCircuits, (value, key) ->
+    compiledCircuit = {}
+    try
+      for circuitKey, circuitValue of value
+        compiledCircuit[circuitKey] = switch circuitKey
+          when "board" then compileBoard(circuitValue, evaluator)
+          when "pinDefs" then compilePinDefs(circuitValue, evaluator)
+          else circuitValue
+      return compiledCircuit
+    catch compilationError
+      throw new Error("Error compiling circuit '#{key}'. #{compilationError}")
 
 # Converts input transformers (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were.
@@ -90,6 +106,11 @@ compileExpression = (expression, evaluator, path) ->
   catch error
     throw new Error("Error compiling expression '#{expression}' for chip [#{path.join(', ')}]. #{error}")
 
+compileInputPinExpressions = (pins, evaluator, path) -> RW.mapObject pins, (expression, pinName) -> 
+  if expression then compileExpression(expression, evaluator, path) else null
+compileOutputPinExpressions = (pins, evaluator, path) -> RW.mapObject pins, (expression, dest) -> 
+  if expression then compileExpression(expression, evaluator, path) else null
+
 # Converts board expressions (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were.
 compileBoard = (board, evaluator, path = []) ->
@@ -97,8 +118,8 @@ compileBoard = (board, evaluator, path = []) ->
     switch key
       when "emitter" then RW.mapObject(value, (expression, dest) -> compileExpression(expression, evaluator, path))
       when "pins" 
-        in: if value.in then RW.mapObject(value.in, (expression, pinName) -> compileExpression(expression, evaluator, path)) else {}
-        out: if value.out then RW.mapObject(value.out, (expression, dest) -> compileExpression(expression, evaluator, path)) else {}
+        in: if value.in then compileInputPinExpressions(value.in, evaluator, path) else {}
+        out: if value.out then compileOutputPinExpressions(value.out, evaluator, path) else {}
       when "splitter" then RW.mapObject value, (splitterValue, splitterKey) -> 
         switch splitterKey
           when "where" 
@@ -129,7 +150,6 @@ flattenLayerList = (circuits) ->
 initializeIo = (circuits) ->
   # Get flattened list of layers
   layerList = flattenLayerList(circuits)
-  assetDataByCircuit = RW.mapObject(loadedAssets, (assets) -> assets.data)
 
   # Create new io
   currentIo = {}
@@ -139,7 +159,7 @@ initializeIo = (circuits) ->
         elementSelector: '#gameContent'
         size: GAME_DIMENSIONS
         circuitMetas: circuitMetas
-        assets: assetDataByCircuit
+        assets: loadedAssets.data
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
           { circuitId: layer.circuitId, name: layer.name, depth: depth } 
@@ -185,19 +205,16 @@ createAssets = (inputAssets, evaluator) ->
 loadGame = (gameCode, logFunction) ->
   evaluator = eval
   circuitMetas = RW.listCircuitMeta(gameCode.circuits)
-  loadedAssets = RW.mapObject(gameCode.circuits, (circuit) -> createAssets(circuit.assets, evaluator))
+  loadedAssets = createAssets(gameCode.assets, evaluator)
   loadedGame =
-    circuits: RW.mapObject gameCode.circuits, (circuit, circuitType) ->
-      board: compileBoard(circuit.board, evaluator)
-      assets: loadedAssets[circuitType].data
+    circuits: compileCircuits(gameCode.circuits, evaluator)
     processors: compileProcessors(gameCode.processors, evaluator)
     switches: compileSwitches(gameCode.switches, evaluator)
     transformers: compileTransformers(gameCode.transformers, evaluator, logFunction)
     io: initializeIo(gameCode.circuits)
 
 unloadGame = ->
-  for circuitId, circuit of loadedAssets
-    destroyAssets(circuit.assets)
+  destroyAssets()
   loadedAssets = null
   destroyIo(loadedGame.io)
 
@@ -220,6 +237,8 @@ onRecordFrame = (memory) ->
     memoryData: memory
     io: loadedGame.io
     circuitMetas: circuitMetas
+    assets: loadedAssets.data
+
 
 onRepeatRecordFrame = ->
   if !isRecording then return  # Stop when requested
@@ -257,6 +276,7 @@ playBackFrame = (outputIoData) ->
     io: loadedGame.io
     outputIoData: outputIoData 
     circuitMetas: circuitMetas
+    assets: loadedAssets.data
 
 updateFrame = (memory, inputIoData) ->
   # Freeze memory so that game code can't effect it
@@ -272,6 +292,7 @@ updateFrame = (memory, inputIoData) ->
     io: loadedGame.io
     inputIoData: inputIoData
     circuitMetas: circuitMetas
+    assets: loadedAssets.data
 
 # Recalculate frames with different code but the same inputIoData
 # TODO: don't have stepLoop() send the output data, as an optimization

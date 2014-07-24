@@ -108,7 +108,7 @@ describe "RedWire", ->
       expect(conflicts).toBeEmpty()
 
     # Issue #299
-    it "detects more conflicting patches", ->
+    it "does not consider parent removal as conflict", ->
       patches = [
         {
           "remove": "/explosions/0",
@@ -128,7 +128,43 @@ describe "RedWire", ->
       ]
 
       conflicts = RW.detectPatchConflicts(patches)
-      expect(conflicts.length).toBe(1)
+      expect(conflicts).toBeEmpty()
+
+    it "adds to and removes from arrays", ->
+      oldData = 
+        a: [1, 2, 3]
+      newDataA = 
+        a: [1, 2, 3, 4]
+      newDataB = 
+        a: [2, 3]
+      
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
+
+      conflicts = RW.detectPatchConflicts(allPatches)
+      expect(conflicts).toBeEmpty()
+
+      result = RW.applyPatches(allPatches, oldData)
+      expect(result).toDeeplyEqual({ a: [2, 3, 4] })
+
+    it "modifies within arrays", ->
+      oldData = 
+        a: [{ b: 1 }, { c: 2 }, { f: 5 }, 6]
+      newDataA = 
+        a: [{ b: 1 }, { c: -2 }, { d: 3 }, { e: 4 }, { f: 5 }, 6]
+      newDataB = 
+        a: [{ b: -1 }, { c: 2 }, { f: 5 }, -6, { g: 7 }]
+      
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
+
+      conflicts = RW.detectPatchConflicts(allPatches)
+      expect(conflicts).toBeEmpty()
+
+      result = RW.applyPatches(allPatches, oldData)
+      expect(result).toDeeplyEqual({ a: [{ b: -1 }, { c: -2 }, { d: 3 }, { e: 4 }, { f: 5 }, -6, { g: 7 }] })
 
   describe "stimulateCircuits()", ->
     it "calls processors", ->
@@ -344,10 +380,10 @@ describe "RedWire", ->
         circuits:  
           main: new RW.Circuit
             board: board
-            assets: assets
         processors: processors
         memoryData: 
           main: oldMemory
+        assets: assets
       results = RW.stimulateCircuits(constants)
       newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
 
@@ -759,6 +795,63 @@ describe "RedWire", ->
       expect(newMemory["main.subId"].b).toBe("bye")
       expect(newMemory["main.subId"].c).toBe("bye")
       expect(newIo["main.subId"].s.a).toBe(100)
+
+    it "circuits can have pins", ->
+      switches = 
+        doAll: 
+          pinDefs: {}
+
+      circuits = 
+        main: new RW.Circuit
+          board:
+            switch: "doAll"
+            children: [
+              { 
+                emitter: 
+                  "memory.a": compileExpression("2")
+              }
+              { 
+                circuit: "sub"
+                id: "subId"
+                pins: 
+                  in: 
+                    p: compileExpression("10")
+                    q: compileExpression("20")
+                  out:
+                    "memory.b": compileExpression("pins.q")
+              }
+            ]
+        sub: new RW.Circuit
+          pinDefs:
+            p: 
+              direction: "in"
+            q: 
+              direction: "inout"
+          board: 
+            emitter: 
+              "memory.a": compileExpression("99")
+              "circuit.q": compileExpression("circuit.p + circuit.q")
+
+      memoryData = 
+        main: 
+          a: 0
+          b: 0
+        "main.subId":
+          a: 32
+
+      constants = new RW.ChipVisitorConstants
+        circuits: circuits 
+        switches: switches
+        memoryData: memoryData
+      results = RW.stimulateCircuits(constants)
+
+      newMemory = {}
+      for name in ["main", "main.subId"]
+        newMemory[name] = RW.applyPatches(results.circuitResults[name].memoryPatches, memoryData[name])
+
+      expect(newMemory.main.a).toBe(2)
+      expect(newMemory.main.b).toBe(30)
+      expect(newMemory["main.subId"].a).toBe(99)
 
   describe "stepLoop()", ->
     it "sends output data directly to io", ->
