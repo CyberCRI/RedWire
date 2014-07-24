@@ -59,33 +59,14 @@ angular.module('gamEvolve.model.games', [])
     $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
       .then (savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data))
 
-  saveActions:
-    saveNewVersion:
-      name: 'Publish'
-      classes: "font-icon-upload"
-      execute: -> 
-        updateInfo().then(saveVersion)
-    fork:
-      name: 'Fork'
-      classes: "font-icon-fork"
-      execute: ->
-        # Removing the game ID will make the server provide a new one
-        delete currentGame.info.id
-        saveInfo().then -> 
-          $location.path("/game/#{currentGame.version.gameId}/edit")
-          saveVersion()
+  publishCurrent: ->
+    updateInfo().then(saveVersion)
 
-  saveCurrent: ->
-    @getSaveAction().execute()
-
-  getSaveAction: ->
-    unless currentGame.info and currentGame.version and loggedUser.isLoggedIn()
-      return null
-
-    if currentGame.info.id and currentGame.info.ownerId is loggedUser.profile.id
-      return @saveActions.saveNewVersion
-    else 
-      return @saveActions.fork
+  forkCurrent: ->
+    delete currentGame.info.id # Removing the game ID will make the server provide a new one
+    saveInfo().then ->
+      $location.path("/game/#{currentGame.version.gameId}/edit")
+      saveVersion()
 
   loadAll: ->
     gamesQuery = $http.get('/games')

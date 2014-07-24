@@ -15,14 +15,18 @@
     <div id="gameLoadingControls">
         <div ng-controller="MenuCtrl">
             <div id="loggedInInfo" ng-show="user.isLoggedIn()">
-                <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" href=""><i class="font-icon-logout"></i></a>
+                <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" href=""><i class="font-icon-logout"></i></button>
             </div>
             <div>
-                <button ng-click="doSaveAction()" class="btn btn-sm btn-primary" ng-disabled="saveButtonDisabled" ng-hide="!isSaveButtonShown()">
-                    <i ng-class="getSaveButtonClasses()"></i>
-                    {{ getSaveButtonName() }}
+                <button ng-click="publishButtonClick()" class="btn btn-sm btn-primary" ng-disabled="publishButtonDisabled" ng-if="isPublishButtonDisplayed()">
+                    <i ng-class="font-icon-upload"></i>
+                    Publish
                 </button>
-                <button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-show="user.isNotLoggedIn()">
+                <button ng-click="forkButtonClick()" class="btn btn-sm btn-primary" ng-disabled="forkButtonDisabled" ng-if="isForkButtonDisplayed()">
+                    <i ng-class="font-icon-fork"></i>
+                    Fork
+                </button>
+                <button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-if="user.isNotLoggedIn()">
                     Login
                 </button>
                 <button id="importExportButton" title="Import/Export" ng-click="importExportDialog.open();" class="btn btn-default btn-sm">
