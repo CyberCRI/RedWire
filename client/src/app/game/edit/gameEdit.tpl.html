@@ -15,7 +15,7 @@
                         <block-splitter></block-splitter>
 
                         <block-container class="scrollable">
-                            <div id="assetsList" ng-controller="AssetsCtrl">
+                            <div id="assetsList" ng-controller="AssetsCtrl" file-dropzone dropzone-hover-class="drag-over" asset-dropzone file="file" file-name="fileName" class="dropzone">
                                 <h4>Assets</h4>
 
                                 <ul>
@@ -25,8 +25,6 @@
                                         <a class="btn btn-default btn-xs" ng-click="remove($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                     </li>
                                 </ul>
-
-                                <div file-dropzone asset-dropzone file="file" file-name="fileName" class="dropzone"><span>Drop new assets here</span></div>
                             </div>
                         </block-container>
                     </flexy-layout>
