@@ -3,7 +3,8 @@ angular.module('gamEvolve.game.assets', [
   'omr.angularFileDnD'
   'xeditable'
 ])
-.controller 'AssetsCtrl', ($scope, currentGame, circuits) ->
+
+.controller 'AssetsCtrl', ($scope, currentGame) ->
   # Get the actions object from the currentGame service, and keep it updated
   $scope.assets = null
   $scope.fileName = ""
@@ -12,23 +13,20 @@ angular.module('gamEvolve.game.assets', [
   # Transform assets to array so we can loop over it easier
   copyFromGameToScope = -> 
     if currentGame.version?
-      currentCircuitData = currentGame.version.circuits[circuits.currentCircuitMeta.type]
-      $scope.assets = ({ name: name, data: data } for name, data of currentCircuitData.assets)
+      $scope.assets = ({ name: name, data: data } for name, data of currentGame.version.assets)
 
   # Bring currentGame into scope so we can watch it 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", copyFromGameToScope, true)
-  $scope.$watch((-> circuits.currentCircuitMeta), copyFromGameToScope)
 
   # Transform assets back to object so we can loop over it easier
   copyFromScopeToGame = -> 
     if $scope.assets == null then return 
 
     assetsAsObject = _.object(([asset.name, asset.data] for asset in $scope.assets))
-    currentCircuitData = currentGame.version.circuits[circuits.currentCircuitMeta.type]
-    if _.isEqual(assetsAsObject, currentCircuitData.assets) then return 
+    if _.isEqual(assetsAsObject, currentGame.version.assets) then return 
 
-    currentCircuitData.assets = assetsAsObject
+    currentGame.version.assets = assetsAsObject
     currentGame.updateLocalVersion()
   $scope.$watch("assets", copyFromScopeToGame, true)
 
@@ -43,3 +41,42 @@ angular.module('gamEvolve.game.assets', [
     # Reset this so that the same filename dragged twice in a row will be taken into account
     $scope.fileName = ""  
     $scope.file = null
+
+.directive 'assetDrag', ($parse, dndHelper) ->
+    restrict: 'A'
+    link: (scope, element, attrs) ->
+      el = element[0]
+      parsedDrag = $parse(attrs.assetDrag)
+      el.draggable = true
+
+      el.addEventListener "dragstart", (e) ->
+        e?.stopPropagation()
+        e.dataTransfer.effectAllowed = 'copy'
+        data = parsedDrag(scope)
+        dndHelper.setDraggedData(e, { asset: data })
+        return false
+
+      el.addEventListener "dragend", (e) ->
+        e?.stopPropagation()
+        return false;
+
+.directive "assetDropzone", (currentGame, dndHelper, circuits) ->
+  restrict: 'A',
+  link: (scope, element, attrs) ->
+    acceptDrop = (event) -> dndHelper.getDraggedData(event)?.asset?
+
+    el = element[0]
+    el.addEventListener "drop", (event) -> 
+      if not acceptDrop(event) then return false
+
+      event.preventDefault?() 
+      event.stopPropogation?() 
+      console.log("drop asset")
+
+      draggedData = dndHelper.getDraggedData(event)
+      
+      currentCircuitData = currentGame.version.circuits[circuits.currentCircuitMeta.type]
+      currentCircuitData.assets[draggedData.asset.name] = draggedData.asset.data
+      currentGame.updateLocalVersion()
+
+      return false

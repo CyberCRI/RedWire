@@ -4,6 +4,7 @@ JSON_PROPERTIES = [
   "processors"
   "switches"
   "transformers"
+  "assets"
 ]
 
 META_PROPERTIES = [
@@ -49,3 +50,11 @@ angular.module('gamEvolve.util.gameConverter', [])
     for key, value of node
       if _.isObject(value) then @removeHashKeys(value)
     return node
+
+  bringGameUpToDate: (gameCode) ->
+    # Add sound
+    if gameCode.fileVersion < 0.3
+      for circuitType, circuit of gameCode.circuits
+        if "channels" not of circuit.io then circuit.io.channels = []
+    gameCode.fileVersion = 0.3
+    return gameCode

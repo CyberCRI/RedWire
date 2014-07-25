@@ -91,7 +91,6 @@ compileCircuits = (inputCircuits, evaluator) ->
       for circuitKey, circuitValue of value
         compiledCircuit[circuitKey] = switch circuitKey
           when "board" then compileBoard(circuitValue, evaluator)
-          when "assets" then loadedAssets[key].data
           when "pinDefs" then compilePinDefs(circuitValue, evaluator)
           else circuitValue
       return compiledCircuit
@@ -163,7 +162,6 @@ initializeIo = (circuits) ->
   # Get flattened list of layers
   layerList = flattenLayerList("layers", circuits)
   channelList = flattenLayerList("channels", circuits)
-  assetDataByCircuit = RW.mapObject(loadedAssets, (assets) -> assets.data)
 
   # Create new io
   currentIo = {}
@@ -173,7 +171,7 @@ initializeIo = (circuits) ->
         elementSelector: '#gameContent'
         size: GAME_DIMENSIONS
         circuitMetas: circuitMetas
-        assets: assetDataByCircuit
+        assets: loadedAssets.data
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
           { circuitId: layer.circuitId, name: layer.name, depth: depth } 
@@ -226,7 +224,7 @@ createAssets = (inputAssets, evaluator) ->
 loadGame = (gameCode, logFunction) ->
   evaluator = eval
   circuitMetas = RW.listCircuitMeta(gameCode.circuits)
-  loadedAssets = RW.mapObject(gameCode.circuits, (circuit) -> createAssets(circuit.assets, evaluator))
+  loadedAssets = createAssets(gameCode.assets, evaluator)
   loadedGame =
     circuits: compileCircuits(gameCode.circuits, evaluator)
     processors: compileProcessors(gameCode.processors, evaluator)
@@ -235,8 +233,7 @@ loadGame = (gameCode, logFunction) ->
     io: initializeIo(gameCode.circuits)
 
 unloadGame = ->
-  for circuitId, circuit of loadedAssets
-    destroyAssets(circuit.assets)
+  destroyAssets()
   loadedAssets = null
   destroyIo(loadedGame.io)
 
@@ -259,6 +256,8 @@ onRecordFrame = (memory) ->
     memoryData: memory
     io: loadedGame.io
     circuitMetas: circuitMetas
+    assets: loadedAssets.data
+
 
 onRepeatRecordFrame = ->
   if !isRecording then return  # Stop when requested
@@ -296,6 +295,7 @@ playBackFrame = (outputIoData) ->
     io: loadedGame.io
     outputIoData: outputIoData 
     circuitMetas: circuitMetas
+    assets: loadedAssets.data
 
 updateFrame = (memory, inputIoData) ->
   # Freeze memory so that game code can't effect it
@@ -311,6 +311,7 @@ updateFrame = (memory, inputIoData) ->
     io: loadedGame.io
     inputIoData: inputIoData
     circuitMetas: circuitMetas
+    assets: loadedAssets.data
 
 # Recalculate frames with different code but the same inputIoData
 # TODO: don't have stepLoop() send the output data, as an optimization

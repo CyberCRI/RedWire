@@ -11,6 +11,8 @@ angular.module('gamEvolve.model.games', [])
   info: null
   creator: null
   localVersion: _.uniqueId("v")
+  windowId: RW.makeGuid() # Used to identify windows across drag and drop
+  standardLibrary: null
 
   statusMessage: ""
 
@@ -45,33 +47,14 @@ angular.module('gamEvolve.model.games', [])
       .then((savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)))
       .then(-> currentGame.statusMessage = "Published at #{moment().format("HH:mm:ss")}")
 
-  saveActions:
-    saveNewVersion:
-      name: 'Publish'
-      classes: "font-icon-upload"
-      execute: -> 
-        updateInfo().then(saveVersion)
-    fork:
-      name: 'Fork'
-      classes: "font-icon-fork"
-      execute: ->
-        # Removing the game ID will make the server provide a new one
-        delete currentGame.info.id
-        saveInfo().then -> 
-          $location.path("/game/#{currentGame.version.gameId}/edit")
-          saveVersion()
+  publishCurrent: ->
+    updateInfo().then(saveVersion)
 
-  saveCurrent: ->
-    @getSaveAction().execute()
-
-  getSaveAction: ->
-    unless currentGame.info and currentGame.version and loggedUser.isLoggedIn()
-      return null
-
-    if currentGame.info.id and currentGame.info.ownerId is loggedUser.profile.id
-      return @saveActions.saveNewVersion
-    else 
-      return @saveActions.fork
+  forkCurrent: ->
+    delete currentGame.info.id # Removing the game ID will make the server provide a new one
+    saveInfo().then ->
+      $location.path("/game/#{currentGame.version.gameId}/edit")
+      saveVersion()
 
   loadAll: ->
     gamesQuery = $http.get('/games')
@@ -97,16 +80,22 @@ angular.module('gamEvolve.model.games', [])
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
     getVersion = $http.get("/game-versions?#{query}")
     getCreator = $http.get("/users?id=#{game.ownerId}")
-    updateCurrentGame = ([version, creator]) ->
+    getStandardLibrary = $http.get("/assets/standardLibrary.json")
+    updateCurrentGame = ([version, creator, standardLibrary]) ->
       currentGame.info = game
-      currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(version.data[0]))
+
+      gameCode = gameConverter.convertGameVersionFromEmbeddedJson(version.data[0])
+      gameConverter.bringGameUpToDate(gameCode)
+      currentGame.setVersion(gameCode)
+
+      currentGame.standardLibrary = standardLibrary.data
       currentGame.updateLocalVersion()
       currentGame.creator = creator.data.username
     onError = (error) -> 
       console.error("Error loading game", error) 
       window.alert("Error loading game")
     onDone = -> overlay.clearNotification()
-    $q.all([getVersion, getCreator]).then(updateCurrentGame, onError).finally(onDone)
+    $q.all([getVersion, getCreator, getStandardLibrary]).then(updateCurrentGame, onError).finally(onDone)
 
   loadFromId: (gameId) ->
     $http.get("/games/#{gameId}")

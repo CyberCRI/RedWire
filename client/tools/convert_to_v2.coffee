@@ -34,11 +34,11 @@ for inputFileName in process.argv[2..]
     processors: inputGame.processors
     switches: inputGame.switches
     transformers: inputGame.transformers
+    assets: inputGame.assets
     circuits: 
       main:
         memory: inputGame.memory
         board: inputGame.board
-        assets: inputGame.assets
         io: inputGame.io
 
   outputFileName = path.join(path.dirname(inputFileName), path.basename("#{path.basename(inputFileName, ".json")}_v2.json"))

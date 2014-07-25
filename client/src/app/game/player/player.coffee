@@ -236,7 +236,11 @@ angular.module('gamEvolve.game.player', [])
     if not currentGame.version? then return
     if not puppetIsAlive then return
 
-    gameCode = currentGame.version
+    # Include the standard library in the game code
+    gameCode = RW.cloneData(currentGame.version)
+    for key, value of currentGame.standardLibrary
+      _.defaults(gameCode[key], value)
+
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
   $scope.$watch("currentGame", onUpdateCode, true)

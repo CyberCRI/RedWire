@@ -251,11 +251,11 @@ RW.io.canvas =
         data = 
           global:
             size: options.size
-            layers: {}
         for circuitMeta in options.circuitMetas
-          data[circuitMeta.id] = {}
+          data[circuitMeta.id] = 
+            size: options.size
         for layer in options.layers
-          data[layer.circuitId][layer.name] = {}
+          data[layer.circuitId][layer.name] = []
         return data
 
       establishData: (data) -> 
@@ -265,18 +265,17 @@ RW.io.canvas =
 
         # For each layer, sort shapes and then draw them
         for circuitId, circuitData of data
-          circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
-          circuitAssets = options.assets[circuitType]
+          circuitType = _.findWhere(options.circuitMetas, { id: circuitId })?.type
+          if not circuitType? then continue # Recorded data with circuits can trip us up
 
-          for layerName, shapeObject of circuitData when layerName isnt "size"
+          for layerName, shapeArray of circuitData when layerName isnt "size"
             layerId = makeLayerId(circuitId, layerName)
             if layerId not of layers then throw new Error("Invalid layer '#{layerName}' in circuit '#{circuitId}'")
 
-            shapeArray = _.values(shapeObject)
             shapeArray.sort(shapeSorter)
 
             ctx = layers[layerId][0].getContext('2d')
-            for shape in shapeArray then drawShape(shape, ctx, circuitAssets)
+            for shape in shapeArray then drawShape(shape, ctx, options.assets)
 
         return null # avoid accumulating results
 
@@ -352,7 +351,7 @@ RW.io.html =
           # Add new templates 
           for templateName in _.difference(newTemplates, existingTemplates) 
             # Create template
-            templateHtml = options.assets[circuitId][newTemplateData[templateName].asset]
+            templateHtml = options.assets[newTemplateData[templateName].asset]
             # TODO: create all layers before hand?
             layerOptions = _.findWhere(options.layers, { circuitId: circuitId, name: templateName })
             depth = layerOptions?.depth ? 100 # Default to 100
@@ -534,22 +533,24 @@ RW.io.sound =
       establishData: (data) -> 
         for circuitId, circuitData of data
           circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
-          circuitAssets = options.assets[circuitType]
 
           for channelName, channelData of circuitData
             channelMeta = _.findWhere(options.channels, { circuitId: circuitId, name: channelName })
 
             switch channelMeta.type
               when "clip" 
-                for key, sound of channelData
-                  if sound.asset not of circuitAssets 
+                for sound in channelData
+                  if sound.asset not of options.assets 
                     throw new Error("Cannot find asset '#{sound.asset}' for circuit '#{circuitId}'")
 
-                  source = circuitAssets[sound.asset]
+                  source = options.assets[sound.asset]
                   source.disconnect()
                   source.connect(lineOut.destination)
                   source.mediaElement.play()
               when "music" 
+                if sound.asset not of options.assets 
+                  throw new Error("Cannot find asset '#{sound.asset}' for circuit '#{circuitId}'")
+
                 # Channel data should be like { asset: "qsdf" } or null
                 channelId = makeChannelId(circuitId, channelName)
                 if _.isEqual(playingMusic[channelId], channelData) then continue
@@ -557,13 +558,13 @@ RW.io.sound =
                 # Stop music if its playing
                 # TODO: handle volume changes of same music
                 if playingMusic[channelId]
-                  source = circuitAssets[playingMusic[channelId].asset]
+                  source = options.assets[playingMusic[channelId].asset]
                   source.mediaElement.stop()
 
                 # Play new music
                 if channelData
                   # TODO: handle crossfading
-                  source = circuitAssets[channelData.asset]
+                  source = options.assets[channelData.asset]
                   source.disconnect()
                   source.connect(lineOut.destination)
                   source.mediaElement.loop = true
@@ -571,7 +572,7 @@ RW.io.sound =
 
                 playingMusic[channelId] = channelData
               when "fx"
-                for key, sound of channelData
+                for sound in channelData
                   _.defaults sound, 
                     fx: ["square",0.0000,0.4000,0.0000,0.3200,0.0000,0.2780,20.0000,496.0000,2400.0000,0.4640,0.0000,0.0000,0.0100,0.0003,0.0000,0.0000,0.0000,0.0235,0.0000,0.0000,0.0000,0.0000,1.0000,0.0000,0.0000,0.0000,0.0000] 
                   buffer = WebAudiox.getBufferFromJsfx(RW.audioContext, sound.fx)
@@ -587,7 +588,7 @@ RW.io.sound =
       destroy: -> 
         # Stop all playing sounds
         for channelId, channelData of playingMusic
-          if channelData.asset then circuitAssets[channelData.asset].mediaElement.stop()
+          if channelData.asset then options.assets[channelData.asset].mediaElement.stop()
 
         lineOut = null
     }

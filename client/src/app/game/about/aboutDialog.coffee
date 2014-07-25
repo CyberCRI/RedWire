@@ -7,9 +7,7 @@ angular.module('gamEvolve.game.about', [
 
   open: ->
     options =
-      backdrop: true
-      dialogFade: true
-      backdrop: true
+      backdrop: "static"
       templateUrl: 'game/about/aboutDialog.tpl.html'
       controller: 'AboutDialogCtrl'
     current = $modal.open(options)

@@ -53,6 +53,7 @@ module.exports = {
   vendor_files: {
     js: [
       'vendor/jquery/dist/jquery.js',
+      'vendor/jquery-ui/jquery-ui.js',
       'vendor/bootstrap/js/bootstrap-tab.js',
       'vendor/angular/angular.js',
       'vendor/angular-mocks/angular-mocks.js',
@@ -68,7 +69,6 @@ module.exports = {
       'vendor/underscore/underscore.js',
       'vendor/underscore.string/lib/underscore.string.js',
       'vendor/flexy-layout/flexy-layout.debug.js',
-      'vendor/jquery-ui/ui/jquery-ui.custom.js',
       'vendor/angular-ui-sortable/sortable.js',
       'vendor/angular-file-dnd/dist/angular-file-dnd.js',
       'vendor/angular-xeditable/dist/js/xeditable.js',
@@ -81,7 +81,10 @@ module.exports = {
       'vendor/webaudiox/build/webaudiox.js',
       'vendor/webaudiox/examples/vendor/jsfx/audio.js',
       'vendor/webaudiox/examples/vendor/jsfx/jsfx.js',
-      'vendor/webaudiox/examples/vendor/jsfx/jsfxlib.js'
+      'vendor/webaudiox/examples/vendor/jsfx/jsfxlib.js',
+      'vendor/dragster/lib/dragster.js',
+      'vendor/bowser/bowser.js',
+      'vendor/sat-js/SAT.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',

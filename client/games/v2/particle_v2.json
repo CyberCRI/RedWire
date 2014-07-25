@@ -452,6 +452,10 @@
       "body": "if (typeof response.error !== 'undefined') {\n  return _.range(10);\n} else {\n  return response.data.split('\\n');\n}"
     }
   },
+  "assets": {
+    "controls": "data:text/html;base64,PGlucHV0IHR5cGU9InJhbmdlIiBpZD0ic2xpZGVyIiBtaW49IjAiIG1heD0iMTAiIHN0ZXA9IjAuMSIgZGF0YS12YWx1ZT0iZGF0YS51c2VyVmFsdWUiIC8+",
+    "controlsCss": "data:text/css;base64,I2dhbWVDb250ZW50IGlucHV0IHsKCXBvc2l0aW9uOiBhYnNvbHV0ZTsKCXdpZHRoOiAzMDBweDsKCXRvcDogMjVweDsKCWxlZnQ6IDMzMHB4Owp9Cg=="
+  },
   "circuits": {
     "main": {
       "memory": {
@@ -543,10 +547,6 @@
           }
         ],
         "switch": "doInParallel"
-      },
-      "assets": {
-        "controls": "data:text/html;base64,PGlucHV0IHR5cGU9InJhbmdlIiBpZD0ic2xpZGVyIiBtaW49IjAiIG1heD0iMTAiIHN0ZXA9IjAuMSIgZGF0YS12YWx1ZT0iZGF0YS51c2VyVmFsdWUiIC8+",
-        "controlsCss": "data:text/css;base64,I2dhbWVDb250ZW50IGlucHV0IHsKCXBvc2l0aW9uOiBhYnNvbHV0ZTsKCXdpZHRoOiAzMDBweDsKCXRvcDogMjVweDsKCWxlZnQ6IDMzMHB4Owp9Cg=="
       },
       "io": {
         "layers": [
