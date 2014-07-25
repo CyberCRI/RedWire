@@ -73,7 +73,7 @@ angular.module('gamEvolve.game.assets', [
       event.stopPropogation?() 
       console.log("drop asset")
 
-      draggedData = dndHelper.getDraggedData(event)
+      draggedData = dndHelper.getDraggedData()
       
       currentGame.version.assets[draggedData.asset.name] = draggedData.asset.data
       currentGame.updateLocalVersion()
