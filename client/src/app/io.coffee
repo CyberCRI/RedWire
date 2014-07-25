@@ -567,6 +567,7 @@ RW.io.sound =
 
           for channelName, channelData of circuitData
             channelMeta = _.findWhere(options.channels, { circuitId: circuitId, name: channelName })
+            if not channelMeta? then throw new Error("Cannot find channel '#{channelName}' for circuit '#{circuitId}'") 
 
             switch channelMeta.type
               when "clip" 
