@@ -522,15 +522,46 @@ RW.io.sound =
     makeChannelId = (circuitId, channelName) -> "#{circuitId}.#{channelName}"
     deconstructLayerId = (channelId) -> channelId.split(".")
 
-    lineOut = new WebAudiox.LineOut(RW.audioContext)
+    findOrCreateMediaElementSource = (assetName) ->
+      if assetName not of mediaElementSources
+        audio = options.assets[assetName]
+        source = RW.audioContext.createMediaElementSource(audio)
+        source.disconnect()
+        source.connect(RW.lineOut.destination)
+        mediaElementSources[assetName] = source
+      return mediaElementSources[assetName]
+
+    stopPlayingSounds = ->
+      for assetName, asset of options.assets
+        if asset instanceof Audio
+          asset.pause()
 
     playingMusic = {}
 
+    # maps asset names to HTMLMediaElementSource objects
+    mediaElementSources = {}
+
+    inPlaySequence = false
+
     return {
+      enterPlaySequence: ->
+        inPlaySequence = true
+
+        # un-pause playing music
+        for channelId, channelData of playingMusic
+          if channelData.asset then options.assets[channelData.asset].play()
+
+      leavePlaySequence: ->
+        stopPlayingSounds()
+        inPlaySequence = false
+
       provideData: -> 
         global: { } 
 
       establishData: (data) -> 
+        # Only play sounds in "play" mode
+        if not inPlaySequence then return 
+
         for circuitId, circuitData of data
           circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
 
@@ -543,14 +574,11 @@ RW.io.sound =
                   if sound.asset not of options.assets 
                     throw new Error("Cannot find asset '#{sound.asset}' for circuit '#{circuitId}'")
 
-                  source = options.assets[sound.asset]
-                  source.disconnect()
-                  source.connect(lineOut.destination)
-                  source.mediaElement.play()
-              when "music" 
-                if sound.asset not of options.assets 
-                  throw new Error("Cannot find asset '#{sound.asset}' for circuit '#{circuitId}'")
+                  audio = options.assets[sound.asset]
+                  source = findOrCreateMediaElementSource(sound.asset)
+                  audio.play()
 
+              when "music" 
                 # Channel data should be like { asset: "qsdf" } or null
                 channelId = makeChannelId(circuitId, channelName)
                 if _.isEqual(playingMusic[channelId], channelData) then continue
@@ -558,17 +586,21 @@ RW.io.sound =
                 # Stop music if its playing
                 # TODO: handle volume changes of same music
                 if playingMusic[channelId]
-                  source = options.assets[playingMusic[channelId].asset]
-                  source.mediaElement.stop()
+                  audio = options.assets[playingMusic[channelId].asset]
+                  audio.pause()
 
                 # Play new music
                 if channelData
+                  if channelData.asset not of options.assets 
+                    throw new Error("Cannot find asset '#{channelData.asset}' for circuit '#{circuitId}'")
+
                   # TODO: handle crossfading
-                  source = options.assets[channelData.asset]
-                  source.disconnect()
-                  source.connect(lineOut.destination)
-                  source.mediaElement.loop = true
-                  source.mediaElement.play()
+                  audio = options.assets[channelData.asset]
+                  findOrCreateMediaElementSource(channelData.asset)
+                  audio.loop = true
+
+                  # Un-pause
+                  audio.play()
 
                 playingMusic[channelId] = channelData
               when "fx"
@@ -578,17 +610,12 @@ RW.io.sound =
                   buffer = WebAudiox.getBufferFromJsfx(RW.audioContext, sound.fx)
                   source = RW.audioContext.createBufferSource()
                   source.buffer = buffer
-                  source.connect(lineOut.destination)
+                  source.connect(RW.lineOut.destination)
                   source.start(0)
               else 
                 throw new Error("Unknown channel type '#{channelMeta.type}'")
 
         return null # avoid accumulating results
 
-      destroy: -> 
-        # Stop all playing sounds
-        for channelId, channelData of playingMusic
-          if channelData.asset then options.assets[channelData.asset].mediaElement.stop()
-
-        lineOut = null
+      destroy: -> stopPlayingSounds()
     }

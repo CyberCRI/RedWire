@@ -11,8 +11,9 @@ GAME_DIMENSIONS = [960, 540]
 
 # CONSTANTS
 
-# TODO: find a way to not make this a global
+# TODO: find a way make these properties of RW.io.sound
 RW.audioContext = new AudioContext()
+RW.lineOut = new WebAudiox.LineOut(RW.audioContext)
 
 
 # SHARED VARIABLES
@@ -139,8 +140,8 @@ compileBoard = (board, evaluator, path = []) ->
       when "children" then _.map(value, (child, key) -> compileBoard(child, evaluator, RW.appendToArray(path, key)))
       else value
 
-destroyIo = (currentIo) ->
-  for ioName, io of currentIo
+destroyIo = ->
+  for ioName, io of loadedGame.io
     io.destroy()
 
 # Converts the nested layers description into a simple list, ordered by depth
@@ -214,8 +215,10 @@ createAssets = (inputAssets, evaluator) ->
         assetNamesToData[name] = image
       else if splitUrl.mimeType.indexOf("audio/") == 0
         audio = new Audio(dataUrl)
-        source = RW.audioContext.createMediaElementSource(audio)
-        assetNamesToData[name] = source
+        # source = RW.audioContext.createMediaElementSource(audio)
+        # source.disconnect()
+        # source.connect(RW.lineOut.destination)
+        assetNamesToData[name] = audio
       else
         assetNamesToData[name] = atob(splitUrl.data)
 
@@ -235,7 +238,7 @@ loadGame = (gameCode, logFunction) ->
 unloadGame = ->
   destroyAssets()
   loadedAssets = null
-  destroyIo(loadedGame.io)
+  destroyIo()
 
 makeReporter = (destinationWindow, destinationOrigin, operation) ->
   return (err, value) ->
@@ -326,6 +329,10 @@ onUpdateFrames = (memory, inputIoDataFrames) ->
     lastMemory = RW.applyPatchesInCircuits(result.memoryPatches, lastMemory)
   return results
 
+enterPlaySequence = -> for ioName, io of loadedGame.io then io.enterPlaySequence?()
+
+leavePlaySequence = -> for ioName, io of loadedGame.io then io.leavePlaySequence?()
+
 # MAIN
 
 # Dispatch incoming messages
@@ -354,20 +361,28 @@ window.addEventListener 'message', (e) ->
         recordedFrames = []
         recordFrameReporter = makeReporter(e.source, e.origin, "recording")
         isRecording = true
+        enterPlaySequence()
+
         requestAnimationFrame(onRepeatRecordFrame)
         reporter(null)
       when "stopRecording"
         isRecording = false
+        leavePlaySequence()
+
         reporter(null, recordedFrames)
       when "startPlaying"
         lastMemory = message.value.memory
         lastPlayedFrame = null
         playFrameReporter = makeReporter(e.source, e.origin, "playing")
         isPlaying = true
+        enterPlaySequence()
+
         requestAnimationFrame(onRepeatPlayFrame)
         reporter(null)
       when "stopPlaying"
         isPlaying = false
+        leavePlaySequence()
+        
         # Send back just the last frame
         lastPlayedFrame.memory = lastMemory
         reporter(null, lastPlayedFrame)
