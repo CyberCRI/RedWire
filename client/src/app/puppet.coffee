@@ -31,6 +31,9 @@ isPlaying = false
 lastPlayedFrame = null
 playFrameReporter = null # Callback function for playing
 
+inPlaySequence = false
+
+
 # FUNCTIONS
 
 # Find the correct function across browsers
@@ -235,6 +238,9 @@ loadGame = (gameCode, logFunction) ->
     transformers: compileTransformers(gameCode.transformers, evaluator, logFunction)
     io: initializeIo(gameCode.circuits)
 
+  # Keep in play sequence
+  if inPlaySequence then enterPlaySequence()
+
 unloadGame = ->
   destroyAssets()
   loadedAssets = null
@@ -329,9 +335,13 @@ onUpdateFrames = (memory, inputIoDataFrames) ->
     lastMemory = RW.applyPatchesInCircuits(result.memoryPatches, lastMemory)
   return results
 
-enterPlaySequence = -> for ioName, io of loadedGame.io then io.enterPlaySequence?()
+enterPlaySequence = -> 
+  inPlaySequence = true
+  for ioName, io of loadedGame.io then io.enterPlaySequence?()
 
-leavePlaySequence = -> for ioName, io of loadedGame.io then io.leavePlaySequence?()
+leavePlaySequence = -> 
+  inPlaySequence = false
+  for ioName, io of loadedGame.io then io.leavePlaySequence?()
 
 # MAIN
 

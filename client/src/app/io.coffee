@@ -598,8 +598,7 @@ RW.io.sound =
                   audio = options.assets[channelData.asset]
                   findOrCreateMediaElementSource(channelData.asset)
                   audio.loop = true
-
-                  # Un-pause
+                  audio.currentTime = 0
                   audio.play()
 
                 playingMusic[channelId] = channelData
