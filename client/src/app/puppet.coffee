@@ -218,9 +218,6 @@ createAssets = (inputAssets, evaluator) ->
         assetNamesToData[name] = image
       else if splitUrl.mimeType.indexOf("audio/") == 0
         audio = new Audio(dataUrl)
-        # source = RW.audioContext.createMediaElementSource(audio)
-        # source.disconnect()
-        # source.connect(RW.lineOut.destination)
         assetNamesToData[name] = audio
       else
         assetNamesToData[name] = atob(splitUrl.data)
