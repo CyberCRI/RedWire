@@ -53,12 +53,13 @@
                   "io.sound.fx": "[{ \n    fx: memory.jump \n}]"
                 },
                 "comment": "Play jump",
-                "name": null
+                "name": null,
+                "$$hashKey": "00D"
               }
             ],
             "name": null,
             "comment": "if mouse just down",
-            "$$hashKey": "018"
+            "$$hashKey": "00A"
           },
           {
             "switch": "If",
@@ -72,24 +73,26 @@
               {
                 "emitter": {
                   "io.sound.music": "{\n    asset: \"perfume.mp3\"\n}",
-                  "io.canvas.bg": "[{\n    type: \"rectangle\",\n    size: io.canvas.size,\n    fillStyle: \"red\"\n}]"
+                  "io.canvas.bg": "[{\n    type: \"rectangle\",\n    size: io.canvas.size,\n    position: [0, 0],\n    fillStyle: \"red\"\n}]"
                 },
                 "comment": "play perfume",
-                "name": null
+                "name": null,
+                "$$hashKey": "00E"
               },
               {
                 "emitter": {
                   "io.sound.music": "{\n    asset: \"techno.mp3\"\n}",
-                  "io.canvas.bg": "[{\n    type: \"rectangle\",\n    size: io.canvas.size,\n    fillStyle: \"black\"\n}]"
+                  "io.canvas.bg": "[{\n    type: \"rectangle\",\n    size: io.canvas.size,\n    fillStyle: \"black\",\n    position: [0, 0]\n}]"
                 },
                 "comment": "play techo",
-                "name": null
+                "name": null,
+                "$$hashKey": "00F"
               }
             ],
             "comment": "mouse is down",
             "name": null,
             "muted": false,
-            "$$hashKey": "019"
+            "$$hashKey": "00B"
           },
           {
             "emitter": {
@@ -98,10 +101,10 @@
             "comment": "play sound",
             "name": null,
             "muted": false,
-            "$$hashKey": "01A"
+            "$$hashKey": "00C"
           }
         ],
-        "$$hashKey": "017"
+        "$$hashKey": "009"
       },
       "io": {
         "layers": [

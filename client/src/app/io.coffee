@@ -599,7 +599,10 @@ RW.io.sound =
                   audio = options.assets[channelData.asset]
                   findOrCreateMediaElementSource(channelData.asset)
                   audio.loop = true
-                  audio.currentTime = 0
+                  try 
+                    audio.currentTime = 0
+                  catch error
+                    # Setting the time can fail if the file isn't completely loaded. Ignore it
                   audio.play()
 
                 playingMusic[channelId] = channelData
