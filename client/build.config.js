@@ -78,6 +78,10 @@ module.exports = {
       'vendor/jsoneditor/jsoneditor.js',
       'vendor/moment/moment.js',
       'vendor/mousetrap/mousetrap.js',
+      'vendor/webaudiox/build/webaudiox.js',
+      'vendor/webaudiox/examples/vendor/jsfx/audio.js',
+      'vendor/webaudiox/examples/vendor/jsfx/jsfx.js',
+      'vendor/webaudiox/examples/vendor/jsfx/jsfxlib.js',
       'vendor/dragster/lib/dragster.js',
       'vendor/bowser/bowser.js',
       'vendor/sat-js/SAT.js'

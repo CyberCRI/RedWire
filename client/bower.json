@@ -24,7 +24,8 @@
     "mousetrap": "~1.4.6",
     "dragster": "git://github.com/CyberCRI/dragster#gh-pages",
     "bowser": "~0.7.1",
-    "sat-js": "git://github.com/jriecken/sat-js.git"
+    "sat-js": "git://github.com/jriecken/sat-js.git",
+    "webaudiox": "*"
   },
   "dependencies": {
     "angular-animate": "~1.2.16"

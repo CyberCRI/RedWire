@@ -83,7 +83,11 @@ angular.module('gamEvolve.model.games', [])
     getStandardLibrary = $http.get("/assets/standardLibrary.json")
     updateCurrentGame = ([version, creator, standardLibrary]) ->
       currentGame.info = game
-      currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(version.data[0]))
+
+      gameCode = gameConverter.convertGameVersionFromEmbeddedJson(version.data[0])
+      gameConverter.bringGameUpToDate(gameCode)
+      currentGame.setVersion(gameCode)
+
       currentGame.standardLibrary = standardLibrary.data
       currentGame.updateLocalVersion()
       currentGame.creator = creator.data.username

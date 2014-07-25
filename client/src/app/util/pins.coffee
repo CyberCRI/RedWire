@@ -28,4 +28,9 @@ module.factory 'pins', (circuits, currentGame) ->
     for layer in layers
       keys.push("io.canvas.#{layer.name}")
 
+    # Fill in sound pins
+    channels = currentGame.version.circuits[circuits.currentCircuitMeta.type].io.channels
+    for channel in channels
+      keys.push("io.sound.#{channel.name}")
+
     return keys

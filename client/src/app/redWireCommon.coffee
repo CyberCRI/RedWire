@@ -146,6 +146,27 @@ RW.dataURLToBlob = (dataURL) ->
 
     return new Blob([uInt8Array], {type: splitUrl.mimeType})
 
+# Creates and returns an array buffer (either base64 encoded or not).
+# Adopted from filer.js by Eric Bidelman (ebidel@gmail.com)
+RW.dataURLToArrayBuffer = (dataURL) ->
+  splitUrl = RW.splitDataUrl(dataURL)
+  if not splitUrl.base64
+    # TODO
+    throw new Error("not implemented")
+    # Easy case when not Base64 encoded
+    return new Blob([splitUrl.data], {type: splitUrl.mimeType})
+  else
+    # Decode from Base64
+    raw = window.atob(splitUrl.data)
+    rawLength = raw.length
+
+    uInt8Array = new Uint8Array(rawLength)
+
+    for i in [0..rawLength - 1] 
+      uInt8Array[i] = raw.charCodeAt(i)
+
+    return uInt8Array
+
 # For accessing a value within an embedded object or array
 # Takes a parent object/array and the "path" as an array
 # Returns [parent, key] where parent is the array/object and key is last one required to access the child

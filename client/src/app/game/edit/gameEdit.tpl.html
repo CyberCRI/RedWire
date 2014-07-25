@@ -94,8 +94,32 @@
                                             </div>
                                     </li>
                                 </ul>
-
+                                
                                 <a class="btn btn-default" ng-click="addLayer()"><i class="glyphicon glyphicon-plus"></i></a>
+                            </div>
+
+                            <div ng-controller="ChannelsCtrl" id="channelsList">
+                                <h4>Channels</h4>
+                                <ul ng-model="channels">
+                                    <li ng-repeat="channel in channels">
+                                        <div ng-switch on="channel.type">
+                                            <div ng-switch-when="circuit">
+                                                <span class="glyphicon glyphicon-music"></span>
+                                                <span>{{ channel.name }}</a>
+                                                -
+                                                <span>Circuit</span>
+                                            </div>
+                                            <div ng-switch-default>
+                                                <span class="glyphicon glyphicon-music"></span>
+                                                <a href="" editable-text="channel.name">{{ channel.name || "Channel name" }}</a>
+                                                -
+                                                <a href="" editable-select="channel.type" e-ng-options="type for type in TYPES">{{ channel.type || "Channel type" }}</a>
+                                                <a class="btn btn-default btn-sm" ng-click="removeChannel($index)"><i class="glyphicon glyphicon-trash"></i></a>
+                                            </div>
+                                    </li>
+                                </ul>
+
+                                <a class="btn btn-default" ng-click="addChannel()"><i class="glyphicon glyphicon-plus"></i></a>
                             </div>
                         </block-container>
                     </flexy-layout>

@@ -1,10 +1,22 @@
-# CONSTANTS
+# Get alias for the global scope
+globals = @
+
+# All will be in the "RW" namespace
+RW = globals.RW ? {}
+globals.RW = RW
 
 # TODO: this should be configurable
 GAME_DIMENSIONS = [960, 540]
 
 
-# GLOBALS
+# CONSTANTS
+
+# TODO: find a way make these properties of RW.io.sound
+RW.audioContext = new AudioContext()
+RW.lineOut = new WebAudiox.LineOut(RW.audioContext)
+
+
+# SHARED VARIABLES
 
 loadedGame = null
 lastMemory = null
@@ -18,6 +30,9 @@ recordFrameReporter = null # Callback function for recording
 isPlaying = false
 lastPlayedFrame = null
 playFrameReporter = null # Callback function for playing
+
+inPlaySequence = false
+
 
 # FUNCTIONS
 
@@ -128,14 +143,14 @@ compileBoard = (board, evaluator, path = []) ->
       when "children" then _.map(value, (child, key) -> compileBoard(child, evaluator, RW.appendToArray(path, key)))
       else value
 
-destroyIo = (currentIo) ->
-  for ioName, io of currentIo
+destroyIo = ->
+  for ioName, io of loadedGame.io
     io.destroy()
 
 # Converts the nested layers description into a simple list, ordered by depth
-flattenLayerList = (circuits) -> 
+flattenLayerList = (type, circuits) -> 
   flattenRecursive = (parentCircuitId, circuitType, layerList) -> 
-    for layer in circuits[circuitType].io.layers
+    for layer in circuits[circuitType].io[type]
       if layer.type is "circuit" 
         circuitId = RW.makeCircuitId(parentCircuitId, layer.name)
         circuitMeta = _.findWhere(circuitMetas, { id: circuitId })
@@ -149,7 +164,8 @@ flattenLayerList = (circuits) ->
 
 initializeIo = (circuits) ->
   # Get flattened list of layers
-  layerList = flattenLayerList(circuits)
+  layerList = flattenLayerList("layers", circuits)
+  channelList = flattenLayerList("channels", circuits)
 
   # Create new io
   currentIo = {}
@@ -163,6 +179,9 @@ initializeIo = (circuits) ->
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
           { circuitId: layer.circuitId, name: layer.name, depth: depth } 
+      if ioData.meta.audio
+        options.channels = for depth, channel of channelList
+          { circuitId: channel.circuitId, name: channel.name, type: channel.type } 
 
       currentIo[ioName] = ioData.factory(options)
     catch error
@@ -197,6 +216,9 @@ createAssets = (inputAssets, evaluator) ->
         image.onerror = -> console.error("Cannot load image '#{name}'")
         
         assetNamesToData[name] = image
+      else if splitUrl.mimeType.indexOf("audio/") == 0
+        audio = new Audio(dataUrl)
+        assetNamesToData[name] = audio
       else
         assetNamesToData[name] = atob(splitUrl.data)
 
@@ -213,10 +235,13 @@ loadGame = (gameCode, logFunction) ->
     transformers: compileTransformers(gameCode.transformers, evaluator, logFunction)
     io: initializeIo(gameCode.circuits)
 
+  # Keep in play sequence
+  if inPlaySequence then enterPlaySequence()
+
 unloadGame = ->
   destroyAssets()
   loadedAssets = null
-  destroyIo(loadedGame.io)
+  destroyIo()
 
 makeReporter = (destinationWindow, destinationOrigin, operation) ->
   return (err, value) ->
@@ -307,6 +332,14 @@ onUpdateFrames = (memory, inputIoDataFrames) ->
     lastMemory = RW.applyPatchesInCircuits(result.memoryPatches, lastMemory)
   return results
 
+enterPlaySequence = -> 
+  inPlaySequence = true
+  for ioName, io of loadedGame.io then io.enterPlaySequence?()
+
+leavePlaySequence = -> 
+  inPlaySequence = false
+  for ioName, io of loadedGame.io then io.leavePlaySequence?()
+
 # MAIN
 
 # Dispatch incoming messages
@@ -335,20 +368,28 @@ window.addEventListener 'message', (e) ->
         recordedFrames = []
         recordFrameReporter = makeReporter(e.source, e.origin, "recording")
         isRecording = true
+        enterPlaySequence()
+
         requestAnimationFrame(onRepeatRecordFrame)
         reporter(null)
       when "stopRecording"
         isRecording = false
+        leavePlaySequence()
+
         reporter(null, recordedFrames)
       when "startPlaying"
         lastMemory = message.value.memory
         lastPlayedFrame = null
         playFrameReporter = makeReporter(e.source, e.origin, "playing")
         isPlaying = true
+        enterPlaySequence()
+
         requestAnimationFrame(onRepeatPlayFrame)
         reporter(null)
       when "stopPlaying"
         isPlaying = false
+        leavePlaySequence()
+        
         # Send back just the last frame
         lastPlayedFrame.memory = lastMemory
         reporter(null, lastPlayedFrame)
