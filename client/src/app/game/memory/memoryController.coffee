@@ -51,7 +51,13 @@ angular.module('gamEvolve.game.memory', [])
           # TODO: disable the editor
           {} 
 
-    if _.isEqual(memoryModel, editor.get()) then return 
+    # Retrieving editor data can fail in code and text views
+    try
+      editorData = editor.get()
+    catch e
+      editorData = null
+    
+    if _.isEqual(memoryModel, editorData) then return 
 
     # Editor.node won't exist outside of "tree" view
     if editor.node? then save = saveExpandedNodes(editor.node)
