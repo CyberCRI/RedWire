@@ -218,17 +218,14 @@ createAssets = (inputAssets, evaluator) ->
         assetNamesToData[name] = image
       else if splitUrl.mimeType.indexOf("audio/") == 0
         arrayBuffer = RW.dataURLToArrayBuffer(dataUrl).buffer
-        console.log("*** Loading sound #{name}")
+        console.log("Loading sound #{name}")
         onSuccess = (buffer) -> 
-          console.log("*** Loaded sound #{name}")
+          console.log("Loaded sound #{name}")
           assetNamesToData[name] = buffer
         onError = (error) -> 
-          console.log("*** Error decoding audio asset '#{name}'", error)
+          console.error("Error decoding audio asset '#{name}'", error)
 
         RW.audioContext.decodeAudioData(arrayBuffer, onSuccess, onError)
-
-        # audio = new Audio(dataUrl)
-        # assetNamesToData[name] = audio
       else
         assetNamesToData[name] = atob(splitUrl.data)
 
@@ -273,7 +270,6 @@ onRecordFrame = (memory) ->
     io: loadedGame.io
     circuitMetas: circuitMetas
     assets: loadedAssets.data
-
 
 onRepeatRecordFrame = ->
   if !isRecording then return  # Stop when requested

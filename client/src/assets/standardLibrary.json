@@ -90,7 +90,7 @@
       "pinDefs": {
         "value": null
       },
-      "listActiveChildren": "return transformers.childByName(children, pins.value);"
+      "listActiveChildren": "if(RW.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
     },
     "If": {
       "pinDefs": {
@@ -189,7 +189,6 @@
         "frame"
       ],
       "body": "// Assuming the frames are set left to right\nvar framesPerLine = spriteSheet.sheetSize[0] / spriteSheet.frameSize[0];\nvar imageCoords = [frame % framesPerLine, Math.floor(frame / framesPerLine)];\n\nreturn {\n    type: \"image\",\n    asset: spriteSheet.asset,\n    position: position,\n    offset: [imageCoords[0] * spriteSheet.frameSize[0], imageCoords[1] * spriteSheet.frameSize[1]],\n    size: spriteSheet.frameSize\n};"
-    }
-  },
+    }  },
   "circuits": {}
 }

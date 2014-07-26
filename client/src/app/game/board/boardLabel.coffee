@@ -23,3 +23,8 @@ angular.module('gamEvolve.game.boardLabel', [
       when "splitter" then "Splitter"
       when "circuit" then "Circuit"
       else "Unknown Type"
+
+  $scope.getChildName = (chip) -> 
+    if not chip? then return null
+  
+    if chip.name? then JSON.stringify(chip.name) else ""
