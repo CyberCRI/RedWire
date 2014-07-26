@@ -217,8 +217,14 @@ createAssets = (inputAssets, evaluator) ->
         
         assetNamesToData[name] = image
       else if splitUrl.mimeType.indexOf("audio/") == 0
-        audio = new Audio(dataUrl)
-        assetNamesToData[name] = audio
+        arrayBuffer = RW.dataURLToArrayBuffer(dataUrl).buffer
+        onSuccess = (buffer) -> assetNamesToData[name] = buffer
+        onError = (error) -> console.log("Error decoding audio asset '#{name}'", error)
+
+        RW.audioContext.decodeAudioData(arrayBuffer, onSuccess, onError)
+
+        # audio = new Audio(dataUrl)
+        # assetNamesToData[name] = audio
       else
         assetNamesToData[name] = atob(splitUrl.data)
 

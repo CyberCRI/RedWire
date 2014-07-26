@@ -33,7 +33,8 @@
           0,
           0,
           0
-        ]
+        ],
+        "lastSoundTime": 0
       },
       "board": {
         "switch": "Do All",
@@ -53,13 +54,12 @@
                   "io.sound.fx": "[{ \n    fx: memory.jump \n}]"
                 },
                 "comment": "Play jump",
-                "name": null,
-                "$$hashKey": "00D"
+                "name": null
               }
             ],
             "name": null,
             "comment": "if mouse just down",
-            "$$hashKey": "00A"
+            "$$hashKey": "00B"
           },
           {
             "switch": "If",
@@ -76,8 +76,7 @@
                   "io.canvas.bg": "[{\n    type: \"rectangle\",\n    size: io.canvas.size,\n    position: [0, 0],\n    fillStyle: \"red\"\n}]"
                 },
                 "comment": "play perfume",
-                "name": null,
-                "$$hashKey": "00E"
+                "name": null
               },
               {
                 "emitter": {
@@ -85,26 +84,42 @@
                   "io.canvas.bg": "[{\n    type: \"rectangle\",\n    size: io.canvas.size,\n    fillStyle: \"black\",\n    position: [0, 0]\n}]"
                 },
                 "comment": "play techo",
-                "name": null,
-                "$$hashKey": "00F"
+                "name": null
               }
             ],
             "comment": "mouse is down",
             "name": null,
             "muted": false,
-            "$$hashKey": "00B"
+            "$$hashKey": "00C"
           },
           {
-            "emitter": {
-              "io.sound.sounds": "[{\n    asset: \"crash2.ogg\"  \n}]"
+            "switch": "Limit Rate",
+            "pins": {
+              "in": {
+                "currentTime": "io.time",
+                "minTime": "5000",
+                "lastTime": "memory.lastSoundTime"
+              },
+              "out": {
+                "memory.lastSoundTime": "pins.lastTime"
+              }
             },
-            "comment": "play sound",
+            "children": [
+              {
+                "emitter": {
+                  "io.sound.sounds": "[{\n    asset: \"crash2.ogg\"  \n}]"
+                },
+                "comment": "play sound",
+                "name": null,
+                "muted": false
+              }
+            ],
+            "comment": "Play every 5 sec",
             "name": null,
-            "muted": false,
-            "$$hashKey": "00C"
+            "$$hashKey": "00D"
           }
         ],
-        "$$hashKey": "009"
+        "$$hashKey": "00A"
       },
       "io": {
         "layers": [
@@ -120,18 +135,15 @@
         "channels": [
           {
             "name": "sounds",
-            "type": "clip",
-            "$$hashKey": "0B5"
+            "type": "clip"
           },
           {
             "name": "music",
-            "type": "music",
-            "$$hashKey": "0B6"
+            "type": "music"
           },
           {
             "name": "fx",
-            "type": "fx",
-            "$$hashKey": "0BS"
+            "type": "fx"
           }
         ]
       }
