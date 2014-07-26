@@ -522,19 +522,16 @@ RW.io.sound =
     makeChannelId = (circuitId, channelName) -> "#{circuitId}.#{channelName}"
     deconstructLayerId = (channelId) -> channelId.split(".")
 
-    findOrCreateMediaElementSource = (assetName) ->
-      if assetName not of mediaElementSources
-        audio = options.assets[assetName]
-        source = RW.audioContext.createMediaElementSource(audio)
-        source.disconnect()
-        source.connect(RW.lineOut.destination)
-        mediaElementSources[assetName] = source
-      return mediaElementSources[assetName]
-
     stopPlayingSounds = ->
       for assetName, asset of options.assets
         if asset instanceof Audio
           asset.pause()
+
+    connectAndPlayBuffer = (buffer) ->
+      source = RW.audioContext.createBufferSource()
+      source.buffer = buffer
+      source.connect(RW.lineOut.destination)
+      source.start(0)
 
     playingMusic = {}
 
@@ -575,10 +572,8 @@ RW.io.sound =
                   if sound.asset not of options.assets 
                     throw new Error("Cannot find asset '#{sound.asset}' for circuit '#{circuitId}'")
 
-                  audio = options.assets[sound.asset]
-                  source = findOrCreateMediaElementSource(sound.asset)
-                  audio.play()
-
+                  buffer = options.assets[sound.asset]
+                  connectAndPlayBuffer(buffer)
               when "music" 
                 # Channel data should be like { asset: "qsdf" } or null
                 channelId = makeChannelId(circuitId, channelName)
@@ -611,10 +606,7 @@ RW.io.sound =
                   _.defaults sound, 
                     fx: ["square",0.0000,0.4000,0.0000,0.3200,0.0000,0.2780,20.0000,496.0000,2400.0000,0.4640,0.0000,0.0000,0.0100,0.0003,0.0000,0.0000,0.0000,0.0235,0.0000,0.0000,0.0000,0.0000,1.0000,0.0000,0.0000,0.0000,0.0000] 
                   buffer = WebAudiox.getBufferFromJsfx(RW.audioContext, sound.fx)
-                  source = RW.audioContext.createBufferSource()
-                  source.buffer = buffer
-                  source.connect(RW.lineOut.destination)
-                  source.start(0)
+                  connectAndPlayBuffer(buffer)
               else 
                 throw new Error("Unknown channel type '#{channelMeta.type}'")
 
