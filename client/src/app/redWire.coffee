@@ -362,6 +362,7 @@ RW.calculateBindingSet = (circuitMeta, path, chip, constants, circuitData, oldBi
     inputContext = 
       memory: constants.memoryData[circuitMeta.id]
       io: constants.ioData[circuitMeta.id]
+      circuit: circuitData
 
     [parent, key] = RW.getParentAndKey(inputContext, RW.splitAddress(chip.splitter.from))
     boundValue = parent[key]
@@ -565,6 +566,48 @@ RW.visitCircuitChip = (circuitMeta, path, chip, constants, parentCircuitData, bi
     result.signal = RW.signals.ERROR
     RW.transformersLogger(RW.logLevels.ERROR, "Evaluating output pin expressions raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{RW.formatStackTrace(e)}")
 
+  return result
+
+RW.visitPipeChip = (circuitMeta, path, chip, constants, circuitData, oldBindings) ->
+  # Create new bindings 
+  newBindings = Object.create(oldBindings)
+  newBindings[chip.pipe.bindTo] = null
+
+  # Prepare result and logger
+  result = new RW.ChipVisitorResult()
+  RW.transformersLogger = RW.makeLogFunction(circuitMeta, path, result)
+
+  for childIndex, child of chip.children
+    # Visit the child
+    childVisitorResult = RW.visitChip(circuitMeta, RW.appendToArray(path, childIndex), circuit.board, constants, circuitData, newBindings)
+    result.append(childVisitorResult)
+    result.signal = childVisitorResult.signal
+
+  # Build the new childCircuitData
+  childCircuitPatches = childVisitorResult.getCircuitResults(childCircuitId).circuitPatches
+  # Check for conflicts 
+  conflicts = RW.detectPatchConflicts(childCircuitPatches)
+  if conflicts.length > 0 then throw new Error("Memory patches conflict for circuit #{childCircuitId}:\n#{JSON.stringify(conflicts)}")
+
+  # RW.transformersLogger may have been reset by visit to children
+  RW.transformersLogger = RW.makeLogFunction(circuitMeta, path, result)
+
+  try
+    # Patch 
+    newChildCircuitData = RW.applyPatches(childCircuitPatches, childCircuitData)
+  catch e
+    result.signal = RW.signals.ERROR
+    RW.transformersLogger(RW.logLevels.ERROR, "Merging circuit data from #{childCircuitId} raised an exception #{e}.\n#{RW.formatStackTrace(e)}")
+
+
+
+  bindingSet = RW.calculateBindingSet(circuitMeta, path, chip, constants, circuitData, oldBindings)
+  result = new RW.ChipVisitorResult()
+  for newBindings in bindingSet
+    # Continue with children
+    for childIndex, child of (chip.children or [])
+      childResult = RW.visitChip(circuitMeta, RW.appendToArray(path, childIndex), child, constants, circuitData, newBindings)
+      result.append(childResult)
   return result
 
 RW.chipVisitors =
