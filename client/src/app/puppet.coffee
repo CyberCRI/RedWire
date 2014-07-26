@@ -218,8 +218,12 @@ createAssets = (inputAssets, evaluator) ->
         assetNamesToData[name] = image
       else if splitUrl.mimeType.indexOf("audio/") == 0
         arrayBuffer = RW.dataURLToArrayBuffer(dataUrl).buffer
-        onSuccess = (buffer) -> assetNamesToData[name] = buffer
-        onError = (error) -> console.log("Error decoding audio asset '#{name}'", error)
+        console.log("*** Loading sound #{name}")
+        onSuccess = (buffer) -> 
+          console.log("*** Loaded sound #{name}")
+          assetNamesToData[name] = buffer
+        onError = (error) -> 
+          console.log("*** Error decoding audio asset '#{name}'", error)
 
         RW.audioContext.decodeAudioData(arrayBuffer, onSuccess, onError)
 
