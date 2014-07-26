@@ -523,20 +523,30 @@ RW.io.sound =
     deconstructLayerId = (channelId) -> channelId.split(".")
 
     stopPlayingSounds = ->
-      for assetName, asset of options.assets
-        if asset instanceof Audio
-          asset.pause()
+      for id, source of playingSourceNodes
+        source.stop()
 
-    connectAndPlayBuffer = (buffer) ->
+    # Returns a unique id of the sound clip in playingSourceNodes
+    connectAndPlayBuffer = (buffer, shouldLoop = false) ->
+      # Create source node
       source = RW.audioContext.createBufferSource()
       source.buffer = buffer
       source.connect(RW.lineOut.destination)
+      source.loop = shouldLoop
+
+      # Keep track of what sounds are playing
+      id = _.uniqueId()
+      source.onended = -> delete playingSourceNodes[id]
+      playingSourceNodes[id] = source
+
+      # Play immediately
       source.start(0)
+      return id
 
     playingMusic = {}
 
-    # maps asset names to HTMLMediaElementSource objects
-    mediaElementSources = {}
+    # maps asset names to AudioBufferSourceNode objects
+    playingSourceNodes = {}
 
     inPlaySequence = false
 
@@ -544,9 +554,9 @@ RW.io.sound =
       enterPlaySequence: ->
         inPlaySequence = true
 
-        # un-pause playing music
-        for channelId, channelData of playingMusic
-          if channelData.asset then options.assets[channelData.asset].play()
+        # startup playing music
+        for channelId, playingMusicData of playingMusic
+          if playingMusicData.channelData.asset then connectAndPlayBuffer(options.assets[playingMusicData.channelData.asset], true)
 
       leavePlaySequence: ->
         stopPlayingSounds()
@@ -572,18 +582,16 @@ RW.io.sound =
                   if sound.asset not of options.assets 
                     throw new Error("Cannot find asset '#{sound.asset}' for circuit '#{circuitId}'")
 
-                  buffer = options.assets[sound.asset]
-                  connectAndPlayBuffer(buffer)
+                  connectAndPlayBuffer(options.assets[sound.asset])
               when "music" 
                 # Channel data should be like { asset: "qsdf" } or null
                 channelId = makeChannelId(circuitId, channelName)
-                if _.isEqual(playingMusic[channelId], channelData) then continue
+                if _.isEqual(playingMusic[channelId]?.channelData, channelData) then continue
 
                 # Stop music if its playing
                 # TODO: handle volume changes of same music
                 if playingMusic[channelId]
-                  audio = options.assets[playingMusic[channelId].asset]
-                  audio.pause()
+                  playingSourceNodes[playingMusic[channelId].id].stop()
 
                 # Play new music
                 if channelData
@@ -591,16 +599,11 @@ RW.io.sound =
                     throw new Error("Cannot find asset '#{channelData.asset}' for circuit '#{circuitId}'")
 
                   # TODO: handle crossfading
-                  audio = options.assets[channelData.asset]
-                  findOrCreateMediaElementSource(channelData.asset)
-                  audio.loop = true
-                  try 
-                    audio.currentTime = 0
-                  catch error
-                    # Setting the time can fail if the file isn't completely loaded. Ignore it
-                  audio.play()
+                  sourceId = connectAndPlayBuffer(options.assets[channelData.asset], true)
 
-                playingMusic[channelId] = channelData
+                playingMusic[channelId] = 
+                  channelData: channelData
+                  id: sourceId
               when "fx"
                 for sound in channelData
                   _.defaults sound, 
