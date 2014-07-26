@@ -44,7 +44,7 @@
 							<ul>
 								<li ng-repeat="destination in pin.customDestinations.out">
 									<div ui-ace="{ mode: 'javascript', theme: 'twilight', useWrapMode: true }" ng-model="destination.source"></div>
-									<input required ng-model="destination.drain" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+									<input ng-model="destination.drain" placeholder="Output" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
 									<a class="btn btn-default btn-sm" ng-click="removeCustomDestination(pin.name, $index)"><i class="glyphicon glyphicon-trash"></i></a>
 								</li>
 							</ul>
