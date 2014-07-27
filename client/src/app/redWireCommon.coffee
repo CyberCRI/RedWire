@@ -62,7 +62,7 @@ RW.appendToArray = (array, value) -> RW.concatenate(array, [value])
 RW.removeFromArray = (array, value) -> return (element for element in array when not _.isEqual(value, element))
 
 # Return an array with a given element removed (by index)
-RW.removeIndexFromArray = (array, index) -> return (element for key, element of array when not index is key)
+RW.removeIndexFromArray = (array, index) -> return (element for key, element of array when String(index) isnt key)
 
 # If the value is not in the array, then add it, else remove it
 RW.toggleValueInArray = (array, value) ->
