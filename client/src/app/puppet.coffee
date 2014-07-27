@@ -195,10 +195,22 @@ destroyAssets = ->
     if splitUrl.mimeType == "text/css" then loadedAssets.data[name].remove()
 
 # The evaluator is initialized with any JS assets.
-# Returns object containing two maps: { urls: , data: }
+# Calls callback(err, assetNamesToData), where assetNamesToData is object containing two maps: { urls: , data: }
 # TODO: move asset handling into gamEvolve.coffee. CSS could be handled by the HTML io. JS is harder.
-createAssets = (inputAssets, evaluator) ->
+# TODO: use promises!
+createAssets = (inputAssets, evaluator, callback) ->
+  # Trivial case: if input is input is empty
+  if _.size(inputAssets) == 0 then return callback(null, { urls: {}, data: {} })
+
+  reportDone = (err, name, assetData) ->
+    if err? then return callback(err)
+
+    assetNamesToData[name] = assetData
+    if ++doneCounter is _.size(inputAssets)
+       return callback(null, { urls: inputAssets, data: assetNamesToData })
+
   assetNamesToData = {}
+  doneCounter = 0
 
   # Create new assets
   for name, dataUrl of inputAssets
@@ -207,43 +219,52 @@ createAssets = (inputAssets, evaluator) ->
       if splitUrl.mimeType in ["application/javascript", "text/javascript"]
         script = atob(splitUrl.data)
         evaluator(script)
+        reportDone(null, name, script)
       else if splitUrl.mimeType == "text/css"
         css = atob(splitUrl.data)
-        assetNamesToData[name] = $('<style type="text/css"></style>').html(css).appendTo("head")
+        element = $('<style type="text/css"></style>').html(css).appendTo("head")
+        reportDone(null, name, element)
       else if splitUrl.mimeType.indexOf("image/") == 0
         image = new Image()
-        image.src = dataUrl 
-        image.onerror = -> console.error("Cannot load image '#{name}'")
-        
-        assetNamesToData[name] = image
+        image.src = dataUrl
+        image.onload = -> reportDone(null, name, image) 
+        image.onerror = -> reportDone("Cannot load image '#{name}'")
       else if splitUrl.mimeType.indexOf("audio/") == 0
         arrayBuffer = RW.dataURLToArrayBuffer(dataUrl).buffer
-        console.log("Loading sound #{name}")
-        onSuccess = (buffer) -> 
-          console.log("Loaded sound #{name}")
-          assetNamesToData[name] = buffer
-        onError = (error) -> 
-          console.error("Error decoding audio asset '#{name}'", error)
+        onSuccess = (buffer) -> reportDone(null, name, buffer)
+        onError = (error) -> reportDone("Error decoding audio asset '#{name}'")
 
         RW.audioContext.decodeAudioData(arrayBuffer, onSuccess, onError)
       else
-        assetNamesToData[name] = atob(splitUrl.data)
+        reportDone(null, name, atob(splitUrl.data))
+  return null
 
-  return { urls: inputAssets, data: assetNamesToData }
-
-loadGame = (gameCode, logFunction) ->
+# When complete, calls callback(err)
+loadGame = (gameCode, callback) ->
   evaluator = eval
   circuitMetas = RW.listCircuitMeta(gameCode.circuits)
-  loadedAssets = createAssets(gameCode.assets, evaluator)
   loadedGame =
     circuits: compileCircuits(gameCode.circuits, evaluator)
     processors: compileProcessors(gameCode.processors, evaluator)
     switches: compileSwitches(gameCode.switches, evaluator)
-    transformers: compileTransformers(gameCode.transformers, evaluator, logFunction)
-    io: initializeIo(gameCode.circuits)
+    transformers: compileTransformers(gameCode.transformers, evaluator)
 
-  # Keep in play sequence
-  if inPlaySequence then enterPlaySequence()
+  createAssets gameCode.assets, evaluator, (err, assetNamesToData) ->
+    if err? then return callback(err)
+
+    loadedAssets = assetNamesToData
+
+    # Initialize IO after assets are loaded
+    try 
+      loadedGame.io = initializeIo(gameCode.circuits)
+    catch error
+      return callback(error)
+
+    # Keep in play sequence
+    if inPlaySequence then enterPlaySequence()
+
+    # Finished
+    callback(null)
 
 unloadGame = ->
   destroyAssets()
@@ -367,8 +388,9 @@ window.addEventListener 'message', (e) ->
         reporter(null)
       when "loadGameCode"
         if loadedGame? then unloadGame()
-        loadGame(message.value)
-        reporter(null)
+        loadGame message.value, (err) ->
+          if err? then return reporter(err, message.operation)
+          reporter(null)
       when "startRecording"
         lastMemory = message.value.memory
         recordedFrames = []
