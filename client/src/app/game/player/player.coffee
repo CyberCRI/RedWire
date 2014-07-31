@@ -45,8 +45,7 @@ angular.module('gamEvolve.game.player', [])
   $scope.gameHistoryMeta = gameHistory.meta
   lastGameVersion = -1
 
-  # TODO: take out this "global" message handler?
-  window.addEventListener 'message', (e) -> 
+  windowEventListener = (e) -> 
     # Sandboxed iframes which lack the 'allow-same-origin' header have "null" rather than a valid origin. 
     if e.origin isnt "null" or e.source isnt $("#gamePlayer")[0].contentWindow then return
 
@@ -224,6 +223,9 @@ angular.module('gamEvolve.game.player', [])
           # Display the current frame
           # TODO: go to the frame of first error
           onUpdateFrame(gameTime.currentFrameNumber)
+
+  window.addEventListener("message", windowEventListener) 
+  $scope.$on("$destroy", -> window.removeEventListener("message", windowEventListener))
 
   sendMessage = (operation, value) ->  
     # Note that we're sending the message to "*", rather than some specific origin. 
