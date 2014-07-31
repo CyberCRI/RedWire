@@ -1,4 +1,4 @@
-<ul frang-tree class="board">
+<ul frang-tree class="board" ng-if="isGameLoaded()">
     <li frang-tree-repeat="node in [chips.getCurrentBoard()]"
         frang-tree-drag="{node: node, parent: $parent.node}"
         frang-tree-drop="drop(dragData, node, $parent.node)"

@@ -1,5 +1,5 @@
 <block-container class="scrollable" id="toolbox" toolbox-dropzone ng-controller="ToolboxCtrl">
-    <accordion close-others="true">
+    <accordion close-others="true" ng-if="isGameLoaded()">
         <accordion-group>
             <accordion-heading><div>Circuits</div></accordion-heading>
             <div id="circuits">
