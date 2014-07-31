@@ -33,4 +33,9 @@ module.factory 'pins', (circuits, currentGame) ->
     for channel in channels
       keys.push("io.sound.#{channel.name}")
 
+    # Fill in circuit pins
+    pins = currentGame.version.circuits[circuits.currentCircuitMeta.type].pinDefs || {}
+    for pinName, pinDef of pins
+      keys.push("circuit.#{pinName}")
+
     return keys
