@@ -24,6 +24,8 @@ angular.module('gamEvolve.game.toolbox', [])
   $scope.transformers = []
   $scope.circuits = []
 
+  $scope.isGameLoaded = -> currentGame.version?
+
   # Watch currentGame and update our scope
   updateItems = ->
     if not currentGame.version then return 

@@ -35,18 +35,13 @@ angular.module('gamEvolve.game.player', [])
   gameCode = null
   oldRoundedScale = null
 
-  timing = 
-    updateFrames: null
-    stopRecording: null
-
   # Bring services into the scope
   $scope.currentGame = currentGame
   $scope.gameTime = gameTime
   $scope.gameHistoryMeta = gameHistory.meta
   lastGameVersion = -1
 
-  # TODO: take out this "global" message handler?
-  window.addEventListener 'message', (e) -> 
+  windowEventListener = (e) -> 
     # Sandboxed iframes which lack the 'allow-same-origin' header have "null" rather than a valid origin. 
     if e.origin isnt "null" or e.source isnt $("#gamePlayer")[0].contentWindow then return
 
@@ -75,33 +70,7 @@ angular.module('gamEvolve.game.player', [])
             gameHistory.data.compilationErrors = []
             lastGameVersion = ++gameHistory.meta.version
 
-          # Don't bother updating if we're playing right now
-          if gameTime.isPlaying then return
-
-          if gameHistory.data.frames.length > 0 and gameHistory.data.frames[0].inputIoData
-            # Notify the user
-            overlay.makeNotification("updating", true)
-
-            timing.updateFrames = Date.now()
-            # If there are already frames, then update them starting with the current frame
-            inputIoDataFrames = _.pluck(gameHistory.data.frames[gameTime.currentFrameNumber..], "inputIoData")
-
-            # If there are new circuits added, create memory and IO data for them
-            frameMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
-            circuitMetas = RW.listCircuitMeta(gameCode.circuits)
-            oldCircuitIds = _.keys(frameMemory)
-            circuitIds = _.pluck(circuitMetas, "id")
-            for newCircuitId in _.difference(circuitIds, oldCircuitIds)
-              frameMemory[newCircuitId] = RW.cloneData(gameCode.circuits[_.findWhere(circuitMetas, { id: newCircuitId }).type].memory)
-              for inputIoDataFrame in inputIoDataFrames
-                inputIoDataFrame[newCircuitId] = inputIoDataFrame.global
-
-            # The memory stored in the current frame
-            sendMessage("updateFrames", { memory: frameMemory, inputIoDataFrames })
-          else
-            # Else just record the first frame
-            initialMemoryData = buildInitialMemoryData(gameCode.circuits)
-            sendMessage("recordFrame", { memory: initialMemoryData })
+          updateFrames()
       when "recordFrame"
         if message.type is "error" then throw new Error("Cannot deal with recordFrame error message")
 
@@ -125,8 +94,6 @@ angular.module('gamEvolve.game.player', [])
           hadRecordingErrors = true # Used to notify the user 
           gameTime.isPlaying = false
       when "stopRecording" 
-        console.log("Stop recording took puppet #{Date.now() - timing.stopRecording} ms")
-
         $scope.$apply ->
           metError = false
 
@@ -167,8 +134,6 @@ angular.module('gamEvolve.game.player', [])
           hadRecordingErrors = true # Used to notify the user 
           gameTime.isPlaying = false
       when "stopPlaying" 
-        console.log("Stop playing took puppet #{Date.now() - timing.stopRecording} ms")
-
         $scope.$apply ->
           metError = false
 
@@ -194,7 +159,6 @@ angular.module('gamEvolve.game.player', [])
           lastGameVersion = ++gameHistory.meta.version
       when "updateFrames" 
         if message.type is "error" then throw new Error("Cannot deal with updateFrames error")
-        console.log("Update frames took puppet #{Date.now() - timing.updateFrames} ms")
 
         $scope.$apply ->
           metError = false
@@ -225,6 +189,37 @@ angular.module('gamEvolve.game.player', [])
           # TODO: go to the frame of first error
           onUpdateFrame(gameTime.currentFrameNumber)
 
+  window.addEventListener("message", windowEventListener) 
+  $scope.$on("$destroy", -> window.removeEventListener("message", windowEventListener))
+
+  updateFrames = ->
+    # Don't bother updating if we're playing right now
+    if gameTime.isPlaying then return
+
+    if gameHistory.data.frames.length > 0 and gameHistory.data.frames[0].inputIoData
+      # Notify the user
+      overlay.makeNotification("updating", true)
+
+      # If there are already frames, then update them starting with the current frame
+      inputIoDataFrames = _.pluck(gameHistory.data.frames[gameTime.currentFrameNumber..], "inputIoData")
+
+      # If there are new circuits added, create memory and IO data for them
+      frameMemory = gameHistory.data.frames[gameTime.currentFrameNumber].memory
+      circuitMetas = RW.listCircuitMeta(gameCode.circuits)
+      oldCircuitIds = _.keys(frameMemory)
+      circuitIds = _.pluck(circuitMetas, "id")
+      for newCircuitId in _.difference(circuitIds, oldCircuitIds)
+        frameMemory[newCircuitId] = RW.cloneData(gameCode.circuits[_.findWhere(circuitMetas, { id: newCircuitId }).type].memory)
+        for inputIoDataFrame in inputIoDataFrames
+          inputIoDataFrame[newCircuitId] = inputIoDataFrame.global
+
+      # The memory stored in the current frame
+      sendMessage("updateFrames", { memory: frameMemory, inputIoDataFrames })
+    else
+      # Else just record the first frame
+      initialMemoryData = buildInitialMemoryData(gameCode.circuits)
+      sendMessage("recordFrame", { memory: initialMemoryData })
+
   sendMessage = (operation, value) ->  
     # Note that we're sending the message to "*", rather than some specific origin. 
     # Sandboxed iframes which lack the 'allow-same-origin' header don't have an origin which you can target: you'll have to send to any origin, which might alow some esoteric attacks. 
@@ -243,13 +238,16 @@ angular.module('gamEvolve.game.player', [])
 
     console.log("Game code changed to", gameCode)
     sendMessage("loadGameCode", gameCode)
-  $scope.$watch("currentGame", onUpdateCode, true)
+  $scope.$watch("currentGame.version", onUpdateCode, true)
 
   # Call onUpdateGode() if the game history changes 
   onUpdateGameHistory = ->
+    if not currentGame.version? then return
+    if not puppetIsAlive then return
+
     # To check that we haven't updated the game version ourselves
     if gameHistory.meta.version isnt lastGameVersion
-      onUpdateCode()
+      updateFrames()
   $scope.$watch('gameHistoryMeta.version', onUpdateGameHistory, true)
 
   onResize = -> 
@@ -304,7 +302,6 @@ angular.module('gamEvolve.game.player', [])
         overlay.makeNotification("playing")
         sendMessage("startPlaying", { memory: nextMemory })
     else
-      timing.stopPlaying = Date.now()
       if gameTime.inRecordMode
         # Notify the user
         overlay.makeNotification("updating", true) # This could take a while...

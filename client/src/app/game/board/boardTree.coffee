@@ -16,6 +16,8 @@ angular.module('gamEvolve.game.boardTree', [
   $scope.chips = chips 
   $scope.boardNodes = boardNodes
 
+  $scope.isGameLoaded = -> $scope.currentGame.version?
+
   # Because object identity is used to identify nodes, we need to use the local drag objects if possible
   $scope.getDraggedData = ->
     if treeDrag.data then treeDrag.data else dndHelper.getDraggedData()
