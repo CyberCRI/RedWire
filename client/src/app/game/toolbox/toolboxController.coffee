@@ -165,6 +165,10 @@ angular.module('gamEvolve.game.toolbox', [])
 
   $scope.isItemInGame = (itemType, name) -> return name of currentGame.version[itemType]
 
+  $scope.canEditItem = (itemType, name) -> 
+    if itemType is "circuits" and name is "main" then return false
+    return $scope.isItemInGame(itemType, name)
+
   $scope.removeItem = (itemType, name) ->
     delete currentGame.version[itemType][name]
     currentGame.updateLocalVersion()
