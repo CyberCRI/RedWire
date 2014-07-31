@@ -23,9 +23,9 @@ module.factory 'pins', (circuits, currentGame) ->
     # Fill in mouse pins
     for pin in ["down", "position", "cursor", "justDown", "justUp"] then keys.push("io.mouse.#{pin}")
 
-    # Fill in canvas pins
+    # Fill in layer pins
     layers = currentGame.version.circuits[circuits.currentCircuitMeta.type].io.layers
-    for layer in layers
+    for layer in layers when layer.type is "canvas"
       keys.push("io.canvas.#{layer.name}")
 
     # Fill in sound pins
