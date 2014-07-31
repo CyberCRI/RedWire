@@ -20,7 +20,7 @@ RW.lineOut = new WebAudiox.LineOut(RW.audioContext)
 
 loadedGame = null
 lastMemory = null
-loadedAssets = null
+loadedAssets = { urls: {}, data: {} }
 circuitMetas = null
 
 isRecording = false
@@ -268,7 +268,7 @@ loadGame = (gameCode, callback) ->
 
 unloadGame = ->
   destroyAssets()
-  loadedAssets = null
+  loadedAssets = { urls: {}, data: {} }
   destroyIo()
 
 makeReporter = (destinationWindow, destinationOrigin, operation) ->
