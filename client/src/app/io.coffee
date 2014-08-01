@@ -138,9 +138,11 @@ RW.io.canvas =
 
     handleTransformations = (shape, ctx) ->
       # Not sure this is done in the right order
-      if shape.translation then ctx.translate(shape.translation[0], shape.translation[1])
-      if shape.rotation then ctx.rotate(shape.rotation * Math.PI / 180) # Convert to radians
-      if shape.scale 
+      if shape.translation? 
+        ctx.translate(shape.translation[0], shape.translation[1])
+        if not shape.position? then shape.position = [0, 0]
+      if shape.rotation? then ctx.rotate(shape.rotation * Math.PI / 180) # Convert to radians
+      if shape.scale? 
         if _.isArray(shape.scale) then ctx.scale(shape.scale[0], shape.scale[1])
         else if _.isNumber(shape.scale) then ctx.scale(shape.scale, shape.scale)
         else throw new Error('Scale argument must be number or array')
