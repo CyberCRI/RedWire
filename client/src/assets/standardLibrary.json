@@ -1,0 +1,194 @@
+{
+  "processors": {
+    "Change Parameter through Keyboard": {
+      "pinDefs": {
+        "parameter": {
+          "direction": "inout"
+        },
+        "keysDown": null,
+        "keyMap": null
+      },
+      "update": "for (var keyCode in pins.keyMap) {\n  if (pins.keysDown[keyCode]) {\n    var value = pins.keyMap[keyCode];\n    if (_.isString(value) && value.length > 0 && (value[0] == '+' || value[0] == '-')) {\n      pins.parameter += Number(value);\n    } else {\n      pins.parameter = value;\n    }\n    break;\n  }\n}"
+    },
+    "Move thing with arrow keys": {
+      "pinDefs": {
+        "keysDown": {
+          "direction": "in",
+          "default": ""
+        },
+        "position": {
+          "direction": "inout",
+          "default": null
+        },
+        "speed": {
+          "direction": "in",
+          "default": "1"
+        }
+      },
+      "update": "if(pins.keysDown[37]) pins.position[0] -= pins.speed;\nif(pins.keysDown[39]) pins.position[0] += pins.speed;\nif(pins.keysDown[38]) pins.position[1] -= pins.speed;\nif(pins.keysDown[40]) pins.position[1] += pins.speed;"
+    },
+    "Detect Mouse": {
+      "pinDefs": {
+        "shapes": null,
+        "shape": {
+          "direction": "inout"
+        },
+        "mousePosition": null,
+        "mouseDown": null,
+        "state": {
+          "direction": "inout"
+        },
+        "dragStartPosition": {
+          "direction": "inout"
+        },
+        "minimumDragDistance": {
+          "default": "5"
+        }
+      },
+      "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+    }
+  },
+  "switches": {
+    "Do All": {
+      "doc": "Just to place children under it",
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
+    "Do One at a Time": {
+      "pinDefs": {
+        "activeChild": {
+          "direction": "inout",
+          "default": 0
+        }
+      },
+      "listActiveChildren": "return [pins.activeChild];",
+      "handleSignals": "if (signals[pins.activeChild] == RW.signals.DONE)\n  pins.activeChild++;\nif (pins.activeChild > children.length - 1) {\n  pins.activeChild = 0;\n  return RW.signals.DONE;\n}"
+    },
+    "Do for Some Time": {
+      "pinDefs": {
+        "time": null,
+        "timer": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return children;",
+      "handleSignals": "if (pins.timer++ >= pins.time) {\n  pins.timer = 0;\n  return RW.signals.DONE;\n}"
+    },
+    "Do While": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return !!pins.value ? children : [];",
+      "handleSignals": "if (!pins.value)\n  return RW.signals.DONE;"
+    },
+    "Do Forever": {
+      "pinDefs": {},
+      "listActiveChildren": "return children;",
+      "handleSignals": ""
+    },
+    "Switch on Name": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "if(RW.indexOf(children, pins.value) == -1) return [];\nelse return [pins.value];"
+    },
+    "If": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return pins.value ? [0] : children.length > 1 ? [1] : [];"
+    },
+    "Sandwhich": {
+      "pinDefs": {
+        "condition": null,
+        "started": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "if (!pins.track) {\n  if (!pins.condition) {\n    return [0];\n  } else {\n    pins.track = true;\n    return [1];\n  }\n} else {\n  if (pins.condition) {\n    return [1];\n  } else {\n    pins.track = false;\n    return [2];\n  }\n}"
+    },
+    "Limit Rate": {
+      "pinDefs": {
+        "currentTime": null,
+        "minTime": null,
+        "lastTime": {
+          "direction": "inout"
+        }
+      },
+      "listActiveChildren": "return pins.currentTime - pins.lastTime >= pins.minTime ? children : [];",
+      "handleSignals": "if(signals[0] == RW.signals.DONE) pins.lastTime = pins.currentTime;"
+    },
+    "When": {
+      "pinDefs": {
+        "value": null
+      },
+      "listActiveChildren": "return pins.value ? children : [];"
+    }
+  },
+  "transformers": {
+    "pointIntersectsShape": {
+      "args": [
+        "point",
+        "shape"
+      ],
+      "body": "if (!shape.fillStyle && !shape.strokeStyle)\n  return false;\nswitch (shape.type) {\ncase 'circle':\n  var center = Vector.create(shape.position);\n  if (shape.translation)\n    center = center.add(shape.translation);\n  var lineWidth = shape.lineWidth || 1;\n  var scale = shape.scale || 1;\n  var minDistance = shape.fillStyle ? 0 : shape.radius - lineWidth;\n  var maxDistance = shape.strokeStyle ? shape.radius + lineWidth : shape.radius;\n  var distance = center.distanceFrom(Vector.create(point));\n  return distance >= minDistance * scale && distance <= maxDistance * scale;\ncase 'rectangle':\n  var pointInShapeFrame = Vector.create(point);\n  if (shape.translation)\n    pointInShapeFrame = pointInShapeFrame.subtract(shape.translation);\n  return pointInShapeFrame.elements[0] >= shape.position[0] && pointInShapeFrame.elements[0] <= shape.position[0] + shape.size[0] && pointInShapeFrame.elements[1] >= shape.position[1] && pointInShapeFrame.elements[1] <= shape.position[1] + shape.size[1];\ndefault:\n  throw new Error('Shape type \\'' + shape.type + '\\' is not supported');\n}"
+    },
+    "removeElement": {
+      "args": [
+        "tab",
+        "index"
+      ],
+      "body": "var newArray = [];\nfor (var i = 0; i < tab.length; i++) {\n  if (i != index)\n    newArray.push(tab[i]);\n}\nreturn newArray;"
+    },
+    "replace": {
+      "args": [
+        "oldPiece",
+        "newPiece",
+        "pieces"
+      ],
+      "body": "for (var i in pieces) {\n  var piece = pieces[i];\n  if (piece.col === oldPiece.col && piece.row === oldPiece.row) {\n    result = pieces.slice(0, i).concat(newPiece).concat(pieces.slice(i + 1, pieces.length));\n    return result;\n  }\n}\nreturn pieces;"
+    },
+    "coordinatesToString": {
+      "args": [
+        "coordinates"
+      ],
+      "body": "var x = coordinates[0] || coordinates.x;\nvar y = coordinates[1] || coordinates.y;\nreturn '[' + x + ', ' + y + ']';"
+    },
+    "distance": {
+      "args": [
+        "povar1",
+        "povar2"
+      ],
+      "body": "var povar1x = povar1[0] || povar1.x;\nvar povar1y = povar1[1] || povar1.y;\nvar povar2x = povar2[0] || povar2.x;\nvar povar2y = povar2[1] || povar2.y;\nvar diffX = povar1x - povar2x;\nvar diffY = povar1y - povar2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
+    },
+    "shapesIntersect": {
+      "args": [
+        "left",
+        "right",
+        "assets"
+      ],
+      "body": "function makeSatObject(shape) {\n    switch(shape.type) {\n        case 'circle':\n            return new SAT.Circle(new SAT.Vector(shape.position[0], shape.position[1]), shape.radius);\n        case 'rectangle':\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), shape.size[0], shape.size[1]).toPolygon();\n        case 'image':\n            var img = assets[shape.asset];\n            return new SAT.Box(new SAT.Vector(shape.position[0], shape.position[1]), img.naturalWidth, img.naturalHeight).toPolygon();\n        default:\n            throw new Error('Cannot check intersection for shape of type: ' + shape.type);\n    }\n}\n\nfunction testIntersection(left, right) {\n    var leftSat = makeSatObject(left);\n    var rightSat = makeSatObject(right); \n    \n    if(leftSat instanceof SAT.Circle && rightSat instanceof SAT.Circle) {\n        return SAT.testCircleCircle(leftSat, rightSat);\n    }\n    \n    if (leftSat instanceof SAT.Circle && rightSat instanceof SAT.Polygon) {\n        return SAT.testCirclePolygon(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Circle) {\n        return SAT.testPolygonCircle(leftSat, rightSat);\n    } \n    \n    if (leftSat instanceof SAT.Polygon && rightSat instanceof SAT.Polygon) {\n        return SAT.testPolygonPolygon(leftSat, rightSat);\n    }\n    \n    throw new Error(\"Cannot test intersections between shapes of types \" + left.type + \" and \" + right.type);\n}\n\n// Convert to arrays if necessary\nvar leftList = _.isArray(left) ? left : [left];\nvar rightList = _.isArray(right) ? right : [right];\n\n// Check all intersections \nfor(var i = 0; i < leftList.length; i++) {\n    for(var j = 0; j < rightList.length; j++) {\n        if(testIntersection(leftList[i], rightList[j])) return [leftList[i], rightList[j]];  \n    }\n}\nreturn null; // No intersection"
+    },
+    "getAssetSize": {
+      "args": [
+        "asset"
+      ],
+      "body": "return [asset.naturalWidth, asset.naturalHeight];"
+    },
+    "addVectors": {
+      "args": [
+        "a",
+        "b"
+      ],
+      "body": "return [ a[0] + b[0], a[1] + b[1] ];"
+    },
+    "makeSpriteShape": {
+      "args": [
+        "spriteSheet",
+        "position",
+        "frame"
+      ],
+      "body": "// Assuming the frames are set left to right\nvar framesPerLine = spriteSheet.sheetSize[0] / spriteSheet.frameSize[0];\nvar imageCoords = [frame % framesPerLine, Math.floor(frame / framesPerLine)];\n\nreturn {\n    type: \"image\",\n    asset: spriteSheet.asset,\n    position: position,\n    offset: [imageCoords[0] * spriteSheet.frameSize[0], imageCoords[1] * spriteSheet.frameSize[1]],\n    size: spriteSheet.frameSize\n};"
+    }  },
+  "circuits": {}
+}

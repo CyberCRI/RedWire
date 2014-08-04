@@ -15,19 +15,21 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.loadGame = -> $state.transitionTo('game-list')
   $scope.gotoPlayScreen = -> $state.transitionTo('play', { gameId: $stateParams.gameId })
 
-  $scope.saveButtonDisabled = false
-  lastSaveActionName = null
-  $scope.isSaveButtonShown = -> games.getSaveAction()
-  $scope.getSaveButtonName = -> 
-    if $scope.saveButtonDisabled then lastSaveActionName
-    else if $scope.isSaveButtonShown() then games.getSaveAction().name
-    else ""
-  $scope.getSaveButtonClasses = -> 
-    if $scope.saveButtonDisabled then "font-icon-spin5 animate-spin"
-    else if $scope.isSaveButtonShown() then games.getSaveAction().classes
-    else ""
-  $scope.doSaveAction = ->
-    lastSaveActionName = $scope.getSaveButtonName()
-    $scope.saveButtonDisabled = true
-    games.saveCurrent().finally ->
-      $scope.saveButtonDisabled = false 
+  $scope.publishButtonDisabled = false
+  $scope.isPublishButtonDisplayed = ->
+    isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id
+  $scope.publishButtonClick = ->
+    $scope.publishButtonDisabled = true
+    games.publishCurrent().finally ->
+      $scope.publishButtonDisabled = false
+
+  isGameLoaded = ->
+    currentGame.info and currentGame.version
+
+  $scope.forkButtonDisabled = false
+  $scope.isForkButtonDisplayed = ->
+    isGameLoaded() and loggedUser.isLoggedIn()
+  $scope.forkButtonClick = ->
+    $scope.forkButtonDisabled = true
+    games.forkCurrent().finally ->
+      $scope.forkButtonDisabled = false

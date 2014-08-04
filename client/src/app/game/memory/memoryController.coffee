@@ -27,9 +27,12 @@ angular.module('gamEvolve.game.memory', [])
 
   onEditorChange = -> $scope.$apply(onUpdateMemoryEditor)
 
-  editor = new jsoneditor.JSONEditor $("#memoryEditor")[0],
+  editor = new JSONEditor $("#memoryEditor")[0],
     change: _.debounce(onEditorChange, WAIT_TIME)
     name: "memory"
+    history: false
+    search: false
+    modes: ["tree", "code", "text"]
 
   # Update from gameHistory
   onUpdateMemoryModel = ->
@@ -48,14 +51,22 @@ angular.module('gamEvolve.game.memory', [])
           # TODO: disable the editor
           {} 
 
-    if _.isEqual(memoryModel, editor.get()) then return 
+    # Retrieving editor data can fail in code and text views
+    try
+      editorData = editor.get()
+    catch e
+      editorData = null
+    
+    if _.isEqual(memoryModel, editorData) then return 
 
-    save = saveExpandedNodes(editor.node)
+    # Editor.node won't exist outside of "tree" view
+    if editor.node? then save = saveExpandedNodes(editor.node)
 
     # Clone so that the editor doesn't modify our recorded data directly
     editor.set(RW.cloneData(memoryModel))
 
-    restoreExpandedNodes(editor.node, save)
+    # Editor.node won't exist outside of "tree" view
+    if editor.node? then restoreExpandedNodes(editor.node, save)
 
   $scope.$watch('gameHistoryMeta', onUpdateMemoryModel, true)
   $scope.$watch((-> circuits.currentCircuitMeta), onUpdateMemoryModel)
@@ -65,9 +76,10 @@ angular.module('gamEvolve.game.memory', [])
   onUpdateMemoryEditor = ->
     if not gameHistory.data.frames[gameTime.currentFrameNumber]? then return 
 
+    newMemory = RW.cloneData(editor.get())
+
     # Update the frame memory
     if circuits.currentCircuitMeta.id?
-      newMemory = RW.cloneData(editor.get())
       gameHistory.data.frames[gameTime.currentFrameNumber].memory[circuits.currentCircuitMeta.id] = newMemory
       gameHistory.meta.version++
 

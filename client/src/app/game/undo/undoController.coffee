@@ -1,16 +1,16 @@
-formatDate = -> moment().format("HH:MM:SS")
+formatDate = -> moment().format("HH:mm:ss")
 
 isModalShowing = -> $(".modal, .large-modal").length > 0
 
 
 angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
-.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache, WillChangeLocalVersionEvent) -> 
+.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache, gameConverter, WillChangeLocalVersionEvent) -> 
   currentLocalVersion = 0
 
   # Bring canUndo() and canRedo() into scope
   $scope.canUndo = -> undo.canUndo()
   $scope.canRedo = -> undo.canRedo()
-  $scope.text = "" 
+  $scope.getStatusMessage = -> currentGame.statusMessage 
 
   $scope.undo = -> 
     if not undo.canUndo() then return 
@@ -34,6 +34,10 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
       # Check if code exists in offline cache
       try 
         cachedCode = cache.load(currentGame.info.id)
+        # Remove hash keys to get good comparaison
+        gameConverter.removeHashKeys(cachedCode)
+        gameConverter.removeHashKeys(currentGame.version)
+
         if cachedCode and not _.isEqual(currentGame.version, cachedCode)
           if window.confirm("You have some changes saved offline. Restore your offline version?")
             # Put the old version as the first in the undo stack
@@ -45,7 +49,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
           else
             cache.remove(currentGame.info.id)
       catch error
-        $scope.text = "Offline saving unavailable"
+        currentGame.statusMessage = "Offline saving unavailable"
         console.error(error)
 
     # Check that we're not already updated
@@ -55,9 +59,9 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
       currentLocalVersion = currentGame.localVersion
       try 
         cache.save(currentGame.info.id, currentGame.version)
-        $scope.text = "Saved at #{formatDate()}"
+        currentGame.statusMessage = "Saved at #{formatDate()}"
       catch error
-        $scope.text = "Offline saving unavailable"
+        currentGame.statusMessage = "Offline saving unavailable"
         console.error(error)
 
   $scope.currentGame = currentGame

@@ -1,15 +1,14 @@
-<ul frang-tree class="board">
+<ul frang-tree class="board" ng-if="isGameLoaded()">
     <li frang-tree-repeat="node in [chips.getCurrentBoard()]"
         frang-tree-drag="{node: node, parent: $parent.node}"
-        frang-tree-drop="drop(dragData.node, node, dragData.parent, $parent.node)"
+        frang-tree-drop="drop(dragData, node, $parent.node)"
         frang-tree-enter="enter(node)"
         frang-tree-allow-drop="allowDrop(dragData.node)">
         <div class="drop-before" ng-hide="isPreviewedAsSource(node)"></div>
         <div class="preview before" ng-if="isPreviewedAsTarget(node) && treeDrag.dropBefore && !chips.isRoot(node)">
-            <board-label node="treeDrag.data.node"></board-label>
+            <board-label node="getDraggedData().node"></board-label>
         </div>
         <div ng-hide="isPreviewedAsSource(node)">
-                <!--ng-hide="treeDrag.data.node === node && treeDrag.lastHovered != node && treeDrag.lastHovered.children[0] != node">-->
             <span ng-click="boardNodes.labelClicked(node)">
                 <span class="arrow"
                       ng-class="{collapsed: !boardNodes.isOpen(node), expanded: boardNodes.isOpen(node), leaf: !chips.hasChildren(node) || chips.isRoot(node)}"></span>
@@ -22,13 +21,27 @@
                 <button class="btn btn-xs" ng-click="mute(node)" ng-class="{'btn-danger': node.muted, active: node.muted}">
                     {{node.muted ? 'Unmute' : 'Mute'}}
                 </button>
+
+                <div class="btn-group" dropdown>
+                  <button type="button" class="btn btn-xs dropdown-toggle">
+                    <span class="glyphicon glyphicon-arrow-right"></span></span>
+                  </button>
+                  <ul class="dropdown-menu" role="menu">
+                    <li class="moveDropdownHeader">Move to</li>
+                    <li class="divider"></li>
+                    <li class="moveDropdownOption" ng-repeat="circuitType in listOtherCircuitTypes()"> 
+                        <a href="" ng-click="moveChipToCircuit(node, $parent.$parent.node, circuitType)"><span></span> {{ circuitType }}</a>
+                    </li>
+                  </ul>
+                </div>
+
                 <button class="btn btn-xs" ng-click="remove(node, $parent.node)"><span class="glyphicon glyphicon-trash"></span></button>
             </span>
         </div>
         <div class="preview after"
              ng-class="{child: chips.acceptsChildren(node)}"
              ng-if="isPreviewedAsTarget(node) && !treeDrag.dropBefore">
-            <board-label node="treeDrag.data.node"></board-label>
+            <board-label node="getDraggedData().node"></board-label>
         </div>
         <ul ng-if="chips.hasChildren(node) && boardNodes.isOpen(node)"
             frang-tree-insert-children="node.children">

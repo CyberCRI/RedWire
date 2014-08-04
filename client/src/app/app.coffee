@@ -14,10 +14,12 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.eventBus'
   'gamEvolve.util.logger'
   'gamEvolve.util.gameConverter'
+  'gamEvolve.util.pins'
   'gamEvolve.game.about'
   'gamEvolve.game.assets'
   'gamEvolve.game.boardTree'
   'gamEvolve.game.boardNodes'
+  'gamEvolve.game.channels'
   'gamEvolve.game.edit'
   'gamEvolve.game.embed'
   'gamEvolve.game.home'
@@ -45,6 +47,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.undo'
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
+  'gamEvolve.util.dndHelper'
   'xeditable'
   'treeRepeat'
 ])
@@ -68,6 +71,13 @@ angular.module( 'gamEvolve', [
       $scope.pageTitle = toState.data.pageTitle + ' | RedWire'
 )
 
-# Set options for xeditable
 .run (editableOptions) ->
+  # Set options for xeditable
   editableOptions.theme = "bs3"
+
+  # Warn about browser incompatibilities
+  if bowser.mobile or bowser.tablet or not (bowser.firefox or bowser.chrome)
+    alert """WARNING: RedWire is designed for Firefox and Chrome on the desktop.
+      
+      It may work on other browsers but we can't guarantee it!"""
+

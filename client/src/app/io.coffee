@@ -138,9 +138,11 @@ RW.io.canvas =
 
     handleTransformations = (shape, ctx) ->
       # Not sure this is done in the right order
-      if shape.translation then ctx.translate(shape.translation[0], shape.translation[1])
-      if shape.rotation then ctx.rotate(shape.rotation * Math.PI / 180) # Convert to radians
-      if shape.scale 
+      if shape.translation? 
+        ctx.translate(shape.translation[0], shape.translation[1])
+        if not shape.position? then shape.position = [0, 0]
+      if shape.rotation? then ctx.rotate(shape.rotation * Math.PI / 180) # Convert to radians
+      if shape.scale? 
         if _.isArray(shape.scale) then ctx.scale(shape.scale[0], shape.scale[1])
         else if _.isNumber(shape.scale) then ctx.scale(shape.scale, shape.scale)
         else throw new Error('Scale argument must be number or array')
@@ -154,6 +156,12 @@ RW.io.canvas =
 
       switch shape.type
         when 'rectangle' 
+          # Fill in defaults
+          if "fillStyle" not of shape and "strokeStyle" not of shape then shape.fillStyle = "#cf0404"
+          _.defaults shape, 
+            size: [100, 100]
+            position: [100, 100]
+
           if shape.fillStyle
             ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
             ctx.fillRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
@@ -163,6 +171,10 @@ RW.io.canvas =
             ctx.strokeRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
         when 'image'
           if shape.asset not of assets then throw new Error("Cannot find asset '#{shape.asset}' for shape '#{JSON.stringify(shape)}'")
+
+          # Fill in defaults
+          if "position" not of shape then shape.position = [100, 100]
+
           img = assets[shape.asset]
           size = if shape.size
               # Clamp size to image size
@@ -176,6 +188,14 @@ RW.io.canvas =
           catch error
             throw new Error("Error drawing image shape #{JSON.stringify(shape)}: #{RW.formatStackTrace(error)}")
         when 'text'
+          # Fill in defaults
+          if "fillStyle" not of shape and "strokeStyle" not of shape then shape.fillStyle = "#cf0404"
+          _.defaults shape, 
+            position: [200, 200]
+            text: "RedWire"
+            font: "40px Courier New"
+            align: "left"
+
           text = _.isString(shape.text) && shape.text || JSON.stringify(shape.text)
           ctx.font = shape.font
           ctx.textAlign = shape.align
@@ -186,7 +206,13 @@ RW.io.canvas =
             ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
             ctx.strokeText(text, shape.position[0], shape.position[1])
         when 'path'
-          ctx.beginPath();
+          # Fill in defaults
+          if "fillStyle" not of shape and "strokeStyle" not of shape then shape.strokeStyle = "#cf0404"
+          _.defaults shape, 
+            points: [ [200, 200], [400, 200], [300, 100] ]
+            lineWidth: 10
+
+          ctx.beginPath()
           ctx.moveTo(shape.points[0][0], shape.points[0][1])
           for point in shape.points[1..] then ctx.lineTo(point[0], point[1])
           if shape.fillStyle
@@ -200,6 +226,12 @@ RW.io.canvas =
             if shape.miterLimit then ctx.miterLimit = shape.miterLimit
             ctx.stroke()
         when 'circle'
+          # Fill in defaults
+          if "fillStyle" not of shape and "strokeStyle" not of shape then shape.fillStyle = "#cf0404"
+          _.defaults shape, 
+            position: [300, 300]
+            radius: 50
+
           ctx.beginPath();
           ctx.moveTo(shape.position[0], shape.position[1])
           ctx.arc(shape.position[0], shape.position[1], shape.radius, 0, 2 * Math.PI)
@@ -217,35 +249,37 @@ RW.io.canvas =
 
     return {
       provideData: -> 
-        global:
-          size: options.size
-          shapes: {}
+        # Return a global size, as well as an empty object of shapes for each layer per circuit
+        data = 
+          global:
+            size: options.size
+        for circuitMeta in options.circuitMetas
+          data[circuitMeta.id] = 
+            size: options.size
+        for layer in options.layers
+          data[layer.circuitId][layer.name] = []
+        return data
 
       establishData: (data) -> 
-        # Clear layers and create shapeArrays
-        shapeArrays = {}
+        # Clear layers 
         for layerId, canvas of layers
           canvas[0].getContext('2d').clearRect(0, 0, options.size[0], options.size[1])
-          shapeArrays[layerId] = []
-
-        # Copy shapes from object into arrays based on their layer
-        for circuitId, circuitData of data
-          for id, shape of circuitData.shapes
-            if not shape.layer then throw new Error("Missing layer for shape '#{JSON.stringify(shape)}'")
-            layerId = makeLayerId(circuitId, shape.layer)
-            if layerId not of layers then throw new Error("Invalid layer for shape '#{JSON.stringify(shape)}'")
-
-            shapeArrays[layerId].push(shape)
 
         # For each layer, sort shapes and then draw them
-        for layerId, shapeArray of shapeArrays
-          shapeArray.sort(shapeSorter)
+        for circuitId, circuitData of data
+          circuitType = _.findWhere(options.circuitMetas, { id: circuitId })?.type
+          if not circuitType? then continue # Recorded data with circuits can trip us up
 
-          ctx = layers[layerId][0].getContext('2d')
-          [circuitId, layerName] = deconstructLayerId(layerId)
-          circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
-          circuitAssets = options.assets[circuitType]
-          for shape in shapeArray then drawShape(shape, ctx, circuitAssets)
+          for layerName, shapeArray of circuitData when layerName isnt "size"
+            layerId = makeLayerId(circuitId, layerName)
+            if layerId not of layers then throw new Error("Invalid layer '#{layerName}' in circuit '#{circuitId}'")
+
+            shapeArray.sort(shapeSorter)
+
+            ctx = layers[layerId][0].getContext('2d')
+            for shape in shapeArray then drawShape(shape, ctx, options.assets)
+
+        return null # avoid accumulating results
 
       destroy: -> 
         for layerId, canvas of layers then canvas.remove()
@@ -319,7 +353,7 @@ RW.io.html =
           # Add new templates 
           for templateName in _.difference(newTemplates, existingTemplates) 
             # Create template
-            templateHtml = options.assets[circuitId][newTemplateData[templateName].asset]
+            templateHtml = options.assets[newTemplateData[templateName].asset]
             # TODO: create all layers before hand?
             layerOptions = _.findWhere(options.layers, { circuitId: circuitId, name: templateName })
             depth = layerOptions?.depth ? 100 # Default to 100
@@ -478,4 +512,110 @@ RW.io.charts =
       destroy: -> 
         for circuitId, circuitCharts of charts
           for chartName, canvas of circuitCharts then canvas.remove()
+    }
+
+
+# Define audio output io
+RW.io.sound =  
+  meta: 
+    audio: true
+  factory: (options) ->
+
+    makeChannelId = (circuitId, channelName) -> "#{circuitId}.#{channelName}"
+    deconstructLayerId = (channelId) -> channelId.split(".")
+
+    stopPlayingSounds = ->
+      for id, source of playingSourceNodes
+        source.stop()
+
+    # Returns a unique id of the sound clip in playingSourceNodes
+    connectAndPlayBuffer = (buffer, shouldLoop = false) ->
+      # Create source node
+      source = RW.audioContext.createBufferSource()
+      source.buffer = buffer
+      source.connect(RW.lineOut.destination)
+      source.loop = shouldLoop
+
+      # Keep track of what sounds are playing
+      id = _.uniqueId()
+      source.onended = -> delete playingSourceNodes[id]
+      playingSourceNodes[id] = source
+
+      # Play immediately
+      source.start(0)
+      return id
+
+    playingMusic = {}
+
+    # maps asset names to AudioBufferSourceNode objects
+    playingSourceNodes = {}
+
+    inPlaySequence = false
+
+    return {
+      enterPlaySequence: ->
+        inPlaySequence = true
+
+        # startup playing music
+        for channelId, playingMusicData of playingMusic
+          if playingMusicData.channelData.asset then connectAndPlayBuffer(options.assets[playingMusicData.channelData.asset], true)
+
+      leavePlaySequence: ->
+        stopPlayingSounds()
+        inPlaySequence = false
+
+      provideData: -> 
+        global: { } 
+
+      establishData: (data) -> 
+        # Only play sounds in "play" mode
+        if not inPlaySequence then return 
+
+        for circuitId, circuitData of data
+          circuitType = _.findWhere(options.circuitMetas, { id: circuitId }).type
+
+          for channelName, channelData of circuitData
+            channelMeta = _.findWhere(options.channels, { circuitId: circuitId, name: channelName })
+            if not channelMeta? then throw new Error("Cannot find channel '#{channelName}' for circuit '#{circuitId}'") 
+
+            switch channelMeta.type
+              when "clip" 
+                for sound in channelData
+                  if sound.asset not of options.assets 
+                    throw new Error("Cannot find asset '#{sound.asset}' for circuit '#{circuitId}'")
+
+                  connectAndPlayBuffer(options.assets[sound.asset])
+              when "music" 
+                # Channel data should be like { asset: "qsdf" } or null
+                channelId = makeChannelId(circuitId, channelName)
+                if _.isEqual(playingMusic[channelId]?.channelData, channelData) then continue
+
+                # Stop music if its playing
+                # TODO: handle volume changes of same music
+                if playingMusic[channelId]
+                  playingSourceNodes[playingMusic[channelId].id].stop()
+
+                # Play new music
+                if channelData
+                  if channelData.asset not of options.assets 
+                    throw new Error("Cannot find asset '#{channelData.asset}' for circuit '#{circuitId}'")
+
+                  # TODO: handle crossfading
+                  sourceId = connectAndPlayBuffer(options.assets[channelData.asset], true)
+
+                playingMusic[channelId] = 
+                  channelData: channelData
+                  id: sourceId
+              when "fx"
+                for sound in channelData
+                  _.defaults sound, 
+                    fx: ["square",0.0000,0.4000,0.0000,0.3200,0.0000,0.2780,20.0000,496.0000,2400.0000,0.4640,0.0000,0.0000,0.0100,0.0003,0.0000,0.0000,0.0000,0.0235,0.0000,0.0000,0.0000,0.0000,1.0000,0.0000,0.0000,0.0000,0.0000] 
+                  buffer = WebAudiox.getBufferFromJsfx(RW.audioContext, sound.fx)
+                  connectAndPlayBuffer(buffer)
+              else 
+                throw new Error("Unknown channel type '#{channelMeta.type}'")
+
+        return null # avoid accumulating results
+
+      destroy: -> stopPlayingSounds()
     }

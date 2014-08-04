@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "devDependencies": {
     "angular": "~1.2.16",
-    "angular-mocks": "1.2.16",
+    "angular-mocks": "~1.2.16",
     "bootstrap": "~3.1.1",
     "angular-bootstrap": "~0.11.0",
     "angular-ui-router": "~0.0.1",
@@ -14,15 +14,18 @@
     "flexy-layout": "https://github.com/lorenzofox3/flexy-layout.git",
     "rivets": "0.5.12",
     "sylvester": "~0.1.3",
-    "angular-file-dnd": "~1.0.3",
     "angular-xeditable": "~0.1.8",
     "Chart.js": "git://github.com/CyberCRI/Chart.js",
     "angular-ui-ace": "~0.1.1",
-    "jsoneditor": "~2.3.6",
+    "jsoneditor": "~3.0.0",
     "angular-ui-sortable": "~0.12.6",
     "moment": "~2.6.0",
     "mousetrap": "~1.4.6",
-    "angular-mocks": "~1.2.16"
+    "dragster": "git://github.com/CyberCRI/dragster#gh-pages",
+    "bowser": "~0.7.1",
+    "sat-js": "git://github.com/jriecken/sat-js.git",
+    "webaudiox": "*",
+    "angular-file-dnd": "~1.0.4"
   },
   "dependencies": {
     "angular-animate": "~1.2.16"

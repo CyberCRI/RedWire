@@ -61,6 +61,9 @@ RW.appendToArray = (array, value) -> RW.concatenate(array, [value])
 # Return an array with all instances of the element removed
 RW.removeFromArray = (array, value) -> return (element for element in array when not _.isEqual(value, element))
 
+# Return an array with a given element removed (by index)
+RW.removeIndexFromArray = (array, index) -> return (element for key, element of array when String(index) isnt key)
+
 # If the value is not in the array, then add it, else remove it
 RW.toggleValueInArray = (array, value) ->
   return if RW.contains(array, value) then RW.removeFromArray(array, value) else RW.appendToArray(array, value)
@@ -142,6 +145,27 @@ RW.dataURLToBlob = (dataURL) ->
       uInt8Array[i] = raw.charCodeAt(i)
 
     return new Blob([uInt8Array], {type: splitUrl.mimeType})
+
+# Creates and returns an array buffer (either base64 encoded or not).
+# Adopted from filer.js by Eric Bidelman (ebidel@gmail.com)
+RW.dataURLToArrayBuffer = (dataURL) ->
+  splitUrl = RW.splitDataUrl(dataURL)
+  if not splitUrl.base64
+    # TODO
+    throw new Error("not implemented")
+    # Easy case when not Base64 encoded
+    return new Blob([splitUrl.data], {type: splitUrl.mimeType})
+  else
+    # Decode from Base64
+    raw = window.atob(splitUrl.data)
+    rawLength = raw.length
+
+    uInt8Array = new Uint8Array(rawLength)
+
+    for i in [0..rawLength - 1] 
+      uInt8Array[i] = raw.charCodeAt(i)
+
+    return uInt8Array
 
 # For accessing a value within an embedded object or array
 # Takes a parent object/array and the "path" as an array

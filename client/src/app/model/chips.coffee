@@ -1,16 +1,10 @@
 angular.module('gamEvolve.model.chips', [])
 
-.factory 'chips', (currentGame, circuits, GameVersionUpdatedEvent) ->
+.factory 'chips', (currentGame, circuits, gameConverter, GameVersionUpdatedEvent) ->
 
   GameVersionUpdatedEvent.listen (newVersion) ->
     for circuitId, circuit of newVersion.circuits
-      removeHashKeys(circuit.board)
-
-  removeHashKeys = (node) ->
-    if "$$hashKey" of node then delete node["$$hashKey"]
-    for key, value of node
-      if _.isObject(value) then removeHashKeys(value)
-    return node
+      gameConverter.removeHashKeys(circuit.board)
 
   types: [
     "switch"
@@ -20,6 +14,7 @@ angular.module('gamEvolve.model.chips', [])
     "circuit"
   ]
 
+  # TODO: refactor calls to use getChipTypeAndName()
   getType: (chip) ->
     return "null" unless chip
 
@@ -28,7 +23,28 @@ angular.module('gamEvolve.model.chips', [])
     else if "emitter" of chip then "emitter"
     else if "splitter" of chip then "splitter"
     else if "circuit" of chip then "circuit"
-    else "unknown"
+    else "Unknown"
+
+  getChipCollection: (gameCode, chipType) ->
+    switch chipType
+      when "processor" then gameCode.processors
+      when "circuit" then gameCode.circuits
+      when "switch" then gameCode.switches
+      when "transformer" then gameCode.transformers
+      when "asset" then gameCode.assets
+      else throw new Error("No collection for chip '#{chipType}'")
+
+  getChipTypeAndName: (chip) ->
+    return "null" unless chip
+
+    if "switch" of chip then ["switch", chip.switch]
+    else if "processor" of chip then ["processor", chip.processor]
+    else if "circuit" of chip then ["circuit", chip.circuit]
+    else if "emitter" of chip then ["emitter", chip.comment]
+    else if "splitter" of chip then ["splitter", chip.comment]
+    else if "transformer" of chip then ["transformer", chip.transformer]
+    else if "asset" of chip then ["asset", chip.asset]
+    else throw new Error("Unknown chip type for chip '#{JSON.stringify(chip)}'")
 
   acceptsChildren: (chip) ->
     return false unless chip
