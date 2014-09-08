@@ -321,7 +321,7 @@ RW.io.html =
         publish: (templateId, keypath, value) ->
           # console.log("publish called with ", arguments)
           [circuitId, templateName] = decodeTemplateId(templateId) 
-          state[circuitId]/templates[templateId].values[keypath] = value
+          state[circuitId].templates[templateName].values[keypath] = value
 
     return {
       provideData: -> 
@@ -337,7 +337,7 @@ RW.io.html =
         for circuitId, circuitData of data
           newTemplateData = circuitData.send 
 
-          # data.send and data.receive are in the template of { templateName: { asset: "", values: { name: value, ... }, ... }, ...}
+          # data.send and data.receive are in the template of { templateName: { asset: "", initialValues: { ... } values: { name: value, ... }, ... }, ...}
           existingTemplates = _.keys(state[circuitId].templates)
           newTemplates = _.keys(newTemplateData)
 
@@ -362,8 +362,13 @@ RW.io.html =
             $(options.elementSelector).append(outerWrapper)
             state[circuitId].layers[templateName] = outerWrapper
 
-            # Create newTemplateData
+            # Copy over template data to state
             state[circuitId].templates[templateName] = newTemplateData[templateName] 
+
+            # Setup initial values if available
+            if newTemplateData[templateName].initialValues?
+              state[circuitId].templates[templateName].values = newTemplateData[templateName].initialValues
+
             # Bind to the template name
             state[circuitId].callbacks[templateName] = { } # Will be filled by calls to adapter.subscribe()
             state[circuitId].views[templateName] = rivets.bind(outerWrapper[0], { data: codeTemplateId(circuitId, templateName) })
@@ -372,7 +377,7 @@ RW.io.html =
           for templateName in _.intersection(newTemplates, existingTemplates) 
             # TODO: call individual binders instead of syncronizing the whole model?
             #   for key in _.union(_.keys(newTemplateData[templateName].values), _.keys(templates[templateName].values)
-            if not _.isEqual(newTemplateData[templateName].values, state[circuitId].templates[templateName].values)
+            if newTemplateData[templateName].values? and not _.isEqual(newTemplateData[templateName].values, state[circuitId].templates[templateName].values)
               state[circuitId].templates[templateName].values = newTemplateData[templateName].values
               state[circuitId].views[templateName].sync() 
 
