@@ -4,7 +4,7 @@ angular.module('gamEvolve.game.assets', [
   'xeditable'
 ])
 
-.controller 'AssetsCtrl', ($scope, currentGame) ->
+.controller 'AssetsCtrl', ($scope, $modal, currentGame) ->
   # Get the actions object from the currentGame service, and keep it updated
   $scope.assets = null
   $scope.fileName = ""
@@ -30,6 +30,32 @@ angular.module('gamEvolve.game.assets', [
     currentGame.updateLocalVersion()
   $scope.$watch("assets", copyFromScopeToGame, true)
 
+  $scope.edit = (index) -> 
+    splitUrl = RW.splitDataUrl($scope.assets[index].data)
+
+    options =
+      backdrop: true
+      templateUrl: 'game/assets/assetEditDialog.tpl.html'
+      controller: 'AssetEditDialogCtrl'
+      resolve: 
+        # This object will be provided to the dialog as a dependency, and serves to communicate between the two
+        liaison: ->
+          {
+            assetData: atob(splitUrl.data)
+            mimeType: splitUrl.mimeType
+            done: (newAssetData) ->
+              decodedAsset = btoa(newAssetData)
+              $scope.assets[index].data = RW.combineDataUrl
+                mimeType: splitUrl.mimeType
+                base64: splitUrl.base64
+                data: decodedAsset
+              copyFromScopeToGame()
+              dialog.close()
+            cancel: ->
+              dialog.close()
+          }
+    dialog = $modal.open(options)
+
   $scope.remove = (index) -> 
     if window.confirm("Are you sure you want to delete this asset?")
       $scope.assets.splice(index, 1)
@@ -41,6 +67,22 @@ angular.module('gamEvolve.game.assets', [
     # Reset this so that the same filename dragged twice in a row will be taken into account
     $scope.fileName = ""  
     $scope.file = null
+
+.controller 'AssetEditDialogCtrl', ($scope, liaison) ->
+  # Need to put input/output data under an object
+  $scope.exchange = 
+    assetData: liaison.assetData
+
+  $scope.mimeType = liaison.mimeType
+  $scope.editingMode = switch liaison.mimeType
+    when "text/html" then "html"
+    when "text/javascript" then "javascript"
+    when "text/json" then "json"
+    when "text/css" then "css"
+    else "text"
+
+  $scope.done = -> liaison.done($scope.exchange.assetData)
+  $scope.cancel = -> liaison.cancel()
 
 .directive 'assetDrag', ($parse, dndHelper) ->
     restrict: 'A'

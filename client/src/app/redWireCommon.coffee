@@ -127,6 +127,10 @@ RW.splitDataUrl = (url) ->
     data: matches[3]
   }
 
+# Combine data returned by RW.splitDataUrl back into data url 
+RW.combineDataUrl = ({ mimeType, base64, data }) -> 
+  return "data:#{mimeType};#{base64 and 'base64' or ''},#{data}"
+
 # Creates and returns a blob from a data URL (either base64 encoded or not).
 # Adopted from filer.js by Eric Bidelman (ebidel@gmail.com)
 RW.dataURLToBlob = (dataURL) ->
