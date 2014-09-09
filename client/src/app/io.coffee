@@ -488,6 +488,7 @@ RW.io.charts =
               else removeChart(circuitId, chartName)
 
             # Check it's a valid chart type
+            chartData.type = chartData.type || "line" 
             if chartData.type not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
               throw new Error("Unknown chart type: '#{chartData.type}'")
 
@@ -514,9 +515,12 @@ RW.io.charts =
             # Call the correct method on it
             chart[capitalizeFirstLetter(chartData.type)](chartData.data, chartOptions)
 
+          return null
+
       destroy: -> 
         for circuitId, circuitCharts of charts
-          for chartName, canvas of circuitCharts then canvas.remove()
+          for chartName, chart of circuitCharts then chart.canvas.remove()
+        return null
     }
 
 
