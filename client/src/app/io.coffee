@@ -326,8 +326,7 @@ RW.io.html =
     return {
       provideData: -> 
         result = RW.mapToObject _.pluck(options.circuitMetas, "id"), (circuitId) -> 
-          receive: state[circuitId].templates
-          send: {}
+          state[circuitId].templates
         result.global = 
           receive: {}
           send: {}
@@ -335,11 +334,9 @@ RW.io.html =
 
       establishData: (data) -> 
         for circuitId, circuitData of data
-          newTemplateData = circuitData.send 
-
-          # data.send and data.receive are in the template of { templateName: { asset: "", initialValues: { ... } values: { name: value, ... }, ... }, ...}
+          # circuitData are in the template of { templateName: { asset: "", initialValues: { ... } values: { name: value, ... }, ... }, ...}
           existingTemplates = _.keys(state[circuitId].templates)
-          newTemplates = _.keys(newTemplateData)
+          newTemplates = _.keys(circuitData)
 
           # Remove all templates that are no longer to be shown
           for templateName in _.difference(existingTemplates, newTemplates) 
@@ -353,32 +350,36 @@ RW.io.html =
           # Add new templates 
           for templateName in _.difference(newTemplates, existingTemplates) 
             # Create template
-            templateHtml = options.assets[newTemplateData[templateName].asset]
+            templateHtml = options.assets[circuitData[templateName].asset]
             # TODO: create all layers before hand?
             layerOptions = _.findWhere(options.layers, { circuitId: circuitId, name: templateName })
-            depth = layerOptions?.depth ? 100 # Default to 100
-            outerWrapper = $("<div id='html-#{circuitId}-#{templateName}' style='position: absolute; z-index: #{depth}; pointer-events: none; width: #{options.size[0]}px; height: #{options.size[1]}px'/>")
+            
+            # Find out what the depth is
+            layer = _.findWhere options.layers, 
+              "circuitId": circuitId
+              "name": templateName
+            outerWrapper = $("<div id='html-#{circuitId}-#{templateName}' style='position: absolute; z-index: #{layer.depth}; pointer-events: none; width: #{options.size[0]}px; height: #{options.size[1]}px'/>")
             outerWrapper.append(templateHtml)
             $(options.elementSelector).append(outerWrapper)
             state[circuitId].layers[templateName] = outerWrapper
 
             # Copy over template data to state
-            state[circuitId].templates[templateName] = newTemplateData[templateName] 
+            state[circuitId].templates[templateName] = circuitData[templateName] 
 
             # Setup initial values if available
-            if newTemplateData[templateName].initialValues?
-              state[circuitId].templates[templateName].values = newTemplateData[templateName].initialValues
+            if circuitData[templateName].initialValues?
+              state[circuitId].templates[templateName].values = circuitData[templateName].initialValues
 
             # Bind to the template name
             state[circuitId].callbacks[templateName] = { } # Will be filled by calls to adapter.subscribe()
             state[circuitId].views[templateName] = rivets.bind(outerWrapper[0], { data: codeTemplateId(circuitId, templateName) })
 
-          # Update existing templates with new newTemplateData
+          # Update existing templates with new circuitData
           for templateName in _.intersection(newTemplates, existingTemplates) 
             # TODO: call individual binders instead of syncronizing the whole model?
-            #   for key in _.union(_.keys(newTemplateData[templateName].values), _.keys(templates[templateName].values)
-            if newTemplateData[templateName].values? and not _.isEqual(newTemplateData[templateName].values, state[circuitId].templates[templateName].values)
-              state[circuitId].templates[templateName].values = newTemplateData[templateName].values
+            #   for key in _.union(_.keys(circuitData[templateName].values), _.keys(templates[templateName].values)
+            if circuitData[templateName].values? and not _.isEqual(circuitData[templateName].values, state[circuitId].templates[templateName].values)
+              state[circuitId].templates[templateName].values = circuitData[templateName].values
               state[circuitId].views[templateName].sync() 
 
           # Reset all event bindings to false
@@ -562,6 +563,7 @@ RW.io.charts =
       destroy: -> 
         for circuitId, circuitCharts of charts
           for layerName, chart of circuitCharts then clearLayer(circuitId, layerName)
+        $(".chartCanvas").remove()
         return null
     }
 
