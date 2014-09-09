@@ -116,6 +116,11 @@ RW.resolveBindingAddresses = (bindings, pathParts) ->
 # Reject arrays as objects
 RW.isOnlyObject = (o) -> return _.isObject(o) and not _.isArray(o)
 
+# Return a typeof that distinguishes between arrays and objects
+RW.typeof = (x) ->
+  if _.isArray(x) then return "array"
+  return typeof(x)
+
 # Returns an error, setting the circuit and path of the offending chip along the way
 RW.makeExecutionError = (msg, circuitMeta, path) -> 
   e = new Error(msg)
@@ -147,7 +152,7 @@ RW.makePatches = (oldValue, newValue, path = null, prefix = "", patches = []) ->
     patches.push { add: prefix, value: newValue, path: path }
   else if newValue is undefined 
     patches.push { remove: prefix, path: path }
-  else if not _.isObject(newValue) or not _.isObject(oldValue) or typeof(oldValue) != typeof(newValue)
+  else if not _.isObject(newValue) or not _.isObject(oldValue) or RW.typeof(oldValue) != RW.typeof(newValue)
     patches.push { replace: prefix, value: newValue, path: path }
   else if _.isArray(oldValue) 
     RW.makePatchesForArray(oldValue, newValue, path, prefix, patches)

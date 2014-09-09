@@ -457,69 +457,111 @@ RW.io.charts =
   meta:
     visual: true
   factory: (options) ->
-    makeChartId = (circuitId, chartName) -> "#{circuitId}.#{chartName}"
-
     capitalizeFirstLetter = (str) -> str[0].toUpperCase() + str.slice(1)
+
+    makeLayerId = (circuitId, layerName) -> "#{circuitId}.#{layerName}"
+    deconstructLayerId = (layerId) -> layerId.split(".")
+
+    createLayers = ->
+      # Convert layers to ordered
+      createdLayers = {}
+      for { circuitId, name, depth } in options.layers
+        layerId = makeLayerId(circuitId, name)
+        
+        # Create a canvas element 
+        canvasProps = "id='chartLayer-#{layerId}' class='chartCanvas' tabIndex=0"
+        canvasCss = "z-index: #{depth}; position: absolute;"
+        canvas = $("<canvas #{canvasProps} style='#{canvasCss}' />")
+        $(options.elementSelector).append(canvas)
+        createdLayers[layerId] = canvas
+      return createdLayers
+
+    clearLayer = (circuitId, layerName) ->
+      layer = layers[makeLayerId(circuitId, layerName)]
+      context = layer[0].getContext("2d")
+      context.clearRect(0, 0, layer[0].width, layer[0].height)
+
+    removeChart = (circuitId, layerName) -> 
+      clearLayer(circuitId, layerName)
+      delete charts[circuitId][layerName]
 
     # Format { circuitId: { name: { canvas:, data: }}} 
     charts = RW.mapToObject(_.pluck(options.circuitMetas, "id"), -> {})
-
-    removeChart = (circuitId, chartId) ->
-      charts[circuitId][chartId].canvas.remove()
-      delete charts[circuitId][chartId]
+    layers = createLayers()
 
     return {
       provideData: -> 
-        global: {}
+        data = 
+          global: {}
+        for circuitMeta in options.circuitMetas
+          data[circuitMeta.id] = {}
+          for layer in options.layers
+            data[layer.circuitId][layer.name] = null
+        return data
 
       establishData: (ioData) -> 
-        # Expecting ioData like { chartA: { size:, position:, depth:, data:, options: }}
-        for circuitId in _.pluck(options.circuitMetas, "id")
-          # Remove old charts 
-          for chartName in _.difference(_.keys(charts[circuitId]), _.keys(ioData[circuitId])) then removeChart(circuitId, chartName)
+        for circuitId, circuitData of ioData
+          circuitType = _.findWhere(options.circuitMetas, { id: circuitId })?.type
+          if not circuitType? then continue # Recorded data with circuits can trip us up
 
-          # Create new charts and update old ones
-          for chartName, chartData of ioData[circuitId]
+          # Remove unused charts
+          for layerName in _.difference(_.keys(charts[circuitId]), _.keys(circuitData)) 
+            removeChart(circuitId, chartName)
+
+          # Create and update charts
+          for layerName, chartData of circuitData 
+            layerId = makeLayerId(circuitId, layerName)
+            if layerId not of layers then throw new Error("Invalid layer '#{layerName}' in circuit '#{circuitId}'")
+
+            # Expecting chartData like { size:, position:, data:, options: }}
+
             # If the chart already exists...
-            if chartName of charts[circuitId] 
+            if layerName of charts[circuitId] 
               #... and has the same data, don't bother redrawing it
-              if _.isEqual(charts[circuitId][chartName].data, chartData) then continue
+              if _.isEqual(charts[circuitId][layerName].data, chartData) then continue
               # Otherwise remove it.
-              else removeChart(circuitId, chartName)
+              else removeChart(circuitId, layerName)
+
+            # If the chart is empty or null, remove it
+            if not chartData then continue
 
             # Check it's a valid chart type
-            chartData.type = chartData.type || "line" 
-            if chartData.type not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
+            chartType = chartData.type || "line" 
+            if chartType not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
               throw new Error("Unknown chart type: '#{chartData.type}'")
 
             # Define options
             displayOptions = 
               size: chartData.size ? options.size
               position: chartData.position ? [0, 0]
-              depth: chartData.depth ? 50
             chartOptions = _.defaults chartData.options ? {},
               animation: false
 
-            # Create a canvas element 
-            canvasProps = "id='chartLayer-#{circuitId}-#{chartName}' class='chartCanvas' width='#{displayOptions.size[0]}' height='#{displayOptions.size[1]}' tabIndex=0"
-            canvasCss = "z-index: #{displayOptions.depth}; position: absolute; left: #{displayOptions.position[0]}px; top: #{displayOptions.position[1]}px;"
-            canvas = $("<canvas #{canvasProps} style='#{canvasCss}' />")
-            $(options.elementSelector).append(canvas)
-            charts[circuitId][chartName] = 
-              canvas: canvas
-              data: chartData
+            # Retrieve the existing canvas layer, then set its position and size
+            layer = layers[layerId]
+            layer.prop
+              width: displayOptions.size[0]
+              height: displayOptions.size[1] 
+            layer.css 
+              left: "#{displayOptions.position[0]}px"
+              top: "#{displayOptions.position[1]}px"
 
             # Create a new Chart object
-            chart = new Chart(canvas[0].getContext("2d"))
+            chart = new Chart(layer[0].getContext("2d"))
 
             # Call the correct method on it
-            chart[capitalizeFirstLetter(chartData.type)](chartData.data, chartOptions)
+            chart[capitalizeFirstLetter(chartType)](chartData.data, chartOptions)
+
+            # Store it
+            charts[circuitId][layerName] = 
+              chart: chart
+              data: chartData
 
           return null
 
       destroy: -> 
         for circuitId, circuitCharts of charts
-          for chartName, chart of circuitCharts then chart.canvas.remove()
+          for layerName, chart of circuitCharts then clearLayer(circuitId, layerName)
         return null
     }
 

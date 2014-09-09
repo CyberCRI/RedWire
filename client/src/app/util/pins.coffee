@@ -25,10 +25,11 @@ module.factory 'pins', (circuits, currentGame) ->
 
     # Fill in layer pins
     layers = currentGame.version.circuits[circuits.currentCircuitMeta.type].io.layers
-    for layer in layers when layer.type is "canvas"
-      keys.push("io.canvas.#{layer.name}")
+    for layer in layers 
+      keys.push("io.#{layer.type}.#{layer.name}")
 
     # Fill in sound pins
+    # TODO: change name to io.#{channel.type}.#{channel.name} ?
     channels = currentGame.version.circuits[circuits.currentCircuitMeta.type].io.channels
     for channel in channels
       keys.push("io.sound.#{channel.name}")
