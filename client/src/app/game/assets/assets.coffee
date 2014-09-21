@@ -37,6 +37,7 @@ angular.module('gamEvolve.game.assets', [
       backdrop: true
       templateUrl: 'game/assets/assetEditDialog.tpl.html'
       controller: 'AssetEditDialogCtrl'
+      size: "lg"
       resolve: 
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
         liaison: ->
