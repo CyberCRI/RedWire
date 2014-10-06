@@ -26,6 +26,19 @@
                                         <a class="btn btn-default btn-xs" ng-click="remove($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                     </li>
                                 </ul>
+
+                                <div class="btn-group" dropdown is-open="dropdownIsOpen">
+                                    <button type="button" class="btn btn-primary dropdown-toggle">
+                                        <span class="glyphicon glyphicon-plus"></span>
+                                    </button>
+                                    <ul class="dropdown-menu" role="menu">
+                                        <li><a href="" ng-click="addAssetOfType('text/html')">HTML</a></li>
+                                        <li><a href="" ng-click="addAssetOfType('text/css')">CSS</a></li>
+                                        <li><a href="" ng-click="addAssetOfType('application/javascript')">JavaScript</a></li>
+                                        <li><a href="" ng-click="addAssetOfType('application/json')">JSON</a></li>
+                                        <li><a href="" ng-click="addAssetOfType('text/plain')">Text</a></li>
+                                    </ul> 
+                                </div>
                             </div>
                         </block-container>
                     </flexy-layout>

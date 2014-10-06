@@ -10,6 +10,8 @@ angular.module('gamEvolve.game.assets', [
   $scope.fileName = ""
   $scope.file = null
 
+  $scope.dropdownIsOpen = false
+
   # Transform assets to array so we can loop over it easier
   copyFromGameToScope = -> 
     if currentGame.version?
@@ -60,6 +62,18 @@ angular.module('gamEvolve.game.assets', [
   $scope.remove = (index) -> 
     if window.confirm("Are you sure you want to delete this asset?")
       $scope.assets.splice(index, 1)
+
+  $scope.addAssetOfType = (mimeType) ->
+    dataUrl = RW.combineDataUrl
+      mimeType: mimeType
+      base64: true
+      data: ""
+    $scope.assets.push({ name: "", data: dataUrl })
+    $scope.closeDropdown()
+    copyFromScopeToGame()
+
+  $scope.closeDropdown = ->
+    $scope.dropdownIsOpen = false
 
   $scope.$watch "file", ->
     if $scope.fileName is "" then return 
