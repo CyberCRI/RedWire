@@ -213,7 +213,7 @@ RW.applyPatches = (patches, oldValue, prefix = "") ->
     mapping = ensureIndexMapping(arrayPath, array)
     # Find the first index in the mapping that is greater than the original key 
     # Because order of object keys may not be perserved, we need to extract the keys and sort them in numerical order
-    nextMappingIndex = _.chain(mapping).keys().sortBy((k) -> parseInt(k)).find((k) -> k >= key).value()
+    nextMappingIndex = _.chain(mapping).keys().sortBy((k) -> parseInt(k)).find((k) -> parseInt(k) >= parseInt(key)).value()
     # Obtain the actual index in the array, or if no key is found, insert at the end of the list
     insertIndex = if nextMappingIndex? then mapping[nextMappingIndex] else array.length
 

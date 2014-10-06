@@ -327,9 +327,7 @@ RW.io.html =
       provideData: -> 
         result = RW.mapToObject _.pluck(options.circuitMetas, "id"), (circuitId) -> 
           state[circuitId].templates
-        result.global = 
-          receive: {}
-          send: {}
+        result.global = {}
         return result
 
       establishData: (data) -> 

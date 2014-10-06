@@ -53,7 +53,7 @@ RW.cloneData = (o) ->
     throw new Error("Unable to clone, perhaps it is not plain old data: #{e}")
 
 # Create new array with the value of these arrays
-RW.concatenate = (rest...) -> _.flatten(rest, true)
+RW.concatenate = (rest...) -> [].concat(rest...)
 
 # Return an array with the new value added
 RW.appendToArray = (array, value) -> RW.concatenate(array, [value])
