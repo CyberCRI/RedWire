@@ -373,11 +373,22 @@ RW.io.html =
 
           # Update existing templates with new circuitData
           for templateName in _.intersection(newTemplates, existingTemplates) 
+            # Start with current values
+            newValues = RW.cloneData(state[circuitId].templates[templateName].values)
+
+            # Overwrite old state with new 
+            if circuitData[templateName].values? 
+              newValues = circuitData[templateName].values
+
+            # Overwrite only selected properties with new values 
+            if circuitData[templateName].overwriteValues? 
+              _.extend(newValues, circuitData[templateName].overwriteValues)
+
             # TODO: call individual binders instead of syncronizing the whole model?
             #   for key in _.union(_.keys(circuitData[templateName].values), _.keys(templates[templateName].values)
-            if circuitData[templateName].values? and not _.isEqual(circuitData[templateName].values, state[circuitId].templates[templateName].values)
+            if not _.isEqual(newValues, state[circuitId].templates[templateName].values)
               # Overwrite values in the state with those established 
-              _.extend(state[circuitId].templates[templateName].values, circuitData[templateName].values)
+              state[circuitId].templates[templateName].values = newValues
               state[circuitId].views[templateName].sync() 
 
           # Reset all event bindings to false
