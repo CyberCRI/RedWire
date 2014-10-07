@@ -98,7 +98,7 @@ RW.io.canvas =
   meta:
     visual: true
   factory: (options) ->
-    CANVAS_CSS = "position: absolute; left: 0px; top: 0px;"
+    CANVAS_CSS = "position: absolute; left: 0px; top: 0px; pointer-events: none;"
 
     makeLayerId = (circuitId, layerName) -> "#{circuitId}.#{layerName}"
     deconstructLayerId = (layerId) -> layerId.split(".")
@@ -285,7 +285,7 @@ RW.io.canvas =
         for layerId, canvas of layers then canvas.remove()
     }
 
-# Define HTML input io
+# Define html input io
 RW.io.html =  
   meta:
     visual: true
@@ -365,8 +365,7 @@ RW.io.html =
             state[circuitId].templates[templateName] = circuitData[templateName] 
 
             # Setup initial values if available
-            if circuitData[templateName].initialValues?
-              state[circuitId].templates[templateName].values = circuitData[templateName].initialValues
+            state[circuitId].templates[templateName].values = _.defaults({}, circuitData[templateName].values, circuitData[templateName].initialValues)
 
             # Bind to the template name
             state[circuitId].callbacks[templateName] = { } # Will be filled by calls to adapter.subscribe()
@@ -377,7 +376,8 @@ RW.io.html =
             # TODO: call individual binders instead of syncronizing the whole model?
             #   for key in _.union(_.keys(circuitData[templateName].values), _.keys(templates[templateName].values)
             if circuitData[templateName].values? and not _.isEqual(circuitData[templateName].values, state[circuitId].templates[templateName].values)
-              state[circuitId].templates[templateName].values = circuitData[templateName].values
+              # Overwrite values in the state with those established 
+              _.extend(state[circuitId].templates[templateName].values, circuitData[templateName].values)
               state[circuitId].views[templateName].sync() 
 
           # Reset all event bindings to false
@@ -385,6 +385,8 @@ RW.io.html =
             for binding in view.bindings
               if binding.type.indexOf("on-") == 0
                 state[circuitId].templates[templateName].values[binding.keypath] = false
+
+        return null
 
       # Remove all event handlers
       destroy: -> 
