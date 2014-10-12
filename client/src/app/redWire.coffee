@@ -698,7 +698,7 @@ RW.stepLoop = (options) ->
     # OPT: do this outside of stepLoop()
     preparedInputIoData = {}
     for circuitMeta in options.circuitMetas
-      preparedInputIoData[circuitMeta.id] = options.inputIoData[circuitMeta.id] || options.inputIoData.global
+      preparedInputIoData[circuitMeta.id] = options.inputIoData[circuitMeta.id] || options.inputIoData.global || {}
       for ioName of options.io
         if ioName not of preparedInputIoData[circuitMeta.id]
           preparedInputIoData[circuitMeta.id][ioName] = options.inputIoData.global[ioName]
