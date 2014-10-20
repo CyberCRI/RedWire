@@ -548,6 +548,7 @@ RW.io.charts =
               position: chartData.position ? [0, 0]
             chartOptions = _.defaults chartData.options ? {},
               animation: false
+              showTooltips: false
 
             # Retrieve the existing canvas layer, then set its position and size
             layer = layers[layerId]

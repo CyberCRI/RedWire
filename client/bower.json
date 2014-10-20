@@ -15,7 +15,6 @@
     "rivets": "0.5.12",
     "sylvester": "~0.1.3",
     "angular-xeditable": "~0.1.8",
-    "Chart.js": "git://github.com/CyberCRI/Chart.js",
     "angular-ui-ace": "~0.1.1",
     "jsoneditor": "~3.0.0",
     "angular-ui-sortable": "~0.12.6",
@@ -25,7 +24,8 @@
     "bowser": "~0.7.1",
     "sat-js": "git://github.com/jriecken/sat-js.git",
     "webaudiox": "*",
-    "angular-file-dnd": "~1.0.4"
+    "angular-file-dnd": "~1.0.4",
+    "Chart.js": "nnnick/Chart.js#~1.0.1"
   },
   "dependencies": {
     "angular-animate": "~1.2.16"
