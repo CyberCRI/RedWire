@@ -195,11 +195,11 @@ RW.applyPatches = (patches, oldValue, prefix = "") ->
     mapping = ensureIndexMapping(arrayPath, array)
     if key of mapping
       # Remove the value itself
-      array.splice(key, 1)
+      array.splice(mapping[key], 1)
 
       # Remove the index, and decrement the other indexes
       delete mapping[key]
-      for mappingKey, mappingValue of mapping when mappingKey > key
+      for mappingKey, mappingValue of mapping when parseInt(mappingKey) > parseInt(key)
         mapping[mappingKey] = mappingValue - 1
 
   handleArrayReplacement = (arrayPath, array, key, newValue) ->
