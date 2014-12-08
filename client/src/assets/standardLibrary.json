@@ -159,7 +159,7 @@
         "povar1",
         "povar2"
       ],
-      "body": "var povar1x = povar1[0] || povar1.x;\nvar povar1y = povar1[1] || povar1.y;\nvar povar2x = povar2[0] || povar2.x;\nvar povar2y = povar2[1] || povar2.y;\nvar diffX = povar1x - povar2x;\nvar diffY = povar1y - povar2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
+      "body": "var povar1x = ('0' in povar1 ? povar1[0] : povar1.x);\nvar povar1y = ('1' in povar1 ? povar1[1] : povar1.y);\nvar povar2x = ('0' in povar2 ? povar2[0] : povar2.x);\nvar povar2y = ('1' in povar2 ? povar2[1] : povar2.y);\nvar diffX = povar1x - povar2x;\nvar diffY = povar1y - povar2y;\nreturn Math.sqrt(diffX * diffX + diffY * diffY);"
     },
     "shapesIntersect": {
       "args": [
