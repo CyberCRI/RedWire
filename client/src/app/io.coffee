@@ -670,3 +670,48 @@ RW.io.sound =
 
       destroy: -> stopPlayingSounds()
     }
+
+# A RedMetrics IO service to send game analytics data 
+RW.io.redMetrics =  
+  meta:
+    visual: false
+  factory: (options) ->
+    eventQueue: []
+
+    sendResults = ->
+      if eventQueue.length is 0 then return 
+
+      # Send off data
+      # TODO: send off data in batches (once RedWire supports it)
+      for event in eventQueue
+        jqXhr = $.ajax 
+          url: "http://localhost:4567/v1/event/" # TODO: get from config
+          type: "POST"
+          data: event
+          contentType: "application/json"
+
+        # TODO: handle errors
+        # jqXhr.done (data, textStatus) -> # NOP
+        # jqXhr.fail (__, textStatus, errorThrown) -> 
+
+    timerId = window.setInterval(sendResults, 5000)
+
+    io =
+      provideData: -> 
+        global: 
+          events: []
+
+      establishData: (ioData) -> 
+        # Expecting a format like { events: [ type: "", section: [], coordinates: [], customData: }, ... ] }
+
+        # Collate all data into the events queue (disregard individual circuits)
+        for circuitId in _.pluck(options.circuitMetas, "id") 
+          eventsQueue.push(ioData[circuitId].events...)
+
+        return null # avoid accumulating results
+
+      destroy: () -> 
+        clearInterval(timerId)
+
+    return io
+
