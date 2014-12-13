@@ -8,6 +8,9 @@
 # Ignore generated documentation
 docs/
 
+# Ignore local database
+server/db
+
 # Ignore node modules
 client/npm-debug.log
 client/node_modules/
