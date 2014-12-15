@@ -5,7 +5,7 @@ angular.module('gamEvolve.game.edit.header', [
 .controller 'GameInfoCtrl', ($scope, currentGame, gameTime) ->
   $scope.currentGame = currentGame
 
-.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog) ->
+.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog) ->
   $scope.user = loggedUser
   $scope.games = games
   $scope.currentGame = currentGame
@@ -14,6 +14,7 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.importExportDialog = importExportDialog
   $scope.loadGame = -> $state.transitionTo('game-list')
   $scope.gotoPlayScreen = -> $state.transitionTo('play', { gameId: $stateParams.gameId })
+  $scope.editDescription = -> editDescriptionDialog.open()
 
   $scope.publishButtonDisabled = false
   $scope.isPublishButtonDisplayed = ->

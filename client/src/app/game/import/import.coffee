@@ -8,7 +8,6 @@ angular.module('gamEvolve.game.import', [
   open: ->
     options =
       backdrop: true
-      backdrop: true
       templateUrl: 'game/import/import.tpl.html'
       controller: 'ImportExportDialogCtrl'
       resolve: 
