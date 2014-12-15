@@ -33,7 +33,7 @@ angular.module('gamEvolve.game.play', ["ngSanitize"])
   onUpdateCurrentGame = -> 
     $scope.title = currentGame.info?.name
     $scope.author = currentGame.creator
-    $scope.description = currentGame.info?.description
+    $scope.description = currentGame.version?.description
 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", onUpdateCurrentGame, true)

@@ -7,6 +7,12 @@ JSON_PROPERTIES = [
   "assets"
 ]
 
+# These properties are copied directly
+DIRECT_PROPERTIES = [
+  "description"
+]
+
+# These properties are are part of the game info
 META_PROPERTIES = [
   "name"
 ]
@@ -22,6 +28,8 @@ angular.module('gamEvolve.util.gameConverter', [])
       fileVersion: gameVersionJson.fileVersion
     for propertyName in JSON_PROPERTIES
       gameVersion[propertyName] = JSON.parse(gameVersionJson[propertyName])
+    for propertyName in DIRECT_PROPERTIES
+      gameVersion[propertyName] = gameVersionJson[propertyName]
     return gameVersion
 
   convertGameVersionToEmbeddedJson: (gameVersion) ->
@@ -32,17 +40,21 @@ angular.module('gamEvolve.util.gameConverter', [])
       fileVersion: gameVersion.fileVersion
     for propertyName in JSON_PROPERTIES
       gameVersionJson[propertyName] = JSON.stringify(gameVersion[propertyName], null, 2)
+    for propertyName in DIRECT_PROPERTIES
+      gameVersionJson[propertyName] = gameVersion[propertyName]
     return gameVersionJson
 
   convertGameFromJson: (gameJson) ->
     parsed = JSON.parse(gameJson)
     return {
        info: _.pick(parsed, META_PROPERTIES...)
-       version: _.pick(parsed, JSON_PROPERTIES...)
+       version: _.pick(parsed, RW.concatenate(JSON_PROPERTIES, DIRECT_PROPERTIES)...)
     }
 
   convertGameToJson: (currentGame) ->    
-    filteredObject = _.extend({}, _.pick(currentGame.info, META_PROPERTIES...), _.pick(currentGame.version, JSON_PROPERTIES...))
+    filteredObject = _.extend({}, 
+      _.pick(currentGame.info, META_PROPERTIES...), 
+      _.pick(currentGame.version, RW.concatenate(JSON_PROPERTIES, DIRECT_PROPERTIES)...))
     return JSON.stringify(filteredObject, null, 2)
 
   removeHashKeys: (node) ->

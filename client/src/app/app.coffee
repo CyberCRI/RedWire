@@ -21,6 +21,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.boardTree'
   'gamEvolve.game.boardNodes'
   'gamEvolve.game.channels'
+  'gamEvolve.game.description'
   'gamEvolve.game.edit'
   'gamEvolve.game.embed'
   'gamEvolve.game.list'
