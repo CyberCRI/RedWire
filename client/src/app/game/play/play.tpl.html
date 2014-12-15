@@ -10,7 +10,7 @@
 
 	<div ng-show="title">
 		<h1 >{{title}} by {{author}}</h1>
-		<h2 ng-bind-html="description | linky"></h2>
+		<h3 id="description" ng-bind-html="description | linky"></h3>
 		<a href="" ng-click="remix()"><img src="assets/images/ribbon.png"></a>
 		<br><a href="" ng-click="listGames()">See other games</a>
 	</div>
