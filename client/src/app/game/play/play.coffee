@@ -1,4 +1,4 @@
-angular.module('gamEvolve.game.play', [])
+angular.module('gamEvolve.game.play', ["ngSanitize"])
 
 .config ($stateProvider) ->
   $stateProvider.state 'play',
@@ -29,9 +29,12 @@ angular.module('gamEvolve.game.play', [])
 
   $scope.title = ""
   $scope.author = ""
+  $scope.description = ""
   onUpdateCurrentGame = -> 
     $scope.title = currentGame.info?.name
     $scope.author = currentGame.creator
+    $scope.description = currentGame.info?.description
 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", onUpdateCurrentGame, true)
+

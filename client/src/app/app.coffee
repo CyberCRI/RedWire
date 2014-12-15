@@ -7,6 +7,7 @@ angular.module( 'gamEvolve', [
   'ui.state'
   'ui.ace'
   'ui.sortable'
+  'ngSanitize'
   'gamEvolve.model.cache'
   'gamEvolve.model.games'
   'gamEvolve.model.users'
