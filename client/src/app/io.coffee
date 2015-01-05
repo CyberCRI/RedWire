@@ -672,46 +672,83 @@ RW.io.sound =
     }
 
 # A RedMetrics IO service to send game analytics data 
-RW.io.redMetrics =  
+RW.io.metrics =  
   meta:
     visual: false
   factory: (options) ->
-    eventQueue: []
+    eventQueue = []
+    timerId = null
+    playerId = null
 
     sendResults = ->
       if eventQueue.length is 0 then return 
 
       # Send off data
-      # TODO: send off data in batches (once RedWire supports it)
+      # TODO: send off data in batches (once RedMetrics supports it)
       for event in eventQueue
+        # Set game version and player IDs
+        _.extend event, 
+          gameVersion: options.metrics.gameVersion
+          player: playerId
+
+        # Send AJAX request
         jqXhr = $.ajax 
-          url: "http://localhost:4567/v1/event/" # TODO: get from config
+          url: options.metrics.baseUrl + "/v1/event/" 
           type: "POST"
-          data: event
+          data: JSON.stringify(event)
+          processData: false
           contentType: "application/json"
 
-        # TODO: handle errors
-        # jqXhr.done (data, textStatus) -> # NOP
-        # jqXhr.fail (__, textStatus, errorThrown) -> 
-
-    timerId = window.setInterval(sendResults, 5000)
+      # Clear queue
+      eventQueue = []
 
     io =
+      enterPlaySequence: ->
+        # If metrics session was not created then return
+        if not playerId then return
+
+        # Create player
+        jqXhr = $.ajax 
+          url: options.metrics.baseUrl + "/v1/player/"
+          type: "POST"
+          data: "{}"
+          processData: false
+          contentType: "application/json"
+        jqXhr.done (data, textStatus) -> 
+          playerId = data.id
+          # Start sending events
+          timerId = window.setInterval(sendResults, 5000)
+        jqXhr.fail (__, textStatus, errorThrown) -> 
+          throw new Error("Cannot create player: #{errorThrown}")
+ 
+      leavePlaySequence: -> 
+        # If metrics session was not created then ignore
+        if not playerId then return
+
+        # Send last data before stopping 
+        sendResults()
+
+        # Stop sending events
+        window.clearInterval(timerId)
+        playerId = null
+
       provideData: -> 
         global: 
           events: []
 
       establishData: (ioData) -> 
+        # Only send events in play sequence
+        if not playerId then return 
+
         # Expecting a format like { events: [ type: "", section: [], coordinates: [], customData: }, ... ] }
 
         # Collate all data into the events queue (disregard individual circuits)
         for circuitId in _.pluck(options.circuitMetas, "id") 
-          eventsQueue.push(ioData[circuitId].events...)
+          eventQueue.push(ioData[circuitId].events...)
 
         return null # avoid accumulating results
 
-      destroy: () -> 
-        clearInterval(timerId)
+      destroy: -> # NOP
 
     return io
 

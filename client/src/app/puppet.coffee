@@ -175,7 +175,10 @@ initializeIo = (circuits) ->
         elementSelector: '#gameContent'
         size: GAME_DIMENSIONS
         circuitMetas: circuitMetas
-        assets: loadedAssets.data
+        assets: loadedAssets.data 
+        metrics:
+          baseUrl: "http://localhost:5050" # TODO: get from config files
+          gameVersion: "80312c1b-a9ba-4e2e-ac01-674c3cb03390" # TODO: get from web config 
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
           { circuitId: layer.circuitId, name: layer.name, depth: depth } 
