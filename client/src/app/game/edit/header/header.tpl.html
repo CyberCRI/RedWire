@@ -29,6 +29,9 @@
                 <button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-if="user.isNotLoggedIn()">
                     Login
                 </button>
+                <button id="editDescriptionButton" title="Edit Description" class="btn btn-default btn-sm" ng-click="editDescription()">
+                    <i class="glyphicon glyphicon-list-alt"></i>
+                </button>
                 <button id="importExportButton" title="Import/Export" ng-click="importExportDialog.open();" class="btn btn-default btn-sm">
                     <i class="glyphicon glyphicon-file"></i>
                 </button>

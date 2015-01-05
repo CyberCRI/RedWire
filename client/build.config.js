@@ -61,6 +61,7 @@ module.exports = {
       'vendor/angular-bootstrap/ui-bootstrap-tpls.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
       'vendor/angular-ui-utils/modules/route/route.js',
+      'vendor/angular-sanitize/angular-sanitize.js',
       'vendor/ace-builds/src-noconflict/ace.js',
       'vendor/ace-builds/src-noconflict/mode-javascript.js',
       'vendor/ace-builds/src-noconflict/mode-json.js',
