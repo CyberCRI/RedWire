@@ -679,6 +679,7 @@ RW.io.metrics =
     eventQueue = []
     timerId = null
     playerId = null
+    playerInfo = {} # Current state of player 
 
     sendResults = ->
       if eventQueue.length is 0 then return 
@@ -704,9 +705,6 @@ RW.io.metrics =
 
     io =
       enterPlaySequence: ->
-        # If metrics session was not created then return
-        if not playerId then return
-
         # Create player
         jqXhr = $.ajax 
           url: options.metrics.baseUrl + "/v1/player/"
@@ -735,16 +733,33 @@ RW.io.metrics =
       provideData: -> 
         global: 
           events: []
+          player: playerInfo
 
       establishData: (ioData) -> 
         # Only send events in play sequence
         if not playerId then return 
 
-        # Expecting a format like { events: [ type: "", section: [], coordinates: [], customData: }, ... ] }
+        # Contains updated playerInfo if necessary
+        newPlayerInfo = null
 
-        # Collate all data into the events queue (disregard individual circuits)
+        # Expecting a format like { player: {}, events: [ type: "", section: [], coordinates: [], customData: }, ... ] }
         for circuitId in _.pluck(options.circuitMetas, "id") 
+          # Collate all data into the events queue (disregard individual circuits)
           eventQueue.push(ioData[circuitId].events...)
+
+          # Update player info
+          if not _.isEqual(ioData[circuitId].player, playerInfo) 
+            newPlayerInfo = ioData[circuitId].player
+
+        # Update player info if necessary
+        if newPlayerInfo
+          jqXhr = $.ajax 
+            url: options.metrics.baseUrl + "/v1/player/" + playerId
+            type: "PUT"
+            data: JSON.stringify(newPlayerInfo)
+            processData: false
+            contentType: "application/json"
+          playerInfo = newPlayerInfo
 
         return null # avoid accumulating results
 
