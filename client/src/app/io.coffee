@@ -681,6 +681,8 @@ RW.io.metrics =
     playerId = null
     playerInfo = {} # Current state of player 
 
+    configIsValid = -> options.metrics and options.metrics.gameVersionId and options.metrics.host 
+
     sendResults = ->
       if eventQueue.length is 0 then return 
 
@@ -689,12 +691,12 @@ RW.io.metrics =
       for event in eventQueue
         # Set game version and player IDs
         _.extend event, 
-          gameVersion: options.metrics.gameVersion
+          gameVersion: options.metrics.gameVersionId
           player: playerId
 
         # Send AJAX request
         jqXhr = $.ajax 
-          url: options.metrics.baseUrl + "/v1/event/" 
+          url: options.metrics.host + "/v1/event/" 
           type: "POST"
           data: JSON.stringify(event)
           processData: false
@@ -705,9 +707,11 @@ RW.io.metrics =
 
     io =
       enterPlaySequence: ->
+        if not configIsValid() then return 
+
         # Create player
         jqXhr = $.ajax 
-          url: options.metrics.baseUrl + "/v1/player/"
+          url: options.metrics.host + "/v1/player/"
           type: "POST"
           data: "{}"
           processData: false
@@ -754,7 +758,7 @@ RW.io.metrics =
         # Update player info if necessary
         if newPlayerInfo
           jqXhr = $.ajax 
-            url: options.metrics.baseUrl + "/v1/player/" + playerId
+            url: options.metrics.host + "/v1/player/" + playerId
             type: "PUT"
             data: JSON.stringify(newPlayerInfo)
             processData: false

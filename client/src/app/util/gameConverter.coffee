@@ -5,6 +5,7 @@ JSON_PROPERTIES = [
   "switches"
   "transformers"
   "assets"
+  "redMetricsConfig"
 ]
 
 # These properties are copied directly
@@ -27,7 +28,7 @@ angular.module('gamEvolve.util.gameConverter', [])
       versionNumber: gameVersionJson.versionNumber
       fileVersion: gameVersionJson.fileVersion
     for propertyName in JSON_PROPERTIES
-      gameVersion[propertyName] = JSON.parse(gameVersionJson[propertyName])
+      gameVersion[propertyName] = gameVersionJson[propertyName] && JSON.parse(gameVersionJson[propertyName]) || null
     for propertyName in DIRECT_PROPERTIES
       gameVersion[propertyName] = gameVersionJson[propertyName]
     return gameVersion
