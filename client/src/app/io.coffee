@@ -693,6 +693,7 @@ RW.io.metrics =
         _.extend event, 
           gameVersion: options.metrics.gameVersionId
           player: playerId
+          userTime: moment().utc().format()
 
         # Send AJAX request
         jqXhr = $.ajax 
