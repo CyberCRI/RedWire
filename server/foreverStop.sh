@@ -3,4 +3,9 @@
 # Directory of script (why is this so hard?)
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-forever stop $DIR/runProduction.coffee
+pushd .
+cd $DIR
+
+forever stop runProduction.coffee
+
+popd 
