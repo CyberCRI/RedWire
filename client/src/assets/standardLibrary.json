@@ -52,7 +52,7 @@
     "Do All": {
       "doc": "Just to place children under it",
       "listActiveChildren": "return children;",
-      "handleSignals": ""
+      "handleSignals": "return RW.signals.DONE;"
     },
     "Do One at a Time": {
       "pinDefs": {

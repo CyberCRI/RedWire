@@ -31,6 +31,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.log'
   'gamEvolve.game.login'
   'gamEvolve.game.memory'
+  'gamEvolve.game.metrics'
   'gamEvolve.game.overlay'
   'gamEvolve.game.play'
   'gamEvolve.game.player'

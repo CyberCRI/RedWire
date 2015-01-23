@@ -72,6 +72,14 @@
 			"required": true,
 			"id": "assets",
 			"order": 8
-		}	
+		},
+		"redMetricsConfig": {
+			"name": "redMetricsConfig",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "redMetricsConfig",
+			"order": 9
+		}
 	}
 }

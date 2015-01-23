@@ -119,6 +119,14 @@
 
                                 <a class="btn btn-default" ng-click="addChannel()"><i class="glyphicon glyphicon-plus"></i></a>
                             </div>
+
+                            <div ng-controller="MetricsConfCtrl" id="metricsConfig">
+                                <h4>RedMetrics</h4>
+                                <ul>
+                                    <li>Server <a href="" editable-text="redMetricsConfig.host">{{ redMetricsConfig.host || "server" }}</a></li>
+                                    <li>Game version ID: <a href="" editable-text="redMetricsConfig.gameVersionId">{{ redMetricsConfig.gameVersionId || "id" }}</a></li>
+                                </ul>
+                            </div>
                         </block-container>
                     </flexy-layout>
                 </block-container>

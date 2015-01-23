@@ -670,3 +670,104 @@ RW.io.sound =
 
       destroy: -> stopPlayingSounds()
     }
+
+# A RedMetrics IO service to send game analytics data 
+RW.io.metrics =  
+  meta:
+    visual: false
+  factory: (options) ->
+    eventQueue = []
+    timerId = null
+    playerId = null
+    playerInfo = {} # Current state of player 
+
+    configIsValid = -> options.metrics and options.metrics.gameVersionId and options.metrics.host 
+
+    sendResults = ->
+      if eventQueue.length is 0 then return 
+
+      # Send off data
+      # TODO: send off data in batches (once RedMetrics supports it)
+      for event in eventQueue
+        # Set game version and player IDs
+        _.extend event, 
+          gameVersion: options.metrics.gameVersionId
+          player: playerId
+
+        # Send AJAX request
+        jqXhr = $.ajax 
+          url: options.metrics.host + "/v1/event/" 
+          type: "POST"
+          data: JSON.stringify(event)
+          processData: false
+          contentType: "application/json"
+
+      # Clear queue
+      eventQueue = []
+
+    io =
+      enterPlaySequence: ->
+        if not configIsValid() then return 
+
+        # Create player
+        jqXhr = $.ajax 
+          url: options.metrics.host + "/v1/player/"
+          type: "POST"
+          data: "{}"
+          processData: false
+          contentType: "application/json"
+        jqXhr.done (data, textStatus) -> 
+          playerId = data.id
+          # Start sending events
+          timerId = window.setInterval(sendResults, 5000)
+        jqXhr.fail (__, textStatus, errorThrown) -> 
+          throw new Error("Cannot create player: #{errorThrown}")
+ 
+      leavePlaySequence: -> 
+        # If metrics session was not created then ignore
+        if not playerId then return
+
+        # Send last data before stopping 
+        sendResults()
+
+        # Stop sending events
+        window.clearInterval(timerId)
+        playerId = null
+
+      provideData: -> 
+        global: 
+          events: []
+          player: playerInfo
+
+      establishData: (ioData) -> 
+        # Only send events in play sequence
+        if not playerId then return 
+
+        # Contains updated playerInfo if necessary
+        newPlayerInfo = null
+
+        # Expecting a format like { player: {}, events: [ type: "", section: [], coordinates: [], customData: }, ... ] }
+        for circuitId in _.pluck(options.circuitMetas, "id") 
+          # Collate all data into the events queue (disregard individual circuits)
+          eventQueue.push(ioData[circuitId].events...)
+
+          # Update player info
+          if not _.isEqual(ioData[circuitId].player, playerInfo) 
+            newPlayerInfo = ioData[circuitId].player
+
+        # Update player info if necessary
+        if newPlayerInfo
+          jqXhr = $.ajax 
+            url: options.metrics.host + "/v1/player/" + playerId
+            type: "PUT"
+            data: JSON.stringify(newPlayerInfo)
+            processData: false
+            contentType: "application/json"
+          playerInfo = newPlayerInfo
+
+        return null # avoid accumulating results
+
+      destroy: -> # NOP
+
+    return io
+
