@@ -54,7 +54,10 @@ angular.module( 'gamEvolve', [
   'treeRepeat'
 ])
 
-.config( ( $stateProvider, $urlRouterProvider ) ->
+.config( ( $stateProvider, $urlRouterProvider, $locationProvider ) ->
+  # Get rid of those ugly hashes
+  $locationProvider.html5Mode(true)
+  # Default page is /game/list
   $urlRouterProvider.otherwise( '/game/list' )
 )
 
