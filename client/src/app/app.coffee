@@ -51,6 +51,8 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.dndHelper'
   'xeditable'
   'treeRepeat'
+  'angulartics'
+  'angulartics.google.analytics'
 ])
 
 .config( ( $stateProvider, $urlRouterProvider, $locationProvider ) ->
