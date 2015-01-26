@@ -9,7 +9,7 @@ angular.module('gamEvolve.model.users', [])
     isNotLoggedIn: -> not @isLoggedIn()
 
     logout: ->
-      $http.post('/users/logout').then -> console.log 'Logging Out'
+      $http.post('/api/users/logout').then -> console.log 'Logging Out'
       @profile = null
 
 
@@ -17,9 +17,9 @@ angular.module('gamEvolve.model.users', [])
 
     logUser = (username, password) ->
       deferred = $q.defer()
-      $http.post('/users/login', {username: username, password: password})
+      $http.post('/api/users/login', {username: username, password: password})
         .then ->
-          $http.get('/users/me')
+          $http.get('/api/users/me')
         ,
           ->
             deferred.reject('Error')
@@ -38,14 +38,14 @@ angular.module('gamEvolve.model.users', [])
       loggedUser.profile = null
 
     restoreSession: ->
-      $http.get('/users/me').then (response) ->
+      $http.get('/api/users/me').then (response) ->
         loggedUser.profile = response.data unless response.status isnt 200
 
     findByEmail: (email) ->
-      $http.get('/users/?{"email": "' + email + '"}')
+      $http.get('/api/users/?{"email": "' + email + '"}')
 
     createAndLogin: (username, email, password) ->
-      $http.post('/users', {username: username, email: email, password: password}).then ->
+      $http.post('/api/users', {username: username, email: email, password: password}).then ->
         logUser(username, password)
 
 
