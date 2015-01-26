@@ -741,11 +741,19 @@ RW.stepLoop = (options) ->
 
   # TODO: check the output even if isn't established, in order to catch errors
   if options.establishOutput
+    # Additional data that will be sent to IO services
+    additionalData = 
+      memoryData: options.memoryData
+      memoryPatches: options.memoryPatches
+      inputIoData: options.inputIoData
+      ioPatches: ioPatches
+      logMessages: logMessages
+
     try
       # outputIoData is keyed by circuit, we need it by io name
       outputIoDataByIoName = RW.reverseKeys(options.outputIoData)
       for ioName, io of options.io
-        io.establishData(outputIoDataByIoName[ioName])
+        io.establishData(outputIoDataByIoName[ioName], additionalData)
     catch e 
       return makeErrorResponse("writeIo", e)
 

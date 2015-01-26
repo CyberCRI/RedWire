@@ -4,7 +4,6 @@ angular.module( 'gamEvolve', [
   'templates-common'
   'ui.bootstrap'
   'ui.router'
-  'ui.state'
   'ui.ace'
   'ui.sortable'
   'ngSanitize'
