@@ -4,15 +4,15 @@
     <title ng-bind="pageTitle"></title>
 
     <!-- compiled CSS --><% styles.forEach( function ( file ) { %>
-    <link rel="stylesheet" type="text/css" href="<%= file %>" /><% }); %>
+    <link rel="stylesheet" type="text/css" href="/<%= file %>" /><% }); %>
 
     <!-- TODO: have these be included in the Grunt process -->
-    <link rel="stylesheet" type="text/css" href="assets/fonts/font-icon/css/font-icon.css">
-    <link rel="stylesheet" type="text/css" href="assets/fonts/font-icon/css/animation.css">
-    <link rel="icon" type="image/png" href="assets/images/favicon.png" />
+    <link rel="stylesheet" type="text/css" href="/assets/fonts/font-icon/css/font-icon.css">
+    <link rel="stylesheet" type="text/css" href="/assets/fonts/font-icon/css/animation.css">
+    <link rel="icon" type="image/png" href="/assets/images/favicon.png" />
 
     <!-- compiled JavaScript --><% scripts.forEach( function ( file ) { %>
-    <script type="text/javascript" src="<%= file %>"></script><% }); %>
+    <script type="text/javascript" src="/<%= file %>"></script><% }); %>
   </head>
   <body ui-view="main">
   </body>
@@ -24,6 +24,7 @@
     })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
     ga('create', 'UA-36688753-2', 'auto');
-    ga('send', 'pageview');
+    // Tracking is done through Angulartics (http://luisfarzati.github.io/angulartics/)
+    // ga('send', 'pageview'); 
   </script>
 </html>

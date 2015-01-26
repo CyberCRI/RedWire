@@ -4,7 +4,6 @@ angular.module( 'gamEvolve', [
   'templates-common'
   'ui.bootstrap'
   'ui.router'
-  'ui.state'
   'ui.ace'
   'ui.sortable'
   'ngSanitize'
@@ -52,9 +51,14 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.dndHelper'
   'xeditable'
   'treeRepeat'
+  'angulartics'
+  'angulartics.google.analytics'
 ])
 
-.config( ( $stateProvider, $urlRouterProvider ) ->
+.config( ( $stateProvider, $urlRouterProvider, $locationProvider ) ->
+  # Get rid of those ugly hashes
+  $locationProvider.html5Mode(true)
+  # Default page is /game/list
   $urlRouterProvider.otherwise( '/game/list' )
 )
 
