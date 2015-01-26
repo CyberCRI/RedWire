@@ -4,7 +4,6 @@ angular.module( 'gamEvolve', [
   'templates-common'
   'ui.bootstrap'
   'ui.router'
-  'ui.state'
   'ui.ace'
   'ui.sortable'
   'ngSanitize'
@@ -52,6 +51,8 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.dndHelper'
   'xeditable'
   'treeRepeat'
+  'angulartics'
+  'angulartics.google.analytics'
 ])
 
 .config( ( $stateProvider, $urlRouterProvider ) ->

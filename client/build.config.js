@@ -87,7 +87,9 @@ module.exports = {
       'vendor/webaudiox/examples/vendor/jsfx/jsfxlib.js',
       'vendor/dragster/lib/dragster.js',
       'vendor/bowser/bowser.js',
-      'vendor/sat-js/SAT.js'
+      'vendor/sat-js/SAT.js',
+      'vendor/angulartics/src/angulartics.js',
+      'vendor/angulartics/src/angulartics-ga.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
