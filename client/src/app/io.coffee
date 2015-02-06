@@ -691,21 +691,19 @@ RW.io.metrics =
     sendEvents = ->
       if eventQueue.length is 0 then return 
 
-      # Send off data
-      # TODO: send off data in batches (once RedMetrics supports it)
-      for event in eventQueue
-        # Set game version and player IDs
+      # Set game version and player IDs
+      updatedEvents = for event in eventQueue
         _.extend event, 
           gameVersion: options.metrics.gameVersionId
           player: playerId
 
-        # Send AJAX request
-        jqXhr = $.ajax 
-          url: options.metrics.host + "/v1/event/" 
-          type: "POST"
-          data: JSON.stringify(event)
-          processData: false
-          contentType: "application/json"
+      # Send AJAX request
+      jqXhr = $.ajax 
+        url: options.metrics.host + "/v1/event/" 
+        type: "POST"
+        data: JSON.stringify(updatedEvents)
+        processData: false
+        contentType: "application/json"
 
       # Clear queue
       eventQueue = []
@@ -713,16 +711,13 @@ RW.io.metrics =
     sendSnapshots = ->
       if snapshotQueue.length is 0 then return 
 
-      # Send off data
-      # TODO: send off data in batches (once RedMetrics supports it)
-      for snapshot in snapshotQueue
-        # Send AJAX request
-        jqXhr = $.ajax 
-          url: options.metrics.host + "/v1/snapshot/" 
-          type: "POST"
-          data: JSON.stringify(snapshot)
-          processData: false
-          contentType: "application/json"
+      # Send AJAX request
+      jqXhr = $.ajax 
+        url: options.metrics.host + "/v1/snapshot/" 
+        type: "POST"
+        data: JSON.stringify(snapshotQueue)
+        processData: false
+        contentType: "application/json"
 
       # Clear queue
       snapshotQueue = []
