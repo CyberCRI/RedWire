@@ -6,7 +6,6 @@
     "angular-mocks": "~1.2.16",
     "bootstrap": "~3.1.1",
     "angular-bootstrap": "~0.11.0",
-    "angular-ui-router": "~0.0.1",
     "angular-ui-utils": "~0.0.3",
     "underscore": "~1.5.2",
     "underscore.string": "*",
@@ -27,6 +26,11 @@
     "webaudiox": "*",
     "angular-file-dnd": "~1.0.4",
     "angular-sanitize": "~1.2.16",
-    "angular-animate": "~1.2.16"
+    "angular-animate": "~1.2.16",
+    "angulartics": "~0.17.2",
+    "angular-ui-router": "~0.2.13"
+  },
+  "resolutions": {
+    "angular-ui-router": "~0.2.13"
   }
 }

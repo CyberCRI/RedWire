@@ -1,7 +1,7 @@
 <div id="playOnly">
 	<div id="gameBox"> 
 		<div id="gamePlayerContainer">
-			<iframe id="gamePlayer" sandbox="allow-scripts" src="sandbox.html" ng-controller="PlayerCtrl"></iframe>
+			<iframe id="gamePlayer" sandbox="allow-scripts" src="/sandbox.html" ng-controller="PlayerCtrl"></iframe>
 			<div id="overlay" ng-hide="!isLoading">
 				<i class="font-icon-spin5 animate-spin"></i>
 			</div>
@@ -11,7 +11,7 @@
 	<div ng-show="title">
 		<h1 >{{title}} by {{author}}</h1>
 		<h3 id="description" ng-bind-html="description | linky"></h3>
-		<a href="" ng-click="remix()"><img src="assets/images/ribbon.png"></a>
+		<a href="" ng-click="remix()"><img src="/assets/images/ribbon.png"></a>
 		<br><a href="" ng-click="listGames()">See other games</a>
 	</div>
 </div>

@@ -10,6 +10,6 @@ cd $DIR
 mkdir -p logs
 
 # Run forever as daemon, keeping logs 
-forever start -a -l $DIR/logs/forever.log -o $DIR/logs/out.log -e $DIR/logs/error.log --minUptime=10000 --spinSleepTime=10000 -c coffee $DIR/runProduction.coffee
+forever start -a -l $DIR/logs/forever.log -o $DIR/logs/out.log -e $DIR/logs/error.log --minUptime=10000 --spinSleepTime=10000 -c coffee runProduction.coffee
 
 popd 
