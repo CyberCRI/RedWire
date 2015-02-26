@@ -691,21 +691,13 @@ RW.io.metrics =
     sendEvents = ->
       if eventQueue.length is 0 then return 
 
-      # Send off data
-      # TODO: send off data in batches (once RedMetrics supports it)
-      for event in eventQueue
-        # Set game version and player IDs
-        _.extend event, 
-          gameVersion: options.metrics.gameVersionId
-          player: playerId
-
-        # Send AJAX request
-        jqXhr = $.ajax 
-          url: options.metrics.host + "/v1/event/" 
-          type: "POST"
-          data: JSON.stringify(event)
-          processData: false
-          contentType: "application/json"
+      # Send AJAX request
+      jqXhr = $.ajax 
+        url: options.metrics.host + "/v1/event/" 
+        type: "POST"
+        data: JSON.stringify(eventQueue)
+        processData: false
+        contentType: "application/json"
 
       # Clear queue
       eventQueue = []
@@ -713,16 +705,13 @@ RW.io.metrics =
     sendSnapshots = ->
       if snapshotQueue.length is 0 then return 
 
-      # Send off data
-      # TODO: send off data in batches (once RedMetrics supports it)
-      for snapshot in snapshotQueue
-        # Send AJAX request
-        jqXhr = $.ajax 
-          url: options.metrics.host + "/v1/snapshot/" 
-          type: "POST"
-          data: JSON.stringify(snapshot)
-          processData: false
-          contentType: "application/json"
+      # Send AJAX request
+      jqXhr = $.ajax 
+        url: options.metrics.host + "/v1/snapshot/" 
+        type: "POST"
+        data: JSON.stringify(snapshotQueue)
+        processData: false
+        contentType: "application/json"
 
       # Clear queue
       snapshotQueue = []
@@ -767,16 +756,24 @@ RW.io.metrics =
 
         # Contains updated playerInfo if necessary
         newPlayerInfo = null
+        userTime = new Date().toISOString()
 
         # Expecting a format like { player: {}, events: [ type: "", section: [], coordinates: [], customData: }, ... ] }
         for circuitId in _.pluck(options.circuitMetas, "id") 
           # Collate all data into the events queue (disregard individual circuits)
-          eventQueue.push(ioData[circuitId].events...)
+
+          # Set game version and player IDs on events
+          for event in ioData[circuitId].events
+            eventQueue.push _.extend event, 
+              gameVersion: options.metrics.gameVersionId
+              player: playerId
+              userTime: userTime
 
           # Send input memory and input IO data as snapshots
           snapshotQueue.push 
             gameVersion: options.metrics.gameVersionId
             player: playerId
+            userTime: userTime
             customData:
               inputIo: additionalData.inputIoData
               memory: additionalData.memoryData
