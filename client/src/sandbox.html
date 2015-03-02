@@ -37,11 +37,24 @@
 		#gameContent input, button, label {
 			pointer-events: auto;
 		}
+
+		/* The capture space exists only to grab keyboard events */
+		#captureSpace {
+			pointer-events: auto;
+			z-index: -1;
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			width: 960px;
+			height: 540px;
+		}
 	</style>
 </head>
 
 <body>
-	<div id="gameContent"></div>
+	<div id="gameContent">
+		<div id="captureSpace" tabindex="0"></div>
+	</div>
 </body>
 
 </html>

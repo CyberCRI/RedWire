@@ -16,7 +16,7 @@ RW.io.keyboard =
 
     keysDown = {}
 
-    $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", "canvas", (event) ->
+    $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", "#captureSpace", (event) ->
       event.preventDefault()   
 
       # jQuery standardizes the keycode into http://api.jquery.com/event.which/
@@ -108,7 +108,7 @@ RW.io.canvas =
       createdLayers = {}
       for { circuitId, name, depth } in options.layers
         layerId = makeLayerId(circuitId, name)
-        layer = $("<canvas id='canvasLayer-#{layerId}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{depth}; #{CANVAS_CSS}' />")
+        layer = $("<canvas id='canvasLayer-#{layerId}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' style='z-index: #{depth}; #{CANVAS_CSS}' />")
         $(options.elementSelector).append(layer)
         createdLayers[layerId] = layer
 
