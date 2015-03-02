@@ -1,5 +1,6 @@
 {
   "name": "Collector",
+  "fileVersion": 0.4,
   "circuits": {
     "main": {
       "memory": {

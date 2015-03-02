@@ -53,7 +53,7 @@ RW.io.mouse =
     # This disables selection, which allows the cursor to change in Chrome
     $(options.elementSelector).on("selectstart.#{eventNamespace}", -> false)
 
-    $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", "canvas", (event) ->
+    $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", "#captureSpace", (event) ->
       switch event.type 
         when 'mousedown' then mouse.down = true
         when 'mouseup' then mouse.down = false
@@ -356,6 +356,8 @@ RW.io.html =
             layer = _.findWhere options.layers, 
               "circuitId": circuitId
               "name": templateName
+            if not layer then throw new Error("Invalid HTML layer '#{templateName}' in circuit '#{circuitId}'")
+
             outerWrapper = $("<div id='html-#{circuitId}-#{templateName}' style='position: absolute; z-index: #{layer.depth}; pointer-events: none; width: #{options.size[0]}px; height: #{options.size[1]}px'/>")
             outerWrapper.append(templateHtml)
             $(options.elementSelector).append(outerWrapper)
