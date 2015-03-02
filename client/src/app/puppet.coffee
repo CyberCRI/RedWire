@@ -162,7 +162,7 @@ flattenLayerList = (type, circuits) ->
   
   return flattenRecursive("main", "main", [])
 
-initializeIo = (circuits) ->
+initializeIo = (circuits, redMetricsConfig) ->
   # Get flattened list of layers
   layerList = flattenLayerList("layers", circuits)
   channelList = flattenLayerList("channels", circuits)
@@ -175,7 +175,8 @@ initializeIo = (circuits) ->
         elementSelector: '#gameContent'
         size: GAME_DIMENSIONS
         circuitMetas: circuitMetas
-        assets: loadedAssets.data
+        assets: loadedAssets.data 
+        metrics: redMetricsConfig
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
           { circuitId: layer.circuitId, name: layer.name, depth: depth } 
@@ -256,7 +257,7 @@ loadGame = (gameCode, callback) ->
 
     # Initialize IO after assets are loaded
     try 
-      loadedGame.io = initializeIo(gameCode.circuits)
+      loadedGame.io = initializeIo(gameCode.circuits, gameCode.redMetricsConfig)
     catch error
       return callback(error)
 

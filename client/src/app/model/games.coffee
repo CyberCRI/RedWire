@@ -1,4 +1,3 @@
-
 angular.module('gamEvolve.model.games', [])
 
 
@@ -30,20 +29,20 @@ angular.module('gamEvolve.model.games', [])
 .factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->
 
   saveInfo = ->
-    $http.post('/games', currentGame.info)
+    $http.post('/api/games', currentGame.info)
       .then (savedGame) ->
         currentGame.info = savedGame.data
         currentGame.version.gameId = currentGame.info.id
-        $http.get("/users?id=#{currentGame.info.ownerId}")
+        $http.get("/api/users?id=#{currentGame.info.ownerId}")
       .then (creator) ->
         currentGame.creator = creator.data.username
 
   updateInfo = ->
-    $http.put('/games', currentGame.info)
+    $http.put('/api/games', currentGame.info)
     
   saveVersion = ->
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
-    $http.post('/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
+    $http.post('/api/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
       .then((savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)))
       .then(-> currentGame.statusMessage = "Published at #{moment().format("HH:mm:ss")}")
 
@@ -57,8 +56,8 @@ angular.module('gamEvolve.model.games', [])
       saveVersion()
 
   loadAll: ->
-    gamesQuery = $http.get('/games')
-    usersQuery = $http.get("/users") #?{fields={id: 1, username: 1}
+    gamesQuery = $http.get('/api/games')
+    usersQuery = $http.get("/api/users") #?{fields={id: 1, username: 1}
     fillGamesList = ([gamesResult, usersResult]) -> 
       for game in gamesResult.data
         id: game.id
@@ -78,8 +77,8 @@ angular.module('gamEvolve.model.games', [])
     undo.reset()
 
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
-    getVersion = $http.get("/game-versions?#{query}")
-    getCreator = $http.get("/users?id=#{game.ownerId}")
+    getVersion = $http.get("/api/game-versions?#{query}")
+    getCreator = $http.get("/api/users?id=#{game.ownerId}")
     getStandardLibrary = $http.get("/assets/standardLibrary.json")
     updateCurrentGame = ([version, creator, standardLibrary]) ->
       currentGame.info = game
@@ -98,7 +97,7 @@ angular.module('gamEvolve.model.games', [])
     $q.all([getVersion, getCreator, getStandardLibrary]).then(updateCurrentGame, onError).finally(onDone)
 
   loadFromId: (gameId) ->
-    $http.get("/games/#{gameId}")
+    $http.get("/api/games/#{gameId}")
       .success(@load)
       .error (error) ->
         console.log error

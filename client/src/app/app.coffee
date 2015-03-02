@@ -4,9 +4,9 @@ angular.module( 'gamEvolve', [
   'templates-common'
   'ui.bootstrap'
   'ui.router'
-  'ui.state'
   'ui.ace'
   'ui.sortable'
+  'ngSanitize'
   'gamEvolve.model.cache'
   'gamEvolve.model.games'
   'gamEvolve.model.users'
@@ -20,6 +20,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.boardTree'
   'gamEvolve.game.boardNodes'
   'gamEvolve.game.channels'
+  'gamEvolve.game.description'
   'gamEvolve.game.edit'
   'gamEvolve.game.embed'
   'gamEvolve.game.list'
@@ -29,6 +30,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.log'
   'gamEvolve.game.login'
   'gamEvolve.game.memory'
+  'gamEvolve.game.metrics'
   'gamEvolve.game.overlay'
   'gamEvolve.game.play'
   'gamEvolve.game.player'
@@ -49,9 +51,14 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.dndHelper'
   'xeditable'
   'treeRepeat'
+  'angulartics'
+  'angulartics.google.analytics'
 ])
 
-.config( ( $stateProvider, $urlRouterProvider ) ->
+.config( ( $stateProvider, $urlRouterProvider, $locationProvider ) ->
+  # Get rid of those ugly hashes
+  $locationProvider.html5Mode(true)
+  # Default page is /game/list
   $urlRouterProvider.otherwise( '/game/list' )
 )
 

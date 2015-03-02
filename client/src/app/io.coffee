@@ -684,3 +684,131 @@ RW.io.sound =
 
       destroy: -> stopPlayingSounds()
     }
+
+# A RedMetrics IO service to send game analytics data 
+RW.io.metrics =  
+  meta:
+    visual: false
+  factory: (options) ->
+    eventQueue = []
+    snapshotQueue = []
+    timerId = null
+    playerId = null
+    playerInfo = {} # Current state of player 
+
+    configIsValid = -> options.metrics and options.metrics.gameVersionId and options.metrics.host 
+
+    sendResults = ->
+      sendEvents()
+      sendSnapshots()
+
+    sendEvents = ->
+      if eventQueue.length is 0 then return 
+
+      # Send AJAX request
+      jqXhr = $.ajax 
+        url: options.metrics.host + "/v1/event/" 
+        type: "POST"
+        data: JSON.stringify(eventQueue)
+        processData: false
+        contentType: "application/json"
+
+      # Clear queue
+      eventQueue = []
+
+    sendSnapshots = ->
+      if snapshotQueue.length is 0 then return 
+
+      # Send AJAX request
+      jqXhr = $.ajax 
+        url: options.metrics.host + "/v1/snapshot/" 
+        type: "POST"
+        data: JSON.stringify(snapshotQueue)
+        processData: false
+        contentType: "application/json"
+
+      # Clear queue
+      snapshotQueue = []
+
+    io =
+      enterPlaySequence: ->
+        if not configIsValid() then return 
+
+        # Create player
+        jqXhr = $.ajax 
+          url: options.metrics.host + "/v1/player/"
+          type: "POST"
+          data: "{}"
+          processData: false
+          contentType: "application/json"
+        jqXhr.done (data, textStatus) -> 
+          playerId = data.id
+          # Start sending events
+          timerId = window.setInterval(sendResults, 5000)
+        jqXhr.fail (__, textStatus, errorThrown) -> 
+          throw new Error("Cannot create player: #{errorThrown}")
+ 
+      leavePlaySequence: -> 
+        # If metrics session was not created then ignore
+        if not playerId then return
+
+        # Send last data before stopping 
+        sendResults()
+
+        # Stop sending events
+        window.clearInterval(timerId)
+        playerId = null
+
+      provideData: -> 
+        global: 
+          events: []
+          player: playerInfo
+
+      establishData: (ioData, additionalData) -> 
+        # Only send data in play sequence
+        if not playerId then return 
+
+        # Contains updated playerInfo if necessary
+        newPlayerInfo = null
+        userTime = new Date().toISOString()
+
+        # Expecting a format like { player: {}, events: [ type: "", section: [], coordinates: [], customData: }, ... ] }
+        for circuitId in _.pluck(options.circuitMetas, "id") 
+          # Collate all data into the events queue (disregard individual circuits)
+
+          # Set game version and player IDs on events
+          for event in ioData[circuitId].events
+            eventQueue.push _.extend event, 
+              gameVersion: options.metrics.gameVersionId
+              player: playerId
+              userTime: userTime
+
+          # Send input memory and input IO data as snapshots
+          snapshotQueue.push 
+            gameVersion: options.metrics.gameVersionId
+            player: playerId
+            userTime: userTime
+            customData:
+              inputIo: additionalData.inputIoData
+              memory: additionalData.memoryData
+
+          # Update player info
+          if not _.isEqual(ioData[circuitId].player, playerInfo) 
+            newPlayerInfo = ioData[circuitId].player
+
+        # Update player info if necessary
+        if newPlayerInfo
+          jqXhr = $.ajax 
+            url: options.metrics.host + "/v1/player/" + playerId
+            type: "PUT"
+            data: JSON.stringify(newPlayerInfo)
+            processData: false
+            contentType: "application/json"
+          playerInfo = newPlayerInfo
+
+        return null # avoid accumulating results
+
+      destroy: -> # NOP
+
+    return io
+

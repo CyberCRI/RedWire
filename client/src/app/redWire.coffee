@@ -411,7 +411,7 @@ RW.visitProcessorChip = (circuitMeta, path, chip, constants, circuitData, bindin
     return result # Quit early
 
   try
-    result.signal = processor.update(evaluatedPins, constants.transformers, RW.transformersLogger)
+    result.signal = processor.update(evaluatedPins, constants.assets, constants.transformers, RW.transformersLogger)
   catch e
     result.signal = RW.signals.ERROR
     RW.transformersLogger(RW.logLevels.ERROR, "Calling processor #{chip.processor}.update raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}.\n#{RW.formatStackTrace(e)}")
@@ -741,11 +741,19 @@ RW.stepLoop = (options) ->
 
   # TODO: check the output even if isn't established, in order to catch errors
   if options.establishOutput
+    # Additional data that will be sent to IO services
+    additionalData = 
+      memoryData: options.memoryData
+      memoryPatches: options.memoryPatches
+      inputIoData: options.inputIoData
+      ioPatches: ioPatches
+      logMessages: logMessages
+
     try
       # outputIoData is keyed by circuit, we need it by io name
       outputIoDataByIoName = RW.reverseKeys(options.outputIoData)
       for ioName, io of options.io
-        io.establishData(outputIoDataByIoName[ioName])
+        io.establishData(outputIoDataByIoName[ioName], additionalData)
     catch e 
       return makeErrorResponse("writeIo", e)
 
@@ -766,8 +774,8 @@ RW.compileTransformer = (expressionText, args, evaluator) ->
   """
   return RW.compileSource(source, evaluator, ["context"])
 
-# Compile processor.update() source into sandboxed function of (pins, transformers, log) 
-RW.compileUpdate = (expressionText, evaluator) -> RW.compileSource(expressionText, evaluator, ["pins", "transformers", "log"])
+# Compile processor.update() source into sandboxed function of (pins, assets, transformers, log,) 
+RW.compileUpdate = (expressionText, evaluator) -> RW.compileSource(expressionText, evaluator, ["pins", "assets", "transformers", "log"])
 
 # Compile processor listActiveChildren source into sandboxed function of (pins, children, transformers, log) 
 RW.compileListActiveChildren = (expressionText, evaluator) -> RW.compileSource(expressionText, evaluator, ["pins", "children", "transformers", "log"])

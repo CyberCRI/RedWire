@@ -8,6 +8,13 @@
 # Ignore generated documentation
 docs/
 
+# Ignore local database
+server/db
+server/data/
+
+# Ignore nginx config file
+server/redwire.nginx.conf
+
 # Ignore node modules
 client/npm-debug.log
 client/node_modules/
@@ -20,9 +27,6 @@ client/.bowerrc
 
 # Ignore dpd temp files
 server/.dpd/
-server/data/-deployd*
-server/data/journal
-server/data/mongod.lock
 
 # Ignore compilation result
 server/public-dev/

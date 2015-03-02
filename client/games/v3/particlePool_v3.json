@@ -1,0 +1,358 @@
+{
+  "name": "Particle Pool",
+  "circuits": {
+    "main": {
+      "memory": {
+        "constants": {
+          "timeBetweenParticles": 1000,
+          "deflectorRadius": 50,
+          "particleRadius": 10,
+          "newParticleTtl": 240,
+          "explosionRadius": 30,
+          "pushingScalar": 0.2,
+          "targetRadius": 60,
+          "targetPositions": [
+            [
+              0,
+              0
+            ],
+            [
+              960,
+              0
+            ],
+            [
+              960,
+              540
+            ],
+            [
+              0,
+              540
+            ]
+          ]
+        },
+        "particles": {
+          "1": {
+            "ttl": 470,
+            "position": [
+              1,
+              1
+            ],
+            "velocity": [
+              -1,
+              -1
+            ]
+          }
+        },
+        "points": 0,
+        "lastParticleAppearedAt": 0
+      },
+      "board": {
+        "switch": "Do All",
+        "comment": "Main",
+        "children": [
+          {
+            "emitter": {
+              "io.canvas.gui": "[{\n    type: \"text\",\n    text: memory.points,\n    position: [850, 50]\n}]"
+            },
+            "comment": "Draw points",
+            "name": null,
+            "$$hashKey": "00D"
+          },
+          {
+            "switch": "Limit Rate",
+            "pins": {
+              "in": {
+                "currentTime": "io.time",
+                "minTime": "memory.constants.timeBetweenParticles",
+                "lastTime": "memory.lastParticleAppearedAt"
+              },
+              "out": {
+                "memory.lastParticleAppearedAt": "pins.lastTime"
+              }
+            },
+            "children": [
+              {
+                "emitter": {
+                  "memory.particles": "RW.addUniqueToObject(memory.particles, {\n    ttl: memory.constants.newParticleTtl,\n    position: [Math.random() * 960, Math.random() * 540],\n    velocity: transformers.normalizedVector([Math.random() * 2 - 1, Math.random() * 2 - 1])\n})"
+                },
+                "comment": "Make random particle",
+                "name": null
+              }
+            ],
+            "comment": "Once in a while",
+            "name": null,
+            "muted": false,
+            "$$hashKey": "00E"
+          },
+          {
+            "emitter": {
+              "io.canvas.bg": "[{\n    type: \"rectangle\",\n    position: [0, 0],\n    fillStyle: \"black\",\n    size: [960, 540]\n}]"
+            },
+            "comment": "Draw BG",
+            "name": null,
+            "$$hashKey": "00F"
+          },
+          {
+            "emitter": {
+              "io.canvas.fg": "[\n    {\n        type: \"circle\",\n        radius: memory.constants.deflectorRadius,\n        fillStyle: io.mouse.down ? \"red\" : \"green\",\n        position: io.mouse.position\n    }\n]"
+            },
+            "comment": "Draw deflector zone",
+            "name": null,
+            "$$hashKey": "00G"
+          },
+          {
+            "emitter": {
+              "memory.particles": "transformers.handleParticleCollisions(memory.particles, memory.constants.explosionRadius, memory.constants.particleRadius, memory.constants.newParticleTtl)"
+            },
+            "comment": "Handle particle collisions",
+            "name": null,
+            "muted": false,
+            "$$hashKey": "00H"
+          },
+          {
+            "splitter": {
+              "from": "memory.constants.targetPositions",
+              "bindTo": "targetPosition",
+              "index": null,
+              "where": null
+            },
+            "children": [
+              {
+                "emitter": {
+                  "io.canvas.fg": "[\n    {\n        type: \"circle\",\n        fillStyle: \"blue\",\n        position: bindings.targetPosition,\n        radius: memory.constants.targetRadius\n    }    \n]"
+                },
+                "comment": "Draw target zone",
+                "name": null,
+                "$$hashKey": "00O"
+              }
+            ],
+            "comment": "For each target",
+            "name": null,
+            "$$hashKey": "00I"
+          },
+          {
+            "switch": "When",
+            "pins": {
+              "in": {
+                "value": "io.mouse.down"
+              },
+              "out": {}
+            },
+            "children": [
+              {
+                "splitter": {
+                  "from": "memory.particles",
+                  "bindTo": "particle",
+                  "index": "particleIndex",
+                  "where": "transformers.distance(memory.particles[bindings.particleIndex].position, io.mouse.position) < memory.constants.deflectorRadius && !transformers.particleHitsTarget(memory.particles[bindings.particleIndex], memory.constants.targetPositions, memory.constants.particleRadius, memory.constants.targetRadius)"
+                },
+                "children": [
+                  {
+                    "emitter": {
+                      "bindings.particle.velocity": "transformers.addVectors(bindings.particle.velocity, transformers.scaleVector(memory.constants.pushingScalar, transformers.normalizedVector(transformers.subtractVectors(bindings.particle.position, io.mouse.position))))"
+                    },
+                    "comment": "Push particle away",
+                    "name": null,
+                    "$$hashKey": "00Q"
+                  }
+                ],
+                "comment": "For each close particle",
+                "name": null,
+                "$$hashKey": "00P"
+              }
+            ],
+            "comment": "When deflecting",
+            "name": null,
+            "$$hashKey": "00J"
+          },
+          {
+            "emitter": {
+              "memory.particles": "RW.filterObject(memory.particles, function(p) {\n    return p.ttl > 0;\n})"
+            },
+            "comment": "Remove dead particles",
+            "name": null,
+            "$$hashKey": "00K"
+          },
+          {
+            "emitter": {
+              "memory.points": "memory.points + transformers.particlesHittingTargetsIndexes(memory.particles, memory.constants.targetPositions, memory.constants.particleRadius, memory.constants.targetRadius).length"
+            },
+            "comment": "Gain points",
+            "name": null,
+            "muted": false,
+            "$$hashKey": "00L"
+          },
+          {
+            "emitter": {
+              "memory.particles": "transformers.removeParticlesHittingTargets(memory.particles, memory.constants.targetPositions, memory.constants.particleRadius, memory.constants.targetRadius)"
+            },
+            "comment": "Remove particles hitting targets",
+            "name": null,
+            "$$hashKey": "00M"
+          },
+          {
+            "splitter": {
+              "from": "memory.particles",
+              "bindTo": "particle",
+              "index": "particleIndex",
+              "where": null
+            },
+            "children": [
+              {
+                "switch": "If",
+                "pins": {
+                  "in": {
+                    "value": "transformers.particleHitsTarget(bindings.particle, memory.constants.targetPositions, memory.constants.particleRadius, memory.constants.targetRadius)"
+                  },
+                  "out": {}
+                },
+                "children": [
+                  {
+                    "emitter": {
+                      "io.canvas.fg": "[\n    {\n        type: \"circle\",\n        radius: memory.constants.particleRadius,\n        fillStyle: \"orange\",\n        position: bindings.particle.position\n    }\n]"
+                    },
+                    "comment": "Draw hit particle",
+                    "name": null
+                  },
+                  {
+                    "switch": "Do All",
+                    "pins": {
+                      "in": {},
+                      "out": {}
+                    },
+                    "children": [
+                      {
+                        "emitter": {
+                          "io.canvas.fg": "[\n    {\n        type: \"circle\",\n        radius: memory.constants.particleRadius,\n        fillStyle: transformers.makeParticleColor(bindings.particle.ttl, memory.constants.newParticleTtl),\n        position: bindings.particle.position\n    }\n]"
+                        },
+                        "comment": "Draw particle",
+                        "name": null
+                      },
+                      {
+                        "emitter": {
+                          "bindings.particle": "transformers.moveParticle(bindings.particle)"
+                        },
+                        "comment": "Move particle",
+                        "name": null
+                      },
+                      {
+                        "emitter": {
+                          "bindings.particle.ttl": "bindings.particle.ttl - 1"
+                        },
+                        "comment": "Decrement TTL",
+                        "name": null,
+                        "muted": false
+                      }
+                    ]
+                  }
+                ],
+                "comment": "Particle hits target",
+                "name": null
+              }
+            ],
+            "comment": "For each particle",
+            "name": null,
+            "$$hashKey": "00N"
+          }
+        ]
+      },
+      "io": {
+        "layers": [
+          {
+            "name": "bg",
+            "type": "canvas"
+          },
+          {
+            "name": "fg",
+            "type": "canvas"
+          },
+          {
+            "name": "gui",
+            "type": "canvas"
+          }
+        ],
+        "channels": []
+      }
+    }
+  },
+  "processors": {},
+  "switches": {},
+  "transformers": {
+    "subtractVectors": {
+      "args": [
+        "a",
+        "b"
+      ],
+      "body": "return [ a[0] - b[0], a[1] - b[1] ];"
+    },
+    "getLengthOfVector": {
+      "args": [
+        "v"
+      ],
+      "body": "return Math.sqrt(v[0] * v[0] + v[1] * v[1]);"
+    },
+    "normalizedVector": {
+      "args": [
+        "v"
+      ],
+      "body": "var l = transformers.getLengthOfVector(v);\nreturn [v[0] / l, v[1] / l];"
+    },
+    "makeParticleColor": {
+      "args": [
+        "ttl",
+        "maxTtl"
+      ],
+      "body": "var p = 128 + Math.floor(128 * ttl / maxTtl);\nreturn \"rgb(\" + p + \", \" + p + \", 0)\";"
+    },
+    "scaleVector": {
+      "args": [
+        "s",
+        "v"
+      ],
+      "body": "return [s * v[0], s * v[1]];"
+    },
+    "handleParticleCollisions": {
+      "args": [
+        "particles",
+        "explosionRadius",
+        "particleRadius",
+        "newParticleTtl"
+      ],
+      "body": "// Find particles that collide \nvar particleCollisions = []; // List of index pairs\nvar particleKeys = _.keys(particles);\nfor(var i = 0; i < particleKeys.length - 1; i++) {\n    for(var j = i + 1; j < particleKeys.length; j++) {\n        if(transformers.distance(particles[particleKeys[i]].position, particles[particleKeys[j]].position) < particleRadius) {\n            particleCollisions.push([particleKeys[i], particleKeys[j]]);\n        }\n    }\n}\n\nif(particleCollisions.length == 0) return particles; // No change\n\n\n// Clone list of particles to work on them\nvar newParticles = RW.cloneData(particles);\n\n// Remove colliding particles\nvar collidingParticles = _.uniq(_.flatten(particleCollisions)); // List of particle indexes colliding\nvar newParticles = RW.filterObject(newParticles, function(particle, index) { return !_.contains(collidingParticles, index); })\n\n// Add particles after collision\nfor(var i = 0; i < particleCollisions.length; i++) {\n    var collision = particleCollisions[i];\n    var particleA = particles[collision[0]];\n    var particleB = particles[collision[1]];\n    \n    // Find the center point between the two particles\n    var distBetweenParticles = transformers.distance(particleA.position, particleB.position);\n    var vecBetweenParticles = transformers.normalizedVector(transformers.subtractVectors(particleB.position, particleA.position));\n    var centerPoint = transformers.addVectors(particleA.position, transformers.scaleVector(distBetweenParticles / 2, vecBetweenParticles));\n    \n     // Add particle moving towards particle B\n    RW.addUnique(newParticles, {\n        ttl: newParticleTtl,\n        position: transformers.addVectors(centerPoint, transformers.scaleVector(explosionRadius, vecBetweenParticles)),\n        velocity: vecBetweenParticles\n    });\n\n    // Add particle moving towards particle A\n    RW.addUnique(newParticles, {\n        ttl: newParticleTtl,\n        position: transformers.addVectors(centerPoint, transformers.scaleVector(-1 * explosionRadius, vecBetweenParticles)),\n        velocity: transformers.scaleVector(-1, vecBetweenParticles)\n    });\n\n    // Find perpendicular vector to distBetweenParticles \n    var perp = [-vecBetweenParticles[1], vecBetweenParticles[0]];\n\n    // Add particle moving perpendicular\n    RW.addUnique(newParticles, {\n        ttl: newParticleTtl,\n        position: transformers.addVectors(centerPoint, transformers.scaleVector(explosionRadius, perp)),\n        velocity: perp\n    });\n\n    // Add particle moving in the opposite perpendicular\n    RW.addUnique(newParticles, {\n        ttl: newParticleTtl,\n        position: transformers.addVectors(centerPoint, transformers.scaleVector(-1 * explosionRadius, perp)),\n        velocity: transformers.scaleVector(-1, perp)\n    });\n}\n\n// Return new particle list\nreturn newParticles;"
+    },
+    "moveParticle": {
+      "args": [
+        "particle"
+      ],
+      "body": "var newParticle = RW.cloneData(particle);\n\n// Handle bounce\nif(particle.position[0] < 0 || particle.position[0] > 960) {\n    newParticle.velocity = [-1 * particle.velocity[0], particle.velocity[1]];\n} else if(particle.position[1] < 0 || particle.position[1] > 540) {\n    newParticle.velocity = [particle.velocity[0], -1 * particle.velocity[1]];\n}\n\n// Advance particle\nnewParticle.position = transformers.addVectors(newParticle.position, newParticle.velocity);\n\nreturn newParticle;"
+    },
+    "particlesHittingTargetsIndexes": {
+      "args": [
+        "particles",
+        "targets",
+        "particleRadius",
+        "targetRadius"
+      ],
+      "body": "var particleIndexes = [];\n\nfor(var particleIndex in particles) {\n    for(var targetIndex in targets) {\n        if(transformers.distance(particles[particleIndex].position, targets[targetIndex]) < particleRadius + targetRadius) {\n            particleIndexes.push(particleIndex);\n            log.info(\"particle\", particleIndex, \"hit target\");\n        }\n    }\n}\n\nreturn particleIndexes;"
+    },
+    "removeParticlesHittingTargets": {
+      "args": [
+        "particles",
+        "targets",
+        "particleRadius",
+        "targetRadius"
+      ],
+      "body": "var particlesHittingTargets = transformers.particlesHittingTargetsIndexes(particles, targets, particleRadius, targetRadius);\nreturn RW.filterObject(particles, function(particle, particleIndex) { return !_.contains(particlesHittingTargets, particleIndex); });"
+    },
+    "particleHitsTarget": {
+      "args": [
+        "particle",
+        "targets",
+        "particleRadius",
+        "targetRadius"
+      ],
+      "body": "for(var targetIndex in targets) {\n    if(transformers.distance(particle.position, targets[targetIndex]) < particleRadius + targetRadius) {\n        return true;\n    }\n}\n\nreturn false;"
+    }
+  },
+  "assets": {}
+}

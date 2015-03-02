@@ -61,6 +61,7 @@ module.exports = {
       'vendor/angular-bootstrap/ui-bootstrap-tpls.js',
       'vendor/angular-ui-router/release/angular-ui-router.js',
       'vendor/angular-ui-utils/modules/route/route.js',
+      'vendor/angular-sanitize/angular-sanitize.js',
       'vendor/ace-builds/src-noconflict/ace.js',
       'vendor/ace-builds/src-noconflict/mode-css.js',
       'vendor/ace-builds/src-noconflict/worker-css.js',
@@ -90,7 +91,9 @@ module.exports = {
       'vendor/webaudiox/examples/vendor/jsfx/jsfxlib.js',
       'vendor/dragster/lib/dragster.js',
       'vendor/bowser/bowser.js',
-      'vendor/sat-js/SAT.js'
+      'vendor/sat-js/SAT.js',
+      'vendor/angulartics/src/angulartics.js',
+      'vendor/angulartics/src/angulartics-ga.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',

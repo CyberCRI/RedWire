@@ -39,7 +39,6 @@ Feel free to check these out:
 
 - [Getting Started](https://github.com/CyberCRI/RedWire/wiki/Getting-Started) Page
 - Our [GIT Workflow](https://github.com/CyberCRI/RedWire/wiki/Our-Git-workflow)
-- [Compiling](https://github.com/CyberCRI/RedWire/wiki/Compiling)
 - [Documentation](https://github.com/CyberCRI/RedWire/wiki/Documentation)
 - [Code Review](https://github.com/CyberCRI/RedWire/wiki/Code-review)
 - [Regression Tests](https://github.com/CyberCRI/RedWire/wiki/Regression-Tests)

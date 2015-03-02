@@ -15,21 +15,24 @@
     <div id="gameLoadingControls">
         <div ng-controller="MenuCtrl">
             <div id="loggedInInfo" ng-show="user.isLoggedIn()">
-                <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" href=""><i class="font-icon-logout"></i></button>
+                <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" analytics-on="click" analytics-category="edit" analytics-event="logout"><i class="font-icon-logout"></i></button>
             </div>
             <div>
-                <button ng-click="publishButtonClick()" class="btn btn-sm btn-primary" ng-disabled="publishButtonDisabled" ng-if="isPublishButtonDisplayed()">
+                <button ng-click="publishButtonClick()" class="btn btn-sm btn-primary" ng-disabled="publishButtonDisabled" ng-if="isPublishButtonDisplayed()" analytics-on="click" analytics-category="edit" analytics-event="publish">
                     <i ng-class="font-icon-upload"></i>
                     Publish
                 </button>
-                <button ng-click="forkButtonClick()" class="btn btn-sm btn-primary" ng-disabled="forkButtonDisabled" ng-if="isForkButtonDisplayed()">
+                <button ng-click="forkButtonClick()" class="btn btn-sm btn-primary" ng-disabled="forkButtonDisabled" ng-if="isForkButtonDisplayed()" analytics-on="click" analytics-category="edit" analytics-event="fork">
                     <i ng-class="font-icon-fork"></i>
                     Fork
                 </button>
-                <button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-if="user.isNotLoggedIn()">
+                <button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-if="user.isNotLoggedIn()" analytics-on="click" analytics-category="edit" analytics-event="login">
                     Login
                 </button>
-                <button id="importExportButton" title="Import/Export" ng-click="importExportDialog.open();" class="btn btn-default btn-sm">
+                <button id="editDescriptionButton" title="Edit Description" class="btn btn-default btn-sm" ng-click="editDescription()" analytics-on="click" analytics-category="edit" analytics-event="editDescription">
+                    <i class="glyphicon glyphicon-list-alt"></i>
+                </button>
+                <button id="importExportButton" title="Import/Export" ng-click="importExportDialog.open();" class="btn btn-default btn-sm" analytics-on="click" analytics-category="edit" analytics-event="importExport">
                     <i class="glyphicon glyphicon-file"></i>
                 </button>
                 <button ng-click="gotoPlayScreen()" title="Play" class="btn btn-default btn-sm">

@@ -17,7 +17,7 @@ angular.module('gamEvolve.game.embed', [])
     data:
       pageTitle: 'Embed Game'
 
-.controller 'EmbedCtrl', ($scope, $state, games, gameTime, gameHistory, currentGame, $stateParams) ->
+.controller 'EmbedCtrl', ($scope, $state, games, gameTime, gameHistory, currentGame, $stateParams, $location) ->
   $scope.isLoading = true
 
   onUpdateGameHistory = -> 
@@ -40,4 +40,8 @@ angular.module('gamEvolve.game.embed', [])
   $scope.currentGame = currentGame
   $scope.$watch("currentGame", onUpdateCurrentGame, true)
 
+  $scope.embeddedPlayerStyle = {}
+  # Set background color if asked in the URL
+  if "backgroundColor" of $location.search() 
+    $scope.embeddedPlayerStyle.backgroundColor = $location.search().backgroundColor
 

@@ -621,7 +621,7 @@ module.exports = function ( grunt ) {
         options: {
             host: deployConfig.username + "@" + deployConfig.host,
             src: "../server/",
-            exclude: ["node_modules", "data"],
+            exclude: ["node_modules", "data", "db"],
             dest: deployConfig.path,
             recursive: true,
             syncDestIgnoreExcl: true
