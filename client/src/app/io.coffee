@@ -692,11 +692,14 @@ RW.io.metrics =
   meta:
     visual: false
   factory: (options) ->
+    SNAPSHOT_FRAME_DELAY = 60 # Only record a snapshot every 60 frames
+
     eventQueue = []
     snapshotQueue = []
     timerId = null
     playerId = null
     playerInfo = {} # Current state of player 
+    snapshotFrameCounter = 0 ## Number of frames since last snapshot
 
     configIsValid = -> options.metrics and options.metrics.gameVersionId and options.metrics.host 
 
@@ -735,6 +738,9 @@ RW.io.metrics =
     io =
       enterPlaySequence: ->
         if not configIsValid() then return 
+
+        # Reset snapshot counter so that it will be sent on the first frame
+        snapshotFrameCounter = SNAPSHOT_FRAME_DELAY
 
         # Create player
         jqXhr = $.ajax 
@@ -785,14 +791,18 @@ RW.io.metrics =
               player: playerId
               userTime: userTime
 
-          # Send input memory and input IO data as snapshots
-          snapshotQueue.push 
-            gameVersion: options.metrics.gameVersionId
-            player: playerId
-            userTime: userTime
-            customData:
-              inputIo: additionalData.inputIoData
-              memory: additionalData.memoryData
+          if snapshotFrameCounter++ >= SNAPSHOT_FRAME_DELAY
+            # Reset snapshot counter
+            snapshotFrameCounter = 0
+
+            # Send input memory and input IO data as snapshots
+            snapshotQueue.push 
+              gameVersion: options.metrics.gameVersionId
+              player: playerId
+              userTime: userTime
+              customData:
+                inputIo: additionalData.inputIoData
+                memory: additionalData.memoryData
 
           # Update player info
           if not _.isEqual(ioData[circuitId].player, playerInfo) 
