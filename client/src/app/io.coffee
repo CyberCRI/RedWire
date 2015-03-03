@@ -540,8 +540,8 @@ RW.io.charts =
             if not chartData then continue
 
             # Check it's a valid chart type
-            chartType = chartData.type || "line" 
-            if chartType not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
+            chartType = chartData.type || "Line" 
+            if chartType not of Chart.types 
               throw new Error("Unknown chart type: '#{chartData.type}'")
 
             # Define options

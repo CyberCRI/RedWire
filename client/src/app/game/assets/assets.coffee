@@ -91,8 +91,8 @@ angular.module('gamEvolve.game.assets', [
   $scope.mimeType = liaison.mimeType
   $scope.editingMode = switch liaison.mimeType
     when "text/html" then "html"
-    when "text/javascript" then "javascript"
-    when "text/json" then "json"
+    when "application/javascript" then "javascript"
+    when "applcation/json" then "json"
     when "text/css" then "css"
     else "text"
 
