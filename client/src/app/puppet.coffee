@@ -254,6 +254,7 @@ loadGame = (gameCode, callback) ->
     if err? then return callback(err)
 
     loadedAssets = assetNamesToData
+    RW.assets = loadedAssets.data # Store assets globally so scripts can reference them
 
     # Initialize IO after assets are loaded
     try 

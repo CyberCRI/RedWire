@@ -16,7 +16,7 @@ RW.io.keyboard =
 
     keysDown = {}
 
-    $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", "canvas", (event) ->
+    $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", "#captureSpace", (event) ->
       event.preventDefault()   
 
       # jQuery standardizes the keycode into http://api.jquery.com/event.which/
@@ -53,7 +53,7 @@ RW.io.mouse =
     # This disables selection, which allows the cursor to change in Chrome
     $(options.elementSelector).on("selectstart.#{eventNamespace}", -> false)
 
-    $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", "canvas", (event) ->
+    $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", "#captureSpace", (event) ->
       switch event.type 
         when 'mousedown' then mouse.down = true
         when 'mouseup' then mouse.down = false
@@ -98,7 +98,7 @@ RW.io.canvas =
   meta:
     visual: true
   factory: (options) ->
-    CANVAS_CSS = "position: absolute; left: 0px; top: 0px;"
+    CANVAS_CSS = "position: absolute; left: 0px; top: 0px; pointer-events: none;"
 
     makeLayerId = (circuitId, layerName) -> "#{circuitId}.#{layerName}"
     deconstructLayerId = (layerId) -> layerId.split(".")
@@ -108,7 +108,7 @@ RW.io.canvas =
       createdLayers = {}
       for { circuitId, name, depth } in options.layers
         layerId = makeLayerId(circuitId, name)
-        layer = $("<canvas id='canvasLayer-#{layerId}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' tabIndex=0 style='z-index: #{depth}; #{CANVAS_CSS}' />")
+        layer = $("<canvas id='canvasLayer-#{layerId}' class='gameCanvas' width='#{options.size[0]}' height='#{options.size[1]}' style='z-index: #{depth}; #{CANVAS_CSS}' />")
         $(options.elementSelector).append(layer)
         createdLayers[layerId] = layer
 
@@ -285,7 +285,7 @@ RW.io.canvas =
         for layerId, canvas of layers then canvas.remove()
     }
 
-# Define HTML input io
+# Define html input io
 RW.io.html =  
   meta:
     visual: true
@@ -326,20 +326,15 @@ RW.io.html =
     return {
       provideData: -> 
         result = RW.mapToObject _.pluck(options.circuitMetas, "id"), (circuitId) -> 
-          receive: state[circuitId].templates
-          send: {}
-        result.global = 
-          receive: {}
-          send: {}
+          state[circuitId].templates
+        result.global = {}
         return result
 
       establishData: (data) -> 
         for circuitId, circuitData of data
-          newTemplateData = circuitData.send 
-
-          # data.send and data.receive are in the template of { templateName: { asset: "", initialValues: { ... } values: { name: value, ... }, ... }, ...}
+          # circuitData are in the template of { templateName: { asset: "", initialValues: { ... } values: { name: value, ... }, ... }, ...}
           existingTemplates = _.keys(state[circuitId].templates)
-          newTemplates = _.keys(newTemplateData)
+          newTemplates = _.keys(circuitData)
 
           # Remove all templates that are no longer to be shown
           for templateName in _.difference(existingTemplates, newTemplates) 
@@ -353,32 +348,49 @@ RW.io.html =
           # Add new templates 
           for templateName in _.difference(newTemplates, existingTemplates) 
             # Create template
-            templateHtml = options.assets[newTemplateData[templateName].asset]
+            templateHtml = options.assets[circuitData[templateName].asset]
             # TODO: create all layers before hand?
             layerOptions = _.findWhere(options.layers, { circuitId: circuitId, name: templateName })
-            depth = layerOptions?.depth ? 100 # Default to 100
-            outerWrapper = $("<div id='html-#{circuitId}-#{templateName}' style='position: absolute; z-index: #{depth}; pointer-events: none; width: #{options.size[0]}px; height: #{options.size[1]}px'/>")
+            
+            # Find out what the depth is
+            layer = _.findWhere options.layers, 
+              "circuitId": circuitId
+              "name": templateName
+            if not layer then throw new Error("Invalid HTML layer '#{templateName}' in circuit '#{circuitId}'")
+
+            outerWrapper = $("<div id='html-#{circuitId}-#{templateName}' style='position: absolute; z-index: #{layer.depth}; pointer-events: none; width: #{options.size[0]}px; height: #{options.size[1]}px'/>")
             outerWrapper.append(templateHtml)
             $(options.elementSelector).append(outerWrapper)
             state[circuitId].layers[templateName] = outerWrapper
 
             # Copy over template data to state
-            state[circuitId].templates[templateName] = newTemplateData[templateName] 
+            state[circuitId].templates[templateName] = circuitData[templateName] 
 
             # Setup initial values if available
-            if newTemplateData[templateName].initialValues?
-              state[circuitId].templates[templateName].values = newTemplateData[templateName].initialValues
+            state[circuitId].templates[templateName].values = _.defaults({}, circuitData[templateName].values, circuitData[templateName].initialValues)
 
             # Bind to the template name
             state[circuitId].callbacks[templateName] = { } # Will be filled by calls to adapter.subscribe()
             state[circuitId].views[templateName] = rivets.bind(outerWrapper[0], { data: codeTemplateId(circuitId, templateName) })
 
-          # Update existing templates with new newTemplateData
+          # Update existing templates with new circuitData
           for templateName in _.intersection(newTemplates, existingTemplates) 
+            # Start with current values
+            newValues = RW.cloneData(state[circuitId].templates[templateName].values)
+
+            # Overwrite old state with new 
+            if circuitData[templateName].values? 
+              newValues = circuitData[templateName].values
+
+            # Overwrite only selected properties with new values 
+            if circuitData[templateName].overwriteValues? 
+              _.extend(newValues, circuitData[templateName].overwriteValues)
+
             # TODO: call individual binders instead of syncronizing the whole model?
-            #   for key in _.union(_.keys(newTemplateData[templateName].values), _.keys(templates[templateName].values)
-            if newTemplateData[templateName].values? and not _.isEqual(newTemplateData[templateName].values, state[circuitId].templates[templateName].values)
-              state[circuitId].templates[templateName].values = newTemplateData[templateName].values
+            #   for key in _.union(_.keys(circuitData[templateName].values), _.keys(templates[templateName].values)
+            if not _.isEqual(newValues, state[circuitId].templates[templateName].values)
+              # Overwrite values in the state with those established 
+              state[circuitId].templates[templateName].values = newValues
               state[circuitId].views[templateName].sync() 
 
           # Reset all event bindings to false
@@ -386,6 +398,8 @@ RW.io.html =
             for binding in view.bindings
               if binding.type.indexOf("on-") == 0
                 state[circuitId].templates[templateName].values[binding.keypath] = false
+
+        return null
 
       # Remove all event handlers
       destroy: -> 
@@ -526,8 +540,8 @@ RW.io.charts =
             if not chartData then continue
 
             # Check it's a valid chart type
-            chartType = chartData.type || "line" 
-            if chartType not in ["line", "bar", "radar", "polar", "pie", "doughnut"] 
+            chartType = chartData.type || "Line" 
+            if chartType not of Chart.types 
               throw new Error("Unknown chart type: '#{chartData.type}'")
 
             # Define options
@@ -536,6 +550,7 @@ RW.io.charts =
               position: chartData.position ? [0, 0]
             chartOptions = _.defaults chartData.options ? {},
               animation: false
+              showTooltips: false
 
             # Retrieve the existing canvas layer, then set its position and size
             layer = layers[layerId]
@@ -562,6 +577,7 @@ RW.io.charts =
       destroy: -> 
         for circuitId, circuitCharts of charts
           for layerName, chart of circuitCharts then clearLayer(circuitId, layerName)
+        $(".chartCanvas").remove()
         return null
     }
 
@@ -676,11 +692,14 @@ RW.io.metrics =
   meta:
     visual: false
   factory: (options) ->
+    SNAPSHOT_FRAME_DELAY = 60 # Only record a snapshot every 60 frames
+
     eventQueue = []
     snapshotQueue = []
     timerId = null
     playerId = null
     playerInfo = {} # Current state of player 
+    snapshotFrameCounter = 0 ## Number of frames since last snapshot
 
     configIsValid = -> options.metrics and options.metrics.gameVersionId and options.metrics.host 
 
@@ -719,6 +738,9 @@ RW.io.metrics =
     io =
       enterPlaySequence: ->
         if not configIsValid() then return 
+
+        # Reset snapshot counter so that it will be sent on the first frame
+        snapshotFrameCounter = SNAPSHOT_FRAME_DELAY
 
         # Create player
         jqXhr = $.ajax 
@@ -769,14 +791,18 @@ RW.io.metrics =
               player: playerId
               userTime: userTime
 
-          # Send input memory and input IO data as snapshots
-          snapshotQueue.push 
-            gameVersion: options.metrics.gameVersionId
-            player: playerId
-            userTime: userTime
-            customData:
-              inputIo: additionalData.inputIoData
-              memory: additionalData.memoryData
+          if snapshotFrameCounter++ >= SNAPSHOT_FRAME_DELAY
+            # Reset snapshot counter
+            snapshotFrameCounter = 0
+
+            # Send input memory and input IO data as snapshots
+            snapshotQueue.push 
+              gameVersion: options.metrics.gameVersionId
+              player: playerId
+              userTime: userTime
+              customData:
+                inputIo: additionalData.inputIoData
+                memory: additionalData.memoryData
 
           # Update player info
           if not _.isEqual(ioData[circuitId].player, playerInfo) 

@@ -15,7 +15,7 @@ module.factory 'pins', (circuits, currentGame) ->
   # TODO: These should be filled by the IO services themselves, but it requires sending them the list of circuits and layers, since we don't share the same instance
   enumerateIoKeys: (ioServices,  keys = []) ->
     # List basic IO services
-    for service in ["html", "charts", "time", "http"] then keys.push("io.#{service}")
+    for service in ["time", "http"] then keys.push("io.#{service}")
 
     # Fill in keyboard pins
     keys.push("io.keyboard.keysDown")

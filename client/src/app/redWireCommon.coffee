@@ -53,7 +53,7 @@ RW.cloneData = (o) ->
     throw new Error("Unable to clone, perhaps it is not plain old data: #{e}")
 
 # Create new array with the value of these arrays
-RW.concatenate = (rest...) -> _.flatten(rest, true)
+RW.concatenate = (rest...) -> [].concat(rest...)
 
 # Return an array with the new value added
 RW.appendToArray = (array, value) -> RW.concatenate(array, [value])
@@ -126,6 +126,10 @@ RW.splitDataUrl = (url) ->
     base64: matches[2] == "base64"
     data: matches[3]
   }
+
+# Combine data returned by RW.splitDataUrl back into data url 
+RW.combineDataUrl = ({ mimeType, base64, data }) -> 
+  return "data:#{mimeType};#{base64 and 'base64' or ''},#{data}"
 
 # Creates and returns a blob from a data URL (either base64 encoded or not).
 # Adopted from filer.js by Eric Bidelman (ebidel@gmail.com)

@@ -1,0 +1,12 @@
+<div id="assetEditDialog">
+	<div class="modal-header">
+		<h3>Edit Asset ({{ mimeType }})</h3>
+	</div>
+	<div class="modal-body">
+		<div ui-ace="{ mode: editingMode, useWrapMode: false, theme: 'twilight' }" ng-model="exchange.assetData"></div>
+	</div>
+	<div class="modal-footer">
+		<button class="btn btn-primary" ng-click="done()">Done</button>
+		<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+	</div>
+</div>

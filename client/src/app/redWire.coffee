@@ -213,7 +213,7 @@ RW.applyPatches = (patches, oldValue, prefix = "") ->
     mapping = ensureIndexMapping(arrayPath, array)
     # Find the first index in the mapping that is greater than the original key 
     # Because order of object keys may not be perserved, we need to extract the keys and sort them in numerical order
-    nextMappingIndex = _.chain(mapping).keys().sortBy((k) -> parseInt(k)).find((k) -> k >= key).value()
+    nextMappingIndex = _.chain(mapping).keys().sortBy((k) -> parseInt(k)).find((k) -> parseInt(k) >= parseInt(key)).value()
     # Obtain the actual index in the array, or if no key is found, insert at the end of the list
     insertIndex = if nextMappingIndex? then mapping[nextMappingIndex] else array.length
 
@@ -698,7 +698,7 @@ RW.stepLoop = (options) ->
     # OPT: do this outside of stepLoop()
     preparedInputIoData = {}
     for circuitMeta in options.circuitMetas
-      preparedInputIoData[circuitMeta.id] = options.inputIoData[circuitMeta.id] || options.inputIoData.global
+      preparedInputIoData[circuitMeta.id] = options.inputIoData[circuitMeta.id] || options.inputIoData.global || {}
       for ioName of options.io
         if ioName not of preparedInputIoData[circuitMeta.id]
           preparedInputIoData[circuitMeta.id][ioName] = options.inputIoData.global[ioName]

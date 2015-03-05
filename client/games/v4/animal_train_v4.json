@@ -1,0 +1,617 @@
+{
+  "name": "Hungry Animal Game",
+  "fileVersion": 0.4,
+  "circuits": {
+    "main": {
+      "memory": {
+        "constants": {
+          "trainY": 300,
+          "groundY": 400,
+          "gravity": 6,
+          "timeBetweenFood": 10,
+          "foodSize": 10,
+          "levels": [
+            {
+              "trainSpeed": 4,
+              "trainCars": [
+                "animal",
+                "animal",
+                "animal",
+                "animal"
+              ],
+              "trainCarSize": [
+                100,
+                100
+              ],
+              "dropperPos": [
+                800,
+                100
+              ],
+              "foodAmount": 8
+            },
+            {
+              "tunnelPos": [
+                550,
+                250
+              ],
+              "tunnelSize": [
+                300,
+                150
+              ],
+              "trainSpeed": 4,
+              "trainCars": [
+                "none",
+                "animal",
+                "animal",
+                "none"
+              ],
+              "trainCarSize": [
+                100,
+                100
+              ],
+              "dropperPos": [
+                800,
+                100
+              ],
+              "foodAmount": 8
+            }
+          ]
+        },
+        "topLevelActiveChild": 0,
+        "midLevelActiveChild": 0,
+        "levelNumber": 0,
+        "frame": 0,
+        "points": 0,
+        "trainX": -300,
+        "foodDropped": [],
+        "foodLeft": 10,
+        "lastFoodDroppedTime": 0,
+        "dropFoodStarted": false,
+        "level": null,
+        "try": 0,
+        "stats": {
+          "foodDroppedBefore": 0,
+          "foodDroppedAfter": 0,
+          "foodDroppedOn": 0
+        }
+      },
+      "board": {
+        "switch": "Do All",
+        "comment": "Main",
+        "children": [
+          {
+            "emitter": {
+              "memory.frame": "memory.frame + 1"
+            },
+            "comment": "Increment frame",
+            "name": null,
+            "$$hashKey": "00G"
+          },
+          {
+            "switch": "When",
+            "pins": {
+              "in": {
+                "value": "io.html.idForm && io.html.idForm.values.playClicked   "
+              },
+              "out": {}
+            },
+            "children": [
+              {
+                "emitter": {
+                  "io.metrics.player": "{\n    externalId: io.html.idForm.values.idCode\n}"
+                },
+                "comment": "Update player info",
+                "name": null
+              },
+              {
+                "emitter": {
+                  "io.html.idForm": "undefined"
+                },
+                "comment": "Hide form",
+                "name": null
+              }
+            ],
+            "comment": "When form submitted",
+            "name": null,
+            "$$hashKey": "00H"
+          },
+          {
+            "switch": "Do One at a Time",
+            "pins": {
+              "in": {
+                "activeChild": "memory.topLevelActiveChild"
+              },
+              "out": {
+                "memory.topLevelActiveChild": "pins.activeChild"
+              }
+            },
+            "children": [
+              {
+                "switch": "Do While",
+                "pins": {
+                  "in": {
+                    "value": "!io.html.idForm || !io.html.idForm.values.playClicked"
+                  },
+                  "out": {}
+                },
+                "children": [
+                  {
+                    "emitter": {
+                      "io.html.idForm": "{\n    asset: \"train_game_form.html\",\n    initialValues: {\n        idCode: \"\" \n    }\n}"
+                    },
+                    "comment": "Show form",
+                    "name": null
+                  }
+                ],
+                "comment": "While form not submitted",
+                "name": null
+              },
+              {
+                "switch": "Do While",
+                "pins": {
+                  "in": {
+                    "value": "memory.levelNumber < memory.constants.levels.length"
+                  },
+                  "out": {}
+                },
+                "children": [
+                  {
+                    "switch": "Do One at a Time",
+                    "pins": {
+                      "in": {
+                        "activeChild": "memory.midLevelActiveChild"
+                      },
+                      "out": {
+                        "memory.midLevelActiveChild": "pins.activeChild"
+                      }
+                    },
+                    "children": [
+                      {
+                        "switch": "Do While",
+                        "pins": {
+                          "in": {
+                            "value": "!io.mouse.justDown"
+                          },
+                          "out": {}
+                        },
+                        "children": [
+                          {
+                            "emitter": {
+                              "io.canvas.fg": "[{\n    type: \"text\",\n    text: \"Level \" + (memory.levelNumber + 1) + \", try \" + (memory.try + 1)\n}]"
+                            },
+                            "comment": "Introduce level",
+                            "name": null
+                          }
+                        ],
+                        "comment": "Show intro until click",
+                        "name": null
+                      },
+                      {
+                        "emitter": {
+                          "memory.trainX": "0",
+                          "memory.foodLeft": "memory.constants.levels[memory.levelNumber].foodAmount",
+                          "memory.dropFoodStarted": "false",
+                          "io.metrics.events": "[{\n    type: \"start\",\n    section: [\"level\", memory.levelNumber]\n}]",
+                          "memory.level": "memory.constants.levels[memory.levelNumber]",
+                          "memory.points": "0",
+                          "memory.stats": "{\n    \"foodDroppedBefore\": 0,\n    \"foodDroppedAfter\": 0,\n    \"foodDroppedOn\": 0\n  }"
+                        },
+                        "comment": "Load level",
+                        "name": null
+                      },
+                      {
+                        "switch": "Do While",
+                        "pins": {
+                          "in": {
+                            "value": "memory.trainX < memory.level.trainCarSize[0] * memory.level.trainCars.length + 960"
+                          },
+                          "out": {}
+                        },
+                        "children": [
+                          {
+                            "emitter": {
+                              "memory.trainX": "memory.trainX + memory.level.trainSpeed"
+                            },
+                            "comment": "Move train",
+                            "name": null
+                          },
+                          {
+                            "emitter": {
+                              "io.canvas.fg": "[{\n    type: \"circle\",\n    position: memory.level.dropperPos,\n    size: 40,\n    fillStyle: \"gray\"\n}]"
+                            },
+                            "comment": "Draw dropper",
+                            "name": null
+                          },
+                          {
+                            "emitter": {
+                              "io.canvas.fg": "[{\n    type: \"text\",\n    text: memory.foodLeft,\n    position: [700, 100]\n}]"
+                            },
+                            "comment": "Draw food left",
+                            "name": null
+                          },
+                          {
+                            "switch": "When",
+                            "pins": {
+                              "in": {
+                                "value": "memory.level.tunnelPos && memory.level.tunnelSize"
+                              },
+                              "out": {}
+                            },
+                            "children": [
+                              {
+                                "emitter": {
+                                  "io.canvas.tunnel": "[{\n    type: \"rectangle\",\n    position: memory.level.tunnelPos,\n    size: memory.level.tunnelSize,\n    fillStyle: \"black\"\n}]"
+                                },
+                                "comment": "Draw tunnel",
+                                "name": null,
+                                "muted": false
+                              }
+                            ],
+                            "comment": "If tunnel exists",
+                            "name": null
+                          },
+                          {
+                            "emitter": {
+                              "io.canvas.fg": "[{\n    type: \"text\",\n    text: memory.points + \" points\",\n    position: [0, 100]\n}]"
+                            },
+                            "comment": "Draw points",
+                            "name": null
+                          },
+                          {
+                            "splitter": {
+                              "from": "memory.level.trainCars",
+                              "bindTo": "trainCar",
+                              "index": "trainCarIndex",
+                              "where": null
+                            },
+                            "children": [
+                              {
+                                "emitter": {
+                                  "io.canvas.fg": "[{\n    type: \"rectangle\",\n    position: [-(parseInt(bindings.trainCarIndex) + 1) * memory.level.trainCarSize[0] + memory.trainX, memory.constants.trainY], \n    size: memory.constants.trainCarSize,\n    fillStyle: bindings.trainCar == \"animal\" ? \"green\" : \"blue\"\n}]"
+                                },
+                                "comment": "Draw train",
+                                "name": null
+                              }
+                            ],
+                            "comment": "For each train car",
+                            "name": null,
+                            "muted": false
+                          },
+                          {
+                            "processor": "Log",
+                            "pins": {
+                              "in": {
+                                "value": "io.keyboard.keysDown"
+                              },
+                              "out": {}
+                            },
+                            "children": [],
+                            "comment": "Log keys down",
+                            "name": null,
+                            "muted": true
+                          },
+                          {
+                            "splitter": {
+                              "from": "memory.foodDropped",
+                              "bindTo": "food",
+                              "index": "foodIndex",
+                              "where": null
+                            },
+                            "children": [
+                              {
+                                "switch": "If",
+                                "pins": {
+                                  "in": {
+                                    "value": "bindings.food[1] > memory.constants.groundY"
+                                  },
+                                  "out": {}
+                                },
+                                "children": [
+                                  {
+                                    "switch": "Do All",
+                                    "pins": {
+                                      "in": {},
+                                      "out": {}
+                                    },
+                                    "children": [
+                                      {
+                                        "emitter": {
+                                          "memory.foodDropped": "RW.removeIndexFromArray(memory.foodDropped, bindings.foodIndex)"
+                                        },
+                                        "comment": "Remove food",
+                                        "name": null
+                                      },
+                                      {
+                                        "switch": "If",
+                                        "pins": {
+                                          "in": {
+                                            "value": "memory.trainX < bindings.food[0]"
+                                          },
+                                          "out": {}
+                                        },
+                                        "children": [
+                                          {
+                                            "emitter": {
+                                              "memory.stats.foodDroppedBefore": "memory.stats.foodDroppedBefore + 1"
+                                            },
+                                            "comment": "Update stats on before",
+                                            "name": null
+                                          },
+                                          {
+                                            "emitter": {
+                                              "memory.stats.foodDroppedAfter": "memory.stats.foodDroppedAfter + 1"
+                                            },
+                                            "comment": "Update stats on after",
+                                            "name": null
+                                          }
+                                        ],
+                                        "comment": "If food dropped before",
+                                        "name": null
+                                      }
+                                    ],
+                                    "comment": "Remove food and update stats",
+                                    "name": null
+                                  },
+                                  {
+                                    "switch": "When",
+                                    "pins": {
+                                      "in": {
+                                        "value": "transformers.trainCarTouched([memory.trainX, memory.constants.trainY], memory.level.trainCars, memory.level.trainCarSize, bindings.food, memory.constants.foodSize) > -1"
+                                      },
+                                      "out": {}
+                                    },
+                                    "children": [
+                                      {
+                                        "emitter": {
+                                          "memory.foodDropped": "RW.removeIndexFromArray(memory.foodDropped, bindings.foodIndex)",
+                                          "memory.stats.foodDroppedOn": "memory.stats.foodDroppedOn + 1"
+                                        },
+                                        "comment": "Remove food",
+                                        "name": null
+                                      },
+                                      {
+                                        "switch": "If",
+                                        "pins": {
+                                          "in": {
+                                            "value": "memory.level.trainCars[transformers.trainCarTouched([memory.trainX, memory.constants.trainY], memory.level.trainCars, memory.level.trainCarSize, bindings.food, memory.constants.foodSize)] == \"animal\""
+                                          },
+                                          "out": {}
+                                        },
+                                        "children": [
+                                          {
+                                            "emitter": {
+                                              "memory.points": "memory.points + 1"
+                                            },
+                                            "comment": "Gain point",
+                                            "name": null
+                                          }
+                                        ],
+                                        "comment": "If food touches animal car",
+                                        "name": null
+                                      }
+                                    ],
+                                    "comment": "When food touches train",
+                                    "name": null
+                                  }
+                                ],
+                                "comment": "If food touches ground",
+                                "name": null
+                              },
+                              {
+                                "emitter": {
+                                  "bindings.food": "[bindings.food[0], bindings.food[1] + memory.constants.gravity]"
+                                },
+                                "comment": "Food falls",
+                                "name": null
+                              },
+                              {
+                                "emitter": {
+                                  "io.canvas.fg": "[{\n    type: \"circle\",\n    radius: memory.constants.foodSize,\n    fillStyle: \"orange\",\n    position: bindings.food\n}]"
+                                },
+                                "comment": "Draw food",
+                                "name": null
+                              }
+                            ],
+                            "comment": "For each food",
+                            "name": null
+                          },
+                          {
+                            "switch": "If",
+                            "pins": {
+                              "in": {
+                                "value": "(io.keyboard.keysDown[32] || io.mouse.justDown) "
+                              },
+                              "out": {}
+                            },
+                            "children": [
+                              {
+                                "emitter": {
+                                  "memory.dropFoodStarted": "true",
+                                  "io.metrics.events": "{\n    type: \"startDrop\",\n    section: [\"level\", memory.levelNumber, memory.try]\n}"
+                                },
+                                "comment": "Start dropping food and report it",
+                                "name": null
+                              }
+                            ],
+                            "comment": "If player wants to drop",
+                            "name": null
+                          },
+                          {
+                            "switch": "When",
+                            "pins": {
+                              "in": {
+                                "value": "memory.dropFoodStarted && memory.foodLeft > 0"
+                              },
+                              "out": {}
+                            },
+                            "children": [
+                              {
+                                "switch": "Limit Rate",
+                                "pins": {
+                                  "in": {
+                                    "currentTime": "memory.frame",
+                                    "minTime": "memory.constants.timeBetweenFood",
+                                    "lastTime": "memory.lastFoodDroppedTime"
+                                  },
+                                  "out": {
+                                    "memory.lastFoodDroppedTime": "pins.lastTime"
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "emitter": {
+                                      "memory.foodDropped": "RW.appendToArray(memory.foodDropped, memory.level.dropperPos)",
+                                      "memory.foodLeft": "memory.foodLeft - 1"
+                                    },
+                                    "comment": "Drop food",
+                                    "name": null
+                                  }
+                                ],
+                                "comment": "Once in a while",
+                                "name": null
+                              }
+                            ],
+                            "comment": "If food should be dropping",
+                            "name": null
+                          }
+                        ],
+                        "comment": "Play level",
+                        "name": null
+                      },
+                      {
+                        "switch": "Do All",
+                        "pins": {
+                          "in": {},
+                          "out": {}
+                        },
+                        "children": [
+                          {
+                            "emitter": {
+                              "io.metrics.events": "[{\n    type: \"end\",\n    section: [\"level\", memory.levelNumber, memory.try],\n    customData: {\n        points: memory.points,\n        foodLeft: memory.foodLeft,\n        foodDroppedBefore: memory.stats.foodDroppedBefore,\n        foodDroppedAfter: memory.stats.foodDroppedAfter,\n        foodDroppedOn: memory.stats.foodDroppedOn\n    }\n}]"
+                            },
+                            "comment": "Send report",
+                            "name": null
+                          },
+                          {
+                            "switch": "If",
+                            "pins": {
+                              "in": {
+                                "value": "memory.try == 2"
+                              },
+                              "out": {}
+                            },
+                            "children": [
+                              {
+                                "emitter": {
+                                  "memory.levelNumber": "memory.levelNumber + 1",
+                                  "memory.try": "0"
+                                },
+                                "comment": "Goto next level",
+                                "name": null
+                              },
+                              {
+                                "emitter": {
+                                  "memory.try": "memory.try + 1"
+                                },
+                                "comment": "Increment try",
+                                "name": null
+                              }
+                            ],
+                            "comment": "If reached 3 tries",
+                            "name": null
+                          }
+                        ],
+                        "comment": "Send report and goto next level or try",
+                        "name": null,
+                        "muted": false
+                      }
+                    ],
+                    "comment": "Show level",
+                    "name": null
+                  }
+                ],
+                "comment": "Until all levels are done",
+                "name": null
+              },
+              {
+                "switch": "Do Forever",
+                "pins": {
+                  "in": {},
+                  "out": {}
+                },
+                "children": [
+                  {
+                    "emitter": {
+                      "io.canvas.fg": "[{\n    type: \"text\",\n    text: \"Thanks for playing!\"\n}]"
+                    },
+                    "comment": "Say thanks",
+                    "name": null
+                  }
+                ],
+                "comment": "Do forever",
+                "name": null
+              }
+            ],
+            "comment": "Introduce and finish game",
+            "name": null,
+            "$$hashKey": "00I"
+          }
+        ],
+        "$$hashKey": "00F"
+      },
+      "io": {
+        "layers": [
+          {
+            "name": "bg",
+            "type": "canvas"
+          },
+          {
+            "name": "fg",
+            "type": "canvas"
+          },
+          {
+            "name": "tunnel",
+            "type": "canvas"
+          },
+          {
+            "name": "idForm",
+            "type": "html"
+          }
+        ],
+        "channels": []
+      }
+    }
+  },
+  "processors": {
+    "Log": {
+      "pinDefs": {
+        "value": {
+          "direction": "in",
+          "default": ""
+        }
+      },
+      "update": "if(pins.value == undefined) return;\n\nlog.info(pins.value);"
+    }
+  },
+  "switches": {},
+  "transformers": {
+    "trainCarTouched": {
+      "args": [
+        "trainPos",
+        "trainCars",
+        "trainCarSize",
+        "foodPos",
+        "foodSize"
+      ],
+      "body": "// If the food is above the train, ignore it \nif(foodPos[1] < trainPos[1]) return -1;\n// If food is too far below the train, ignore it\nif(foodPos[1] > trainPos[1] + 5) return -1;\n\n// If the food is before or after the train, ignore it\nif(foodPos[0] > trainPos[0] || foodPos[0] < trainPos[0] - trainCars.length * trainCarSize[0]) return -1;\n\n// Return the train car itself\nreturn Math.floor((trainPos[0] - foodPos[0]) / trainCarSize[0]);"
+    }
+  },
+  "assets": {
+    "train_game_form.css": "data:text/css;base64,I3RyYWluR2FtZUZvcm0gewoJZm9udC1mYW1pbHk6IGZhbnRhc3k7Cglmb250LXNpemU6IDMwcHg7Cn0KCiN0cmFpbkdhbWVGb3JtIGgxIHsKCXRleHQtYWxpZ246IGNlbnRlcjsKfQoKI3RyYWluR2FtZUZvcm0gYnV0dG9uIHsKCWZvbnQtZmFtaWx5OiBmYW50YXN5OwoJZm9udC1zaXplOiAzMHB4Owp9",
+    "train_game_form.html": "data:text/html;base64,PGRpdiBpZD0idHJhaW5HYW1lRm9ybSI+Cgk8aDE+SHVuZ3J5IEFuaW1hbCBUcmFpbjwvaDE+CgoJPHA+UGxlYXNlIGVudGVyIHlvdXIgSUQgY29kZS48L3A+Cgk8bGFiZWwgZm9yPSJpZENvZGUiPklEIGNvZGU8L2xhYmVsPgoJPGlucHV0IGlkPSJpZENvZGUiIGRhdGEtdmFsdWU9ImRhdGEuaWRDb2RlIj4KCTxicj4KCTxidXR0b24gaWQ9ImJ1dHRvbiIgZGF0YS1vbi1jbGljaz0iZGF0YS5wbGF5Q2xpY2tlZCI+UGxheTwvYnV0dG9uPgo8L2Rpdj4K"
+  },
+  "redMetricsConfig": {
+    "host": "http://localhost:5050",
+    "gameVersionId": "edaf1268-a68f-4715-a0ec-ff064fd24953"
+  }
+}
