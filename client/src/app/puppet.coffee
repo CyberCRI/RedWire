@@ -179,7 +179,8 @@ initializeIo = (circuits, redMetricsConfig) ->
         metrics: redMetricsConfig
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
-          { circuitId: layer.circuitId, name: layer.name, depth: depth } 
+          # Add 1 to depth to have z-index start at 1
+          { circuitId: layer.circuitId, name: layer.name, depth: parseInt(depth) + 1 } 
       if ioData.meta.audio
         options.channels = for depth, channel of channelList
           { circuitId: channel.circuitId, name: channel.name, type: channel.type } 
