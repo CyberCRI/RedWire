@@ -16,8 +16,11 @@ RW.io.keyboard =
 
     keysDown = {}
 
-    $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", "#captureSpace", (event) ->
-      event.preventDefault()   
+    $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", (event) ->
+      # Don't handle events on HTML controls
+      if event.target.tagName in ["INPUT", "BUTTON", "LABEL", "TEXTAREA"] then return true
+
+      event.preventDefault()
 
       # jQuery standardizes the keycode into http://api.jquery.com/event.which/
       switch event.type 
@@ -25,6 +28,7 @@ RW.io.keyboard =
         when 'keyup' then delete keysDown[event.which]
         when 'focusout' then keysDown = {} # Lost focus, so will not receive keyup events
         else throw new Error('Unexpected event type')
+      return true
 
     return {
       provideData: -> 
@@ -53,7 +57,7 @@ RW.io.mouse =
     # This disables selection, which allows the cursor to change in Chrome
     $(options.elementSelector).on("selectstart.#{eventNamespace}", -> false)
 
-    $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", "#captureSpace", (event) ->
+    $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", (event) ->
       switch event.type 
         when 'mousedown' then mouse.down = true
         when 'mouseup' then mouse.down = false
@@ -66,6 +70,7 @@ RW.io.mouse =
             Math.floor((event.clientX - rect.left) * options.size[0] / rect.width)
             Math.floor((event.clientY - rect.top) * options.size[1] / rect.height)
           ]
+      return true # Otherwise mouse click may not "complete" in Chrome
 
     return {
       provideData: -> 
