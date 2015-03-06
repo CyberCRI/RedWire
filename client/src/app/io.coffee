@@ -63,8 +63,8 @@ RW.io.mouse =
           rect = event.target.getBoundingClientRect()
           target = $(event.target)
           mouse.position = [
-            Math.floor((event.clientX - rect.left) * target.attr("width") / rect.width)
-            Math.floor((event.clientY - rect.top) * target.attr("height") / rect.height)
+            Math.floor((event.clientX - rect.left) * options.size[0] / rect.width)
+            Math.floor((event.clientY - rect.top) * options.size[1] / rect.height)
           ]
 
     return {
