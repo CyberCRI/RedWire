@@ -1,4 +1,8 @@
 <div id="embeddedPlayer" ng-style="embeddedPlayerStyle">
+	<p id="title">
+		<a ng-href="{{ playUrl }}" target="_blank">{{ title }} by {{ author }}</a>
+		<a ng-href="{{ editUrl }}" target="_blank"><img src="/assets/images/ribbon_small.png"></a>
+	</p>
 	<div id="gameBox"> 
 		<div id="gamePlayerContainer">
 			<iframe id="gamePlayer" sandbox="allow-scripts" src="/sandbox.html" ng-controller="PlayerCtrl"></iframe>
