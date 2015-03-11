@@ -18,6 +18,8 @@ RW.lineOut = new WebAudiox.LineOut(RW.audioContext)
 
 # SHARED VARIABLES
 
+locationInfo = null
+
 loadedGame = null
 lastMemory = null
 loadedAssets = { urls: {}, data: {} }
@@ -177,6 +179,7 @@ initializeIo = (circuits, redMetricsConfig) ->
         circuitMetas: circuitMetas
         assets: loadedAssets.data 
         metrics: redMetricsConfig
+        locationInfo: locationInfo
       if ioData.meta.visual
         options.layers = for depth, layer of layerList when layer.type is ioName
           # Add 1 to depth to have z-index start at 1
@@ -433,6 +436,10 @@ window.addEventListener 'message', (e) ->
       when "updateFrames"
         results = onUpdateFrames(message.value.memory, message.value.inputIoDataFrames)
         # TODO: check for errors and return them along with other data
+        reporter(null, results)
+      when "updateLocation"
+        # locationInfo will be used later by initializeIo() 
+        locationInfo = message.value 
         reporter(null, results)
       else
         throw new Error("Unknown type for message #{message}")

@@ -29,7 +29,7 @@ buildInitialMemoryData = (circuits) ->
   return memoryData
 
 angular.module('gamEvolve.game.player', [])
-.controller "PlayerCtrl", ($scope, games, currentGame, gameHistory, gameTime, overlay) -> 
+.controller "PlayerCtrl", ($scope, $location, games, currentGame, gameHistory, gameTime, overlay) -> 
   # Globals
   puppetIsAlive = false
   gameCode = null
@@ -57,6 +57,8 @@ angular.module('gamEvolve.game.player', [])
         if message.type is "error" then throw new Error("Cannot deal with areYouAlive error message")
         puppetIsAlive = true
         onResize() # Resize might already have been sent
+        sendLocation() # This will not change, even when new code is loaded 
+      when "updateLocation"
         onUpdateCode() # Code might be already there 
       when "loadGameCode"
         if message.type is "error"
@@ -318,6 +320,18 @@ angular.module('gamEvolve.game.player', [])
     setTimeout(checkPuppetForSignsOfLife, 500)
 
   checkPuppetForSignsOfLife()
+
+  sendLocation = ->
+    locationInfo = 
+      url: $location.absUrl()
+      protocol: $location.protocol()
+      host: $location.host()
+      port: $location.port()
+      path: $location.path()
+      query: $location.search()
+      hash: $location.hash()
+
+    sendMessage("updateLocation", locationInfo)
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!
   # Until then automatically resize once in a while.
