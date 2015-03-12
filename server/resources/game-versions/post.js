@@ -14,5 +14,7 @@ dpd.gameversions.get(filter, function(result, error) {
     } else { // A version for this game already exists
         previousGameVersion = result[0];
         this.versionNumber = previousGameVersion.versionNumber + 1;
+        
+        // Update game with new info
     }
 });

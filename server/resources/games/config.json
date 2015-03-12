@@ -24,6 +24,54 @@
 			"required": false,
 			"id": "parentId",
 			"order": 2
+		},
+		"ownerName": {
+			"name": "ownerName",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "ownerName",
+			"order": 3
+		},
+		"parentName": {
+			"name": "parentName",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "parentName",
+			"order": 4
+		},
+		"lastUpdatedTime": {
+			"name": "lastUpdatedTime",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "lastUpdatedTime",
+			"order": 5
+		},
+		"playCount": {
+			"name": "playCount",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "playCount",
+			"order": 6
+		},
+		"forkCount": {
+			"name": "forkCount",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "forkCount",
+			"order": 7
+		},
+		"versionCount": {
+			"name": "versionCount",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "versionCount",
+			"order": 8
 		}
 	}
 }

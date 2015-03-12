@@ -50,7 +50,11 @@ angular.module('gamEvolve.model.games', [])
     updateInfo().then(saveVersion)
 
   forkCurrent: ->
-    delete currentGame.info.id # Removing the game ID will make the server provide a new one
+    # Set the old game ID as the parent of the new one. 
+    # Then remove the current game ID to make the server provide a new one
+    currentGame.info.parentId = currentGame.info.id
+    delete currentGame.info.id 
+
     saveInfo().then ->
       $location.path("/game/#{currentGame.version.gameId}/edit")
       saveVersion()
