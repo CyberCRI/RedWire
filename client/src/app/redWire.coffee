@@ -649,7 +649,7 @@ RW.stimulateCircuits = (constants) -> RW.visitChip(new RW.CircuitMeta("main", "m
 # By default, checks the io object for input data, visits the tree given in chip, and then provides output data to io.
 # If outputIoData is not null, the loop is not stepped, and the data is sent directly to the io. In this case, no memory patches are returned.
 # Otherwise, if inputIoData is not null, this data is used instead of asking the io.
-# The memoryData and inputIoData parametersshould be frozen with RW.deepFreeze() before being sent.
+# The memoryData and inputIoData parameters should be frozen with RW.deepFreeze() before being sent.
 # Rather than throwing errors, this function attempts to trap errors internally and return them as an "errors" attribute.
 # The errors have a "stage" attribute that is "readIo", "executeChips", "patchMemory", "patchIo", and "writeIo"
 # Returns a map like { memoryPatches: , inputIoData: , ioPatches: , logMessages: }
