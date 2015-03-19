@@ -1,5 +1,7 @@
 # Set the embedded player to the window height
-onResize = -> $("#embeddedPlayer").width($(window).width()).height($(window).height())
+onResize = -> 
+  titleHeight = $("#title").outerHeight()
+  $("#gameBox").width($(window).width()).height($(window).height() - titleHeight)
 $(window).on("resize", onResize)
 # Call it now as well
 $(window).load(onResize)
@@ -19,6 +21,9 @@ angular.module('gamEvolve.game.embed', [])
 
 .controller 'EmbedCtrl', ($scope, $state, games, gameTime, gameHistory, currentGame, $stateParams, $location) ->
   $scope.isLoading = true
+
+  $scope.playUrl = $state.href("play", $stateParams)
+  $scope.editUrl = $state.href("game-edit", $stateParams)
 
   onUpdateGameHistory = -> 
     if gameHistory.meta.version is 1 

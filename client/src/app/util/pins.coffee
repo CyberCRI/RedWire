@@ -45,4 +45,7 @@ module.factory 'pins', (circuits, currentGame) ->
     # Fill in metrics pins
     for pin in ["down", "position", "cursor", "justDown", "justUp"] then keys.push("io.mouse.#{pin}")
 
+    # Fill in location pins
+    for pin in ["url", "protocol", "host", "port", "path", "query", "hash"] then keys.push("io.location.#{pin}")
+
     return keys

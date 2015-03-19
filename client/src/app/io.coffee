@@ -829,3 +829,12 @@ RW.io.metrics =
 
     return io
 
+# The location buffer provides information about the URL and its different parts
+RW.io.location =  
+  meta:
+    visual: false
+  factory: (options) ->
+    provideData: -> 
+      global: options.locationInfo
+    establishData: -> # NOP
+    destroy: -> # NOP

@@ -7,6 +7,7 @@ saveToCache = (programId, data) ->
 
 # Saves data in a LocalStorage LRU cache
 # TODO: use polyfill for LocalStorage?
+# TODO: use IndexedDB for more space
 angular.module("gamEvolve.model.cache", [])
 .factory 'cache', ->
   # Saves in cache, or throws exception
