@@ -838,3 +838,36 @@ RW.io.location =
       global: options.locationInfo
     establishData: -> # NOP
     destroy: -> # NOP
+
+# Gives access to the Movuino
+RW.io.movuino =  
+  meta:
+    visual: false
+  factory: (options) ->
+    # Connect to the serial port via a web socket (using MisterS)
+    state =
+      connected: false
+      a: [0, 0, 0]
+      g: [0, 0, 0]
+
+    # TODO: check for errors
+    # TODO: make host and port configurable
+    ws = new WebSocket("ws://localhost:8888/")
+    ws.onopen = -> 
+      ws.send("l")
+      state.connected = true
+    ws.onmessage = (event) ->
+      # Expecting data like "l 6360 -8796 -16152 -371 218 -147"
+      tokens = event.data.split(" ")
+      state.a = _.map(tokens[1..3], parseFloat)
+      state.g = _.map(tokens[4..6], parseFloat)
+
+    return {
+      provideData: -> return global: state 
+      establishData: -> # NOP
+      destroy: -> 
+        if not ws then return
+
+        ws.send("q")
+        ws.close()
+    }
