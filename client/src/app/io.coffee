@@ -852,7 +852,7 @@ RW.io.movuino =
 
     # TODO: check for errors
     # TODO: make host and port configurable
-    ws = new WebSocket("ws://localhost:8888/")
+    ws = new WebSocket("ws://localhost:53141/")
     ws.onopen = -> 
       ws.send("l")
       state.connected = true
