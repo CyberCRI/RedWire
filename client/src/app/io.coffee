@@ -791,6 +791,10 @@ RW.io.metrics =
 
           # Set game version and player IDs on events
           for event in ioData[circuitId].events
+            # If event section is array, change it to a dot.separated string
+            if event.section and _.isArray(event.section)
+              event.section = event.section.join(".")
+
             eventQueue.push _.extend event, 
               gameVersion: options.metrics.gameVersionId
               player: playerId
