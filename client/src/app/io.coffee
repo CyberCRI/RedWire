@@ -870,8 +870,11 @@ RW.io.movuino =
       provideData: -> return global: state 
       establishData: -> # NOP
       destroy: -> 
-        if not ws then return
+        try 
+          if not ws or ws.readyState != WebSocket.OPEN then return null
 
-        ws.send("q")
-        ws.close()
+          ws.send("q")
+          ws.close()
+        catch e
+          console.log("Error closing Mouvino web socket", e)
     }
