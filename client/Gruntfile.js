@@ -27,12 +27,6 @@ module.exports = function ( grunt ) {
    * Load in our build configuration files.
    */
   var userConfig = require( './build.config.js' );
-  var deployConfig = {};
-  try {
-    deployConfig = grunt.file.readJSON('deployConfig.json');
-  } catch(err) {
-    console.warn("*** WARNING: Cannot load deployment config ***\n");
-  } 
 
   // Generate the name of the dump file
   var dumpName = moment.utc().format("YYYYMMDD-HHMMSS");
@@ -531,104 +525,6 @@ module.exports = function ( grunt ) {
       }
     },
 
-    sshconfig: {
-      prod: deployConfig
-    },
-
-    sshexec: {
-      uptime: {
-        command: "uptime",
-        options: {
-          config: "prod"
-        }
-      },
-
-      start: {
-        command: deployConfig.path + "/foreverStart.sh",
-        options: {
-          config: "prod"
-        }
-      },
-
-      stop: {
-        command: deployConfig.path + "/foreverStop.sh",
-        options: {
-          config: "prod"
-        }
-      },
-
-      clean: {
-        command: "rm -r " + deployConfig.path + "/*",
-        options: {
-          config: "prod"
-        }
-      },
-
-      npm_install: {
-        command: "cd " + deployConfig.path + " && npm install",
-        options: {
-          config: "prod"
-        }
-      },
-
-      dumpDb : {
-          command : "mongodump --db redwire --out " + path.join(deployConfig.path, dumpDirectory, dumpName),
-          options: {
-              config: "prod"
-          }
-      },
-
-      restoreDb : {
-          command : 'mongorestore --db redwire '+ path.join(deployConfig.path, dumpDirectory, "redwire"),
-          options :{
-              config : "prod"
-          }
-      },
-
-      compress : {
-          command : "tar -C " + path.join(deployConfig.path, dumpDirectory, dumpName) + " -cvzf " + path.join(deployConfig.path, dumpDirectory, dumpFilename) + " .",
-          options: {
-              config: "prod"
-          }
-      },
-
-      decompress : {
-          command : "tar -vxzf " + path.join(deployConfig.path, dumpDirectory, inputDumpFilename) + " -C" + path.join(deployConfig.path, dumpDirectory),
-          options: {
-              config: "prod"
-          }
-      },
-
-      cleanDumpDir : {
-          command : "rm -r " + path.join(deployConfig.path, dumpDirectory, "*"),
-          options: {
-              config: "prod"
-          }
-      }
-    },
-
-    exec: {
-        downloadDump: {
-            cmd: "scp "+deployConfig.username+"@"+deployConfig.host+":"+path.join(deployConfig.path, dumpDirectory, dumpFilename)+" ."
-        },
-        uploadDump : {
-            cmd: "scp "+inputDumpFilename+" "+deployConfig.username+"@"+deployConfig.host+":"+path.join(deployConfig.path, dumpDirectory)
-        }
-    },
-
-    rsync: {
-      prod: {
-        options: {
-            host: deployConfig.username + "@" + deployConfig.host,
-            src: "../server/",
-            exclude: ["node_modules", "data", "db"],
-            dest: deployConfig.path,
-            recursive: true,
-            syncDestIgnoreExcl: true
-        }
-      }
-    },
-
     docco: {
       all: {
         src: ['src/**/*.coffee'],
@@ -639,7 +535,114 @@ module.exports = function ( grunt ) {
     }
   };
 
-  grunt.initConfig( grunt.util._.extend( taskConfig, userConfig ) );
+  // If a deployConfig.json file exists, add additional tasks
+  var deploymentTasks = {};
+  try {
+    var deployConfig = grunt.file.readJSON('deployConfig.json');
+    deploymentTasks = {
+      sshconfig: {
+        prod: deployConfig
+      },
+
+      sshexec: {
+        uptime: {
+          command: "uptime",
+          options: {
+            config: "prod"
+          }
+        },
+
+        start: {
+          command: deployConfig.path + "/foreverStart.sh",
+          options: {
+            config: "prod"
+          }
+        },
+
+        stop: {
+          command: deployConfig.path + "/foreverStop.sh",
+          options: {
+            config: "prod"
+          }
+        },
+
+        clean: {
+          command: "rm -r " + deployConfig.path + "/*",
+          options: {
+            config: "prod"
+          }
+        },
+
+        npm_install: {
+          command: "cd " + deployConfig.path + " && npm install",
+          options: {
+            config: "prod"
+          }
+        },
+
+        dumpDb : {
+            command : "mongodump --db redwire --out " + path.join(deployConfig.path, dumpDirectory, dumpName),
+            options: {
+                config: "prod"
+            }
+        },
+
+        restoreDb : {
+            command : 'mongorestore --db redwire '+ path.join(deployConfig.path, dumpDirectory, "redwire"),
+            options :{
+                config : "prod"
+            }
+        },
+
+        compress : {
+            command : "tar -C " + path.join(deployConfig.path, dumpDirectory, dumpName) + " -cvzf " + path.join(deployConfig.path, dumpDirectory, dumpFilename) + " .",
+            options: {
+                config: "prod"
+            }
+        },
+
+        decompress : {
+            command : "tar -vxzf " + path.join(deployConfig.path, dumpDirectory, inputDumpFilename) + " -C" + path.join(deployConfig.path, dumpDirectory),
+            options: {
+                config: "prod"
+            }
+        },
+
+        cleanDumpDir : {
+            command : "rm -r " + path.join(deployConfig.path, dumpDirectory, "*"),
+            options: {
+                config: "prod"
+            }
+        }
+      },
+
+      exec: {
+          downloadDump: {
+              cmd: "scp "+deployConfig.username+"@"+deployConfig.host+":"+path.join(deployConfig.path, dumpDirectory, dumpFilename)+" ."
+          },
+          uploadDump : {
+              cmd: "scp "+inputDumpFilename+" "+deployConfig.username+"@"+deployConfig.host+":"+path.join(deployConfig.path, dumpDirectory)
+          }
+      },
+
+      rsync: {
+        prod: {
+          options: {
+              host: deployConfig.username + "@" + deployConfig.host,
+              src: "../server/",
+              exclude: ["node_modules", "data", "db"],
+              dest: deployConfig.path,
+              recursive: true,
+              syncDestIgnoreExcl: true
+          }
+        }
+      }
+    };
+  } catch(err) {
+    console.warn("*** WARNING: Cannot load deployConfig.json ***\n");
+  } 
+
+  grunt.initConfig( grunt.util._.extend( taskConfig, userConfig, deploymentTasks ) );
 
   /**
    * In order to make it safe to just compile or copy *only* what was changed,
