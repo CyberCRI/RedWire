@@ -55,6 +55,9 @@ angular.module('gamEvolve.model.games', [])
       $location.path("/game/#{currentGame.version.gameId}/edit")
       saveVersion()
 
+  deleteCurrent: ->
+    $http.delete("/api/games/#{currentGame.version.gameId}").then(currentGame.reset)
+
   loadAll: ->
     gamesQuery = $http.get('/api/games')
     usersQuery = $http.get("/api/users") #?{fields={id: 1, username: 1}
