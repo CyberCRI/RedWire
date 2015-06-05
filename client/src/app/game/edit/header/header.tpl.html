@@ -26,17 +26,42 @@
                     <i ng-class="font-icon-fork"></i>
                     Fork
                 </button>
+                
+                
                 <button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-if="user.isNotLoggedIn()" analytics-on="click" analytics-category="edit" analytics-event="login">
                     Login
                 </button>
-                <button id="editDescriptionButton" title="Edit Description" class="btn btn-default btn-sm" ng-click="editDescription()" analytics-on="click" analytics-category="edit" analytics-event="editDescription">
-                    <i class="glyphicon glyphicon-list-alt"></i>
-                </button>
-                <button id="importExportButton" title="Import/Export" ng-click="importExportDialog.open();" class="btn btn-default btn-sm" analytics-on="click" analytics-category="edit" analytics-event="importExport">
-                    <i class="glyphicon glyphicon-file"></i>
-                </button>
-                <button ng-click="gotoPlayScreen()" title="Play" class="btn btn-default btn-sm">
-                    <i class="glyphicon glyphicon-share"></i>
+                
+                
+                <div class="btn-group" dropdown>
+                    <button type="button" class="btn btn-sm btn-default dropdown-toggle">
+                         Tools <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li>
+                            <a id="editDescriptionButton" ng-click="editDescription()" analytics-on="click" analytics-category="edit" analytics-event="editDescription">
+                                <i class="glyphicon glyphicon-list-alt"></i> Edit Description 
+                            </a>
+                        </li>
+                        <li>
+                            <a id="importExportButton" ng-click="importExportDialog.open();" analytics-on="click" analytics-category="edit" analytics-event="importExport">
+                                <i class="glyphicon glyphicon-file"></i> Import/Export 
+                            </a>
+                        </li>
+                        <li>
+                            <a ng-click="gotoPlayScreen()">
+                                <i class="glyphicon glyphicon-share"></i> Play 
+                            </a>
+                        </li>
+                        <li>
+                            <a ng-click="deleteButtonClick()" ng-show="!deleteButtonDisabled" class="btn-danger">
+                                <i class="glyphicon glyphicon-trash"></i> Delete 
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <button ng-click="helpButton()" title="Help" class="btn btn-default btn-sm">
+                    <i class="glyphicon glyphicon-question-sign"></i>
                 </button>
             </div>
         </div>
