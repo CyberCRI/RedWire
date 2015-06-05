@@ -5,7 +5,7 @@ angular.module('gamEvolve.game.edit.header', [
 .controller 'GameInfoCtrl', ($scope, currentGame, gameTime) ->
   $scope.currentGame = currentGame
 
-.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window,loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog) ->
+.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog) ->
   $scope.user = loggedUser
   $scope.games = games
   $scope.currentGame = currentGame
@@ -18,7 +18,6 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.status = 
     isOpen: false
     
-
   $scope.publishButtonDisabled = false
   $scope.isPublishButtonDisplayed = ->
     isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id
@@ -38,17 +37,19 @@ angular.module('gamEvolve.game.edit.header', [
     games.forkCurrent().finally ->
       $scope.forkButtonDisabled = false
 
-  $scope.deleteButtonDisabled = false
+  deleteInProgress = false
   $scope.isDeleteButtonDisplayed = ->
-    isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id
+    isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id and not deleteInProgress
   $scope.deleteButtonClick = ->
-    alert """WARNING: You...
+    if not $window.confirm """WARNING: If you delete the game then you can never go back and play it.
 
              Are you sure?"""
-    $scope.deleteButtonDisabled = true
+      return 
+
+    deleteInProgress = true
     games.deleteCurrent().finally ->
-      $scope.deleteButtonDisabled = false
-    $state.transitionTo('game-list')
+      deleteInProgress = false
+      $state.transitionTo('game-list')
 
   $scope.helpButton = ->
     $window.open('http://github.com/CyberCRI/RedWire/wiki/Tutorials','_blank')

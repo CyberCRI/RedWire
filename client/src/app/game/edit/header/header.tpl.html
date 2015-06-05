@@ -27,11 +27,9 @@
                     Fork
                 </button>
                 
-                
                 <button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-if="user.isNotLoggedIn()" analytics-on="click" analytics-category="edit" analytics-event="login">
                     Login
                 </button>
-                
                 
                 <div class="btn-group" dropdown>
                     <button type="button" class="btn btn-sm btn-default dropdown-toggle">
@@ -54,7 +52,7 @@
                             </a>
                         </li>
                         <li>
-                            <a ng-click="deleteButtonClick()" ng-show="!deleteButtonDisabled" class="btn-danger">
+                            <a ng-click="deleteButtonClick()" ng-show="isDeleteButtonDisplayed()" class="btn-danger">
                                 <i class="glyphicon glyphicon-trash"></i> Delete 
                             </a>
                         </li>
