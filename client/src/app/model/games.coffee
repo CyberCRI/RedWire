@@ -57,6 +57,16 @@ angular.module('gamEvolve.model.games', [])
 
   deleteCurrent: ->
     $http.delete("/api/games/#{currentGame.version.gameId}").then(currentGame.reset)
+    test = $http.get("/api/game-versions")
+    testFunc = (testResult) -> 
+      console.log(testResult)
+      console.log(testResult[0].data)
+      for food in [0 ... testResult[0].data.length]
+        if testResult[0].data[food].gameId == currentGame.version.gameId
+          #console.log testResult[0].data[food].id
+          $http.delete("/api/game-versions/#{testResult[0].data[food].id}").then(currentGame.reset)
+        
+    $q.all([test]).then(testFunc, -> alert("nop men"))
 
   loadAll: ->
     gamesQuery = $http.get('/api/games')
