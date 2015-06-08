@@ -17,7 +17,7 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.editDescription = -> editDescriptionDialog.open()
   $scope.status = 
     isOpen: false
-    
+
   $scope.publishButtonDisabled = false
   $scope.isPublishButtonDisplayed = ->
     isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id
