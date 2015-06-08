@@ -5,7 +5,7 @@ angular.module('gamEvolve.game.edit.header', [
 .controller 'GameInfoCtrl', ($scope, currentGame, gameTime) ->
   $scope.currentGame = currentGame
 
-.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window,loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog) ->
+.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog) ->
   $scope.user = loggedUser
   $scope.games = games
   $scope.currentGame = currentGame
@@ -37,14 +37,18 @@ angular.module('gamEvolve.game.edit.header', [
     games.forkCurrent().finally ->
       $scope.forkButtonDisabled = false
 
-  $scope.deleteButtonDisabled = false
+  deleteInProgress = false
   $scope.isDeleteButtonDisplayed = ->
-    isGameLoaded() and loggedUser.isLoggedIn() and (currentGame.info.ownerId is loggedUser.profile.id or loggedUser.profile.isAdmin)
+    isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id and not deleteInProgress
   $scope.deleteButtonClick = ->
-    if confirm """WARNING: Do you really want delete this game?"""
-      $scope.deleteButtonDisabled = true
-      games.deleteCurrent().finally ->
-        $scope.deleteButtonDisabled = false
+    if not $window.confirm """WARNING: If you delete the game then you can never go back and play it.
+
+             Are you sure?"""
+      return 
+
+    deleteInProgress = true
+    games.deleteCurrent().finally ->
+      deleteInProgress = false
       $state.transitionTo('game-list')
 
   $scope.helpButton = ->
