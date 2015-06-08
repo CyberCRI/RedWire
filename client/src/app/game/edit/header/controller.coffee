@@ -17,7 +17,6 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.editDescription = -> editDescriptionDialog.open()
   $scope.status = 
     isOpen: false
-    
 
   $scope.publishButtonDisabled = false
   $scope.isPublishButtonDisplayed = ->
@@ -40,15 +39,13 @@ angular.module('gamEvolve.game.edit.header', [
 
   $scope.deleteButtonDisabled = false
   $scope.isDeleteButtonDisplayed = ->
-    isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id
+    isGameLoaded() and loggedUser.isLoggedIn() and (currentGame.info.ownerId is loggedUser.profile.id or loggedUser.profile.isAdmin)
   $scope.deleteButtonClick = ->
-    alert """WARNING: You...
-
-             Are you sure?"""
-    $scope.deleteButtonDisabled = true
-    games.deleteCurrent().finally ->
-      $scope.deleteButtonDisabled = false
-    $state.transitionTo('game-list')
+    if confirm """WARNING: Do you really want delete this game?"""
+      $scope.deleteButtonDisabled = true
+      games.deleteCurrent().finally ->
+        $scope.deleteButtonDisabled = false
+      $state.transitionTo('game-list')
 
   $scope.helpButton = ->
     $window.open('http://github.com/CyberCRI/RedWire/wiki/Tutorials','_blank')
