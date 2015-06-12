@@ -91,10 +91,19 @@ createGame = (baseUrl, gameFile, cb) ->
       console.log("Creating game version #{gameFile} done.")
       cb()
 
+getAllGameVersions = (baseUrl, gameId, cb) ->
+  request "#{baseUrl}/game-versions?gameId=#{gameId}", (error, response, body) ->
+    if error then return console.error(error)
+    if statusIsError(response.statusCode) then return console.error(body)
+
+    gameVersions = JSON.parse(body)
+    console.log("Found #{gameVersions.length} game versions.")
+    cb(gameVersions)
+
 
 # Define command-line arguments
 program
-  .option('-b, --baseUrl <url>', 'Base URL of RedMetrics server. Include protocol, host and port (ex. http://localhost:5000)')
+  .option('-b, --baseUrl <url>', 'Base URL of RedMetrics server. Include protocol, host and port (ex. http://localhost:5000). Defaults to http://api.redwire.io', 'http://redwire.io/api')
   .option('-u, --user <user>', 'User name (must be an admin)')
   .option('-p, --password <password>', 'Password')
 
@@ -107,8 +116,18 @@ program
         console.log("Success!")
 
 program
+  .command('exportGame <gameId> <outputFile>')
+  .description('Export all the versions of a game into a single JSON file')
+  .action (gameId, outputFile, options) -> 
+    console.log("Exporting game #{gameId}...")
+    login program.baseUrl, program.user, program.password, ->
+      getAllGameVersions program.baseUrl, gameId, (gameVersions) ->
+        fs.writeFileSync(outputFile, JSON.stringify(gameVersions), { encoding: "utf8"})
+        console.log("Wrote to #{outputFile}")
+
+program
   .command('deleteAllGames')
-  .description("delete all")
+  .description("Delete all games")
   .action (options) -> 
     console.log("Deleting all games")
     login program.baseUrl, program.user, program.password, ->
