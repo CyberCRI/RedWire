@@ -164,7 +164,7 @@
           "default": null
         }
       },
-      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]"
+      "update": "pins.channel = \n{\n    asset: pins.asset\n}"
     },
     "Play FX": {
       "pinDefs": {
