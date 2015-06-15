@@ -288,6 +288,16 @@
       "listActiveChildren": "return pins.keysDown[pins.key] ? children : []",
       "handleSignals": ""
     },
+    "On Any Key Pressed": {
+      "pinDefs": {
+        "keysDown": {
+          "direction": "in",
+          "default": ""
+        }
+      },
+      "listActiveChildren": "return (Object.getOwnPropertyNames(pins.keysDown).length > 0) ? children : []",
+      "handleSignals": ""
+    },
     "On Mouse Down": {
       "pinDefs": {
         "mouseDown": {
