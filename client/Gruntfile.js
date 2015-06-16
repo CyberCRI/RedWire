@@ -638,6 +638,40 @@ module.exports = function ( grunt ) {
         }
       }
     };
+
+    grunt.registerTask('deploy', [
+      'build',
+      'sshexec:stop',
+      'rsync:prod',
+      'sshexec:start'
+    ]);
+
+    grunt.registerTask('clean_deploy', [
+      'build',
+      'sshexec:stop',
+      'sshexec:clean',
+      'rsync:prod',
+      'sshexec:npm_install',
+      'sshexec:start'
+    ]);
+
+    grunt.registerTask('dumpDb',[
+       'sshexec:dumpDb',
+       'sshexec:compress',
+       'exec:downloadDump',
+       'sshexec:cleanDumpDir'
+    ]);
+
+    grunt.registerTask('restoreDb', function() {
+      if(!inputDumpFilename) throw new Error("Missing 'dump' command-line option");
+
+      grunt.task.run([
+        'exec:uploadDump',
+        'sshexec:decompress',
+        'sshexec:restoreDb',
+        'sshexec:cleanDumpDir'
+      ]);
+    });
   } catch(err) {
     console.warn("*** WARNING: Cannot load deployConfig.json ***\n");
   } 
@@ -674,42 +708,8 @@ module.exports = function ( grunt ) {
    * minifying your code.
    */
 
-  grunt.registerTask('dumpDb',[
-     'sshexec:dumpDb',
-     'sshexec:compress',
-     'exec:downloadDump',
-     'sshexec:cleanDumpDir'
-  ]);
-
-  grunt.registerTask('restoreDb', function() {
-    if(!inputDumpFilename) throw new Error("Missing 'dump' command-line option");
-
-    grunt.task.run([
-      'exec:uploadDump',
-      'sshexec:decompress',
-      'sshexec:restoreDb',
-      'sshexec:cleanDumpDir'
-    ]);
-  });
-
   grunt.registerTask( 'compile', [
     'less:compile', 'copy:compile_assets', 'ngmin', 'concat:compile_js', 'uglify', 'index:compile'
-  ]);
-
-  grunt.registerTask('deploy', [
-    'build',
-    'sshexec:stop',
-    'rsync:prod',
-    'sshexec:start'
-  ]);
-
-  grunt.registerTask('clean_deploy', [
-    'build',
-    'sshexec:stop',
-    'sshexec:clean',
-    'rsync:prod',
-    'sshexec:npm_install',
-    'sshexec:start'
   ]);
 
   /**
