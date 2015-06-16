@@ -33,9 +33,10 @@ angular.module('gamEvolve.model.games', [])
 
   setStatusMessage: (message) -> @statusMessage = message
 
-.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay, GameVersionPublishedEvent) ->
+.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay, GameVersionPublishedEvent, NewGameLoadingEvent) ->
 
-  saveInfo = ->
+  games = {}
+  games.saveInfo = ->
     $http.post('/api/games', currentGame.info)
       .then (savedGame) ->
         currentGame.info = savedGame.data
@@ -44,28 +45,38 @@ angular.module('gamEvolve.model.games', [])
       .then (creator) ->
         currentGame.creator = creator.data.username
 
-  updateInfo = ->
+  games.updateInfo = ->
     $http.put('/api/games', currentGame.info)
     
-  saveVersion = ->
+  games.saveVersion = ->
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
     $http.post('/api/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
       .then((savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)))
       .then(-> GameVersionPublishedEvent.send())
 
-  publishCurrent: ->
-    updateInfo().then(saveVersion)
+  games.clearGameData = -> 
+    # Clear the current game data
+    # TODO: have each service detect this event rather than hard coding it here?
+    NewGameLoadingEvent.send()
+    overlay.makeNotification()
+    currentGame.reset()
+    gameHistory.reset()
+    gameTime.reset()
+    undo.reset()
 
-  forkCurrent: ->
+  games.publishCurrent = ->
+    games.updateInfo().then(games.saveVersion)
+
+  games.forkCurrent = ->
     delete currentGame.info.id # Removing the game ID will make the server provide a new one
-    saveInfo().then ->
+    games.saveInfo().then ->
       $location.path("/game/#{currentGame.version.gameId}/edit")
-      saveVersion()
+      games.saveVersion()
 
-  deleteCurrent: ->
+  games.deleteCurrent = ->
     $http.delete("/api/games/#{currentGame.version.gameId}").then(currentGame.reset)
 
-  loadAll: ->
+  games.loadAll = ->
     gamesQuery = $http.get('/api/games')
     usersQuery = $http.get("/api/users") #?{fields={id: 1, username: 1}
     fillGamesList = ([gamesResult, usersResult]) -> 
@@ -77,14 +88,8 @@ angular.module('gamEvolve.model.games', [])
     $q.all([gamesQuery, usersQuery]).then(fillGamesList, -> alert("Can't load games"))
 
   # Load the game content and the creator info, then put it all into currentGame
-  load: (game) ->
-    # Clear the current game data
-    # TODO: have each service detect this event rather than hard coding it here?
-    overlay.makeNotification()
-    currentGame.reset()
-    gameHistory.reset()
-    gameTime.reset()
-    undo.reset()
+  games.load = (game) ->
+    games.clearGameData()
 
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
     getVersion = $http.get("/api/game-versions?#{query}")
@@ -106,10 +111,12 @@ angular.module('gamEvolve.model.games', [])
     onDone = -> overlay.clearNotification()
     $q.all([getVersion, getCreator, getStandardLibrary]).then(updateCurrentGame, onError).finally(onDone)
 
-  loadFromId: (gameId) ->
+  games.loadFromId = (gameId) ->
     $http.get("/api/games/#{gameId}")
-      .success(@load)
+      .success(games.load)
       .error (error) ->
         console.log error
         window.alert "Hmmm, that game doesn't seem to exist"
         $location.path("/")
+
+  return games

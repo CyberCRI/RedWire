@@ -55,27 +55,26 @@ angular.module( 'gamEvolve', [
   'angulartics.google.analytics'
 ])
 
-.config( ( $stateProvider, $urlRouterProvider, $locationProvider ) ->
+.config ( $stateProvider, $urlRouterProvider, $locationProvider ) ->
   # Get rid of those ugly hashes
   $locationProvider.html5Mode(true)
   # Default page is /game/list
   $urlRouterProvider.otherwise( '/game/list' )
-)
 
-.controller('AppCtrl', ( $scope, $location, currentGame ) ->
+.controller 'AppCtrl', ( $scope, $location, currentGame ) ->
+  WARN_LEAVING_MESSAGE = """You have made some changes but not published them. 
+
+    Are you sure you want to leave?"""
+
   $scope.$on '$stateChangeStart', (event, toState, toParams, fromState, fromParams) ->
     console.log("fromState", fromState, "toState", toState)
 
-#    if fromState.name is "game-edit" and not window.confirm("You will lose all your changes. Are you sure?")
-#      event.preventDefault()
-
-    # Warn about losing editing changes when the user navigates away to a different site
-    # window.onbeforeunload = if toState.name is "game-edit" then -> "You have made unpublished changes. Are you sure?"
+    if fromState.name is "game-edit" and currentGame.hasUnpublishedChanges and not window.confirm(WARN_LEAVING_MESSAGE)
+      event.preventDefault()
 
   $scope.$on '$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) ->
     if angular.isDefined( toState.data.pageTitle )
       $scope.pageTitle = toState.data.pageTitle + ' | RedWire'
-)
 
 .run (editableOptions) ->
   # Set options for xeditable

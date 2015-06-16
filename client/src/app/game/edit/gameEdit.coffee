@@ -17,8 +17,9 @@ angular.module('gamEvolve.game.edit', [
 
 
 .controller 'GameEditCtrl', ($scope, $stateParams, games, circuits, currentGame) ->
-
   games.loadFromId $stateParams.gameId
+
+  $scope.$on "$destroy", -> games.clearGameData()
 
   # Used by toolbox list
   # TODO: put in own controller
