@@ -37,7 +37,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
   $scope.$on("$destroy", unsubcribeOnGameVersionPublished)
 
   localCodeIsNewer = (localCode, serverCode) ->
-    # For some odd reason _.isEqual() is flagging some equal code as inequal
+    # For some odd reason _.isEqual() is flagging some equal code as nequal
     localCode.versionNumber == serverCode.versionNumber and RW.makePatches(localCode, serverCode).length > 0
 
   onUpdateCurrentGame = ->
@@ -45,8 +45,6 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
 
     # If this the first time the code is loaded (ie. the controller just started)
     if not currentLocalVersion
-      initialVersionHasBeenCached = false
-
       # Check if code exists in offline cache
       try 
         cachedCode = cache.load(currentGame.info.id)
@@ -70,11 +68,8 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
 
     # Check that we're not already updated
     if currentLocalVersion isnt currentGame.localVersion 
-      if initialVersionHasBeenCached 
-        # Indicate unsaved changes
-        currentGame.setHasUnpublishedChanges()
-      else
-        initialVersionHasBeenCached = true
+      # Indicate unsaved changes only if we already have some code in the undo stack
+      if not undo.isEmpty() then currentGame.setHasUnpublishedChanges()
 
       # Store the change in the undo stack
       undo.changeValue(currentGame.localVersion, currentGame.version)
