@@ -13,6 +13,8 @@ angular.module('gamEvolve.game.play', ["ngSanitize"])
 .controller 'PlayCtrl', ($scope, $state, games, gameTime, gameHistory, currentGame, $stateParams) ->
   $scope.isLoading = true
 
+  $scope.$on "$destroy", -> games.clearGameData()
+
   onUpdateGameHistory = -> 
     if gameHistory.meta.version is 1 
       gameTime.isPlaying = true

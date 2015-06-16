@@ -3,16 +3,14 @@ module = angular.module('gamEvolve.util.eventBus', [])
 
 
 module.factory 'eventBus', ($rootScope) ->
-
   listen: (eventName, callback) ->
-    $rootScope.$on eventName, callback
+    $rootScope.$on(eventName, callback)
 
   send: ->
     $rootScope.$emit.apply($rootScope, arguments)
 
 
 createEventType = (name) ->
-
   module.factory name, (eventBus) ->
 
     listen: (listener) ->
@@ -29,3 +27,5 @@ createEventType('ProcessorRenamedEvent')
 createEventType('TransformerRenamedEvent')
 createEventType('CircuitRenamedEvent')
 createEventType('WillChangeLocalVersionEvent')
+createEventType('GameVersionPublishedEvent')
+createEventType('NewGameLoadingEvent')
