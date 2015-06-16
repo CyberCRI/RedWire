@@ -27,6 +27,158 @@
       },
       "update": "if(pins.keysDown[37]) pins.position[0] -= pins.speed;\nif(pins.keysDown[39]) pins.position[0] += pins.speed;\nif(pins.keysDown[38]) pins.position[1] -= pins.speed;\nif(pins.keysDown[40]) pins.position[1] += pins.speed;"
     },
+    "Draw Circle": {
+      "pinDefs": {
+        "color": {
+          "direction": "in",
+          "default": "\"blue\""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[150,200]"
+        },
+        "radius": {
+          "direction": "in",
+          "default": "100"
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{ \n    type: \"circle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    radius: pins.radius\n}]"
+    },
+    "Draw Image": {
+      "pinDefs": {
+        "asset": {
+          "direction": "in",
+          "default": ""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[200,100]"
+        },
+        "scale": {
+          "direction": "in",
+          "default": "1"
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    scale: pins.scale\n}]"
+    },
+    "Draw Rectangle": {
+      "pinDefs": {
+        "color": {
+          "direction": "in",
+          "default": "\"blue\""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[200,200]"
+        },
+        "size": {
+          "direction": "in",
+          "default": "[200,100]"
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{ \n    type: \"rectangle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    size: pins.size\n}]"
+    },
+    "Draw Path": {
+      "pinDefs": {
+        "color": {
+          "direction": "in",
+          "default": "\"green\""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[100,100]"
+        },
+        "points": {
+          "direction": "in",
+          "default": ""
+        },
+        "rotation": {
+          "direction": "in",
+          "default": "1"
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{\n    type: \"path\",\n    points: pins.points,\n    fillStyle: pins.color,\n    translation: pins.postion,\n    rotation: pins.rotation\n}]"
+    },
+    "Draw Text": {
+      "pinDefs": {
+        "color": {
+          "direction": "in",
+          "default": "\"black\""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[150,200]"
+        },
+        "text": {
+          "direction": "in",
+          "default": "\"Hello World\""
+        },
+        "font": {
+          "direction": "in",
+          "default": "\"40px Courier New\""
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{ \n    type: \"text\", \n    text: pins.text,\n    fillStyle: pins.color,\n    font: pins.font,\n    position: pins.position\n}]"
+    },
+    "Play Clip": {
+      "pinDefs": {
+        "asset": {
+          "direction": "in",
+          "default": ""
+        },
+        "channel": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]"
+    },
+    "Play Music": {
+      "pinDefs": {
+        "asset": {
+          "direction": "in",
+          "default": ""
+        },
+        "channel": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.channel = \n{\n    asset: pins.asset\n}"
+    },
+    "Play FX": {
+      "pinDefs": {
+        "asset": {
+          "direction": "in",
+          "default": ""
+        },
+        "channel": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]"
+    },
     "Detect Mouse": {
       "pinDefs": {
         "shapes": null,
@@ -123,6 +275,48 @@
         "value": null
       },
       "listActiveChildren": "return pins.value ? children : [];"
+    },
+    "On Key Pressed": {
+      "pinDefs": {
+        "keysDown": {
+          "direction": "in"
+        },
+        "key": {
+          "direction": "in"
+        }
+      },
+      "listActiveChildren": "return pins.keysDown[pins.key] ? children : []",
+      "handleSignals": ""
+    },
+    "On Any Key Pressed": {
+      "pinDefs": {
+        "keysDown": {
+          "direction": "in",
+          "default": ""
+        }
+      },
+      "listActiveChildren": "return (Object.getOwnPropertyNames(pins.keysDown).length > 0) ? children : []",
+      "handleSignals": ""
+    },
+    "On Mouse Down": {
+      "pinDefs": {
+        "mouseDown": {
+          "direction": "in",
+          "default": ""
+        }
+      },
+      "listActiveChildren": "return pins.mouseDown ? children : []",
+      "handleSignals": ""
+    },
+    "On Mouse Just Down": {
+      "pinDefs": {
+        "mouseJustDown": {
+          "direction": "in",
+          "default": ""
+        }
+      },
+      "listActiveChildren": "return pins.mouseJustDown ? children : []",
+      "handleSignals": ""
     }
   },
   "transformers": {
