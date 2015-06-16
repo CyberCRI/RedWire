@@ -18,7 +18,7 @@
                 <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" analytics-on="click" analytics-category="edit" analytics-event="logout"><i class="font-icon-logout"></i></button>
             </div>
             <div>
-                <button ng-click="publishButtonClick()" class="btn btn-sm btn-primary" ng-disabled="publishButtonDisabled" ng-if="isPublishButtonDisplayed()" analytics-on="click" analytics-category="edit" analytics-event="publish">
+                <button ng-click="publishButtonClick()" class="btn btn-sm btn-primary" ng-disabled="isPublishButtonDisabled()" ng-if="isPublishButtonDisplayed()" analytics-on="click" analytics-category="edit" analytics-event="publish">
                     <i ng-class="font-icon-upload"></i>
                     Publish
                 </button>

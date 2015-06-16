@@ -12,6 +12,7 @@ angular.module('gamEvolve.model.games', [])
   localVersion: _.uniqueId("v")
   windowId: RW.makeGuid() # Used to identify windows across drag and drop
   standardLibrary: null
+  hasUnpublishedChanges: false
 
   statusMessage: ""
 
@@ -19,16 +20,20 @@ angular.module('gamEvolve.model.games', [])
     @info = null
     @version = null
     @creator = null
-    @hasUnpublishedChanges = false
     @localVersion = _.uniqueId("v")
+    @hasUnpublishedChanges = false
 
   updateLocalVersion: -> 
     # Give an opportunity to change the game code before it is updated
     WillChangeLocalVersionEvent.send()
-    @hasUnpublishedChanges = true
     @localVersion = _.uniqueId("v")
 
-.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->
+  setHasUnpublishedChanges: -> @hasUnpublishedChanges = true
+  clearHasUnpublishedChanges: -> @hasUnpublishedChanges = false
+
+  setStatusMessage: (message) -> @statusMessage = message
+
+.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay, GameVersionPublishedEvent) ->
 
   saveInfo = ->
     $http.post('/api/games', currentGame.info)
@@ -43,11 +48,10 @@ angular.module('gamEvolve.model.games', [])
     $http.put('/api/games', currentGame.info)
     
   saveVersion = ->
-    currentGame.hasUnpublishedChanges = false
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
     $http.post('/api/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
       .then((savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)))
-      .then(-> currentGame.statusMessage = "Published at #{moment().format("HH:mm:ss")}")
+      .then(-> GameVersionPublishedEvent.send())
 
   publishCurrent: ->
     updateInfo().then(saveVersion)
@@ -60,13 +64,6 @@ angular.module('gamEvolve.model.games', [])
 
   deleteCurrent: ->
     $http.delete("/api/games/#{currentGame.version.gameId}").then(currentGame.reset)
-    # listGameVersions = $http.get("/api/game-versions")
-    # deleteAllVersions = (gameVersionsResults) -> 
-    #   for food in [0 ... gameVersionsResults[0].data.length]
-    #     if gameVersionsResults[0].data[food].gameId == currentGame.version.gameId
-    #       $http.delete("/api/game-versions/#{gameVersionsResults[0].data[food].id}").then(currentGame.reset)
-        
-    # $q.all([listGameVersions]).then(deleteAllVersions, -> alert("delete of old versions impossible"))
 
   loadAll: ->
     gamesQuery = $http.get('/api/games')

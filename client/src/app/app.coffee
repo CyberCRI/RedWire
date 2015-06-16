@@ -66,11 +66,11 @@ angular.module( 'gamEvolve', [
   $scope.$on '$stateChangeStart', (event, toState, toParams, fromState, fromParams) ->
     console.log("fromState", fromState, "toState", toState)
 
-    if fromState.name is "game-edit" and not window.confirm("You will lose all your changes. Are you sure?")
-      event.preventDefault()
+#    if fromState.name is "game-edit" and not window.confirm("You will lose all your changes. Are you sure?")
+#      event.preventDefault()
 
     # Warn about losing editing changes when the user navigates away to a different site
-    # window.onbeforeunload = if toState.name is "game-edit" then -> "You will lose all your changes. Are you sure?"
+    # window.onbeforeunload = if toState.name is "game-edit" then -> "You have made unpublished changes. Are you sure?"
 
   $scope.$on '$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) ->
     if angular.isDefined( toState.data.pageTitle )

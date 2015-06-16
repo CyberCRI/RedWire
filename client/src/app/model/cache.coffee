@@ -1,6 +1,5 @@
 # Internal function to set in cache
-saveToCache = (programId, data, currentGame) -> 
-  currentGame.hasUnpublishedChanges = false
+saveToCache = (programId, data) -> 
   value = 
     time: Date.now()
     data: data

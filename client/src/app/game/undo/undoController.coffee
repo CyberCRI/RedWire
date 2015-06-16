@@ -4,13 +4,15 @@ isModalShowing = -> $(".modal, .large-modal").length > 0
 
 
 angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
-.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache, gameConverter, WillChangeLocalVersionEvent) -> 
-  currentLocalVersion = 0
+.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache, gameConverter, WillChangeLocalVersionEvent, GameVersionPublishedEvent) -> 
+  currentLocalVersion = null
+
+  initialVersionHasBeenCached = false
 
   # Bring canUndo() and canRedo() into scope
   $scope.canUndo = -> undo.canUndo()
   $scope.canRedo = -> undo.canRedo()
-  $scope.getStatusMessage = -> currentGame.statusMessage 
+  $scope.getStatusMessage = -> currentGame.statusMessage
 
   $scope.undo = -> 
     if not undo.canUndo() then return 
@@ -18,6 +20,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
     [currentGame.localVersion, currentGame.version] = undo.undo()
     currentLocalVersion = currentGame.localVersion
     WillChangeLocalVersionEvent.send()
+    currentGame.setHasUnpublishedChanges()
 
   $scope.redo = -> 
     if not undo.canRedo() then return 
@@ -25,12 +28,21 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
     [currentGame.localVersion, currentGame.version] = undo.redo()
     currentLocalVersion = currentGame.localVersion
     WillChangeLocalVersionEvent.send()
+    currentGame.setHasUnpublishedChanges()
+
+  onGameVersionPublished = ->
+    currentGame.setStatusMessage("Published at #{moment().format("HH:mm:ss")}")
+    currentGame.clearHasUnpublishedChanges()
+
+  GameVersionPublishedEvent.listen(onGameVersionPublished)
 
   onUpdateCurrentGame = ->
     if not currentGame.version then return 
 
     # If this the first time the code is loaded (ie. the controller just started)
     if not currentLocalVersion
+      initialVersionHasBeenCached = false
+
       # Check if code exists in offline cache
       try 
         cachedCode = cache.load(currentGame.info.id)
@@ -49,19 +61,25 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
           else
             cache.remove(currentGame.info.id)
       catch error
-        currentGame.statusMessage = "Offline saving unavailable"
+        currentGame.setStatusMessage("Offline saving unavailable")
         console.error(error)
 
     # Check that we're not already updated
     if currentLocalVersion isnt currentGame.localVersion 
+      if initialVersionHasBeenCached 
+        # Indicate unsaved changes
+        currentGame.setHasUnpublishedChanges()
+      else
+        initialVersionHasBeenCached = true
+
       # Store the change in the undo stack
       undo.changeValue(currentGame.localVersion, currentGame.version)
       currentLocalVersion = currentGame.localVersion
       try 
         cache.save(currentGame.info.id, currentGame.version)
-        currentGame.statusMessage = "Saved at #{formatDate()}"
+        currentGame.setStatusMessage("Saved at #{formatDate()}")
       catch error
-        currentGame.statusMessage = "Offline saving unavailable"
+        currentGame.setStatusMessage("Offline saving unavailable")
         console.error(error)
 
   $scope.currentGame = currentGame

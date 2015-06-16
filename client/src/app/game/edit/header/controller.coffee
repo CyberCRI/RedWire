@@ -18,13 +18,15 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.status = 
     isOpen: false
 
-  $scope.publishButtonDisabled = false
+  $scope.publishInProgress = false
   $scope.isPublishButtonDisplayed = ->
     isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id
   $scope.publishButtonClick = ->
-    $scope.publishButtonDisabled = true
+    $scope.publishInProgress = true
     games.publishCurrent().finally ->
-      $scope.publishButtonDisabled = false
+      $scope.publishInProgress = false
+
+  $scope.isPublishButtonDisabled = -> $scope.publishInProgress or not currentGame.hasUnpublishedChanges
 
   isGameLoaded = ->
     currentGame.info and currentGame.version
