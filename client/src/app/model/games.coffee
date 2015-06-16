@@ -19,11 +19,13 @@ angular.module('gamEvolve.model.games', [])
     @info = null
     @version = null
     @creator = null
+    @hasUnpublishedChanges = false
     @localVersion = _.uniqueId("v")
 
   updateLocalVersion: -> 
     # Give an opportunity to change the game code before it is updated
     WillChangeLocalVersionEvent.send()
+    @hasUnpublishedChanges = true
     @localVersion = _.uniqueId("v")
 
 .factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->
@@ -41,6 +43,7 @@ angular.module('gamEvolve.model.games', [])
     $http.put('/api/games', currentGame.info)
     
   saveVersion = ->
+    currentGame.hasUnpublishedChanges = false
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
     $http.post('/api/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
       .then((savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)))
