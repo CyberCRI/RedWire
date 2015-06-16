@@ -4,7 +4,7 @@ isModalShowing = -> $(".modal, .large-modal").length > 0
 
 
 angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
-.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache, gameConverter, WillChangeLocalVersionEvent, GameVersionPublishedEvent, NewGameLoadingEvent) -> 
+.controller "UndoCtrl", ($scope, $window, undo, currentGame, cache, gameConverter, WillChangeLocalVersionEvent, GameVersionPublishedEvent) -> 
   currentLocalVersion = null
   initialVersionHasBeenCached = false
 
@@ -32,7 +32,9 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
   onGameVersionPublished = ->
     currentGame.setStatusMessage("Published at #{moment().format("HH:mm:ss")}")
     currentGame.clearHasUnpublishedChanges()
-  GameVersionPublishedEvent.listen(onGameVersionPublished)
+  
+  unsubcribeOnGameVersionPublished = GameVersionPublishedEvent.listen(onGameVersionPublished)
+  $scope.$on("$destroy", unsubcribeOnGameVersionPublished)
 
   onUpdateCurrentGame = ->
     if not currentGame.version then return 
