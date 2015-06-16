@@ -36,6 +36,10 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
   unsubcribeOnGameVersionPublished = GameVersionPublishedEvent.listen(onGameVersionPublished)
   $scope.$on("$destroy", unsubcribeOnGameVersionPublished)
 
+  localCodeIsNewer = (localCode, serverCode) ->
+    # For some odd reason _.isEqual() is flagging some equal code as inequal
+    localCode.versionNumber == serverCode.versionNumber and RW.makePatches(localCode, serverCode).length > 0
+
   onUpdateCurrentGame = ->
     if not currentGame.version then return 
 
@@ -50,7 +54,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
         gameConverter.removeHashKeys(cachedCode)
         gameConverter.removeHashKeys(currentGame.version)
 
-        if cachedCode and not _.isEqual(currentGame.version, cachedCode)
+        if cachedCode and localCodeIsNewer(cachedCode, currentGame.version)
           if window.confirm("You have some changes saved offline. Restore your offline version?")
             # Put the old version as the first in the undo stack
             undo.changeValue(currentGame.localVersion, currentGame.version)
