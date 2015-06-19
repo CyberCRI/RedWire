@@ -3,7 +3,6 @@ globals = @
 
 compileExpression = (expression) -> RW.compileExpression(expression, eval)
 
-
 describe "RedWire", ->
   beforeEach ->
     @addMatchers 
@@ -868,7 +867,11 @@ describe "RedWire", ->
         io: io
         outputIoData: outputIoData
 
-      expect(io.myService.establishData).toHaveBeenCalledWith({ main: 1 })
+      expect(io.myService.establishData).toHaveBeenCalled()
+      expect(io.myService.establishData.calls.length).toEqual(1)
+      # Only test 1st argument
+      expect(io.myService.establishData.calls[0].args[0]).toEqual({ main: 1 }) 
+
       expect(_.size(result.memoryPatches)).toBe(0)
       expect(_.size(result.ioPatches)).toBe(0)
 
@@ -910,7 +913,11 @@ describe "RedWire", ->
         io: io
         inputIoData: inputIoData
 
-      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } })
+      expect(io.myService.establishData).toHaveBeenCalled()
+      expect(io.myService.establishData.calls.length).toEqual(1)
+      # Only test 1st argument
+      expect(io.myService.establishData.calls[0].args[0]).toEqual({ main: { a: 2 } }) 
+
       expect(result.memoryPatches.main).toBeEmpty()
       expect(result.ioPatches.main.length).toEqual(1)
 
@@ -930,7 +937,7 @@ describe "RedWire", ->
           pinDefs:
             service: 
               direction: "inout"
-          update: (pins, transformers, log) -> 
+          update: (pins, assets,  transformers, log) -> 
             expect(transformers.testTransformer(pins.service.a, 2)._1).toBe(1)
             pins.service.a++
 
@@ -951,7 +958,12 @@ describe "RedWire", ->
         io: io
 
       expect(io.myService.provideData).toHaveBeenCalledWith()
-      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } })
+
+      expect(io.myService.establishData).toHaveBeenCalled()
+      expect(io.myService.establishData.calls.length).toEqual(1)
+      # Only test 1st argument
+      expect(io.myService.establishData.calls[0].args[0]).toEqual({ main: { a: 2 } }) 
+
       expect(result.memoryPatches).toDeeplyEqual({ main: [] })
 
     it "rejects conflicting patches", ->
