@@ -852,6 +852,43 @@ describe "RedWire", ->
       expect(newMemory.main.b).toBe(30)
       expect(newMemory["main.subId"].a).toBe(99)
 
+    it "sends data across pipes", ->
+      memoryData = 
+        x: 5
+
+      board = 
+        pipe: 
+          bindTo: "cumul"
+        children: [
+          {
+            emitter:
+              "bindings.cumul": compileExpression("memory.x")
+          }
+          {
+            emitter:
+              "bindings.cumul": compileExpression("bindings.cumul + 1")
+          }
+          {
+            emitter:
+              "bindings.cumul": compileExpression("bindings.cumul + 1")
+          }
+          {
+            emitter:
+              "memory.x": compileExpression("bindings.cumul")
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        memoryData:
+          main: memoryData
+      results = RW.stimulateCircuits(constants)
+
+      newMemory = RW.applyPatches(results.circuitResults["main"].memoryPatches, memoryData)
+      expect(newMemory.x).toEqual(7)
+
   describe "stepLoop()", ->
     it "sends output data directly to io", ->
       io = 
