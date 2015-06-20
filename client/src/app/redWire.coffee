@@ -593,6 +593,17 @@ RW.visitPipeChip = (circuitMeta, path, chip, constants, circuitData, oldScratchD
   result = new RW.ChipVisitorResult()
   RW.transformersLogger = RW.makeLogFunction(circuitMeta, path, result)
 
+  # Get the initial value
+  newScratchData[scratchKey] = null
+  if chip.pipe.initialValue
+    evaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, oldScratchData, oldBindings)
+    try
+      newScratchData[scratchKey] = RW.evaluateExpressionFunction(evaluationContext, chip.pipe.initialValue)
+    catch e
+      result.signal = RW.signals.ERROR
+      RW.transformersLogger(RW.logLevels.ERROR, "Error executing the input value '#{chip.pipe.initialValue}' for pipe chip chip.\n#{RW.formatStackTrace(e)}")
+      return result # Quit early
+
   for childIndex, child of chip.children
     # Visit the child
     childVisitorResult = RW.visitChip(circuitMeta, RW.appendToArray(path, childIndex.toString()), chip.children[childIndex], constants, circuitData, newScratchData, newBindings)

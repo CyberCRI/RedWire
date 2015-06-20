@@ -859,11 +859,8 @@ describe "RedWire", ->
       board = 
         pipe: 
           bindTo: "cumul"
+          initialValue: compileExpression("memory.x")
         children: [
-          {
-            emitter:
-              "bindings.cumul": compileExpression("memory.x")
-          }
           {
             emitter:
               "bindings.cumul": compileExpression("bindings.cumul + 1")
