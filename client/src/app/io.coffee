@@ -660,8 +660,6 @@ RW.io.sound =
                   connectAndPlayBuffer(options.assets[sound.asset])
               when "music" 
 
-                console.log RW.volume.gain.value
-
                 # Channel data should be like { asset: "qsdf" } or null
                 channelId = makeChannelId(circuitId, channelName)
                 if _.isEqual(playingMusic[channelId]?.channelData, channelData) then continue

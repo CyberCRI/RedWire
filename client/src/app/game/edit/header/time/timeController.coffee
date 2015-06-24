@@ -65,21 +65,17 @@ angular.module('gamEvolve.game.edit.header.time', [])
 .controller 'VolumeCtrl', ($scope, gamePlayerState) ->
   $scope.isMuted = gamePlayerState.isMuted
   $scope.volume = gamePlayerState.volume
+  $scope.baseValue = gamePlayerState.volume*100
 
+  event = new CustomEvent("changeVolumeLive", {value: true})
 
-
-  $("#slider").slider({
-    range: "min",
-    min: 0,
-    max: 100,
-    value: gamePlayerState.volume*100,
-    slide: (event,ui) -> 
-      $scope.changeVolume(ui.value/100)
-  })
+  $('#slider').on("change mousemove", ->
+    $scope.changeVolume($('#slider').val()/100)
+  )
 
   $scope.changeVolume = (value) -> 
     gamePlayerState.volume = value
-    console.log gamePlayerState.volume
+    window.dispatchEvent(event)
 
   $scope.triggerMute = -> 
     $scope.isMuted = !$scope.isMuted
