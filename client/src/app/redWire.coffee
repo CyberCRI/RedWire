@@ -107,6 +107,7 @@ RW.evaluateExpressionFunction = (context, f, pins) ->
 RW.resolveBindingAddresses = (bindings, pathParts) ->
   if pathParts[0] in ["memory", "io", "circuit", "scratch"] then return pathParts
   if pathParts[0] is "bindings"
+    if pathParts[1] not of bindings then throw new Error("Cannot find the binding for #{pathParts[1]}")
     bindingValue = bindings[pathParts[1]]
     if bindingValue instanceof RW.BindingReference
       replacedAddress = RW.splitAddress(bindingValue.ref).concat(pathParts[2..])
@@ -595,13 +596,13 @@ RW.visitPipeChip = (circuitMeta, path, chip, constants, circuitData, oldScratchD
 
   # Get the initial value
   newScratchData[scratchKey] = null
-  if chip.pipe.initialValue
+  if chip.pipe.inputPin
     evaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, oldScratchData, oldBindings)
     try
-      newScratchData[scratchKey] = RW.evaluateExpressionFunction(evaluationContext, chip.pipe.initialValue)
+      newScratchData[scratchKey] = RW.evaluateExpressionFunction(evaluationContext, chip.pipe.inputPin)
     catch e
       result.signal = RW.signals.ERROR
-      RW.transformersLogger(RW.logLevels.ERROR, "Error executing the input value '#{chip.pipe.initialValue}' for pipe chip chip.\n#{RW.formatStackTrace(e)}")
+      RW.transformersLogger(RW.logLevels.ERROR, "Error executing the input value '#{chip.pipe.inputPin}' for pipe chip chip.\n#{RW.formatStackTrace(e)}")
       return result # Quit early
 
   for childIndex, child of chip.children
@@ -636,7 +637,10 @@ RW.visitPipeChip = (circuitMeta, path, chip, constants, circuitData, oldScratchD
     result.append(childVisitorResult)
     result.signal = childVisitorResult.signal
 
-  # TODO: Store the results
+  # Store the results
+  if chip.pipe.outputDestination
+    evaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, newScratchData, newBindings)
+    RW.derivePatches(circuitMeta, path, newBindings, evaluationContext, result, chip.pipe.outputDestination, newScratchData[scratchKey])
 
   return result
 

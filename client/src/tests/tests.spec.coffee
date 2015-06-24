@@ -855,11 +855,13 @@ describe "RedWire", ->
     it "sends data across pipes", ->
       memoryData = 
         x: 5
+        y: 1
 
       board = 
         pipe: 
           bindTo: "cumul"
-          initialValue: compileExpression("memory.x")
+          inputPin: compileExpression("memory.x")
+          outputDestination: "memory.y"
         children: [
           {
             emitter:
@@ -867,11 +869,11 @@ describe "RedWire", ->
           }
           {
             emitter:
-              "bindings.cumul": compileExpression("bindings.cumul + 1")
+              "memory.x": compileExpression("bindings.cumul")
           }
           {
             emitter:
-              "memory.x": compileExpression("bindings.cumul")
+              "bindings.cumul": compileExpression("bindings.cumul + 1")
           }
         ]
 
@@ -884,7 +886,55 @@ describe "RedWire", ->
       results = RW.stimulateCircuits(constants)
 
       newMemory = RW.applyPatches(results.circuitResults["main"].memoryPatches, memoryData)
-      expect(newMemory.x).toEqual(7)
+      expect(newMemory.x).toEqual(6)
+      expect(newMemory.y).toEqual(7)
+
+    it "handles nested pipes", ->
+      memoryData = 
+        outerX: 5
+        outerY: 5
+        innerX: 2
+        innerY: 2
+
+      board = 
+        pipe: 
+          bindTo: "outerBind"
+          inputPin: compileExpression("memory.outerX")
+          outputDestination: "memory.outerY"
+        children: [
+          {
+            emitter:
+              "bindings.outerBind": compileExpression("bindings.outerBind + 1")
+          }
+          {
+            pipe: 
+              bindTo: "innerBind"
+              inputPin: compileExpression("memory.innerX")
+              outputDestination: "memory.innerY"
+            children: [
+              {
+                emitter:
+                  "bindings.innerBind": compileExpression("bindings.outerBind + 1")
+              }
+            ]
+          } 
+          {
+            emitter:
+              "bindings.outerBind": compileExpression("bindings.outerBind + 2")
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        memoryData:
+          main: memoryData
+      results = RW.stimulateCircuits(constants)
+
+      newMemory = RW.applyPatches(results.circuitResults["main"].memoryPatches, memoryData)
+      expect(newMemory.innerY).toEqual(7)
+      expect(newMemory.outerY).toEqual(8)
 
   describe "stepLoop()", ->
     it "sends output data directly to io", ->
