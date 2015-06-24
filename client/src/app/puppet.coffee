@@ -14,6 +14,8 @@ GAME_DIMENSIONS = [960, 540]
 # TODO: find a way make these properties of RW.io.sound
 RW.audioContext = new AudioContext()
 RW.lineOut = new WebAudiox.LineOut(RW.audioContext)
+RW.volume = RW.audioContext.createGain()
+RW.volume.gain.value = 0.1
 
 
 # SHARED VARIABLES
@@ -440,7 +442,12 @@ window.addEventListener 'message', (e) ->
       when "updateLocation"
         # locationInfo will be used later by initializeIo() 
         locationInfo = message.value 
-        reporter(null, results)
+        reporter(null)
+      when "muteVolume"
+        RW.lineOut.toggleMute()
+        reporter(null)
+      when "changeVolume"
+        RW.lineOut.volume = message.value
       else
         throw new Error("Unknown type for message #{message}")
   catch error

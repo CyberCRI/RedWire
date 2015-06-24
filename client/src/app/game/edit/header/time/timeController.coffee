@@ -40,6 +40,7 @@ angular.module('gamEvolve.game.edit.header.time', [])
 
   $scope.$watch("isPlayingBack", (isPlayingBack) -> if isPlayingBack then onPlayBackFrame())
 
+
   $scope.$watch("currentFrame", -> $scope.currentFrameString = $scope.currentFrame.toString())
   $scope.$watch("currentFrameString", -> $scope.currentFrame = parseInt($scope.currentFrameString))
 
@@ -57,3 +58,29 @@ angular.module('gamEvolve.game.edit.header.time', [])
   $scope.$watch "inRecordMode", (inRecordMode) -> gameTime.inRecordMode = inRecordMode
   $scope.$watch("currentFrame", (currentFrame) -> gameTime.currentFrameNumber = currentFrame)
 
+
+
+
+
+.controller 'VolumeCtrl', ($scope, gamePlayerState) ->
+  $scope.isMuted = gamePlayerState.isMuted
+  $scope.volume = gamePlayerState.volume
+
+
+
+  $("#slider").slider({
+    range: "min",
+    min: 0,
+    max: 100,
+    value: gamePlayerState.volume*100,
+    slide: (event,ui) -> 
+      $scope.changeVolume(ui.value/100)
+  })
+
+  $scope.changeVolume = (value) -> 
+    gamePlayerState.volume = value
+    console.log gamePlayerState.volume
+
+  $scope.triggerMute = -> 
+    $scope.isMuted = !$scope.isMuted
+    gamePlayerState.isMuted = $scope.isMuted

@@ -98,7 +98,8 @@ module.exports = {
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
       'vendor/angular-xeditable/dist/css/xeditable.css',
-      'vendor/jsoneditor/jsoneditor.css'
+      'vendor/jsoneditor/jsoneditor.css',
+      'vendor/jquery-ui/themes/base/jquery-ui.css'
     ],
     images: [
       'vendor/jsoneditor/img/jsoneditor-icons.png'

@@ -605,7 +605,8 @@ RW.io.sound =
       # Create source node
       source = RW.audioContext.createBufferSource()
       source.buffer = buffer
-      source.connect(RW.lineOut.destination)
+      source.connect(RW.volume)
+      RW.volume.connect(RW.lineOut.destination)
       source.loop = shouldLoop
 
       # Keep track of what sounds are playing
@@ -658,6 +659,9 @@ RW.io.sound =
 
                   connectAndPlayBuffer(options.assets[sound.asset])
               when "music" 
+
+                console.log RW.volume.gain.value
+
                 # Channel data should be like { asset: "qsdf" } or null
                 channelId = makeChannelId(circuitId, channelName)
                 if _.isEqual(playingMusic[channelId]?.channelData, channelData) then continue

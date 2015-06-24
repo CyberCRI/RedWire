@@ -45,6 +45,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.model.history'
   'gamEvolve.model.overlay'
   'gamEvolve.model.time'
+  'gamEvolve.model.gameplayerstate'
   'gamEvolve.model.undo'
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
