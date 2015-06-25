@@ -66,6 +66,7 @@ angular.module('gamEvolve.game.edit.header.time', [])
   $scope.isMuted = gamePlayerState.isMuted
   $scope.volume = gamePlayerState.volume
   $scope.baseValue = gamePlayerState.volume*100
+  $scope.gamePlayerState = gamePlayerState
 
   event = new CustomEvent("changeVolumeLive", {value: true})
 
@@ -80,3 +81,8 @@ angular.module('gamEvolve.game.edit.header.time', [])
   $scope.triggerMute = -> 
     $scope.isMuted = !$scope.isMuted
     gamePlayerState.isMuted = $scope.isMuted
+
+  test = -> 
+    console.log 'working'
+
+  $scope.$watch('gamePlayerState.volume', test, true)
