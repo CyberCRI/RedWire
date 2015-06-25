@@ -1,0 +1,34 @@
+<div id="editBoardPipeDialog">
+	<form name="form" style="form-inline" novalidate>
+		<div class="modal-header">
+			<h3>Edit Pipe <input ng-model="exchange.name" placeholder="Name"></input></h3>
+		</div>
+		<div class="modal-body"> 
+			<p>Child name: <input ng-model="exchange.childName" placeholder="Child name (optional)"></input></p>
+			<form class="form-horizontal">
+				<div class="control-group">
+					<label class="control-label" for="from">Initial value</label>
+					<div class="controls">
+						<input id="initialValue" ng-model="exchange.initialValue" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="bindTo">Bind value to (required)</label>
+					<div class="controls">
+						<input id="bindTo" required ng-model="exchange.bindTo"></input>
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label" for="index">Output value to</label>
+					<div class="controls">
+						<input id="outputDestination" ng-model="exchange.outputDestination" typeahead="destination for destination in DESTINATIONS | filter:$viewValue | limitTo:8"></input>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button class="btn btn-primary" ng-click="done()" ng-disabled="form.$invalid">Done</button>
+			<button class="btn btn-warning" ng-click="cancel()">Cancel</button>
+		</div>
+	</form>
+</div>

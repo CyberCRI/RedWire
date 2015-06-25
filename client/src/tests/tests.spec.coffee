@@ -860,7 +860,7 @@ describe "RedWire", ->
       board = 
         pipe: 
           bindTo: "cumul"
-          inputPin: compileExpression("memory.x")
+          initialValue: compileExpression("memory.x")
           outputDestination: "memory.y"
         children: [
           {
@@ -899,7 +899,7 @@ describe "RedWire", ->
       board = 
         pipe: 
           bindTo: "outerBind"
-          inputPin: compileExpression("memory.outerX")
+          initialValue: compileExpression("memory.outerX")
           outputDestination: "memory.outerY"
         children: [
           {
@@ -909,7 +909,7 @@ describe "RedWire", ->
           {
             pipe: 
               bindTo: "innerBind"
-              inputPin: compileExpression("memory.innerX")
+              initialValue: compileExpression("memory.innerX")
               outputDestination: "memory.innerY"
             children: [
               {

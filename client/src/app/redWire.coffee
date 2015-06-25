@@ -596,13 +596,13 @@ RW.visitPipeChip = (circuitMeta, path, chip, constants, circuitData, oldScratchD
 
   # Get the initial value
   newScratchData[scratchKey] = null
-  if chip.pipe.inputPin
+  if chip.pipe.initialValue
     evaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, oldScratchData, oldBindings)
     try
-      newScratchData[scratchKey] = RW.evaluateExpressionFunction(evaluationContext, chip.pipe.inputPin)
+      newScratchData[scratchKey] = RW.evaluateExpressionFunction(evaluationContext, chip.pipe.initialValue)
     catch e
       result.signal = RW.signals.ERROR
-      RW.transformersLogger(RW.logLevels.ERROR, "Error executing the input value '#{chip.pipe.inputPin}' for pipe chip chip.\n#{RW.formatStackTrace(e)}")
+      RW.transformersLogger(RW.logLevels.ERROR, "Error executing the input value '#{chip.pipe.initialValue}' for pipe chip chip.\n#{RW.formatStackTrace(e)}")
       return result # Quit early
 
   for childIndex, child of chip.children
@@ -612,7 +612,7 @@ RW.visitPipeChip = (circuitMeta, path, chip, constants, circuitData, oldScratchD
     # Apply patches to the scratch key and remove them from the result
     circuitResults = childVisitorResult.getCircuitResults(circuitMeta.id)
     groupedScratchPatches = _.groupBy circuitResults.scratchPatches, (patch) -> 
-      (RW.getPatchDestination(patch) is "/#{scratchKey}") and "mine" or "others" 
+      if RW.startsWith(RW.getPatchDestination(patch), "/#{scratchKey}") then "mine" else "others" 
 
     # Check for conflicts 
     conflicts = RW.detectPatchConflicts(groupedScratchPatches.mine)
