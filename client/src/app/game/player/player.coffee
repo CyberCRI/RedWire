@@ -316,7 +316,7 @@ angular.module('gamEvolve.game.player', [])
   onChangeVolume = ->
     sendMessage("changeVolume", gamePlayerState.volume)
 
-  window.addEventListener("changeVolumeLive", onChangeVolume, false)
+  $scope.$watch('gamePlayerState.volume', onChangeVolume, true)
 
   onMuteVolume = ->
     sendMessage("muteVolume", gamePlayerState.isMuted)

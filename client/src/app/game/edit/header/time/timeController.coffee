@@ -68,7 +68,7 @@ angular.module('gamEvolve.game.edit.header.time', [])
   $scope.baseValue = gamePlayerState.volume*100
 
   changeVolume = (value) -> 
-    gamePlayerState.volume = parseInt(value)
+    gamePlayerState.volume = parseInt(value)/100
     if $scope.isMuted then $scope.triggerMute()
 
   $scope.triggerMute = -> 
