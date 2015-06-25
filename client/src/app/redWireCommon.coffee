@@ -234,3 +234,6 @@ RW.makeGuid = ->
     r = Math.random()*16|0
     v = if c == 'x' then r else (r&0x3|0x8)
     return v.toString(16)
+
+# Returns true if str starts with the string lookFor
+RW.startsWith = (str, lookFor) -> str.indexOf(lookFor) == 0

@@ -22,6 +22,7 @@ angular.module('gamEvolve.game.boardLabel', [
       when "emitter" then "Emitter"
       when "splitter" then "Splitter"
       when "circuit" then "Circuit"
+      when "pipe" then "Pipe"
       else "Unknown Type"
 
   $scope.getChildName = (chip) -> 

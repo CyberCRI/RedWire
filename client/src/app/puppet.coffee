@@ -142,6 +142,8 @@ compileBoard = (board, evaluator, path = []) ->
           when "where" 
             if splitterValue then compileExpression(splitterValue, evaluator, path) else splitterValue
           else splitterValue
+      when "pipe" then RW.mapObject value, (pipeValue, pipeKey) -> 
+          if pipeKey == "initialValue" then compileExpression(pipeValue, evaluator, path) else pipeValue
       when "children" then _.map(value, (child, key) -> compileBoard(child, evaluator, RW.appendToArray(path, key)))
       else value
 
