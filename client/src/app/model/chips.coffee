@@ -12,6 +12,7 @@ angular.module('gamEvolve.model.chips', [])
     "emitter"
     "splitter"
     "circuit"
+    "pipe"
   ]
 
   # TODO: refactor calls to use getChipTypeAndName()
@@ -23,6 +24,7 @@ angular.module('gamEvolve.model.chips', [])
     else if "emitter" of chip then "emitter"
     else if "splitter" of chip then "splitter"
     else if "circuit" of chip then "circuit"
+    else if "pipe" of chip then "pipe"
     else "Unknown"
 
   getChipCollection: (gameCode, chipType) ->
@@ -43,12 +45,13 @@ angular.module('gamEvolve.model.chips', [])
     else if "emitter" of chip then ["emitter", chip.comment]
     else if "splitter" of chip then ["splitter", chip.comment]
     else if "transformer" of chip then ["transformer", chip.transformer]
+    else if "pipe" of chip then ["pipe", chip.comment]
     else if "asset" of chip then ["asset", chip.asset]
     else throw new Error("Unknown chip type for chip '#{JSON.stringify(chip)}'")
 
   acceptsChildren: (chip) ->
     return false unless chip
-    if chip.switch or chip.processor or chip.splitter
+    if chip.switch or chip.splitter or chip.pipe
       if not chip.children
         chip.children = []
       true

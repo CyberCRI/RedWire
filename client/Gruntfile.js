@@ -703,14 +703,18 @@ module.exports = function ( grunt ) {
     'index:build', 'copy:build_tests_runner', 'copy:build_tests_vendor', 'copy:build_sandbox', 'docco'
   ]);
 
+
+  // COMPILING CURRENTLY DOES NOT WORK. See issue https://github.com/CyberCRI/RedWire/issues/257
+
   /**
    * The `compile` task gets your app ready for deployment by concatenating and
    * minifying your code.
    */
 
-  grunt.registerTask( 'compile', [
+  /*grunt.registerTask( 'compile', [
     'less:compile', 'copy:compile_assets', 'ngmin', 'concat:compile_js', 'uglify', 'index:compile'
   ]);
+  */
 
   /**
    * A utility function to get all app JavaScript sources.
