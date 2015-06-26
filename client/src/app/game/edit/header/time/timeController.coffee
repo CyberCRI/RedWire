@@ -56,23 +56,4 @@ angular.module('gamEvolve.game.edit.header.time', [])
   # Copy certain attributes back to the service
   $scope.$watch "isPlaying", (isPlaying) -> gameTime.isPlaying = isPlaying
   $scope.$watch "inRecordMode", (inRecordMode) -> gameTime.inRecordMode = inRecordMode
-  $scope.$watch("currentFrame", (currentFrame) -> gameTime.currentFrameNumber = currentFrame)
-
-
-
-
-
-.controller 'VolumeCtrl', ($scope, gamePlayerState) ->
-  $scope.isMuted = gamePlayerState.isMuted
-  $scope.volume = gamePlayerState.volume
-  $scope.baseValue = gamePlayerState.volume*100
-
-  changeVolume = (value) -> 
-    gamePlayerState.volume = parseInt(value)/100
-    if $scope.isMuted then $scope.triggerMute()
-
-  $scope.triggerMute = -> 
-    $scope.isMuted = !$scope.isMuted
-    gamePlayerState.isMuted = $scope.isMuted
-
-  $scope.$watch('baseValue', changeVolume, true)
+  $scope.$watch("currentFrame", (currentFrame) -> gameTime.currentFrameNumber = currentFrame) 
