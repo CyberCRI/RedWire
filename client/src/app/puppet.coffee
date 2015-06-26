@@ -448,6 +448,7 @@ window.addEventListener 'message', (e) ->
         reporter(null)
       when "changeVolume"
         RW.lineOut.volume = message.value
+        reporter(null)
       else
         throw new Error("Unknown type for message #{message}")
   catch error
