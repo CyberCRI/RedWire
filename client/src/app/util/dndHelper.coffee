@@ -91,7 +91,7 @@ angular.module('gamEvolve.util.dndHelper', [])
       # If our item is already in the list, return early
       if _.contains(dependencies, [chipType, chipName]) then return dependencies
 
-      if chipType not in ["emitter", "splitter"]
+      if chipType not in ["emitter", "splitter", "pipe"]
         # If our item doesn't exist, skip it
         chipCollection = chips.getChipCollection(sourceGameCode, chipType)
         if chipName not of chipCollection then return dependencies
@@ -121,6 +121,8 @@ angular.module('gamEvolve.util.dndHelper', [])
         when "emitter"
           for pinName, pinExpression of chip.emitter
             @getCodeReferences(pinExpression, references)
+        when "pipe"
+          if pipe.initialValue then @getCodeReferences(pipe.initialValue, references)
         when "processor", "switch"
           for pinName, pinExpression of chip.pins.in
             @getCodeReferences(pinExpression, references)
