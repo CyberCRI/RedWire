@@ -40,6 +40,7 @@ angular.module('gamEvolve.game.edit.header.time', [])
 
   $scope.$watch("isPlayingBack", (isPlayingBack) -> if isPlayingBack then onPlayBackFrame())
 
+
   $scope.$watch("currentFrame", -> $scope.currentFrameString = $scope.currentFrame.toString())
   $scope.$watch("currentFrameString", -> $scope.currentFrame = parseInt($scope.currentFrameString))
 
@@ -55,5 +56,4 @@ angular.module('gamEvolve.game.edit.header.time', [])
   # Copy certain attributes back to the service
   $scope.$watch "isPlaying", (isPlaying) -> gameTime.isPlaying = isPlaying
   $scope.$watch "inRecordMode", (inRecordMode) -> gameTime.inRecordMode = inRecordMode
-  $scope.$watch("currentFrame", (currentFrame) -> gameTime.currentFrameNumber = currentFrame)
-
+  $scope.$watch("currentFrame", (currentFrame) -> gameTime.currentFrameNumber = currentFrame) 

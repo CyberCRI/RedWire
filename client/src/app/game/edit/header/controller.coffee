@@ -1,5 +1,5 @@
 angular.module('gamEvolve.game.edit.header', [
-  'gamEvolve.game.edit.header.time','ui.bootstrap'
+  'gamEvolve.game.edit.header.time','gamEvolve.game.edit.header.volume','ui.bootstrap'
 ])
 
 .controller 'GameInfoCtrl', ($scope, currentGame, gameTime) ->
