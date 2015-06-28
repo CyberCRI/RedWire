@@ -279,7 +279,8 @@
     "On Key Pressed": {
       "pinDefs": {
         "keysDown": {
-          "direction": "in"
+          "direction": "in",
+          "default": "io.keyboard.keysDown"
         },
         "key": {
           "direction": "in"
@@ -292,7 +293,7 @@
       "pinDefs": {
         "keysDown": {
           "direction": "in",
-          "default": ""
+          "default": "io.keyboard.keysDown"
         }
       },
       "listActiveChildren": "return (Object.getOwnPropertyNames(pins.keysDown).length > 0) ? children : []",
@@ -302,7 +303,7 @@
       "pinDefs": {
         "mouseDown": {
           "direction": "in",
-          "default": ""
+          "default": "io.mouse.down"
         }
       },
       "listActiveChildren": "return pins.mouseDown ? children : []",
@@ -312,7 +313,7 @@
       "pinDefs": {
         "mouseJustDown": {
           "direction": "in",
-          "default": ""
+          "default": "io.mouse.justDown"
         }
       },
       "listActiveChildren": "return pins.mouseJustDown ? children : []",
