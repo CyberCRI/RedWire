@@ -250,6 +250,20 @@
       },
       "listActiveChildren": "return pins.value ? [0] : children.length > 1 ? [1] : [];"
     },
+    "If Objects Collide": {
+      "pinDefs": {
+        "leftArray": {
+          "direction": "in",
+          "default": ""
+        },
+        "rightArray": {
+          "direction": "in",
+          "default": ""
+        }
+      },
+      "listActiveChildren": "return transformers.shapesIntersect(pins.leftArray,pins.rightArray) ? [0] : children.length > 1 ? [1] : [];",
+      "handleSignals": ""
+    },
     "Sandwhich": {
       "pinDefs": {
         "condition": null,
