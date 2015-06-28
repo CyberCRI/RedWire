@@ -46,7 +46,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"circle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    radius: pins.radius\n}]"
+      "update": "pins.canvas = \n[{ \n    type: \"circle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    radius: pins.radius\n}]; return RW.signals.DONE;"
     },
     "Draw Image": {
       "pinDefs": {
@@ -67,7 +67,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    scale: pins.scale\n}]"
+      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    scale: pins.scale\n}]; return RW.signals.DONE;"
     },
     "Draw Rectangle": {
       "pinDefs": {
@@ -88,7 +88,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"rectangle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    size: pins.size\n}]"
+      "update": "pins.canvas = \n[{ \n    type: \"rectangle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    size: pins.size\n}]; return RW.signals.DONE;"
     },
     "Draw Path": {
       "pinDefs": {
@@ -113,7 +113,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{\n    type: \"path\",\n    points: pins.points,\n    fillStyle: pins.color,\n    translation: pins.postion,\n    rotation: pins.rotation\n}]"
+      "update": "pins.canvas = \n[{\n    type: \"path\",\n    points: pins.points,\n    fillStyle: pins.color,\n    translation: pins.postion,\n    rotation: pins.rotation\n}]; return RW.signals.DONE;"
     },
     "Draw Text": {
       "pinDefs": {
@@ -138,7 +138,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"text\", \n    text: pins.text,\n    fillStyle: pins.color,\n    font: pins.font,\n    position: pins.position\n}]"
+      "update": "pins.canvas = \n[{ \n    type: \"text\", \n    text: pins.text,\n    fillStyle: pins.color,\n    font: pins.font,\n    position: pins.position\n}]; return RW.signals.DONE;"
     },
     "Play Clip": {
       "pinDefs": {
@@ -151,7 +151,7 @@
           "default": null
         }
       },
-      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]"
+      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]; return RW.signals.DONE;"
     },
     "Play Music": {
       "pinDefs": {
@@ -164,7 +164,7 @@
           "default": null
         }
       },
-      "update": "pins.channel = \n{\n    asset: pins.asset\n}"
+      "update": "pins.channel = \n{\n    asset: pins.asset\n}; return RW.signals.DONE;"
     },
     "Play FX": {
       "pinDefs": {
@@ -177,7 +177,7 @@
           "default": null
         }
       },
-      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]"
+      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]; return RW.signals.DONE;"
     },
     "Detect Mouse": {
       "pinDefs": {
