@@ -168,16 +168,16 @@
     },
     "Play FX": {
       "pinDefs": {
-        "asset": {
+        "fx": {
           "direction": "in",
-          "default": ""
+          "default": "['square',0.0000,0.4000,0.0000,0.3200,0.0000,0.2780,20.0000,496.0000,2400.0000,0.4640,0.0000,0.0000,0.0100,0.0003,0.0000,0.0000,0.0000,0.0235,0.0000,0.0000,0.0000,0.0000,1.0000,0.0000,0.0000,0.0000,0.0000]"
         },
         "channel": {
           "direction": "out",
           "default": null
         }
       },
-      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]; return RW.signals.DONE;"
+      "update": "pins.channel = \n[{\n    fx: pins.fx\n}]; return RW.signals.DONE;"
     },
     "Detect Mouse": {
       "pinDefs": {
