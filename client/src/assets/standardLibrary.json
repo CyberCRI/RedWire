@@ -113,7 +113,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{\n    type: \"path\",\n    points: pins.points,\n    fillStyle: pins.color,\n    translation: pins.postion,\n    rotation: pins.rotation\n}]; return RW.signals.DONE;"
+      "update": "pins.canvas = \n[{\n    type: \"path\",\n    points: pins.points,\n    fillStyle: pins.color,\n    translation: pins.position,\n    rotation: pins.rotation\n}]; return RW.signals.DONE;"
     },
     "Draw Text": {
       "pinDefs": {
