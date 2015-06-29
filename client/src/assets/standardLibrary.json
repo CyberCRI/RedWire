@@ -46,7 +46,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"circle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    radius: pins.radius\n}]"
+      "update": "pins.canvas = \n[{ \n    type: \"circle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    radius: pins.radius\n}]; return RW.signals.DONE;"
     },
     "Draw Image": {
       "pinDefs": {
@@ -67,7 +67,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    scale: pins.scale\n}]"
+      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    scale: pins.scale\n}]; return RW.signals.DONE;"
     },
     "Draw Rectangle": {
       "pinDefs": {
@@ -88,7 +88,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"rectangle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    size: pins.size\n}]"
+      "update": "pins.canvas = \n[{ \n    type: \"rectangle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    size: pins.size\n}]; return RW.signals.DONE;"
     },
     "Draw Path": {
       "pinDefs": {
@@ -113,7 +113,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{\n    type: \"path\",\n    points: pins.points,\n    fillStyle: pins.color,\n    translation: pins.postion,\n    rotation: pins.rotation\n}]"
+      "update": "pins.canvas = \n[{\n    type: \"path\",\n    points: pins.points,\n    fillStyle: pins.color,\n    translation: pins.position,\n    rotation: pins.rotation\n}]; return RW.signals.DONE;"
     },
     "Draw Text": {
       "pinDefs": {
@@ -138,7 +138,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"text\", \n    text: pins.text,\n    fillStyle: pins.color,\n    font: pins.font,\n    position: pins.position\n}]"
+      "update": "pins.canvas = \n[{ \n    type: \"text\", \n    text: pins.text,\n    fillStyle: pins.color,\n    font: pins.font,\n    position: pins.position\n}]; return RW.signals.DONE;"
     },
     "Play Clip": {
       "pinDefs": {
@@ -151,7 +151,7 @@
           "default": null
         }
       },
-      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]"
+      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]; return RW.signals.DONE;"
     },
     "Play Music": {
       "pinDefs": {
@@ -164,20 +164,33 @@
           "default": null
         }
       },
-      "update": "pins.channel = \n{\n    asset: pins.asset\n}"
+      "update": "pins.channel = \n{\n    asset: pins.asset\n}; return RW.signals.DONE;"
     },
     "Play FX": {
       "pinDefs": {
-        "asset": {
+        "fx": {
           "direction": "in",
-          "default": ""
+          "default": "['square',0.0000,0.4000,0.0000,0.3200,0.0000,0.2780,20.0000,496.0000,2400.0000,0.4640,0.0000,0.0000,0.0100,0.0003,0.0000,0.0000,0.0000,0.0235,0.0000,0.0000,0.0000,0.0000,1.0000,0.0000,0.0000,0.0000,0.0000]"
         },
         "channel": {
           "direction": "out",
           "default": null
         }
       },
-      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]"
+      "update": "pins.channel = \n[{\n    fx: pins.fx\n}]; return RW.signals.DONE;"
+    },
+    "Log": {
+      "pinDefs": {
+        "message": {
+          "direction": "in",
+          "default": "\"Hello World\""
+        },
+        "level": {
+          "direction": "in",
+          "default": "\"info\""
+        }
+      },
+      "update": "log(pins.level, pins.message); return RW.signals.DONE;"
     },
     "Detect Mouse": {
       "pinDefs": {
@@ -279,7 +292,8 @@
     "On Key Pressed": {
       "pinDefs": {
         "keysDown": {
-          "direction": "in"
+          "direction": "in",
+          "default": "io.keyboard.keysDown"
         },
         "key": {
           "direction": "in"
@@ -292,7 +306,7 @@
       "pinDefs": {
         "keysDown": {
           "direction": "in",
-          "default": ""
+          "default": "io.keyboard.keysDown"
         }
       },
       "listActiveChildren": "return (Object.getOwnPropertyNames(pins.keysDown).length > 0) ? children : []",
@@ -302,7 +316,7 @@
       "pinDefs": {
         "mouseDown": {
           "direction": "in",
-          "default": ""
+          "default": "io.mouse.down"
         }
       },
       "listActiveChildren": "return pins.mouseDown ? children : []",
@@ -312,7 +326,7 @@
       "pinDefs": {
         "mouseJustDown": {
           "direction": "in",
-          "default": ""
+          "default": "io.mouse.justDown"
         }
       },
       "listActiveChildren": "return pins.mouseJustDown ? children : []",
