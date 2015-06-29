@@ -179,6 +179,19 @@
       },
       "update": "pins.channel = \n[{\n    fx: pins.fx\n}]; return RW.signals.DONE;"
     },
+    "Log": {
+      "pinDefs": {
+        "message": {
+          "direction": "in",
+          "default": "\"Hello World\""
+        },
+        "level": {
+          "direction": "in",
+          "default": "\"info\""
+        }
+      },
+      "update": "log(pins.level, pins.message); return RW.signals.DONE;"
+    },
     "Detect Mouse": {
       "pinDefs": {
         "shapes": null,
