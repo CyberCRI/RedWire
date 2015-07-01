@@ -301,8 +301,8 @@ RW.io.html =
       views: {}
       callbacks: {}
 
-    codeTemplateId = (circuitId, templateName) -> return "#{circuitId}.#{templateName}"
-    decodeTemplateId = (templateId) -> templateId.split(".")
+    codeTemplateId = (circuitId, templateName) -> return "#{circuitId}|#{templateName}"
+    decodeTemplateId = (templateId) -> templateId.split("|")
 
     rivets.configure
       handler: (target, event, binding) ->
