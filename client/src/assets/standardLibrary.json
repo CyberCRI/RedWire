@@ -58,6 +58,10 @@
           "direction": "in",
           "default": "[200,100]"
         },
+        "alpha": {
+          "direction": "in",
+          "default": "1"
+        },
         "scale": {
           "direction": "in",
           "default": "1"
@@ -67,7 +71,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    scale: pins.scale\n}]; return RW.signals.DONE;"
+      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    alpha: pins.alpha,\n    scale: pins.scale\n}]; return RW.signals.DONE;"
     },
     "Draw Rectangle": {
       "pinDefs": {
