@@ -58,6 +58,10 @@
           "direction": "in",
           "default": "[200,100]"
         },
+        "alpha": {
+          "direction": "in",
+          "default": "1"
+        },
         "scale": {
           "direction": "in",
           "default": "1"
@@ -67,7 +71,7 @@
           "default": null
         }
       },
-      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    scale: pins.scale\n}]; return RW.signals.DONE;"
+      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    alpha: pins.alpha,\n    scale: pins.scale\n}]; return RW.signals.DONE;"
     },
     "Draw Rectangle": {
       "pinDefs": {
@@ -139,6 +143,55 @@
         }
       },
       "update": "pins.canvas = \n[{ \n    type: \"text\", \n    text: pins.text,\n    fillStyle: pins.color,\n    font: pins.font,\n    position: pins.position\n}]; return RW.signals.DONE;"
+    },
+    "Draw Sprite": {
+      "pinDefs": {
+        "sheetSize": {
+          "direction": "in",
+          "default": ""
+        },
+        "frameSize": {
+          "direction": "in",
+          "default": ""
+        },
+        "frameCount": {
+          "direction": "in",
+          "default": ""
+        },
+        "asset": {
+          "direction": "in",
+          "default": ""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[100,100]"
+        },
+        "layer": {
+          "direction": "out",
+          "default": null
+        },
+        "frame": {
+          "direction": "inout",
+          "default": null
+        },
+        "anchor": {
+          "direction": "in",
+          "default": "\"upperLeft\""
+        },
+        "autoplay": {
+          "direction": "in",
+          "default": "true"
+        },
+        "scale": {
+          "direction": "in",
+          "default": "1"
+        },
+        "loop": {
+          "direction": "in",
+          "default": "false"
+        }
+      },
+      "update": "if(pins.autoplay){\n    pins.frame = Math.min(pins.frame+1, pins.frameCount);\n}\nvar framesPerLine = pins.sheetSize[0] / pins.frameSize[0];\nvar imageCoords = [pins.frame % framesPerLine, Math.floor(pins.frame / framesPerLine)];\n\npins.layer =  [{\n    type: \"image\",\n    anchor: pins.anchor,\n    scale: pins.scale,\n    asset: pins.asset,\n    position: pins.position,\n    offset: [imageCoords[0] * pins.frameSize[0], imageCoords[1] * pins.frameSize[1]],\n    size: pins.frameSize\n}];\nif(pins.loop){\n    pins.frame = (pins.frame >= pins.frameCount)? 0 : pins.frame;\n}"
     },
     "Play Clip": {
       "pinDefs": {
