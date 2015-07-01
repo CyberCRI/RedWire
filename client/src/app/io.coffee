@@ -159,6 +159,40 @@ RW.io.canvas =
       if shape.composition then ctx.globalCompositeOperation = shape.composition
       if shape.alpha then ctx.globalAlpha = shape.alpha
 
+      reference = []
+
+      switch shape.type
+        when 'rectangle'
+          shapeSize = [shape.size[0],shape.size[1]]
+        when 'image'
+          img = assets[shape.asset]
+          shapeSize = if shape.size
+              # Clamp size to image size
+              [Math.min(shape.size[0], img.naturalWidth), Math.min(shape.size[1], img.naturalHeight)]
+            else 
+              [img.naturalWidth, img.naturalHeight]
+        when 'circle'
+          shapeSize = [shape.radius*2, shape.radius*2]
+        # when 'text'
+
+
+
+      # if ! shape.anchor
+      #   anchor = switch type
+
+      switch shape.anchor
+        when 'upperLeft'
+          reference = [shape.position[0], shape.position[1]]
+        when 'upperRight'
+          reference = [shape.position[0] - shapeSize[0], shape.position[1]]
+        # ?? [50, 50] ou [75, 75] ??
+        when 'center'
+          reference = [shape.position[0] - shapeSize[0] / 2, shape.position[1] - shapeSize[1] / 2]
+        when 'lowerLeft'
+          reference = [shape.position[0], shape.position[1] - shapeSize[1]]
+        when 'lowerRight'
+          reference = [shape.position[0] - shapeSize[0], shape.position[1] - shapeSize[1]]
+
       switch shape.type
         when 'rectangle' 
           # Fill in defaults
@@ -169,11 +203,11 @@ RW.io.canvas =
 
           if shape.fillStyle
             ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
-            ctx.fillRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
+            ctx.fillRect(reference[0], reference[1], shape.size[0], shape.size[1])
           if shape.strokeStyle
             ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
             if shape.lineWidth then ctx.lineWidth = shape.lineWidth
-            ctx.strokeRect(shape.position[0], shape.position[1], shape.size[0], shape.size[1])
+            ctx.strokeRect(reference[0], reference[1], shape.size[0], shape.size[1])
         when 'image'
           if shape.asset not of assets then throw new Error("Cannot find asset '#{shape.asset}' for shape '#{JSON.stringify(shape)}'")
 
@@ -189,7 +223,7 @@ RW.io.canvas =
           offset = shape.offset || [0, 0]
           try 
             # drawImage(image, sx, sy, sw, sh, dx, dy, dw, dh)
-            ctx.drawImage(img, offset[0], offset[1], size[0], size[1], shape.position[0], shape.position[1], size[0], size[1])
+            ctx.drawImage(img, offset[0], offset[1], size[0], size[1], reference[0], reference[1], size[0], size[1])
           catch error
             throw new Error("Error drawing image shape #{JSON.stringify(shape)}: #{RW.formatStackTrace(error)}")
         when 'text'
@@ -206,10 +240,10 @@ RW.io.canvas =
           ctx.textAlign = shape.align
           if shape.fillStyle
             ctx.fillStyle = interpretStyle(shape.fillStyle, ctx)
-            ctx.fillText(text, shape.position[0], shape.position[1])
+            ctx.fillText(text, reference[0], reference[1])
           if shape.strokeStyle
             ctx.strokeStyle = interpretStyle(shape.strokeStyle, ctx)
-            ctx.strokeText(text, shape.position[0], shape.position[1])
+            ctx.strokeText(text, reference[0], reference[1])
         when 'path'
           # Fill in defaults
           if "fillStyle" not of shape and "strokeStyle" not of shape then shape.strokeStyle = "#cf0404"
