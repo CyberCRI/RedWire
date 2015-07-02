@@ -189,9 +189,25 @@
         "loop": {
           "direction": "in",
           "default": "false"
+        },
+        "frameRate": {
+          "direction": "in",
+          "default": ""
+        },
+        "currentTime": {
+          "direction": "in",
+          "default": "io.time"
+        },
+        "minTime": {
+          "direction": "in",
+          "default": "17"
+        },
+        "lastTime": {
+          "direction": "inout",
+          "default": null
         }
       },
-      "update": "if(pins.autoplay){\n    pins.frame = Math.min(pins.frame+1, pins.frameCount);\n}\nvar framesPerLine = pins.sheetSize[0] / pins.frameSize[0];\nvar imageCoords = [pins.frame % framesPerLine, Math.floor(pins.frame / framesPerLine)];\n\npins.layer =  [{\n    type: \"image\",\n    anchor: pins.anchor,\n    scale: pins.scale,\n    asset: pins.asset,\n    position: pins.position,\n    offset: [imageCoords[0] * pins.frameSize[0], imageCoords[1] * pins.frameSize[1]],\n    size: pins.frameSize\n}];\nif(pins.loop){\n    pins.frame = (pins.frame >= pins.frameCount)? 0 : pins.frame;\n}"
+      "update": "if(pins.frame){\n    if(pins.autoplay){\n        if(pins.currentTime - pins.lastTime >= pins.minTime){\n            pins.frame = Math.min(pins.frame+1, pins.frameCount);\n            pins.lastTime = pins.currentTime;\n        }\n    }\n    var framesPerLine = pins.sheetSize[0] / pins.frameSize[0];\n    var imageCoords = [pins.frame % framesPerLine, Math.floor(pins.frame / framesPerLine)];\n    \n    pins.layer =  [{\n        type: \"image\",\n        anchor: pins.anchor,\n        scale: pins.scale,\n        asset: pins.asset,\n        position: pins.position,\n        offset: [imageCoords[0] * pins.frameSize[0], imageCoords[1] * pins.frameSize[1]],\n        size: pins.frameSize\n    }];\n    if(pins.loop){\n        pins.frame = (pins.frame >= pins.frameCount)? 0 : pins.frame;\n    }\n}\nelse{\n    if(pins.autoplay){\n        pins.frame = Math.min(pins.frame+1, pins.frameCount);\n    }\n    var framesPerLine = pins.sheetSize[0] / pins.frameSize[0];\n    var imageCoords = [pins.frame % framesPerLine, Math.floor(pins.frame / framesPerLine)];\n    \n    pins.layer =  [{\n        type: \"image\",\n        anchor: pins.anchor,\n        scale: pins.scale,\n        asset: pins.asset,\n        position: pins.position,\n        offset: [imageCoords[0] * pins.frameSize[0], imageCoords[1] * pins.frameSize[1]],\n        size: pins.frameSize\n    }];\n    if(pins.loop){\n        pins.frame = (pins.frame >= pins.frameCount)? 0 : pins.frame;\n    }\n    pins.lastTime = pins.currentTime;\n}"
     },
     "Play Clip": {
       "pinDefs": {
