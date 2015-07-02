@@ -659,7 +659,7 @@ RW.visitChip = (circuitMeta, path, chip, constants, circuitData, scratchData, bi
   if chip.muted then return new RW.ChipVisitorResult()
 
   result = null
-  
+
   # Dispatch to correct function
   for chipType, visitor of RW.chipVisitors
     if chipType of chip
@@ -719,6 +719,7 @@ RW.stepLoop = (options) ->
   memoryPatches = {}
   ioPatches = {}
   logMessages = {}
+  activeChipPaths = {}
 
   if options.outputIoData == null
     if options.inputIoData == null
@@ -775,6 +776,7 @@ RW.stepLoop = (options) ->
       return makeErrorResponse("patchIo", e)
 
     logMessages = RW.pluckToObject(result.circuitResults, "logMessages")
+    activeChipPaths = RW.pluckToObject(result.circuitResults, "activeChipPaths")
 
   # TODO: check the output even if isn't established, in order to catch errors
   if options.establishOutput
@@ -794,7 +796,13 @@ RW.stepLoop = (options) ->
     catch e 
       return makeErrorResponse("writeIo", e)
 
-  return { memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
+  return { 
+    memoryPatches: memoryPatches
+    inputIoData: options.inputIoData
+    ioPatches: ioPatches
+    logMessages: logMessages
+    activeChipPaths: activeChipPaths
+  }
 
 # Compile expression source into sandboxed function of (memory, io, assets, transformers, bindings, pins) 
 RW.compileExpression = (expressionText, evaluator) -> RW.compileSource("return #{expressionText};", evaluator, ["memory", "io", "assets", "transformers", "circuit", "bindings", "pins"])
