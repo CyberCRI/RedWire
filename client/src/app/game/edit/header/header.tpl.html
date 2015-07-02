@@ -3,10 +3,10 @@
     <div id="center">
         <div ng-controller="GameInfoCtrl">
             <h4 id="title">
-                <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a>
-                (version {{ currentGame.version.versionNumber }})
+                <a href="" editable-text="name">{{ name || "Game name" }}</a>
+                (version {{ versionNumber }})
                 by
-                <a>{{ currentGame.creator }}</a>
+                <a>{{ creator }}</a>
             </h4>
             <ng-include src="'game/undo/undo.tpl.html'"></ng-include>
             <ng-include src="'game/edit/header/time/time.tpl.html'"></ng-include>

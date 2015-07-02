@@ -3,7 +3,29 @@ angular.module('gamEvolve.game.edit.header', [
 ])
 
 .controller 'GameInfoCtrl', ($scope, currentGame, gameTime) ->
-  $scope.currentGame = currentGame
+  $scope.name = null
+  $scope.versionNumber = null
+  $scope.creator = null
+
+  copyFromGameToScope = -> 
+    if not currentGame.version? then return
+    
+    $scope.name = currentGame.info.name
+    $scope.versionNumber = currentGame.version.versionNumber
+    $scope.creator = currentGame.creator
+
+  $scope.$watch((-> currentGame.localVersion), copyFromGameToScope, true)
+  $scope.$watch((-> currentGame.version), copyFromGameToScope, true)
+
+  copyFromScopeToGame = -> 
+    if $scope.name == null then return 
+
+    currentGame.info.name = $scope.name
+
+    currentGame.updateLocalVersion()
+
+  $scope.$watch("name", copyFromScopeToGame, true)
+
 
 .controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog) ->
   $scope.user = loggedUser
