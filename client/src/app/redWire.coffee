@@ -36,6 +36,7 @@ RW.CircuitResult = class
       circuitPatches: []
       logMessages: []
       scratchPatches: []
+      activeChipPaths: []
 
 # A ChipVisitorResult is a single signal and a collection of CircuitResult
 RW.ChipVisitorResult = class 
@@ -53,7 +54,7 @@ RW.ChipVisitorResult = class
       if circuitId not of @circuitResults then @circuitResults[circuitId] = circuitResult
       else
         # Append onto the existing ones
-        for attr in ["memoryPatches", "ioPatches", "circuitPatches", "scratchPatches", "logMessages"]
+        for attr in ["memoryPatches", "ioPatches", "circuitPatches", "scratchPatches", "logMessages", "activeChipPaths"]
           @circuitResults[circuitId][attr] = @circuitResults[circuitId][attr].concat(other.circuitResults[circuitId][attr])
 
 # Class used just to "tag" a string as being a reference rather than a JSON value
@@ -657,18 +658,24 @@ RW.visitChip = (circuitMeta, path, chip, constants, circuitData, scratchData, bi
   # TODO: defer processor and call execution until whole tree is evaluated?
   if chip.muted then return new RW.ChipVisitorResult()
 
+  result = null
+  
   # Dispatch to correct function
   for chipType, visitor of RW.chipVisitors
     if chipType of chip
-      return visitor(circuitMeta, path, chip, constants, circuitData, scratchData, bindings)
+      result = visitor(circuitMeta, path, chip, constants, circuitData, scratchData, bindings)
+      break
 
-  # Signal error
-  result = new RW.ChipVisitorResult()
-  result.getCircuitResults(circuitMeta.id).logMessages.push
-    path: path
-    circuitMeta: circuitMeta
-    level: RW.logLevels.ERROR
-    message: ["Board item '#{JSON.stringify(chip)}' is not understood"]
+  if result == null
+    # Signal error
+    result = new RW.ChipVisitorResult()
+    result.getCircuitResults(circuitMeta.id).logMessages.push
+      path: path
+      circuitMeta: circuitMeta
+      level: RW.logLevels.ERROR
+      message: ["Board item '#{JSON.stringify(chip)}' is not understood"]
+
+  result.getCircuitResults(circuitMeta.id).activeChipPaths.push(path)
   return result
 
 # Starts the RW.visitChip() recursive chain with the starting parameters
