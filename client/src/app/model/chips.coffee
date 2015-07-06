@@ -2,10 +2,6 @@ angular.module('gamEvolve.model.chips', [])
 
 .factory 'chips', (currentGame, circuits, gameConverter, GameVersionUpdatedEvent) ->
 
-  GameVersionUpdatedEvent.listen (newVersion) ->
-    for circuitId, circuit of newVersion.circuits
-      gameConverter.removeHashKeys(circuit.board)
-
   types: [
     "switch"
     "processor"
