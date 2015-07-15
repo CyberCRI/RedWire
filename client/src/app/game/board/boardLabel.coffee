@@ -32,9 +32,17 @@ angular.module('gamEvolve.game.boardLabel', [
   $scope.getActivationStyle = (chip) ->
     if not circuits.currentCircuitMeta.id? or gameHistory.data.frames.length == 0 then return "label-default"
 
-    # Get the current data for the circuit instance
-    activeChipPaths = gameHistory.data.frames[gameTime.currentFrameNumber].activeChipPaths[circuits.currentCircuitMeta.id]
     chipPath = boardNodes.getChipPath(chip) 
     if not chipPath? then return "label-default"
 
-    return if RW.contains(activeChipPaths, chipPath) then "label-success" else "label-default"
+    # Get the current data for the circuit instance
+    activeChipPaths = gameHistory.data.frames[gameTime.currentFrameNumber].activeChipPaths[circuits.currentCircuitMeta.id]
+    logMessages = gameHistory.data.frames[gameTime.currentFrameNumber].logMessages[circuits.currentCircuitMeta.id]
+    isChipError = (logMessage) -> logMessage.level == "ERROR" and _.isEqual(logMessage.path, chipPath)
+
+    if _.find(logMessages, isChipError)? 
+      return "label-danger"
+    else if RW.contains(activeChipPaths, chipPath) 
+      return "label-success"
+    else
+      return "label-default"
