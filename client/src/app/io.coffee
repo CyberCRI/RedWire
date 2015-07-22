@@ -858,15 +858,20 @@ RW.io.movuino =
 
     # TODO: check for errors
     # TODO: make host and port configurable
-    ws = new WebSocket("ws://localhost:53141/")
-    ws.onopen = -> 
-      ws.send("l")
-      state.connected = true
-    ws.onmessage = (event) ->
-      # Expecting data like "l 6360 -8796 -16152 -371 218 -147"
-      tokens = event.data.split(" ")
-      state.a = _.map(tokens[1..3], parseFloat)
-      state.g = _.map(tokens[4..6], parseFloat)
+    ws = null
+    try 
+      scheme = if window.location.protocol is "https:" then "wss" else "ws" 
+      ws = new WebSocket("#{scheme}://localhost:53141/")
+      ws.onopen = -> 
+        ws.send("l")
+        state.connected = true
+      ws.onmessage = (event) ->
+        # Expecting data like "l 6360 -8796 -16152 -371 218 -147"
+        tokens = event.data.split(" ")
+        state.a = _.map(tokens[1..3], parseFloat)
+        state.g = _.map(tokens[4..6], parseFloat)
+    catch e
+      console.error("Cannot initialize WebSocket for Mouvino")
 
     return {
       provideData: -> return global: state 
