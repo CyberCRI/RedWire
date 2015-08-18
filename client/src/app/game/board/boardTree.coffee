@@ -133,6 +133,12 @@ angular.module('gamEvolve.game.boardTree', [
       parent.children.splice(index, 1) # Remove that child
       currentGame.updateLocalVersion()
 
+  $scope.copy = (node, parent) ->
+    console.log node, parent
+    index = parent.children.indexOf node
+    parent.children.splice index + 1, 0, node
+    currentGame.updateLocalVersion()
+
   $scope.enter = (node) ->
     boardNodes.open(node) unless treeDrag.dropBefore
 
