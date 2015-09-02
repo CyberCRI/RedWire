@@ -63,6 +63,7 @@ angular.module( 'gamEvolve', [
   $urlRouterProvider.otherwise( '/game/list' )
 
 .controller 'AppCtrl', ( $scope, $location, currentGame ) ->
+  # The version comes from a global variable in index.html
   $scope.RED_WIRE_VERSION = RED_WIRE_VERSION;
 
   WARN_LEAVING_MESSAGE = """You have made some changes but not published them. 
