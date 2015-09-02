@@ -166,6 +166,28 @@ describe "RedWire", ->
       expect(result).toDeeplyEqual({ a: [{ b: -1 }, { c: -2 }, { d: 3 }, { e: 4 }, { f: 5 }, -6, { g: 7 }] })
 
   describe "stimulateCircuits()", ->
+    it "calls emitters", ->
+      oldMemory = 
+        a: 1
+        b: 10
+
+      board = 
+        emitter: 
+          dependencyPaths: [["memory", "a"], ["memory", "b"]]
+          expression: compileExpression("memory.a += memory.b")
+      
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        memoryData: 
+          main: oldMemory
+      results = RW.stimulateCircuits(constants)
+      newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
+      
+      expect(newMemory.a).toBe(11)
+      expect(newMemory.b).toBe(10)
+
     it "calls processors", ->
       isCalled = false
 

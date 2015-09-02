@@ -513,21 +513,31 @@ RW.visitSplitterChip = (circuitMeta, path, chip, constants, circuitData, scratch
   return result
 
 RW.visitEmitterChip = (circuitMeta, path, chip, constants, circuitData, scratchData, bindings) ->
-  evaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, scratchData, bindings)
+  originalEvaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, scratchData, bindings)
+  modifiedEvaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, scratchData, bindings)
 
   # Return "DONE" signal, so it can be put in sequences
   result = new RW.ChipVisitorResult(RW.signals.DONE)  
   RW.transformersLogger = RW.makeLogFunction(circuitMeta, path, result)
 
-  for dest, expressionFunction of chip.emitter  
-    try
-      outputValue = RW.evaluateExpressionFunction(evaluationContext, expressionFunction)
-    catch e
-      result.signal = RW.signals.ERROR
-      RW.transformersLogger(RW.logLevels.ERROR, "Error executing the output pin expression '#{expressionFunction}' --> '#{dest}' for emitter chip.\n#{RW.formatStackTrace(e)}")
-      return result # Quit early
+  # All of the dependencies could be modified, so they are first cloned
+  for dependencyPath in chip.emitter.dependencyPaths
+    [parent, key] = RW.getParentAndKey(modifiedEvaluationContext, dependencyPath)
+    parent[key] = RW.cloneData(parent[key])
 
-    RW.derivePatches(circuitMeta, path, bindings, evaluationContext, result, dest, outputValue)
+  # Now call the function
+  try
+    expressionResult = RW.evaluateExpressionFunction(modifiedEvaluationContext, chip.emitter.expression)
+    # TODO: return result as signal, or DONE if undefined 
+  catch e
+    result.signal = RW.signals.ERROR
+    RW.transformersLogger(RW.logLevels.ERROR, "Error evaluating emitter chip.\n#{RW.formatStackTrace(e)}")
+    return result # Quit early
+
+  # Finally, detect the differences between the modified context and the original 
+  for dependencyPath in chip.emitter.dependencyPaths 
+    [parent, key] = RW.getParentAndKey(modifiedEvaluationContext, dependencyPath)
+    RW.derivePatches(circuitMeta, path, bindings, originalEvaluationContext, result, RW.joinAddress(dependencyPath), parent[key])
   
   return result
 
@@ -849,6 +859,9 @@ RW.makeLogFunction = (circuitMeta, path, result) ->
 
 # Split address like "a.b[1].2" into ["a", "b", 1, 2]
 RW.splitAddress = (address) -> _.reject(address.split(/[\.\[\]]/), (part) -> part is "")
+
+# Join address like ["a", "b", 1, 2] into "a.b.1.2" 
+RW.joinAddress = (address) -> address.join(".")
 
 # Combine a path like ["a", "b", 1, 2] into "a/b/1/2
 RW.joinPathParts = (pathParts) -> "/#{pathParts.join('/')}"
