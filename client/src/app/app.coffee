@@ -63,6 +63,8 @@ angular.module( 'gamEvolve', [
   $urlRouterProvider.otherwise( '/game/list' )
 
 .controller 'AppCtrl', ( $scope, $location, currentGame ) ->
+  $scope.RED_WIRE_VERSION = RED_WIRE_VERSION;
+
   WARN_LEAVING_MESSAGE = """You have made some changes but not published them. 
 
     Are you sure you want to leave?"""
