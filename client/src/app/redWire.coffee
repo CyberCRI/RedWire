@@ -89,19 +89,25 @@ RW.makeEvaluationContext = (circuitMeta, constants, circuitData, scratchData, bi
     circuit: circuitData
     scratch: scratchData
     bindings: {}
-  # Setup bindings
+  RW.setupBindings(context, bindings)
+  return context
+
+RW.setupBindings = (evaluationContext, bindings) ->
   for bindingName, bindingValue of bindings
     if bindingValue instanceof RW.BindingReference
-      [parent, key] = RW.getParentAndKey(context, RW.splitAddress(bindingValue.ref))
-      context.bindings[bindingName] = parent[key]
+      [parent, key] = RW.getParentAndKey(evaluationContext, RW.splitAddress(bindingValue.ref))
+      evaluationContext.bindings[bindingName] = parent[key]
     else
-      context.bindings[bindingName] = bindingValue
-  return context
+      evaluationContext.bindings[bindingName] = bindingValue
 
 # context is created with RW.makeEvaluationContext()
 # pins are optional
 RW.evaluateExpressionFunction = (context, f, pins) ->
   f(context.memory, context.io, context.assets, context.transformers, context.circuit, context.bindings, pins)
+
+# context is created with RW.makeEvaluationContext()
+RW.evaluateEmitterFunction = (context, f) ->
+  f(context.memory, context.io, context.assets, context.transformers, context.circuit, context.bindings)
 
 # Returns address as array (like pathParts) with binding refs replaced with their full addresses (to memory or io) 
 RW.resolveBindingAddresses = (bindings, pathParts) ->
@@ -140,7 +146,7 @@ RW.deepSet = (root, pathParts, value) ->
   else 
     # The intermediate key is missing, so create a new array for it
     if not root[pathParts[0]]? then root[pathParts[0]] = {}
-    RW.deepSet(root[pathParts[0]], _.rest(pathParts))
+    RW.deepSet(root[pathParts[0]], _.rest(pathParts), value)
   return root
 
 # Compare new object and old object to create list of patches.
@@ -514,20 +520,30 @@ RW.visitSplitterChip = (circuitMeta, path, chip, constants, circuitData, scratch
 
 RW.visitEmitterChip = (circuitMeta, path, chip, constants, circuitData, scratchData, bindings) ->
   originalEvaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, scratchData, bindings)
-  modifiedEvaluationContext = RW.makeEvaluationContext(circuitMeta, constants, circuitData, scratchData, bindings)
+
+  # Make modifiedEvaluationContext by copying in just the dependencies for memory and io
+  modifiedEvaluationContext = 
+    memory: {}
+    io: {}
+    assets: constants.assets
+    transformers: constants.transformers
+    circuit: circuitData
+    scratch: scratchData
+    bindings: {}
+
+  # All of the dependencies could be modified, so their parents are first cloned
+  for dependencyPath in chip.emitter.dependencyPaths
+    [originalParent, key] = RW.getParentAndKey(originalEvaluationContext, dependencyPath)
+    RW.deepSet(modifiedEvaluationContext, dependencyPath, RW.cloneData(originalParent[key]))
+  RW.setupBindings(modifiedEvaluationContext, bindings)
 
   # Return "DONE" signal, so it can be put in sequences
   result = new RW.ChipVisitorResult(RW.signals.DONE)  
   RW.transformersLogger = RW.makeLogFunction(circuitMeta, path, result)
 
-  # All of the dependencies could be modified, so they are first cloned
-  for dependencyPath in chip.emitter.dependencyPaths
-    [parent, key] = RW.getParentAndKey(modifiedEvaluationContext, dependencyPath)
-    parent[key] = RW.cloneData(parent[key])
-
   # Now call the function
   try
-    expressionResult = RW.evaluateExpressionFunction(modifiedEvaluationContext, chip.emitter.expression)
+    expressionResult = RW.evaluateEmitterFunction(modifiedEvaluationContext, chip.emitter.expression)
     # TODO: return result as signal, or DONE if undefined 
   catch e
     result.signal = RW.signals.ERROR
@@ -801,6 +817,9 @@ RW.stepLoop = (options) ->
 
 # Compile expression source into sandboxed function of (memory, io, assets, transformers, bindings, pins) 
 RW.compileExpression = (expressionText, evaluator) -> RW.compileSource("return #{expressionText};", evaluator, ["memory", "io", "assets", "transformers", "circuit", "bindings", "pins"])
+
+# Compile expression source into sandboxed function of (memory, io, assets, transformers, bindings, pins) 
+RW.compileEmitter = (expressionText, evaluator) -> RW.compileSource(expressionText, evaluator, ["memory", "io", "assets", "transformers", "circuit", "bindings"])
 
 # Compile transformer source into a function of an "context" object that generates the transformers function,
 # baking in the "transformers" pin expression of "context".
