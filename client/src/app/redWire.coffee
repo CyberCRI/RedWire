@@ -264,15 +264,18 @@ RW.applyPatches = (patches, oldValue, prefix = "") ->
 
   return value
 
-# We don't allow multiple patches to modify the same data
+# We don't allow multiple patches to modify the same data with different values
 # Returns a list of objects like { path: "", patches: [] }
 RW.detectPatchConflicts = (patches) ->
+  patchesConflict = (patches) -> 
+    _.uniq(patches, false, ((patch) -> patch.value)).length > 1
+
   # Only modification patches concern us.
   # Group these patches by their path.
   groupedPatches = _.chain(patches).filter((patch) -> "replace" of patch).groupBy((patch) -> patch.replace).value()
 
-  # Any groups with multiple patches are conflicts
-  conflicts = for path, patchGroup of groupedPatches when patchGroup.length > 1
+  # Any groups with multiple patches and different values are conflicts
+  conflicts = for path, patchGroup of groupedPatches when patchGroup.length > 1 and patchesConflict(patchGroup)
     path: path
     patches: patchGroup
 

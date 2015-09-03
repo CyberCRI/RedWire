@@ -129,6 +129,28 @@ describe "RedWire", ->
       conflicts = RW.detectPatchConflicts(patches)
       expect(conflicts).toBeEmpty()
 
+    it "does not consider identical modifications as conflict", ->
+      # Test changing same attribute
+      oldData = 
+        a: 1
+        b: 1
+      newDataA = 
+        a: 2
+        b: 2
+      newDataB = 
+        a: 2
+        b: 1
+      
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
+
+      conflicts = RW.detectPatchConflicts(allPatches)
+      expect(conflicts).toBeEmpty()
+
+      result = RW.applyPatches(allPatches, oldData)
+      expect(result).toDeeplyEqual({ a: 2, b: 2 })
+
     it "adds to and removes from arrays", ->
       oldData = 
         a: [1, 2, 3]
