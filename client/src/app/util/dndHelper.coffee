@@ -119,8 +119,7 @@ angular.module('gamEvolve.util.dndHelper', [])
       # Add references for transformers referenced in pins
       switch chipType
         when "emitter"
-          for pinName, pinExpression of chip.emitter
-            @getCodeReferences(pinExpression, references)
+          @getCodeReferences(emitter.expression, references)
         when "pipe"
           if pipe.initialValue then @getCodeReferences(pipe.initialValue, references)
         when "processor", "switch"

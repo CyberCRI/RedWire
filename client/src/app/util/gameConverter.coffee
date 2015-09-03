@@ -69,5 +69,25 @@ angular.module('gamEvolve.util.gameConverter', [])
     if gameCode.fileVersion < 0.3
       for circuitType, circuit of gameCode.circuits
         if "channels" not of circuit.io then circuit.io.channels = []
-    gameCode.fileVersion = 0.3
+
+    # Convert emitters
+    updateEmitters = (chip) ->
+      if chip.emitter 
+        # Convert pins to code
+        code = ""
+        for dest, src of chip.emitter
+          code += "#{dest} = #{src};\n"
+        chip.emitter = code
+
+      # Recurse
+      if chip.children
+        updateEmitters(child) for child in chip.children
+      return 
+
+    if gameCode.fileVersion < 0.4
+      for circuitType, circuit of gameCode.circuits
+        updateEmitters(circuit.board)
+
+    # Update game version
+    gameCode.fileVersion = 0.4
     return gameCode

@@ -4,8 +4,6 @@ angular.module('gamEvolve.game.board.editEmitterDialog', [
 ])
 
 .controller 'EditBoardEmitterDialogCtrl', ($scope, liaison, currentGame, pins) ->
-  $scope.DESTINATIONS = pins.enumeratePinDestinations()
-
   $scope.exchange = {}
   $scope.exchange.childName = if liaison.model.name? then JSON.stringify(liaison.model.name) else ""
   $scope.exchange.name = liaison.model.comment

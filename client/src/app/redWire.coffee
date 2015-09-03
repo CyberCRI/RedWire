@@ -907,3 +907,12 @@ RW.joinPathParts = (pathParts) -> "/#{pathParts.join('/')}"
 RW.applyPatchesInCircuits = (patches, data) ->
   RW.mapObject data, (circuitData, circuitId) ->
     if patches[circuitId] then RW.applyPatches(patches[circuitId], circuitData) else circuitData
+
+# Find all references to memory and io
+RW.findFunctionDependencies = (functionText, references) ->
+  r = /(memory|io).(\w+)|(memory|io)\[["'](\w*)["']\]/g
+  loop
+    match = r.exec(code)
+    if not match then break
+    references.push({ transformer: match[1] || match[2] })
+  return references 

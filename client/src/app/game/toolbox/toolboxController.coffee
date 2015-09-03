@@ -132,7 +132,7 @@ angular.module('gamEvolve.game.toolbox', [])
   $scope.itemForDrag = (itemType, name) -> 
     switch itemType
       when "emitters"
-        emitter: { }
+        emitter: ""
       when "splitters"
         splitter:
           from: ''
