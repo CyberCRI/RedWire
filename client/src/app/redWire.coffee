@@ -909,10 +909,65 @@ RW.applyPatchesInCircuits = (patches, data) ->
     if patches[circuitId] then RW.applyPatches(patches[circuitId], circuitData) else circuitData
 
 # Find all references to memory and io
-RW.findFunctionDependencies = (functionText, references) ->
-  r = /(memory|io).(\w+)|(memory|io)\[["'](\w*)["']\]/g
-  loop
-    match = r.exec(code)
-    if not match then break
-    references.push({ transformer: match[1] || match[2] })
-  return references 
+RW.findFunctionDependencies = (functionText, references = []) ->
+  discoverReference = (node, reference = []) ->
+    # Left-recurse
+    if node.object.name then reference.push(node.object.name)
+    else discoverReference(node.object, reference)
+
+    reference.push(node.property.name or node.property.value)
+    return reference
+
+  # First, find all references 
+  try
+    ast = esprima.parse(functionText)
+  catch e
+    throw new Error("Cannot parse function", e)
+
+  RW.walkAst ast, (node, parent) -> 
+    if node.type != "MemberExpression" then return true # Continue with children
+
+    references.push(discoverReference(node)) 
+    return false # Skip children
+
+  # OPT: Sort to speed up subsequent operations
+
+  # Filter out those that don't address memory or io
+  references = _.filter(references, (reference) -> reference[0] in ["memory", "io"])
+ 
+  # Cut off those that are array references at the array
+  references = _.map references, (reference) ->
+    for partIndex, part of reference
+      if _.isNumber(part)
+        return _.first(reference, partIndex)
+    return reference
+
+  # Filter out duplicates
+  references = RW.uniq(references)
+ 
+  # Remove references with parents also in the list
+  # OPT: this involves scanning the list many times
+  references = _.reject references, (reference) -> 
+    for i in [1...reference.length]
+      parentReference = _.first(reference, i)
+      if RW.contains(references, parentReference) then return true
+    return false
+
+  return references
+
+# Heavily adapted from the esprima-walk project by Jonathan Rajavuori
+# https://github.com/jrajav/esprima-walk/blob/master/esprima-walk.js
+RW.walkAst = (ast, fn) ->
+  ret = fn(ast) 
+  if ret == false then return 
+
+  for key, child of ast
+    if not child? then continue
+
+    if child instanceof Array 
+        for arrayElement in child
+          RW.walkAst(arrayElement, fn)
+    else if child.type 
+      RW.walkAst(child, fn)
+
+  return 

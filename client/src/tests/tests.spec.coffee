@@ -192,6 +192,53 @@ describe "RedWire", ->
       result = RW.applyPatches(allPatches, oldData)
       expect(result).toDeeplyEqual({ a: [{ b: -1 }, { c: -2 }, { d: 3 }, { e: 4 }, { f: 5 }, -6, { g: 7 }] })
 
+  describe "parsing", ->
+    it "can find references to memory and io", ->
+      # Multi-part references
+      code = """
+        memory.x.y["z"] = 2;
+      """
+      dependencies = RW.findFunctionDependencies(code)
+      expect(dependencies.length).toBe(1)
+      expect(dependencies[0]).toDeeplyEqual(["memory", "x", "y", "z"])
+
+      # Filter out parents
+      code = """
+        memory.x = 1;
+        memory.x.y = 2;
+      """
+      dependencies = RW.findFunctionDependencies(code)
+      expect(dependencies.length).toBe(1)
+
+      # Handle number indices
+      code = """
+        memory.x[2].y = 1;
+      """
+      dependencies = RW.findFunctionDependencies(code)
+      expect(dependencies.length).toBe(1)
+      expect(dependencies[0]).toDeeplyEqual(["memory", "x"])
+
+      # Only deal with memory and io
+      code = """
+        memory.x = 1;
+        io.z = 3;
+        var a = 4;
+      """
+      dependencies = RW.findFunctionDependencies(code)
+      expect(dependencies.length).toBe(2)
+
+      # Capture in all places
+      code = """
+        var x = memory.a;
+        function f() { return memory.b; }
+        [memory.c];
+        { i: 1 + memory.d }
+        f(memory.e);
+        function g() { return memory.f; }
+      """
+      dependencies = RW.findFunctionDependencies(code)
+      expect(dependencies.length).toBe(6)
+
   describe "stimulateCircuits()", ->
     it "calls emitters", ->
       oldMemory = 
