@@ -9,6 +9,10 @@ describe "RedWire", ->
     @addMatchers 
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
       toBeEmpty: () -> @actual.length == 0
+      toDeeplyContain: (expected) -> 
+        for x in @actual
+          if _.isEqual(x, expected) then return true
+        return false
 
   describe "memory", -> 
     it "can remove value from array", ->
@@ -129,6 +133,28 @@ describe "RedWire", ->
 
       conflicts = RW.detectPatchConflicts(patches)
       expect(conflicts).toBeEmpty()
+
+    it "does not consider identical modifications as conflict", ->
+      # Test changing same attribute
+      oldData = 
+        a: 1
+        b: 1
+      newDataA = 
+        a: 2
+        b: 2
+      newDataB = 
+        a: 2
+        b: 1
+      
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
+
+      conflicts = RW.detectPatchConflicts(allPatches)
+      expect(conflicts).toBeEmpty()
+
+      result = RW.applyPatches(allPatches, oldData)
+      expect(result).toDeeplyEqual({ a: 2, b: 2 })
 
     it "adds to and removes from arrays", ->
       oldData = 
@@ -1000,6 +1026,60 @@ describe "RedWire", ->
       newMemory = RW.applyPatches(results.circuitResults["main"].memoryPatches, memoryData)
       expect(newMemory.innerY).toEqual(7)
       expect(newMemory.outerY).toEqual(8)
+
+    it "returns active chips paths", ->
+      processors = 
+        doNothing: 
+          pinDefs: {}
+          update: -> 
+
+      switches = 
+        doAll: 
+          pinDefs: {}
+
+      board = 
+        switch: "doAll"
+        pins: {}
+        children: [
+          {
+            processor: "doNothing"
+            pins: {}
+          }
+          {
+            processor: "doNothing"
+            pins: {}
+            muted: true
+          }
+          {
+            switch: "doAll"
+            pins: {}
+            children: [
+              {
+                processor: "doNothing"
+                pins: {}
+              }
+            ]
+          }
+          {
+            processor: "doNothing"
+            pins: {}
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        processors: processors
+        switches: switches
+      results = RW.stimulateCircuits(constants)
+      
+      expect(results.circuitResults.main.activeChipPaths.length).toBe(5)
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain([])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["0"])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["2"])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["2", "0"])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["3"])
 
   describe "stepLoop()", ->
     it "sends output data directly to io", ->

@@ -11,8 +11,7 @@ angular.module('gamEvolve.game.boardLabel', [
       node: '='
   }
 
-.controller 'BoardLabelCtrl', ($scope, chips) ->
-
+.controller 'BoardLabelCtrl', ($scope, chips, boardNodes, gameHistory, gameTime, circuits) ->
   $scope.chips = chips
 
   $scope.getChipDescription = (chip) ->
@@ -29,3 +28,21 @@ angular.module('gamEvolve.game.boardLabel', [
     if not chip? then return null
   
     if chip.name? then JSON.stringify(chip.name) else ""
+
+  $scope.getActivationStyle = (chip) ->
+    if not circuits.currentCircuitMeta.id? or gameHistory.data.frames.length == 0 then return "label-default"
+
+    chipPath = boardNodes.getChipPath(chip) 
+    if not chipPath? then return "label-default"
+
+    # Get the current data for the circuit instance
+    activeChipPaths = gameHistory.data.frames[gameTime.currentFrameNumber].activeChipPaths[circuits.currentCircuitMeta.id]
+    logMessages = gameHistory.data.frames[gameTime.currentFrameNumber].logMessages[circuits.currentCircuitMeta.id]
+    isChipError = (logMessage) -> logMessage.level == "ERROR" and _.isEqual(logMessage.path, chipPath)
+
+    if _.find(logMessages, isChipError)? 
+      return "label-danger"
+    else if RW.contains(activeChipPaths, chipPath) 
+      return "label-success"
+    else
+      return "label-default"

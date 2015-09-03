@@ -1,7 +1,7 @@
 <img ng-src="/assets/images/{{chips.getType(node)}}.png"/>
 <span ng-class="{folder: chips.acceptsChildren(node)}">
-    <span class="label label-primary">{{getChildName(node)}}</span> 
-    <span class="label label-default">
+    <span class="label label-info">{{getChildName(node)}}</span> 
+    <span class="label" ng-class="getActivationStyle(node)">
         {{node.comment || node.id || "Untitled"}} ({{getChipDescription(node)}})
     </span>
 </span>
