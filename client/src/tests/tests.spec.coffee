@@ -8,6 +8,10 @@ describe "RedWire", ->
     @addMatchers 
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
       toBeEmpty: () -> @actual.length == 0
+      toDeeplyContain: (expected) -> 
+        for x in @actual
+          if _.isEqual(x, expected) then return true
+        return false
 
   describe "memory", -> 
     it "can remove value from array", ->
@@ -957,6 +961,60 @@ describe "RedWire", ->
       newMemory = RW.applyPatches(results.circuitResults["main"].memoryPatches, memoryData)
       expect(newMemory.innerY).toEqual(7)
       expect(newMemory.outerY).toEqual(8)
+
+    it "returns active chips paths", ->
+      processors = 
+        doNothing: 
+          pinDefs: {}
+          update: -> 
+
+      switches = 
+        doAll: 
+          pinDefs: {}
+
+      board = 
+        switch: "doAll"
+        pins: {}
+        children: [
+          {
+            processor: "doNothing"
+            pins: {}
+          }
+          {
+            processor: "doNothing"
+            pins: {}
+            muted: true
+          }
+          {
+            switch: "doAll"
+            pins: {}
+            children: [
+              {
+                processor: "doNothing"
+                pins: {}
+              }
+            ]
+          }
+          {
+            processor: "doNothing"
+            pins: {}
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        processors: processors
+        switches: switches
+      results = RW.stimulateCircuits(constants)
+      
+      expect(results.circuitResults.main.activeChipPaths.length).toBe(5)
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain([])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["0"])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["2"])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["2", "0"])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["3"])
 
   describe "stepLoop()", ->
     it "sends output data directly to io", ->

@@ -1,13 +1,29 @@
 angular.module('gamEvolve.game.boardNodes', [])
 
 
-.factory 'boardNodes', (currentGame, chips, ProcessorRenamedEvent, SwitchRenamedEvent) ->
+.factory 'boardNodes', (currentGame, chips, ProcessorRenamedEvent, SwitchRenamedEvent, WillChangeLocalVersionEvent) ->
 
   ProcessorRenamedEvent.listen (event) ->
     renameChips(currentGame.version.circuits[circuits.currentCircuitMeta.type].board, 'processor', event.oldName, event.newName)
 
   SwitchRenamedEvent.listen (event) ->
     renameChips(currentGame.version.circuits[circuits.currentCircuitMeta.type].board, 'switch', event.oldName, event.newName)
+
+  WillChangeLocalVersionEvent.listen -> updateChipPaths()
+
+  # TODO: change on circuit change as well
+
+  chipHashKeyToPath = {}
+
+  # Create map of chips to their paths 
+  updateChipPaths = ->
+    recursiveUpdate = (path, chip) ->
+      chip.path = path
+      for childIndex, childChip of chip.children
+        childPath = RW.appendToArray(path, childIndex)
+        recursiveUpdate(childPath, childChip)
+
+    recursiveUpdate([], chips.getCurrentBoard())
 
   renameChips = (chip, chipType, oldName, newName) ->
     if chip[chipType] is oldName
@@ -39,3 +55,5 @@ angular.module('gamEvolve.game.boardNodes', [])
   isOpen: isOpen
   open: open
   close: close
+
+  getChipPath: (node) => node.path
