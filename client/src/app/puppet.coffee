@@ -130,12 +130,18 @@ compileInputPinExpressions = (pins, evaluator, path) -> RW.mapObject pins, (expr
 compileOutputPinExpressions = (pins, evaluator, path) -> RW.mapObject pins, (expression, dest) -> 
   if expression then compileExpression(expression, evaluator, path) else null
 
+compileEmitter = (expression, evaluator, path) ->
+  try 
+    return RW.compileEmitter(expression, evaluator)
+  catch error
+    throw new Error("Error compiling emitter '#{expression}' for chip [#{path.join(', ')}]. #{error}")
+
 # Converts board expressions (with code as strings) to compiled form with code as functions.
 # Leaves non-code values as they were.
 compileBoard = (board, evaluator, path = []) ->
   return RW.mapObject board, (value, key) ->
     switch key
-      when "emitter" then RW.mapObject(value, (expression, dest) -> compileExpression(expression, evaluator, path))
+      when "emitter" then compileEmitter(value, evaluator, path)
       when "pins" 
         in: if value.in then compileInputPinExpressions(value.in, evaluator, path) else {}
         out: if value.out then compileOutputPinExpressions(value.out, evaluator, path) else {}

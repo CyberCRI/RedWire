@@ -2,7 +2,7 @@
 globals = @
 
 compileExpression = (expression) -> RW.compileExpression(expression, eval)
-compileEmitterExpression = (expression) -> RW.compileEmitter(expression, eval)
+compileEmitter = (expression) -> RW.compileEmitter(expression, eval)
 
 describe "RedWire", ->
   beforeEach ->
@@ -246,9 +246,7 @@ describe "RedWire", ->
         b: 10
 
       board = 
-        emitter: 
-          dependencyPaths: [["memory", "a"], ["memory", "b"]]
-          expression: compileEmitterExpression("memory.a += memory.b")
+        emitter: compileEmitter("memory.a += memory.b")
       
       constants = new RW.ChipVisitorConstants
         circuits:  
@@ -263,6 +261,27 @@ describe "RedWire", ->
 
       expect(newMemory.a).toBe(11)
       expect(newMemory.b).toBe(10)
+
+    it "emitters can write to new keys and unknown parents", ->
+      oldMemory = 
+        a: 1
+
+      board = 
+        emitter: compileEmitter("memory.b = memory.a + 1")
+      
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        memoryData: 
+          main: oldMemory
+      results = RW.stimulateCircuits(constants)
+
+      expect(results.circuitResults.main.memoryPatches.length).toBe(1)
+      newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
+
+      expect(newMemory.a).toBe(1)
+      expect(newMemory.b).toBe(2)
 
     it "calls processors", ->
       isCalled = false
@@ -396,9 +415,7 @@ describe "RedWire", ->
                 "message": compileExpression("'hi'")
           },
           { 
-            emitter: 
-              dependencyPaths: [["memory", "message"]]
-              expression: compileEmitterExpression("memory.message = transformers.logIt('hi');")
+            emitter: compileEmitter("memory.message = transformers.logIt('hi');")
           }
         ]
 
@@ -505,18 +522,11 @@ describe "RedWire", ->
           a: -1
 
       board = 
-        emitter: 
-          dependencyPaths: [
-            ["memory", "a", "a1"]
-            ["memory", "b"]
-            ["memory", "c"]
-            ["io", "s", "a"]
-          ]
-          expression: compileEmitterExpression("""
-            memory.a.a1 = 2;
-            memory.b = memory.c;
-            io.s.a = -5;
-          """)
+        emitter: compileEmitter("""
+          memory.a.a1 = 2;
+          memory.b = memory.c;
+          io.s.a = -5;
+        """)
       constants = new RW.ChipVisitorConstants
         circuits:  
           main: new RW.Circuit
@@ -844,18 +854,11 @@ describe "RedWire", ->
             switch: "doAll"
             children: [
               { 
-                emitter: 
-                  dependencyPaths: [
-                    ["memory", "a", "a1"]
-                    ["memory", "b"]
-                    ["memory", "c"]
-                    ["io", "s", "a"]
-                  ]
-                  expression: compileEmitterExpression("""
-                    memory.a.a1 = 2;
-                    memory.b = memory.c;
-                    io.s.a = -5;
-                  """)
+                emitter: compileEmitter("""
+                  memory.a.a1 = 2;
+                  memory.b = memory.c;
+                  io.s.a = -5;
+                """)
               }
               { 
                 circuit: "sub"
@@ -864,18 +867,11 @@ describe "RedWire", ->
             ]
         sub: new RW.Circuit
           board: 
-            emitter: 
-              dependencyPaths: [
-                ["memory", "a"]
-                ["memory", "b"]
-                ["memory", "c"]
-                ["io", "s", "a"]
-              ]
-              expression: compileEmitterExpression("""
-                memory.a = 99;
-                memory.b = memory.c;
-                io.s.a = 100;
-              """)
+            emitter: compileEmitter("""
+              memory.a = 99;
+              memory.b = memory.c;
+              io.s.a = 100;
+            """)
 
       memoryData = 
         main: 
@@ -928,11 +924,9 @@ describe "RedWire", ->
             switch: "doAll"
             children: [
               { 
-                emitter: 
-                  dependencyPaths: [["memory", "a"]]
-                  expression: compileEmitterExpression("""
-                    memory.a = 2;
-                  """)
+                emitter: compileEmitter("""
+                  memory.a = 2;
+                """)
               }
               { 
                 circuit: "sub"
@@ -952,16 +946,10 @@ describe "RedWire", ->
             q: 
               direction: "inout"
           board: 
-            emitter: 
-              dependencyPaths: [
-                ["memory", "a"]
-                ["circuit", "p"]
-                ["circuit", "q"]
-              ]
-              expression: compileEmitterExpression("""
-                memory.a = 99;
-                circuit.q = circuit.p + circuit.q;
-              """)
+            emitter: compileEmitter("""
+              memory.a = 99;
+              circuit.q = circuit.p + circuit.q;
+            """)
 
       memoryData = 
         main: 
@@ -996,19 +984,13 @@ describe "RedWire", ->
           outputDestination: "memory.y"
         children: [
           {
-            emitter:
-              dependencyPaths: [["bindings", "cumul"]]
-              expression: compileEmitterExpression("bindings.cumul = bindings.cumul + 1")
+            emitter: compileEmitter("bindings.cumul = bindings.cumul + 1")
           }
           {
-            emitter:
-              dependencyPaths: [["bindings", "cumul"], ["memory", "x"]]
-              expression: compileEmitterExpression("memory.x = bindings.cumul")
+            emitter: compileEmitter("memory.x = bindings.cumul")
           }
           {
-            emitter:
-              dependencyPaths: [["bindings", "cumul"]]
-              expression: compileEmitterExpression("bindings.cumul = bindings.cumul + 1")
+            emitter: compileEmitter("bindings.cumul = bindings.cumul + 1")
           }
         ]
 
@@ -1038,9 +1020,7 @@ describe "RedWire", ->
           outputDestination: "memory.outerY"
         children: [
           {
-            emitter:
-              dependencyPaths: [["bindings", "outerBind"]]
-              expression: compileEmitterExpression("bindings.outerBind = bindings.outerBind + 1")
+            emitter: compileEmitter("bindings.outerBind = bindings.outerBind + 1")
           }
           {
             pipe: 
@@ -1049,16 +1029,12 @@ describe "RedWire", ->
               outputDestination: "memory.innerY"
             children: [
               {
-                emitter:
-                  dependencyPaths: [["bindings", "outerBind"], ["bindings", "innerBind"]]
-                  expression: compileEmitterExpression("bindings.innerBind = bindings.outerBind + 1")
+                emitter: compileEmitter("bindings.innerBind = bindings.outerBind + 1")
               }
             ]
           } 
           {
-            emitter:
-              dependencyPaths: [["bindings", "outerBind"]]
-              expression: compileEmitterExpression("bindings.outerBind = bindings.outerBind + 2")
+            emitter: compileEmitter("bindings.outerBind = bindings.outerBind + 2")
           }
         ]
 

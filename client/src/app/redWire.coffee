@@ -538,7 +538,9 @@ RW.visitEmitterChip = (circuitMeta, path, chip, constants, circuitData, scratchD
   # All of the dependencies could be modified, so their parents are first cloned
   for dependencyPath in chip.emitter.dependencyPaths
     [originalParent, key] = RW.getParentAndKey(originalEvaluationContext, dependencyPath)
-    RW.deepSet(modifiedEvaluationContext, dependencyPath, RW.cloneData(originalParent[key]))
+    newValue = if key of originalParent then RW.cloneData(originalParent[key]) else undefined
+    RW.deepSet(modifiedEvaluationContext, dependencyPath, newValue)
+
   RW.setupBindings(modifiedEvaluationContext, bindings)
 
   # Return "DONE" signal, so it can be put in sequences
@@ -836,8 +838,10 @@ RW.stepLoop = (options) ->
 # Compile expression source into sandboxed function of (memory, io, assets, transformers, bindings, pins) 
 RW.compileExpression = (expressionText, evaluator) -> RW.compileSource("return #{expressionText};", evaluator, ["memory", "io", "assets", "transformers", "circuit", "bindings", "pins"])
 
-# Compile expression source into sandboxed function of (memory, io, assets, transformers, bindings, pins) 
-RW.compileEmitter = (expressionText, evaluator) -> RW.compileSource(expressionText, evaluator, ["memory", "io", "assets", "transformers", "circuit", "bindings"])
+# Compile expression source into a list of dependencies and a sandboxed function of (memory, io, assets, transformers, bindings, pins) 
+RW.compileEmitter = (expressionText, evaluator) -> 
+  dependencyPaths: RW.findFunctionDependencies(expressionText)
+  expression: RW.compileSource(expressionText, evaluator, ["memory", "io", "assets", "transformers", "circuit", "bindings"])
 
 # Compile transformer source into a function of an "context" object that generates the transformers function,
 # baking in the "transformers" pin expression of "context".
@@ -922,7 +926,7 @@ RW.findFunctionDependencies = (functionText, references = []) ->
   try
     ast = esprima.parse(functionText)
   catch e
-    throw new Error("Cannot parse function", e)
+    throw new Error("Cannot parse function '#{functionText}'. Error: #{e}")
 
   RW.walkAst ast, (node, parent) -> 
     if node.type != "MemberExpression" then return true # Continue with children
@@ -932,8 +936,8 @@ RW.findFunctionDependencies = (functionText, references = []) ->
 
   # OPT: Sort to speed up subsequent operations
 
-  # Filter out those that don't address memory or io
-  references = _.filter(references, (reference) -> reference[0] in ["memory", "io"])
+  # Filter out those that don't address memory, io, or bindings
+  references = _.filter(references, (reference) -> reference[0] in ["memory", "io", "bindings"])
  
   # Cut off those that are array references at the array
   references = _.map references, (reference) ->
