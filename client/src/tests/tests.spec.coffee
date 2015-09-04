@@ -234,10 +234,11 @@ describe "RedWire", ->
         [memory.c];
         { i: 1 + memory.d }
         f(memory.e);
-        function g() { return memory.f; }
+        transformers.f(memory.f).length;
+        function g() { return memory.g; }
       """
       dependencies = RW.findFunctionDependencies(code)
-      expect(dependencies.length).toBe(6)
+      expect(dependencies.length).toBe(7)
 
   describe "stimulateCircuits()", ->
     it "calls emitters", ->

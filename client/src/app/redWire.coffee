@@ -538,10 +538,9 @@ RW.visitEmitterChip = (circuitMeta, path, chip, constants, circuitData, scratchD
   # All of the dependencies could be modified, so their parents are first cloned
   for dependencyPath in chip.emitter.dependencyPaths
     [originalParent, key] = RW.getParentAndKey(originalEvaluationContext, dependencyPath)
+    # If the value doesn't exist yet, give it an undefined value
     newValue = if key of originalParent then RW.cloneData(originalParent[key]) else undefined
     RW.deepSet(modifiedEvaluationContext, dependencyPath, newValue)
-
-  RW.setupBindings(modifiedEvaluationContext, bindings)
 
   # Return "DONE" signal, so it can be put in sequences
   result = new RW.ChipVisitorResult(RW.signals.DONE)  
@@ -915,6 +914,8 @@ RW.applyPatchesInCircuits = (patches, data) ->
 # Find all references to memory and io
 RW.findFunctionDependencies = (functionText, references = []) ->
   discoverReference = (node, reference = []) ->
+    if node.type not in ["MemberExpression", "Identifier", "Literal"] then return reference
+
     # Left-recurse
     if node.object.name then reference.push(node.object.name)
     else discoverReference(node.object, reference)
@@ -928,11 +929,11 @@ RW.findFunctionDependencies = (functionText, references = []) ->
   catch e
     throw new Error("Cannot parse function '#{functionText}'. Error: #{e}")
 
-  RW.walkAst ast, (node, parent) -> 
-    if node.type != "MemberExpression" then return true # Continue with children
+  RW.walkAst ast, (node, parentTypes) -> 
+    # Don't deal with member expressions or sub-member expressions
+    if node.type != "MemberExpression" or _.last(parentTypes) == "MemberExpression" then return 
 
     references.push(discoverReference(node)) 
-    return false # Skip children
 
   # OPT: Sort to speed up subsequent operations
 
@@ -961,17 +962,18 @@ RW.findFunctionDependencies = (functionText, references = []) ->
 
 # Heavily adapted from the esprima-walk project by Jonathan Rajavuori
 # https://github.com/jrajav/esprima-walk/blob/master/esprima-walk.js
-RW.walkAst = (ast, fn) ->
-  ret = fn(ast) 
-  if ret == false then return 
+RW.walkAst = (ast, fn, parentTypes = []) ->
+  fn(ast, parentTypes) 
+
+  parentTypes = RW.appendToArray(parentTypes, ast.type)
 
   for key, child of ast
     if not child? then continue
 
-    if child instanceof Array 
-        for arrayElement in child
-          RW.walkAst(arrayElement, fn)
+    if _.isArray(child)
+      for arrayElement in child
+        RW.walkAst(arrayElement, fn, parentTypes)
     else if child.type 
-      RW.walkAst(child, fn)
+      RW.walkAst(child, fn, parentTypes)
 
   return 
