@@ -4,21 +4,23 @@
 		<p>v{{RED_WIRE_VERSION}}</p>
 	</div>
 
-	<h2>Welcome to RedWire</h2>
-
 	<p class="lead">RedWire is an online game engine for remixing and mashups.</p>
 
-	<p>TODO: RedWire uses simple concepts, everything is open ...</p>
+	<div id="videoContainer">
+		<iframe width="560" height="315" src="https://www.youtube.com/embed/GRcn9qrarOQ" frameborder="0" allowfullscreen></iframe>
+	</div>
 
-	<p>TODO: VIDEO GOES HERE</p>
+	<p>RedWire games are made up of independent <em>chips</em> that are wired up to draw graphics, play sounds, and interact with the player. RedWire gives you powerful development features such as time-travel debugging and visualizing which chips are running. To make mashups, or to just save time, chips can be dragged and dropped from any game into any other.</p>
+
+	<p>Not only is RedWire an open source project, but all games on it are open source themselves. So go ahead and fork one!</p>
 
 	<p>To find out more, check out our <a target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Tutorials">tutorials</a> and <a target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Standard-Toolbox-Reference">documentation</a>.</p>
 
-	<p>
-		<a ui-sref="game-list">See all the games on RedWire</a>
-	</p>
-
 	<h3>Featured Games</h3>
+
+	<p>
+		Here are just some of the games on RedWire. <a ui-sref="game-list">Want to see them all?</a>
+	</p>
 
 	<div class="panel panel-default" ng-repeat="section in sections">
 		<div class="panel-heading">
@@ -29,7 +31,7 @@
 				<div class="col-md-4 gameBlock" ng-repeat="game in section.games">
 					<h4>{{game.title}}</h4>
 					<p>by {{game.author}}</p>
-					<img src="/assets/images/screenshots/{{game.screenshot}}" class="screenshot">
+					<img src="/assets/images/screenshots/{{game.screenshot}}" class="screenshot" ui-sref="play({gameId: game.id})">
 					<p class="row">
 						<a ui-sref="play({gameId: game.id})" class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> Play</a>
 						<a ui-sref="game-edit({gameId: game.id})" class="btn btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>

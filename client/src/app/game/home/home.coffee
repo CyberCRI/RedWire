@@ -17,23 +17,23 @@ angular.module('gamEvolve.game.home', [])
         title: "GLASS - Game Lab Summer School"
         games: [
           {
-            title: "Univers"
-            author: "TODO"
+            title: "Solar System"
+            author: "rleblanc"
             screenshot: "universe.png"
             id: "469ca92b9fcffadc"
             description: "Visualize the solar system in movement"
           }
           {
             title: "Math & Move"
-            author: "TODO"
+            author: "GuillaumeDukes"
             screenshot: "math.png"
             id: "71474ed84b2ddaa8"
             description: "Pilot your ship with equations"
           }
           {
             title: "Usine"
-            author: "TODO"
-            screenshot: ""
+            author: "valgoun"
+            screenshot: "dna.png"
             id: "d38bc3ee23af8aa5"
             description: "Typing game with DNA"
           }
@@ -44,24 +44,24 @@ angular.module('gamEvolve.game.home', [])
         games: [
           {
             title: "Color Charge"
-            author: "TODO"
+            author: "Dioptre"
             screenshot: "colorCharge.png"
             id: "c117a625bbced8ac"
             description: "Form mesons and bosons in this unique puzzle game"
           }
           {
-            title: "Hadronization"
-            author: "TODO"
-            screenshot: ""
+            title: "Hadronisation"
+            author: "Dioptre"
+            screenshot: "hadronisation.png"
             id: "9caa6b965a3008fb"
-            description: "Break links to form quarks"
+            description: "You slice strings, particles are produced, you gain points!"
           }
           {
             title: "Final State Shower"
-            author: "TODO"
-            screenshot: ""
+            author: "Dioptre"
+            screenshot: "shower.png"
             id: "7df2db1b4a6dd957"
-            description: "Smash particles together to help the scientist cross the bridge"
+            description: "Learn about Final State Radiation by playing a virtual bridge building game"
           }
         ]
       }
@@ -70,24 +70,24 @@ angular.module('gamEvolve.game.home', [])
         games: [
           {
             title: "Blinkin'eye"
-            author: "TODO"
+            author: "Dioptre"
             screenshot: "blinkinEye.png"
             id: "7c6b55c59f4038c1"
             description: "Can you resist the blinking eye?"
           }
           {
             title: "Hungry Animal Train"
-            author: "TODO"
-            screenshot: ""
+            author: "Dioptre"
+            screenshot: "hungryAnimals.png"
             id: "bf3d49f12b11f8c3"
             description: "Feed the animals coming down the train"
           }
           {
             title: "My Way"
-            author: "TODO"
-            screenshot: ""
-            id: ""
-            description: "Program a robot"
+            author: "Dioptre"
+            screenshot: "myWay.png"
+            id: "b14ed49c932dab87"
+            description: "Program your robot to complete the puzzles"
           }
         ]
       }
