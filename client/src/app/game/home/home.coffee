@@ -91,4 +91,30 @@ angular.module('gamEvolve.game.home', [])
           }
         ]
       }
+      {
+        title: "Arcade"
+        games: [
+          {
+            title: "Stupendous Side-Scrolling Space Shooter"
+            author: "micouz"
+            screenshot: "spaceShooter.png"
+            id: "31e02eb58a2ec860"
+            description: "Endless bad guys in space"
+          }
+          {
+            title: "King Pong"
+            author: "mr_cool"
+            screenshot: "pong.png"
+            id: "039a51f4fa16f911"
+            description: "2-player pong using the keyboard"
+          }
+          {
+            title: "Asteroids"
+            author: "micouz"
+            screenshot: "asteroids.png"
+            id: "3154c646c1a3796f"
+            description: "Asteroids, mixed with the space shooter"
+          }
+        ]
+      }
     ]
