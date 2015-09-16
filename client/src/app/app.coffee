@@ -39,6 +39,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.toolbox.processors'
   'gamEvolve.game.toolbox.switches'
   'gamEvolve.game.toolbox.transformers'
+  'gamEvolve.game.home'
   'gamEvolve.model.chips'
   'gamEvolve.game.undo'
   'gamEvolve.model.games'
@@ -59,8 +60,8 @@ angular.module( 'gamEvolve', [
 .config ( $stateProvider, $urlRouterProvider, $locationProvider ) ->
   # Get rid of those ugly hashes
   $locationProvider.html5Mode(true)
-  # Default page is /game/list
-  $urlRouterProvider.otherwise( '/game/list' )
+  # Default page is /
+  $urlRouterProvider.otherwise('/')
 
 .controller 'AppCtrl', ( $scope, $location, currentGame ) ->
   # The version comes from a global variable in index.html

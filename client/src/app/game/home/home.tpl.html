@@ -1,0 +1,46 @@
+<div id="home" class="container">
+	<div id="logoBlock">
+		<img src="/assets/images/logo_big.png" ng-controller="LogoCtrl"></img>
+		<p>v{{RED_WIRE_VERSION}}</p>
+	</div>
+
+	<h2>Welcome to RedWire</h2>
+
+	<p class="lead">RedWire is an online game engine for remixing and mashups.</p>
+
+	<p>TODO: RedWire uses simple concepts, everything is open ...</p>
+
+	<p>TODO: VIDEO GOES HERE</p>
+
+	<p>To find out more, check out our <a target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Tutorials">tutorials</a> and <a target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Standard-Toolbox-Reference">documentation</a>.</p>
+
+	<p>
+		<a ui-sref="game-list">See all the games on RedWire</a>
+	</p>
+
+	<h3>Featured Games</h3>
+
+	<div class="panel panel-default" ng-repeat="section in sections">
+		<div class="panel-heading">
+			<h3 class="panel-title">{{section.title}}</h3>
+		</div>
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-4 gameBlock" ng-repeat="game in section.games">
+					<h4>{{game.title}}</h4>
+					<p>by {{game.author}}</p>
+					<img src="/assets/images/screenshots/{{game.screenshot}}" class="screenshot">
+					<p class="row">
+						<a ui-sref="play({gameId: game.id})" class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> Play</a>
+						<a ui-sref="game-edit({gameId: game.id})" class="btn btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
+					</p>
+					<p>{{game.description}}</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<h3 id="seeMore">
+		<a ui-sref="game-list">See more games <span class="glyphicon glyphicon-arrow-right"></span></a>
+	</h3>
+</div>
