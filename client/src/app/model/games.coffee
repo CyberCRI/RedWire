@@ -59,16 +59,7 @@ angular.module('gamEvolve.model.games', [])
       $location.path("/game/#{currentGame.version.gameId}/edit")
       saveVersion()
 
-  loadAll: ->
-    gamesQuery = $http.get('/api/games')
-    usersQuery = $http.get("/api/users") #?{fields={id: 1, username: 1}
-    fillGamesList = ([gamesResult, usersResult]) -> 
-      for game in gamesResult.data
-        id: game.id
-        name: game.name
-        author: _.findWhere(usersResult.data, { id: game.ownerId }).username
-    # This promise will be returned
-    $q.all([gamesQuery, usersQuery]).then(fillGamesList, -> alert("Can't load games"))
+  loadAll: -> return $http.get('/api/games').then((result) -> return result.data).catch(-> alert("Can't load games"))
 
   # Load the game content and the creator info, then put it all into currentGame
   load: (game) ->
@@ -104,6 +95,6 @@ angular.module('gamEvolve.model.games', [])
     $http.get("/api/games/#{gameId}")
       .success(@load)
       .error (error) ->
-        console.log error
-        window.alert "Hmmm, that game doesn't seem to exist"
+        console.log(error)
+        window.alert("Hmmm, that game doesn't seem to exist")
         $location.path("/")

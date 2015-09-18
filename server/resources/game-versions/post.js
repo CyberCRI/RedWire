@@ -15,6 +15,10 @@ dpd.gameversions.get(filter, function(result, error) {
         previousGameVersion = result[0];
         this.versionNumber = previousGameVersion.versionNumber + 1;
         
-        // Update game with new info
+        // Update game version count
+        dpd.games.get({ this.gameId }, function(game, error) {
+           game.versionCount++;
+           dpd.games.put(game);
+        });
     }
 });

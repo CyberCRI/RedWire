@@ -4,3 +4,10 @@ if (!me || me.id != this.ownerId) {
 
 protect("ownerId");
 protect("parentId");
+if(!internal) {
+    protect("playCount");
+    protect("forkCount");
+    protect("versionCount");
+}
+
+this.lastUpdateTime = new Date().toUTCString();

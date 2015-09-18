@@ -19,15 +19,29 @@
 					Author
 				</span>
 			</th>
-			<th></th>
-			<th></th>
+			<th># Versions</th>
+			<th># Forks</th>
+			<th># Plays</th>
+			<th>Last updated</th>
 		</tr>
 		<tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
 			<td>
 				{{ game.name }} 
 			</td>
 			<td>
-				{{ game.author }}
+				{{ game.ownerName }}
+			</td>
+			<td>
+				{{ game.versionCount }}
+			</td>
+			<td>
+				{{ game.forkCount }}
+			</td>
+			<td>
+				{{ game.playCount }}
+			</td>
+			<td>
+				{{ game.lastUpdated }}
 			</td>
 			<td>
 				<a ng-click="play(game.id)"><span class="glyphicon glyphicon-play"></span> Play</a>
