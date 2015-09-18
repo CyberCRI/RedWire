@@ -43,7 +43,3 @@ angular.module('gamEvolve.game.edit', [
 
     # Switch current circuit
     circuits.currentCircuitMeta = circuitMeta
-
-
-.controller 'LogoCtrl', ($scope, aboutDialog) ->
-  $scope.aboutDialog = aboutDialog

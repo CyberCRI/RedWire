@@ -1,0 +1,48 @@
+<div id="home" class="container">
+	<div id="logoBlock">
+		<img src="/assets/images/logo_big.png"></img>
+		<p>v{{RED_WIRE_VERSION}}</p>
+	</div>
+
+	<p class="lead">RedWire is an online game engine for remixing and mashups.</p>
+
+	<div id="videoContainer">
+		<iframe width="560" height="315" src="https://www.youtube.com/embed/GRcn9qrarOQ" frameborder="0" allowfullscreen></iframe>
+	</div>
+
+	<p>RedWire games are made up of independent <em>chips</em> that are wired up to draw graphics, play sounds, and interact with the player. RedWire gives you powerful development features such as time-travel debugging and visualizing which chips are running. To make mashups, or to just save time, chips can be dragged and dropped from any game into any other.</p>
+
+	<p>Not only is RedWire an open source project, but all games on it are open source themselves. So go ahead and fork one!</p>
+
+	<p>To find out more, check out our <a target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Tutorials">tutorials</a> and <a target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Standard-Toolbox-Reference">documentation</a>.</p>
+
+	<h3>Featured Games</h3>
+
+	<p>
+		Here are just some of the games on RedWire. <a ui-sref="game-list">Want to see them all?</a>
+	</p>
+
+	<div class="panel panel-default" ng-repeat="section in sections">
+		<div class="panel-heading">
+			<h3 class="panel-title">{{section.title}}</h3>
+		</div>
+		<div class="panel-body">
+			<div class="row">
+				<div class="col-md-4 gameBlock" ng-repeat="game in section.games">
+					<h4>{{game.title}}</h4>
+					<p>by {{game.author}}</p>
+					<img src="/assets/images/screenshots/{{game.screenshot}}" class="screenshot" ui-sref="play({gameId: game.id})">
+					<p class="row">
+						<a ui-sref="play({gameId: game.id})" class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> Play</a>
+						<a ui-sref="game-edit({gameId: game.id})" class="btn btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
+					</p>
+					<p>{{game.description}}</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<h3 id="seeMore">
+		<a ui-sref="game-list">See more games <span class="glyphicon glyphicon-arrow-right"></span></a>
+	</h3>
+</div>
