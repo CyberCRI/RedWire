@@ -284,6 +284,34 @@ describe "RedWire", ->
       expect(newMemory.a).toBe(1)
       expect(newMemory.b).toBe(2)
 
+    it "emitters can write to bindings", ->
+      oldMemory = 
+        numbers: [0, 1, 2]
+
+      board =
+        splitter:
+          from: "memory.numbers"
+          bindTo: "number"
+          index: "index"
+        children: [
+          {
+            emitter: compileEmitter("bindings.number = bindings.number * bindings.index")
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        memoryData: 
+          main: oldMemory
+      results = RW.stimulateCircuits(constants)
+
+      expect(results.circuitResults.main.memoryPatches.length).toBe(1)
+      newMemory = RW.applyPatches(results.circuitResults.main.memoryPatches, oldMemory)
+
+      expect(newMemory.numbers).toDeeplyEqual([0, 1, 4])
+
     it "calls processors", ->
       isCalled = false
 

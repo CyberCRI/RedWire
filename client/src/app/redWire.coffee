@@ -120,7 +120,8 @@ RW.resolveBindingAddresses = (bindings, pathParts) ->
       replacedAddress = RW.splitAddress(bindingValue.ref).concat(pathParts[2..])
       return RW.resolveBindingAddresses(bindings, replacedAddress)
     else
-      throw new Error("Cannot write to constant bindings such as '#{JSON.stringify(bindingValue)}'")
+      # A constant binding, illegal to write to but legal to read from
+      return pathParts
   else throw new Error("Cannot resolve address '#{RW.joinPathParts(pathParts)}'")
 
 # Reject arrays as objects
@@ -298,17 +299,23 @@ RW.derivePatches = (circuitMeta, path, bindings, evaluationContext, result, outp
   [parent, key] = RW.getParentAndKey(evaluationContext, pathParts)
   # Find which list to apply patches to
   circuitResults = result.getCircuitResults(circuitMeta.id)
+
+  # Drop "memory" or "io" off the prefix for patches
+  prefix = RW.joinPathParts(pathParts[1..])
+  
+  # Obtain patches 
+  patches = []
+  RW.makePatches(parent[key], outputValue, path, prefix, patches)
+  if patches.length == 0 then return
+
+  # Append them to the destination list
   destinationList = switch pathParts[0] 
     when "memory" then circuitResults.memoryPatches 
     when "io" then circuitResults.ioPatches
     when "circuit" then circuitResults.circuitPatches
     when "scratch" then circuitResults.scratchPatches
     else throw new Error("Unknown destination '#{pathParts[0]}'")
-
-  # Drop "memory" or "io" off the prefix for patches
-  prefix = RW.joinPathParts(pathParts[1..])
-  # Obtain patches and append them to the destination list
-  RW.makePatches(parent[key], outputValue, path, prefix, destinationList)
+  destinationList.push(patches...)
 
 # Set default values in pinDefs
 RW.fillPinDefDefaults = (pinDefs) ->
