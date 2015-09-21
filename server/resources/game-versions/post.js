@@ -1,24 +1,18 @@
-filter = {
-    gameId: this.gameId,
-    // game version with highest version number
-    $sort: {versionNumber: -1},
-    $limit: 1
-};
+this.createdTime = new Date().toUTCString();
 
-dpd.gameversions.get(filter, function(result, error) {
-    if (error) {
+dpd.games.get({ id: this.gameId }, function(gameResult, error) {
+    if(error) {
         console.log(error);
-        cancel(error, 500);
-    } else if (result.length === 0) { // First version ever saved for this game
-        this.versionNumber = 1;
-    } else { // A version for this game already exists
-        previousGameVersion = result[0];
-        this.versionNumber = previousGameVersion.versionNumber + 1;
-        
-        // Update game version count
-        dpd.games.get({ this.gameId }, function(game, error) {
-           game.versionCount++;
-           dpd.games.put(game);
-        });
+        return cancel(error, 500);
     }
+    
+    this.gameName = gameResult.name;
+    this.versionNumber = gameResult.versionCount + 1;
+    
+    // Update game
+    dpd.games.put({ id: this.gameId }, { 
+        versionCount: this.versionNumber,
+        lastUpdatedTime: this.createdTime
+    });
 });
+

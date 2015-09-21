@@ -4,6 +4,7 @@ if (!me || me.id != this.ownerId) {
 
 protect("ownerId");
 protect("parentId");
+protect("createdTime");
 if(!internal) {
     protect("playCount");
     protect("forkCount");

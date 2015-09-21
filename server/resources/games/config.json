@@ -41,13 +41,21 @@
 			"id": "parentName",
 			"order": 4
 		},
+		"createdTime": {
+			"name": "createdTime",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "createdTime",
+			"order": 5
+		},
 		"lastUpdatedTime": {
 			"name": "lastUpdatedTime",
 			"type": "string",
 			"typeLabel": "string",
 			"required": false,
 			"id": "lastUpdatedTime",
-			"order": 5
+			"order": 6
 		},
 		"playCount": {
 			"name": "playCount",
@@ -55,7 +63,7 @@
 			"typeLabel": "number",
 			"required": false,
 			"id": "playCount",
-			"order": 6
+			"order": 7
 		},
 		"forkCount": {
 			"name": "forkCount",
@@ -63,7 +71,7 @@
 			"typeLabel": "number",
 			"required": false,
 			"id": "forkCount",
-			"order": 7
+			"order": 8
 		},
 		"versionCount": {
 			"name": "versionCount",
@@ -71,7 +79,7 @@
 			"typeLabel": "number",
 			"required": false,
 			"id": "versionCount",
-			"order": 8
+			"order": 9
 		}
 	}
 }
