@@ -1,0 +1,1 @@
+cancel("Does not accept POST requests")
