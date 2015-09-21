@@ -98,3 +98,6 @@ angular.module('gamEvolve.model.games', [])
         console.log(error)
         window.alert("Hmmm, that game doesn't seem to exist")
         $location.path("/")
+
+  recordPlay: (gameId) -> $http.post("/api/play/#{gameId}")
+

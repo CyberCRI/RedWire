@@ -1,4 +1,5 @@
 this.createdTime = new Date().toUTCString();
+this.playCount = 0;
 
 dpd.games.get({ id: this.gameId }, function(gameResult, error) {
     if(error) {
@@ -11,6 +12,7 @@ dpd.games.get({ id: this.gameId }, function(gameResult, error) {
     
     // Update game
     dpd.games.put({ id: this.gameId }, { 
+        lastVersionId: this.id,
         versionCount: this.versionNumber,
         lastUpdatedTime: this.createdTime
     });

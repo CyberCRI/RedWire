@@ -80,6 +80,14 @@
 			"required": false,
 			"id": "versionCount",
 			"order": 9
+		},
+		"lastVersionId": {
+			"name": "lastVersionId",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "lastVersionId",
+			"order": 10
 		}
 	}
 }
