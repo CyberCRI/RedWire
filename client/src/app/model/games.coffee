@@ -101,3 +101,7 @@ angular.module('gamEvolve.model.games', [])
 
   recordPlay: (gameId) -> $http.post("/api/play/#{gameId}")
 
+  getLikeCount: (gameId) -> $http.get("/api/like/#{gameId}").then((results) -> return results.data)
+
+  recordLike: (gameId) -> $http.post("/api/like/#{gameId}")
+

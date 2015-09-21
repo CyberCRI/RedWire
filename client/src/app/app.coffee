@@ -27,6 +27,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.play'
   'gamEvolve.game.import'
   'gamEvolve.game.layers'
+  'gamEvolve.game.like'
   'gamEvolve.game.log'
   'gamEvolve.game.login'
   'gamEvolve.game.memory'

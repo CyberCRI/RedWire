@@ -1,7 +1,9 @@
-// Get the games liked by the current user
+// Get the number of likes for the given game
+// Expecting a URL like /like/{gameId} 
 
-if(!me) cancel("You need to be logged in to get likes");
+var gameId = parts[0];
+if (!gameId) cancel("You must provide a game ID");
 
-likedBy(me.id, function(results) { 
-    setResult(results);
+likedCount(gameId, function(results) { 
+    setResult({ likedCount: results });
 });

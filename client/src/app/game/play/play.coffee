@@ -28,6 +28,7 @@ angular.module('gamEvolve.game.play', ["ngSanitize"])
   games.loadFromId($stateParams.gameId)
   games.recordPlay($stateParams.gameId)
 
+  $scope.gameId = $stateParams.gameId
   $scope.title = ""
   $scope.author = ""
   $scope.description = ""
