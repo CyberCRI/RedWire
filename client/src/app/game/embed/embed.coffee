@@ -37,6 +37,7 @@ angular.module('gamEvolve.game.embed', [])
   games.loadFromId($stateParams.gameId)
   games.recordPlay($stateParams.gameId)
 
+  $scope.gameId = $stateParams.gameId
   $scope.title = ""
   $scope.author = ""
   onUpdateCurrentGame = -> 
