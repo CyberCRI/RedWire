@@ -15,6 +15,7 @@ angular.module('gamEvolve.game.list', [])
     $scope.games = []
 
     games.loadAll().then (gamesList) -> $scope.games = gamesList
+    games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
 
     $scope.remix = (gameId) -> $state.transitionTo('game-edit', {gameId: gameId})
     $scope.play = (gameId) -> $state.transitionTo('play', {gameId: gameId})

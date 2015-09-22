@@ -10,7 +10,7 @@ angular.module('gamEvolve.game.like', [])
       $scope.likedCount = 0
       $scope.doesLike = false
 
-      $scope.isLoggedIn = -> loggedUser.isLoggedIn
+      $scope.isDisabled = -> not loggedUser.isLoggedIn() or $scope.doesLike 
 
       updateLikeText = (likedCount) ->
         $scope.text = if likedCount then "#{likedCount} Likes" else "Like" 
@@ -26,6 +26,7 @@ angular.module('gamEvolve.game.like', [])
 
       $scope.onClick = ->
         if $scope.doesLike then return 
+        if not loggedUser.isLoggedIn then 
 
         games.recordLike($scope.gameId).then ->
           $scope.likedCount++

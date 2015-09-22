@@ -30,6 +30,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.like'
   'gamEvolve.game.log'
   'gamEvolve.game.login'
+  'gamEvolve.game.login.controls'
   'gamEvolve.game.memory'
   'gamEvolve.game.metrics'
   'gamEvolve.game.overlay'

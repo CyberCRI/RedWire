@@ -1,8 +1,6 @@
 angular.module('gamEvolve.model.games', [])
 
-
 .factory 'currentGame', (GameVersionUpdatedEvent, WillChangeLocalVersionEvent) ->
-
   version: null
   setVersion: (newVersion) ->
     @version = newVersion
@@ -105,3 +103,4 @@ angular.module('gamEvolve.model.games', [])
 
   recordLike: (gameId) -> $http.post("/api/like/#{gameId}")
 
+  getRecommendations: -> return $http.get('/api/recommend').then((result) -> return result.data)
