@@ -1,4 +1,4 @@
-// Adds lastVersion, versionCount, # forks, username, etc.
+// Adds lastVersionId, versionCount, # forks, username, etc.
 // Meant to be run in the MongoDB shell (like "mongo redwire client/tools/upgradeDbForGameStats.js")
 
 var gameCursor = db.games.find();
@@ -7,7 +7,7 @@ while(gameCursor.hasNext()) {
     print("Treating game", game._id, game.name);
 
     // Check if the game has already been upgraded
-    if(game.lastVersion) {
+    if(game.lastVersionId) {
         print(" Already upgraded. Skipping.")
         continue;
     }
@@ -19,8 +19,8 @@ while(gameCursor.hasNext()) {
         continue;
     }
 
-    game.lastGameVersion = lastGameVersionCursor.next()._id;
-    print("  lastGameVersion", game.lastGameVersion);
+    game.lastVersionId = lastGameVersionCursor.next()._id;
+    print("  lastVersionId", game.lastVersionId);
 
     // Get forks
     game.forkCount = db.games.find({ parentId: game._id }).count();
@@ -38,8 +38,8 @@ while(gameCursor.hasNext()) {
 
     // Get version count
     var gameVersionCursor = db["game-versions"].find({ gameId: game._id });
-    game.gameVersionCount = gameVersionCursor.count();
-    print("  gameVersionCount", game.gameVersionCount);
+    game.versionCount = gameVersionCursor.count();
+    print("  versionCount", game.versionCount);
     
     // Update game name in versions
     while(gameVersionCursor.hasNext()) {

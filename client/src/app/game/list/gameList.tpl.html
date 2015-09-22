@@ -21,6 +21,9 @@
 				<th># Versions</th>
 				<th># Forks</th>
 				<th># Plays</th>
+				<th># Mixed From</th>
+				<th># Mixed Into</th>
+				<th># Plays</th>
 				<th>Last updated</th>
 			</tr>
 			<tr ng-repeat="game in gameRecommendations">
@@ -37,7 +40,13 @@
 					{{ game.forkCount }}
 				</td>
 				<td>
-					{{ game.playCount }}
+					{{ game.playCount || 0 }}
+				</td>
+				<td>
+					{{ game.mixedFromGameIds.length || 0 }}
+				</td>
+				<td>
+					{{ game.mixedToGameIds.length || 0 }}
 				</td>
 				<td>
 					{{ game.lastUpdatedTime }}
@@ -69,6 +78,8 @@
 			<th># Versions</th>
 			<th># Forks</th>
 			<th># Plays</th>
+			<th># Mixed From</th>
+			<th># Mixed Into</th>
 			<th>Last updated</th>
 		</tr>
 		<tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
@@ -85,7 +96,13 @@
 				{{ game.forkCount }}
 			</td>
 			<td>
-				{{ game.playCount }}
+				{{ game.playCount || 0 }}
+			</td>
+			<td>
+				{{ game.mixedFromGameIds.length || 0}}
+			</td>
+			<td>
+				{{ game.mixedToGameIds.length || 0 }}
 			</td>
 			<td>
 				{{ game.lastUpdatedTime }}

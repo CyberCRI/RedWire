@@ -88,6 +88,22 @@
 			"required": false,
 			"id": "lastVersionId",
 			"order": 10
+		},
+		"mixedFromGameIds": {
+			"name": "mixedFromGameIds",
+			"type": "array",
+			"typeLabel": "array",
+			"required": false,
+			"id": "mixedFromGameIds",
+			"order": 11
+		},
+		"mixedToGameIds": {
+			"name": "mixedToGameIds",
+			"type": "array",
+			"typeLabel": "array",
+			"required": false,
+			"id": "mixedToGameIds",
+			"order": 12
 		}
 	}
 }
