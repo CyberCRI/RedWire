@@ -197,7 +197,7 @@ angular.module('gamEvolve.game.toolbox', [])
     # Switch to editing the circuit type, not a particular instance
     circuits.currentCircuitMeta = new RW.CircuitMeta(null, circuitName)
 
-.directive "toolboxDropzone", (currentGame, dndHelper, chips) ->
+.directive "toolboxDropzone", (currentGame, dndHelper, chips, games) ->
   restrict: 'A',
   link: (scope, element, attrs) ->
     acceptDrop = (event) ->
@@ -241,6 +241,9 @@ angular.module('gamEvolve.game.toolbox', [])
       dragster.reset()
 
       draggedData = dndHelper.getDraggedData()
+
+      games.recordMix(dndHelper.getDraggedGameId(draggedData))
+      
       copiedChipCount = dndHelper.copyChip(draggedData.gameId, draggedData.versionId, draggedData.node)
       if copiedChipCount > 0 then currentGame.updateLocalVersion()
 

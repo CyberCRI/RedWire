@@ -11,6 +11,8 @@ if(!internal) {
     protect("forkCount");
     protect("versionCount");
     protect("lastVersionId");
+    protect("mixedFromGameIds");
+    protect("mixedToGameIds");
     
     this.lastUpdatedTime = new Date().toUTCString();
 }

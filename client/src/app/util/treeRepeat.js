@@ -407,8 +407,8 @@ angular.module('treeRepeat', ['ngAnimate'])
                         e.dataTransfer.effectAllowed = 'move';
                         e.dataTransfer.setData('Text', 'nothing'); // Firefox requires some data
                         element.addClass('tree-drag');
-                        // Include data about the current version of the game
-                        var data = _.extend(parsedDrag(scope), {
+
+                        var data = dndHelper.makeDraggedData(parsedDrag(scope), {
                             gameId: currentGame.version.gameId,
                             versionId: currentGame.version.id,
                             windowId: currentGame.windowId

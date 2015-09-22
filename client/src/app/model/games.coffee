@@ -106,3 +106,5 @@ angular.module('gamEvolve.model.games', [])
   getRecommendations: -> 
     # Shuffle recommendation results
     return $http.get('/api/recommend').then (result) -> _.shuffle(result.data)
+
+  recordMix: (fromGameId) -> $http.post("/api/mix/from/#{fromGameId}/to/#{currentGame.info.id}")

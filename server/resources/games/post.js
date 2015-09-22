@@ -4,6 +4,8 @@ this.forkCount = 0;
 this.versionCount = 0;
 this.createdTime = new Date().toUTCString();
 this.lastUpdatedTime = new Date().toUTCString();
+this.mixedFromGameIds = [];
+this.mixedToGameIds = [];
 
 var that = this;
 

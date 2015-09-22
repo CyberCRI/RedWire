@@ -20,7 +20,16 @@ angular.module('gamEvolve.util.dndHelper', [])
     console.log("**** clearing drag data")
     localStorage.removeItem("dnd")
 
+  makeDraggedData: (data) ->
+    # Include data about the current version of the game
+   return _.extend data, 
+      gameId: currentGame.version.gameId
+      versionId: currentGame.version.id
+      windowId: currentGame.windowId
+
   dragIsFromSameWindow: (dragData) -> dragData.windowId is currentGame.windowId
+
+  getDraggedGameId: (dragData) -> dragData.gameId 
 
   getGameCodeForCopy: (gameId, versionId) ->
     # Get source game from localStorage
