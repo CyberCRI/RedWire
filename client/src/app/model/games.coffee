@@ -103,4 +103,6 @@ angular.module('gamEvolve.model.games', [])
 
   recordLike: (gameId) -> $http.post("/api/like/#{gameId}")
 
-  getRecommendations: -> return $http.get('/api/recommend').then((result) -> return result.data)
+  getRecommendations: -> 
+    # Shuffle recommendation results
+    return $http.get('/api/recommend').then (result) -> _.shuffle(result.data)
