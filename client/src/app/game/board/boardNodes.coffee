@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.boardNodes', [])
 
 
-.factory 'boardNodes', (currentGame, chips, ProcessorRenamedEvent, SwitchRenamedEvent, WillChangeLocalVersionEvent) ->
+.factory 'boardNodes', (currentGame, chips, circuits, ProcessorRenamedEvent, SwitchRenamedEvent, WillChangeLocalVersionEvent) ->
 
   ProcessorRenamedEvent.listen (event) ->
     renameChips(currentGame.version.circuits[circuits.currentCircuitMeta.type].board, 'processor', event.oldName, event.newName)
