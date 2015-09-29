@@ -659,7 +659,7 @@ RW.chipVisitors =
 # The path is an array of the indices necessary to access the children
 RW.visitChip = (circuitMeta, path, chip, constants, circuitData, scratchData, bindings) ->
   # TODO: defer processor and call execution until whole tree is evaluated?
-  if chip.muted then return new RW.ChipVisitorResult()
+  if chip.muted then return new RW.ChipVisitorResult(RW.signals.DONE)
 
   result = null
 
