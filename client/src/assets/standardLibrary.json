@@ -280,6 +280,60 @@
         }
       },
       "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+    },
+    "Send RedMetrics Event": {
+      "pinDefs": {
+        "type": {
+          "direction": "in",
+          "default": ""
+        },
+        "customData": {
+          "direction": "in",
+          "default": "{}"
+        },
+        "section": {
+          "direction": "in",
+          "default": "[]"
+        },
+        "redMetricsEvents": {
+          "direction": "inout",
+          "default": null
+        }
+      },
+      "update": "pins.redMetricsEvents = [{\n    type: pins.type,\n    customData: pins.customData,\n    section: pins.section\n}];\nreturn RW.signals.DONE;"
+    },
+    "Update Player in RedMetrics": {
+      "pinDefs": {
+        "birthdate": {
+          "direction": "in",
+          "default": "null"
+        },
+        "region": {
+          "direction": "in",
+          "default": "null"
+        },
+        "country": {
+          "direction": "in",
+          "default": "null"
+        },
+        "gender": {
+          "direction": "in",
+          "default": "null"
+        },
+        "externalId": {
+          "direction": "in",
+          "default": "null"
+        },
+        "customData": {
+          "direction": "in",
+          "default": "null"
+        },
+        "redMetricsPlayer": {
+          "direction": "inout",
+          "default": null
+        }
+      },
+      "update": "if(pins.birthdate) pins.redMetricsPlayer.birthdate = pins.birthdate;\nif(pins.region) pins.redMetricsPlayer.region = pins.region;\nif(pins.country) pins.redMetricsPlayer.country = pins.country;\nif(pins.gender) pins.redMetricsPlayer.gender = pins.gender;\nif(pins.externalId) pins.redMetricsPlayer.externalId = pins.externalId;\nif(pins.customData) pins.redMetricsPlayer.customData = pins.customData;\nreturn RW.signals.DONE;\n"
     }
   },
   "switches": {
