@@ -11,11 +11,16 @@ angular.module('gamEvolve.game.list', [])
       data:
         pageTitle: 'List Games'
 
-.controller 'GameListCtrl', ($scope, games, $state) ->
+.controller 'GameListCtrl', ($scope, games, $state, ChangedLoginEvent) ->
     $scope.games = []
 
     games.loadAll().then (gamesList) -> $scope.games = gamesList
-    games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
+
+    getRecommendations = ->
+      games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
+
+    getRecommendations()
+    ChangedLoginEvent.listen(getRecommendations)
 
     $scope.remix = (gameId) -> $state.transitionTo('game-edit', {gameId: gameId})
     $scope.play = (gameId) -> $state.transitionTo('play', {gameId: gameId})

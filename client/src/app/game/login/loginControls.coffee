@@ -4,8 +4,8 @@ angular.module('gamEvolve.game.login.controls', [])
     restrict: "E"
     scope: {}
     templateUrl: "game/login/loginControls.tpl.html"
-    controller: ($scope, loggedUser, loginDialog) ->
-      $scope.user = loggedUser
+    controller: ($scope, loggedUser, users, loginDialog) ->
+      $scope.loggedUser = loggedUser
+      $scope.users = users
       $scope.loginDialog = loginDialog
-
   }

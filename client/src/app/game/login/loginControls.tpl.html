@@ -1,7 +1,7 @@
-<button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-if="user.isNotLoggedIn()" analytics-on="click" analytics-category="edit" analytics-event="login">
+<button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-if="loggedUser.isNotLoggedIn()" analytics-on="click" analytics-category="edit" analytics-event="login">
     Login
 </button>
 
-<span ng-if="user.isLoggedIn()">
-    <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" analytics-on="click" analytics-category="edit" analytics-event="logout"><i class="font-icon-logout"></i></button>
+<span ng-if="loggedUser.isLoggedIn()">
+    <i class="font-icon-head"></i> {{loggedUser.profile.username}} <button title="Logout" ng-click="users.logout()" analytics-on="click" analytics-category="edit" analytics-event="logout"><i class="font-icon-logout"></i></button>
 </span>	

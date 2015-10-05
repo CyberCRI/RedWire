@@ -31,5 +31,8 @@ angular.module('gamEvolve.game.login.createUser', [
     return $scope.exchange.password is $scope.exchange.verifyPassword
 
   $scope.createUser = ->
-    users.createAndLogin($scope.exchange.username, $scope.exchange.email, $scope.exchange.password).then ->
-      createUserDialog.close()
+    users.createAndLogin($scope.exchange.username, $scope.exchange.email, $scope.exchange.password)
+      .then(-> createUserDialog.close())
+      .catch (response) ->
+        errorTexts = ("#{key} #{value}" for key, value of response.data.errors)
+        $scope.errorMessage = errorTexts.join(". ")
