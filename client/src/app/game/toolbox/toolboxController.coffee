@@ -32,7 +32,7 @@ angular.module('gamEvolve.game.toolbox', [])
     for itemType in ["processors", "switches", "transformers", "circuits"]
       standardNames = _.keys(currentGame.standardLibrary[itemType])
       customNames = _.keys(currentGame.version[itemType])
-      $scope[itemType] = standardNames.concat(customNames).sort()
+      $scope[itemType] = _.uniq(standardNames.concat(customNames).sort(), true)
   $scope.$watch((-> currentGame.localVersion), updateItems)
 
   openModal = (templateUrl, dialogControllerName, model, onDone) -> 

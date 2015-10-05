@@ -753,6 +753,43 @@ describe "RedWire", ->
       RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(1)
 
+    it "muted chips return done", ->
+      timesCalled = 0
+      childSignal = false
+
+      switches = 
+        checkDone: 
+          pinDefs: {}
+          handleSignals: (pins, children, activeChildren, signals, transformers, log) ->
+            childSignal = signals[0]
+
+      processors = 
+        doNothing: 
+          pinDefs: {}
+          update: -> timesCalled++
+
+      board = 
+        switch: "checkDone"
+        children: [
+          {
+            processor: "doNothing"
+            pins: {}
+            muted: true
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        processors: processors
+        switches: switches
+      results = RW.stimulateCircuits(constants)
+
+      # Child should not have been called, but should return DONE
+      expect(timesCalled).toEqual(0)
+      expect(childSignal).toEqual(RW.signals.DONE)
+
     it "handles multiple circuits", ->
       switches = 
         doAll: 

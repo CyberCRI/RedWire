@@ -38,6 +38,7 @@ angular.module('gamEvolve.game.boardLabel', [
     # Get the current data for the circuit instance
     activeChipPaths = gameHistory.data.frames[gameTime.currentFrameNumber].activeChipPaths[circuits.currentCircuitMeta.id]
     logMessages = gameHistory.data.frames[gameTime.currentFrameNumber].logMessages[circuits.currentCircuitMeta.id]
+    # OPT: going through each log message for each chip could be slow
     isChipError = (logMessage) -> logMessage.level == "ERROR" and _.isEqual(logMessage.path, chipPath)
 
     if _.find(logMessages, isChipError)? 

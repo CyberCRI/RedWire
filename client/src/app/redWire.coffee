@@ -659,7 +659,7 @@ RW.chipVisitors =
 # The path is an array of the indices necessary to access the children
 RW.visitChip = (circuitMeta, path, chip, constants, circuitData, scratchData, bindings) ->
   # TODO: defer processor and call execution until whole tree is evaluated?
-  if chip.muted then return new RW.ChipVisitorResult()
+  if chip.muted then return new RW.ChipVisitorResult(RW.signals.DONE)
 
   result = null
 
@@ -702,7 +702,14 @@ RW.stepLoop = (options) ->
       message: err.message || err.name
       path: err.path 
       stack: RW.formatStackTrace(err)
-    return { errors: [errorDescription], memoryPatches: memoryPatches, inputIoData: options.inputIoData, ioPatches: ioPatches, logMessages: logMessages }
+    return { 
+      errors: [errorDescription]
+      memoryPatches: memoryPatches
+      inputIoData: options.inputIoData
+      ioPatches: ioPatches
+      logMessages: logMessages
+      activeChipPaths: activeChipPaths
+    }
 
   _.defaults options, 
     circuits: 
@@ -759,6 +766,9 @@ RW.stepLoop = (options) ->
     catch e 
       return makeErrorResponse("executeChips", e)
 
+    logMessages = RW.pluckToObject(result.circuitResults, "logMessages")
+    activeChipPaths = RW.pluckToObject(result.circuitResults, "activeChipPaths")
+
     try 
       for circuitMeta in options.circuitMetas
         conflicts = RW.detectPatchConflicts(result.circuitResults[circuitMeta.id].memoryPatches)
@@ -777,9 +787,6 @@ RW.stepLoop = (options) ->
         options.outputIoData[circuitMeta.id] = RW.applyPatches(result.circuitResults[circuitMeta.id].ioPatches, preparedInputIoData[circuitMeta.id])
     catch e 
       return makeErrorResponse("patchIo", e)
-
-    logMessages = RW.pluckToObject(result.circuitResults, "logMessages")
-    activeChipPaths = RW.pluckToObject(result.circuitResults, "activeChipPaths")
 
   # TODO: check the output even if isn't established, in order to catch errors
   if options.establishOutput

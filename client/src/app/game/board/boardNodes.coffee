@@ -1,7 +1,7 @@
 angular.module('gamEvolve.game.boardNodes', [])
 
 
-.factory 'boardNodes', (currentGame, chips, ProcessorRenamedEvent, SwitchRenamedEvent, WillChangeLocalVersionEvent) ->
+.factory 'boardNodes', (currentGame, chips, circuits, ProcessorRenamedEvent, SwitchRenamedEvent, WillChangeLocalVersionEvent) ->
 
   ProcessorRenamedEvent.listen (event) ->
     renameChips(currentGame.version.circuits[circuits.currentCircuitMeta.type].board, 'processor', event.oldName, event.newName)
@@ -11,9 +11,10 @@ angular.module('gamEvolve.game.boardNodes', [])
 
   WillChangeLocalVersionEvent.listen -> updateChipPaths()
 
-  # TODO: change on circuit change as well
-
-  chipHashKeyToPath = {}
+  # If the chip already has a hash key, return it. Else create a new one 
+  getOrMakeHashKey = (chip) ->
+    if "$$hashKey" not of chip then chip.$$hashKey = _.uniqueId("hash") 
+    return chip.$$hashKey 
 
   # Create map of chips to their paths 
   updateChipPaths = ->
@@ -35,15 +36,13 @@ angular.module('gamEvolve.game.boardNodes', [])
   isOpen = (node) ->
     if not node then return false
     else if node is chips.getCurrentBoard() then return true # Root node is always open
-    else return openNodeKeys[node.$$hashKey] is true
+    else return openNodeKeys[getOrMakeHashKey(node)] is true
 
   open = (node) ->
-    if node.$$hashKey
-      openNodeKeys[node.$$hashKey] = true
+    openNodeKeys[getOrMakeHashKey(node)] = true
 
   close = (node) ->
-    if node.$$hashKey
-      openNodeKeys[node.$$hashKey] = false
+    openNodeKeys[getOrMakeHashKey(node)] = false
 
   labelClicked: (node) =>
     return if node is chips.getCurrentBoard() # Ignore clicks on root node
