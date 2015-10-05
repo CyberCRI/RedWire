@@ -301,8 +301,8 @@ RW.io.html =
       views: {}
       callbacks: {}
 
-    codeTemplateId = (circuitId, templateName) -> return "#{circuitId}.#{templateName}"
-    decodeTemplateId = (templateId) -> templateId.split(".")
+    codeTemplateId = (circuitId, templateName) -> return "#{circuitId}|#{templateName}"
+    decodeTemplateId = (templateId) -> templateId.split("|")
 
     rivets.configure
       handler: (target, event, binding) ->
@@ -605,7 +605,8 @@ RW.io.sound =
       # Create source node
       source = RW.audioContext.createBufferSource()
       source.buffer = buffer
-      source.connect(RW.lineOut.destination)
+      source.connect(RW.volume)
+      RW.volume.connect(RW.lineOut.destination)
       source.loop = shouldLoop
 
       # Keep track of what sounds are playing
@@ -658,6 +659,7 @@ RW.io.sound =
 
                   connectAndPlayBuffer(options.assets[sound.asset])
               when "music" 
+
                 # Channel data should be like { asset: "qsdf" } or null
                 channelId = makeChannelId(circuitId, channelName)
                 if _.isEqual(playingMusic[channelId]?.channelData, channelData) then continue
@@ -791,6 +793,10 @@ RW.io.metrics =
 
           # Set game version and player IDs on events
           for event in ioData[circuitId].events
+            # If event section is array, change it to a dot.separated string
+            if event.section and _.isArray(event.section)
+              event.section = event.section.join(".")
+
             eventQueue.push _.extend event, 
               gameVersion: options.metrics.gameVersionId
               player: playerId
@@ -838,3 +844,44 @@ RW.io.location =
       global: options.locationInfo
     establishData: -> # NOP
     destroy: -> # NOP
+
+# Gives access to the Movuino
+RW.io.movuino =  
+  meta:
+    visual: false
+  factory: (options) ->
+    # Connect to the serial port via a web socket (using MisterS)
+    state =
+      connected: false
+      a: [0, 0, 0]
+      g: [0, 0, 0]
+
+    # TODO: check for errors
+    # TODO: make host and port configurable
+    ws = null
+    try 
+      scheme = if window.location.protocol is "https:" then "wss" else "ws" 
+      ws = new WebSocket("#{scheme}://localhost:53141/")
+      ws.onopen = -> 
+        ws.send("l")
+        state.connected = true
+      ws.onmessage = (event) ->
+        # Expecting data like "l 6360 -8796 -16152 -371 218 -147"
+        tokens = event.data.split(" ")
+        state.a = _.map(tokens[1..3], parseFloat)
+        state.g = _.map(tokens[4..6], parseFloat)
+    catch e
+      console.error("Cannot initialize WebSocket for Mouvino")
+
+    return {
+      provideData: -> return global: state 
+      establishData: -> # NOP
+      destroy: -> 
+        try 
+          if not ws or ws.readyState != WebSocket.OPEN then return null
+
+          ws.send("q")
+          ws.close()
+        catch e
+          console.log("Error closing Mouvino web socket", e)
+    }

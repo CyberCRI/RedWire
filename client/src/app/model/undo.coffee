@@ -32,3 +32,5 @@ angular.module('gamEvolve.model.undo', [])
     # Push the new value onto the stack
     @stack.push([id, RW.cloneData(data)])
     @index++
+
+  isEmpty: -> @stack.length == 0

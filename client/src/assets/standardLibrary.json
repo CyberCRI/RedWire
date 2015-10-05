@@ -27,6 +27,240 @@
       },
       "update": "if(pins.keysDown[37]) pins.position[0] -= pins.speed;\nif(pins.keysDown[39]) pins.position[0] += pins.speed;\nif(pins.keysDown[38]) pins.position[1] -= pins.speed;\nif(pins.keysDown[40]) pins.position[1] += pins.speed;"
     },
+    "Draw Circle": {
+      "pinDefs": {
+        "color": {
+          "direction": "in",
+          "default": "\"blue\""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[150,200]"
+        },
+        "radius": {
+          "direction": "in",
+          "default": "100"
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{ \n    type: \"circle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    radius: pins.radius\n}]; return RW.signals.DONE;"
+    },
+    "Draw Image": {
+      "pinDefs": {
+        "asset": {
+          "direction": "in",
+          "default": ""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[200,100]"
+        },
+        "alpha": {
+          "direction": "in",
+          "default": "1"
+        },
+        "scale": {
+          "direction": "in",
+          "default": "1"
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{ \n    type: \"image\", \n    asset: pins.asset,\n    position: pins.position,\n    alpha: pins.alpha,\n    scale: pins.scale\n}]; return RW.signals.DONE;"
+    },
+    "Draw Rectangle": {
+      "pinDefs": {
+        "color": {
+          "direction": "in",
+          "default": "\"blue\""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[200,200]"
+        },
+        "size": {
+          "direction": "in",
+          "default": "[200,100]"
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{ \n    type: \"rectangle\",\n    fillStyle: pins.color,\n    position: pins.position,\n    size: pins.size\n}]; return RW.signals.DONE;"
+    },
+    "Draw Path": {
+      "pinDefs": {
+        "color": {
+          "direction": "in",
+          "default": "\"green\""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[100,100]"
+        },
+        "points": {
+          "direction": "in",
+          "default": ""
+        },
+        "rotation": {
+          "direction": "in",
+          "default": "1"
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{\n    type: \"path\",\n    points: pins.points,\n    fillStyle: pins.color,\n    translation: pins.position,\n    rotation: pins.rotation\n}]; return RW.signals.DONE;"
+    },
+    "Draw Text": {
+      "pinDefs": {
+        "color": {
+          "direction": "in",
+          "default": "\"black\""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[150,200]"
+        },
+        "text": {
+          "direction": "in",
+          "default": "\"Hello World\""
+        },
+        "font": {
+          "direction": "in",
+          "default": "\"40px Courier New\""
+        },
+        "canvas": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.canvas = \n[{ \n    type: \"text\", \n    text: pins.text,\n    fillStyle: pins.color,\n    font: pins.font,\n    position: pins.position\n}]; return RW.signals.DONE;"
+    },
+    "Draw Sprite": {
+      "pinDefs": {
+        "sheetSize": {
+          "direction": "in",
+          "default": ""
+        },
+        "frameSize": {
+          "direction": "in",
+          "default": ""
+        },
+        "frameCount": {
+          "direction": "in",
+          "default": ""
+        },
+        "asset": {
+          "direction": "in",
+          "default": ""
+        },
+        "position": {
+          "direction": "in",
+          "default": "[100,100]"
+        },
+        "layer": {
+          "direction": "out",
+          "default": null
+        },
+        "frame": {
+          "direction": "inout",
+          "default": null
+        },
+        "anchor": {
+          "direction": "in",
+          "default": "\"upperLeft\""
+        },
+        "autoplay": {
+          "direction": "in",
+          "default": "true"
+        },
+        "scale": {
+          "direction": "in",
+          "default": "1"
+        },
+        "loop": {
+          "direction": "in",
+          "default": "false"
+        },
+        "frameRate": {
+          "direction": "in",
+          "default": ""
+        },
+        "currentTime": {
+          "direction": "in",
+          "default": "io.time"
+        },
+        "minTime": {
+          "direction": "in",
+          "default": "17"
+        },
+        "lastTime": {
+          "direction": "inout",
+          "default": null
+        }
+      },
+      "update": "if(pins.frame){\n    if(pins.autoplay){\n        if(pins.currentTime - pins.lastTime >= pins.minTime){\n            pins.frame = Math.min(pins.frame+1, pins.frameCount);\n            pins.lastTime = pins.currentTime;\n        }\n    }\n    var framesPerLine = pins.sheetSize[0] / pins.frameSize[0];\n    var imageCoords = [pins.frame % framesPerLine, Math.floor(pins.frame / framesPerLine)];\n    \n    pins.layer =  [{\n        type: \"image\",\n        anchor: pins.anchor,\n        scale: pins.scale,\n        asset: pins.asset,\n        position: pins.position,\n        offset: [imageCoords[0] * pins.frameSize[0], imageCoords[1] * pins.frameSize[1]],\n        size: pins.frameSize\n    }];\n    if(pins.loop){\n        pins.frame = (pins.frame >= pins.frameCount)? 0 : pins.frame;\n    }\n}\nelse{\n    if(pins.autoplay){\n        pins.frame = Math.min(pins.frame+1, pins.frameCount);\n    }\n    var framesPerLine = pins.sheetSize[0] / pins.frameSize[0];\n    var imageCoords = [pins.frame % framesPerLine, Math.floor(pins.frame / framesPerLine)];\n    \n    pins.layer =  [{\n        type: \"image\",\n        anchor: pins.anchor,\n        scale: pins.scale,\n        asset: pins.asset,\n        position: pins.position,\n        offset: [imageCoords[0] * pins.frameSize[0], imageCoords[1] * pins.frameSize[1]],\n        size: pins.frameSize\n    }];\n    if(pins.loop){\n        pins.frame = (pins.frame >= pins.frameCount)? 0 : pins.frame;\n    }\n    pins.lastTime = pins.currentTime;\n}"
+    },
+    "Play Clip": {
+      "pinDefs": {
+        "asset": {
+          "direction": "in",
+          "default": ""
+        },
+        "channel": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.channel = \n[{\n    asset: pins.asset\n}]; return RW.signals.DONE;"
+    },
+    "Play Music": {
+      "pinDefs": {
+        "asset": {
+          "direction": "in",
+          "default": ""
+        },
+        "channel": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.channel = \n{\n    asset: pins.asset\n}; return RW.signals.DONE;"
+    },
+    "Play FX": {
+      "pinDefs": {
+        "fx": {
+          "direction": "in",
+          "default": "['square',0.0000,0.4000,0.0000,0.3200,0.0000,0.2780,20.0000,496.0000,2400.0000,0.4640,0.0000,0.0000,0.0100,0.0003,0.0000,0.0000,0.0000,0.0235,0.0000,0.0000,0.0000,0.0000,1.0000,0.0000,0.0000,0.0000,0.0000]"
+        },
+        "channel": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.channel = \n[{\n    fx: pins.fx\n}]; return RW.signals.DONE;"
+    },
+    "Log": {
+      "pinDefs": {
+        "message": {
+          "direction": "in",
+          "default": "\"Hello World\""
+        },
+        "level": {
+          "direction": "in",
+          "default": "\"info\""
+        }
+      },
+      "update": "log(pins.level, pins.message); return RW.signals.DONE;"
+    },
     "Detect Mouse": {
       "pinDefs": {
         "shapes": null,
@@ -46,6 +280,60 @@
         }
       },
       "update": "if (!pins.state)\n  pins.state = 'none';\nswitch (pins.state) {\ncase 'none':\n  if (pins.mousePosition) {\n    for (var i in pins.shapes) {\n      if (transformers.pointIntersectsShape(pins.mousePosition, pins.shapes[i])) {\n        log(RW.logLevels.INFO, 'Entering hover mode. Old state = ' + pins.state);\n        pins.state = 'hover';\n        pins.shape = pins.shapes[i];\n        break;\n      }\n    }\n  }\n  break;\ncase 'hover':\n  if (!pins.mousePosition || !transformers.pointIntersectsShape(pins.mousePosition, pins.shape)) {\n    pins.state = 'none';\n    pins.shape = null;\n    log(RW.logLevels.INFO, 'Leaving hover mode');\n  } else if (pins.mouseDown) {\n    pins.dragStartPosition = pins.mousePosition;\n    pins.state = 'pressed';\n    log(RW.logLevels.INFO, 'Entering presed mode');\n  }\n  break;\ncase 'pressed':\n  if (!pins.mouseDown) {\n    pins.state = 'click';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving pressed mode');\n  } else if (Vector.create(pins.dragStartPosition).distanceFrom(Vector.create(pins.mousePosition)) >= pins.minimumDragDistance) {\n    pins.state = 'startDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Entering drag mode');\n  }\n  break;\ncase 'click':\n  pins.state = 'hover';\n  break;\ncase 'startDrag':\n  pins.state = 'drag';\n  break;\ncase 'drag':\n  if (!pins.mouseDown) {\n    pins.state = 'endDrag';\n    pins.dragStartPosition = null;\n    log(RW.logLevels.INFO, 'Leaving drag mode');\n  }\n  break;\ncase 'endDrag':\n  pins.state = 'hover';\n  break;\ndefault:\n  throw new Error('Unknown state \\'' + pins.state + '\\'');\n}"
+    },
+    "Send RedMetrics Event": {
+      "pinDefs": {
+        "type": {
+          "direction": "in",
+          "default": ""
+        },
+        "customData": {
+          "direction": "in",
+          "default": "{}"
+        },
+        "section": {
+          "direction": "in",
+          "default": "[]"
+        },
+        "redMetricsEvents": {
+          "direction": "inout",
+          "default": null
+        }
+      },
+      "update": "pins.redMetricsEvents = [{\n    type: pins.type,\n    customData: pins.customData,\n    section: pins.section\n}];\nreturn RW.signals.DONE;"
+    },
+    "Update Player in RedMetrics": {
+      "pinDefs": {
+        "birthdate": {
+          "direction": "in",
+          "default": "null"
+        },
+        "region": {
+          "direction": "in",
+          "default": "null"
+        },
+        "country": {
+          "direction": "in",
+          "default": "null"
+        },
+        "gender": {
+          "direction": "in",
+          "default": "null"
+        },
+        "externalId": {
+          "direction": "in",
+          "default": "null"
+        },
+        "customData": {
+          "direction": "in",
+          "default": "null"
+        },
+        "redMetricsPlayer": {
+          "direction": "inout",
+          "default": null
+        }
+      },
+      "update": "if(pins.birthdate) pins.redMetricsPlayer.birthdate = pins.birthdate;\nif(pins.region) pins.redMetricsPlayer.region = pins.region;\nif(pins.country) pins.redMetricsPlayer.country = pins.country;\nif(pins.gender) pins.redMetricsPlayer.gender = pins.gender;\nif(pins.externalId) pins.redMetricsPlayer.externalId = pins.externalId;\nif(pins.customData) pins.redMetricsPlayer.customData = pins.customData;\nreturn RW.signals.DONE;\n"
     }
   },
   "switches": {
@@ -123,6 +411,49 @@
         "value": null
       },
       "listActiveChildren": "return pins.value ? children : [];"
+    },
+    "On Key Pressed": {
+      "pinDefs": {
+        "keysDown": {
+          "direction": "in",
+          "default": "io.keyboard.keysDown"
+        },
+        "key": {
+          "direction": "in"
+        }
+      },
+      "listActiveChildren": "return pins.keysDown[pins.key] ? children : []",
+      "handleSignals": ""
+    },
+    "On Any Key Pressed": {
+      "pinDefs": {
+        "keysDown": {
+          "direction": "in",
+          "default": "io.keyboard.keysDown"
+        }
+      },
+      "listActiveChildren": "return (Object.getOwnPropertyNames(pins.keysDown).length > 0) ? children : []",
+      "handleSignals": ""
+    },
+    "On Mouse Down": {
+      "pinDefs": {
+        "mouseDown": {
+          "direction": "in",
+          "default": "io.mouse.down"
+        }
+      },
+      "listActiveChildren": "return pins.mouseDown ? children : []",
+      "handleSignals": ""
+    },
+    "On Mouse Just Down": {
+      "pinDefs": {
+        "mouseJustDown": {
+          "direction": "in",
+          "default": "io.mouse.justDown"
+        }
+      },
+      "listActiveChildren": "return pins.mouseJustDown ? children : []",
+      "handleSignals": ""
     }
   },
   "transformers": {

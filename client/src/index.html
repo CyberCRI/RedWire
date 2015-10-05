@@ -2,6 +2,7 @@
 <html ng-app="gamEvolve" ng-controller="AppCtrl">
   <head>
     <title ng-bind="pageTitle"></title>
+    <meta name="description" content="A new game engine for remixing and mashing up games in your browser" />
 
     <!-- compiled CSS --><% styles.forEach( function ( file ) { %>
     <link rel="stylesheet" type="text/css" href="/<%= file %>" /><% }); %>
@@ -26,5 +27,9 @@
     ga('create', 'UA-36688753-2', 'auto');
     // Tracking is done through Angulartics (http://luisfarzati.github.io/angulartics/)
     // ga('send', 'pageview'); 
+
+    // Set a global variable with the version
+    var RED_WIRE_VERSION = "<%= version %>";
+    console.log("RED_WIRE_VERSION", RED_WIRE_VERSION);
   </script>
 </html>

@@ -10,6 +10,7 @@ angular.module('gamEvolve.model.games', [])
   localVersion: _.uniqueId("v")
   windowId: RW.makeGuid() # Used to identify windows across drag and drop
   standardLibrary: null
+  hasUnpublishedChanges: false
 
   statusMessage: ""
 
@@ -18,15 +19,22 @@ angular.module('gamEvolve.model.games', [])
     @version = null
     @creator = null
     @localVersion = _.uniqueId("v")
+    @hasUnpublishedChanges = false
 
   updateLocalVersion: -> 
     # Give an opportunity to change the game code before it is updated
     WillChangeLocalVersionEvent.send()
     @localVersion = _.uniqueId("v")
 
-.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay) ->
+  setHasUnpublishedChanges: -> @hasUnpublishedChanges = true
+  clearHasUnpublishedChanges: -> @hasUnpublishedChanges = false
 
-  saveInfo = ->
+  setStatusMessage: (message) -> @statusMessage = message
+
+.factory 'games', ($http, $q, $location, loggedUser, currentGame, gameConverter, gameHistory, gameTime, undo, overlay, GameVersionPublishedEvent, NewGameLoadingEvent) ->
+
+  games = {}
+  games.saveInfo = ->
     $http.post('/api/games', currentGame.info)
       .then (savedGame) ->
         currentGame.info = savedGame.data
@@ -35,19 +43,29 @@ angular.module('gamEvolve.model.games', [])
       .then (creator) ->
         currentGame.creator = creator.data.username
 
-  updateInfo = ->
+  games.updateInfo = ->
     $http.put('/api/games', currentGame.info)
     
-  saveVersion = ->
+  games.saveVersion = ->
     delete currentGame.version.id # Make sure a new 'game-version' entity is created
     $http.post('/api/game-versions', gameConverter.convertGameVersionToEmbeddedJson(currentGame.version))
       .then((savedGameVersion) -> currentGame.setVersion(gameConverter.convertGameVersionFromEmbeddedJson(savedGameVersion.data)))
-      .then(-> currentGame.statusMessage = "Published at #{moment().format("HH:mm:ss")}")
+      .then(-> GameVersionPublishedEvent.send())
 
-  publishCurrent: ->
-    updateInfo().then(saveVersion)
+  games.clearGameData = -> 
+    # Clear the current game data
+    # TODO: have each service detect this event rather than hard coding it here?
+    NewGameLoadingEvent.send()
+    overlay.makeNotification()
+    currentGame.reset()
+    gameHistory.reset()
+    gameTime.reset()
+    undo.reset()
 
-  forkCurrent: ->
+  games.publishCurrent = ->
+    games.updateInfo().then(games.saveVersion)
+
+  games.forkCurrent = ->
     # Set the old game ID as the parent of the new one. 
     # Then remove the current game ID to make the server provide a new one
     currentGame.info.parentId = currentGame.info.id
@@ -55,19 +73,16 @@ angular.module('gamEvolve.model.games', [])
 
     saveInfo().then ->
       $location.path("/game/#{currentGame.version.gameId}/edit")
-      saveVersion()
+      games.saveVersion()
 
-  loadAll: -> return $http.get('/api/games').then((result) -> return result.data).catch(-> alert("Can't load games"))
+  games.loadAll = -> return $http.get('/api/games').then((result) -> return result.data).catch(-> alert("Can't load games"))
+
+  games.deleteCurrent = ->
+    $http.delete("/api/games/#{currentGame.version.gameId}").then(currentGame.reset)
 
   # Load the game content and the creator info, then put it all into currentGame
-  load: (game) ->
-    # Clear the current game data
-    # TODO: have each service detect this event rather than hard coding it here?
-    overlay.makeNotification()
-    currentGame.reset()
-    gameHistory.reset()
-    gameTime.reset()
-    undo.reset()
+  games.load = (game) ->
+    games.clearGameData()
 
     query = '{"gameId":"' + game.id + '","$sort":{"versionNumber":-1},"$limit":1}'
     getVersion = $http.get("/api/game-versions?#{query}")
@@ -89,22 +104,24 @@ angular.module('gamEvolve.model.games', [])
     onDone = -> overlay.clearNotification()
     $q.all([getVersion, getCreator, getStandardLibrary]).then(updateCurrentGame, onError).finally(onDone)
 
-  loadFromId: (gameId) ->
+  games.loadFromId = (gameId) ->
     $http.get("/api/games/#{gameId}")
-      .success(@load)
+      .success(games.load)
       .error (error) ->
         console.log(error)
         window.alert("Hmmm, that game doesn't seem to exist")
         $location.path("/")
 
-  recordPlay: (gameId) -> $http.post("/api/play/#{gameId}")
+  games.recordPlay = (gameId) -> $http.post("/api/play/#{gameId}")
 
-  getLikeCount: (gameId) -> $http.get("/api/like/#{gameId}").then((results) -> return results.data)
+  games.getLikeCount = (gameId) -> $http.get("/api/like/#{gameId}").then((results) -> return results.data)
 
-  recordLike: (gameId) -> $http.post("/api/like/#{gameId}")
+  games.recordLike = (gameId) -> $http.post("/api/like/#{gameId}")
 
-  getRecommendations: -> 
+  games.getRecommendations = -> 
     # Shuffle recommendation results
     return $http.get('/api/recommend').then (result) -> _.shuffle(result.data)
 
-  recordMix: (fromGameId) -> $http.post("/api/mix/from/#{fromGameId}/to/#{currentGame.info.id}")
+  games.recordMix = (fromGameId) -> $http.post("/api/mix/from/#{fromGameId}/to/#{currentGame.info.id}")
+
+  return games

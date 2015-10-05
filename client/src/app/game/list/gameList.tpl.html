@@ -7,8 +7,12 @@
 
 	<div class="row">
 		<div class="col-md-12" id="logoContainer">
-			<img src="/assets/images/logo_big.png" ng-controller="LogoCtrl" ng-click="aboutDialog.open()"></img>
+		<a id="documentation-button" target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Standard-Toolbox-Reference" class="btn btn-primary btn-lg col-md-2" role="button">Documentation</a>
+		<div class="col-md-8" id="logoBlock">
+			<img src="/assets/images/logo_big.png" ui-sref="home"></img>
+			<p>v{{RED_WIRE_VERSION}}</p>
 		</div>
+		<a id="tutorial-button" target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Tutorials" class="btn btn-primary btn-lg col-md-2" role="button">Tutorial</a>
 	</div>
 
 	<div ng-if="gameRecommendations">
@@ -23,8 +27,9 @@
 				<th># Plays</th>
 				<th># Mixed From</th>
 				<th># Mixed Into</th>
-				<th># Plays</th>
 				<th>Last updated</th>
+				<th></th>
+				<th></th>
 			</tr>
 			<tr ng-repeat="game in gameRecommendations">
 				<td>
@@ -61,7 +66,7 @@
 		</table>
 	</div>
 
-	<h2>Games on RedWire</h2>
+	<h2>Games</h2>
 
 	<table class="table">
 		<tr>
@@ -81,6 +86,8 @@
 			<th># Mixed From</th>
 			<th># Mixed Into</th>
 			<th>Last updated</th>
+			<th></th>
+			<th></th>
 		</tr>
 		<tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
 			<td>

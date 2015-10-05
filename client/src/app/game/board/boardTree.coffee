@@ -3,6 +3,7 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.game.board.editEmitterDialog'
   'gamEvolve.game.board.editChipPinsDialog'
   'gamEvolve.game.board.editSplitterDialog'
+  'gamEvolve.game.board.editPipeDialog'
   'treeRepeat'
   'gamEvolve.game.boardLabel'
   'gamEvolve.model.chips'
@@ -65,6 +66,9 @@ angular.module('gamEvolve.game.boardTree', [
           _.extend(chip, model)
       when "splitter"
         showDialog 'game/board/editBoardSplitterDialog.tpl.html', 'EditBoardSplitterDialogCtrl', chip, (model) ->
+          _.extend(chip, model)
+      when "pipe"
+        showDialog 'game/board/editBoardPipeDialog.tpl.html', 'EditBoardPipeDialogCtrl', chip, (model) ->
           _.extend(chip, model)
       when "circuit"
         # Rename id -> comment and back again

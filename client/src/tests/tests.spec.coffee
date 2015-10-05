@@ -3,12 +3,15 @@ globals = @
 
 compileExpression = (expression) -> RW.compileExpression(expression, eval)
 
-
 describe "RedWire", ->
   beforeEach ->
     @addMatchers 
       toDeeplyEqual: (expected) -> _.isEqual(@actual, expected)
       toBeEmpty: () -> @actual.length == 0
+      toDeeplyContain: (expected) -> 
+        for x in @actual
+          if _.isEqual(x, expected) then return true
+        return false
 
   describe "memory", -> 
     it "can remove value from array", ->
@@ -129,6 +132,28 @@ describe "RedWire", ->
 
       conflicts = RW.detectPatchConflicts(patches)
       expect(conflicts).toBeEmpty()
+
+    it "does not consider identical modifications as conflict", ->
+      # Test changing same attribute
+      oldData = 
+        a: 1
+        b: 1
+      newDataA = 
+        a: 2
+        b: 2
+      newDataB = 
+        a: 2
+        b: 1
+      
+      patchesA = RW.makePatches(oldData, newDataA, "a")
+      patchesB = RW.makePatches(oldData, newDataB, "b")
+      allPatches = RW.concatenate(patchesA, patchesB)
+
+      conflicts = RW.detectPatchConflicts(allPatches)
+      expect(conflicts).toBeEmpty()
+
+      result = RW.applyPatches(allPatches, oldData)
+      expect(result).toDeeplyEqual({ a: 2, b: 2 })
 
     it "adds to and removes from arrays", ->
       oldData = 
@@ -728,6 +753,43 @@ describe "RedWire", ->
       RW.stimulateCircuits(constants)
       expect(timesCalled).toEqual(1)
 
+    it "muted chips return done", ->
+      timesCalled = 0
+      childSignal = false
+
+      switches = 
+        checkDone: 
+          pinDefs: {}
+          handleSignals: (pins, children, activeChildren, signals, transformers, log) ->
+            childSignal = signals[0]
+
+      processors = 
+        doNothing: 
+          pinDefs: {}
+          update: -> timesCalled++
+
+      board = 
+        switch: "checkDone"
+        children: [
+          {
+            processor: "doNothing"
+            pins: {}
+            muted: true
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        processors: processors
+        switches: switches
+      results = RW.stimulateCircuits(constants)
+
+      # Child should not have been called, but should return DONE
+      expect(timesCalled).toEqual(0)
+      expect(childSignal).toEqual(RW.signals.DONE)
+
     it "handles multiple circuits", ->
       switches = 
         doAll: 
@@ -853,6 +915,144 @@ describe "RedWire", ->
       expect(newMemory.main.b).toBe(30)
       expect(newMemory["main.subId"].a).toBe(99)
 
+    it "sends data across pipes", ->
+      memoryData = 
+        x: 5
+        y: 1
+
+      board = 
+        pipe: 
+          bindTo: "cumul"
+          initialValue: compileExpression("memory.x")
+          outputDestination: "memory.y"
+        children: [
+          {
+            emitter:
+              "bindings.cumul": compileExpression("bindings.cumul + 1")
+          }
+          {
+            emitter:
+              "memory.x": compileExpression("bindings.cumul")
+          }
+          {
+            emitter:
+              "bindings.cumul": compileExpression("bindings.cumul + 1")
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        memoryData:
+          main: memoryData
+      results = RW.stimulateCircuits(constants)
+
+      newMemory = RW.applyPatches(results.circuitResults["main"].memoryPatches, memoryData)
+      expect(newMemory.x).toEqual(6)
+      expect(newMemory.y).toEqual(7)
+
+    it "handles nested pipes", ->
+      memoryData = 
+        outerX: 5
+        outerY: 5
+        innerX: 2
+        innerY: 2
+
+      board = 
+        pipe: 
+          bindTo: "outerBind"
+          initialValue: compileExpression("memory.outerX")
+          outputDestination: "memory.outerY"
+        children: [
+          {
+            emitter:
+              "bindings.outerBind": compileExpression("bindings.outerBind + 1")
+          }
+          {
+            pipe: 
+              bindTo: "innerBind"
+              initialValue: compileExpression("memory.innerX")
+              outputDestination: "memory.innerY"
+            children: [
+              {
+                emitter:
+                  "bindings.innerBind": compileExpression("bindings.outerBind + 1")
+              }
+            ]
+          } 
+          {
+            emitter:
+              "bindings.outerBind": compileExpression("bindings.outerBind + 2")
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        memoryData:
+          main: memoryData
+      results = RW.stimulateCircuits(constants)
+
+      newMemory = RW.applyPatches(results.circuitResults["main"].memoryPatches, memoryData)
+      expect(newMemory.innerY).toEqual(7)
+      expect(newMemory.outerY).toEqual(8)
+
+    it "returns active chips paths", ->
+      processors = 
+        doNothing: 
+          pinDefs: {}
+          update: -> 
+
+      switches = 
+        doAll: 
+          pinDefs: {}
+
+      board = 
+        switch: "doAll"
+        pins: {}
+        children: [
+          {
+            processor: "doNothing"
+            pins: {}
+          }
+          {
+            processor: "doNothing"
+            pins: {}
+            muted: true
+          }
+          {
+            switch: "doAll"
+            pins: {}
+            children: [
+              {
+                processor: "doNothing"
+                pins: {}
+              }
+            ]
+          }
+          {
+            processor: "doNothing"
+            pins: {}
+          }
+        ]
+
+      constants = new RW.ChipVisitorConstants
+        circuits:  
+          main: new RW.Circuit
+            board: board
+        processors: processors
+        switches: switches
+      results = RW.stimulateCircuits(constants)
+      
+      expect(results.circuitResults.main.activeChipPaths.length).toBe(5)
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain([])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["0"])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["2"])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["2", "0"])
+      expect(results.circuitResults.main.activeChipPaths).toDeeplyContain(["3"])
+
   describe "stepLoop()", ->
     it "sends output data directly to io", ->
       io = 
@@ -868,7 +1068,11 @@ describe "RedWire", ->
         io: io
         outputIoData: outputIoData
 
-      expect(io.myService.establishData).toHaveBeenCalledWith({ main: 1 })
+      expect(io.myService.establishData).toHaveBeenCalled()
+      expect(io.myService.establishData.calls.length).toEqual(1)
+      # Only test 1st argument
+      expect(io.myService.establishData.calls[0].args[0]).toEqual({ main: 1 }) 
+
       expect(_.size(result.memoryPatches)).toBe(0)
       expect(_.size(result.ioPatches)).toBe(0)
 
@@ -910,7 +1114,11 @@ describe "RedWire", ->
         io: io
         inputIoData: inputIoData
 
-      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } })
+      expect(io.myService.establishData).toHaveBeenCalled()
+      expect(io.myService.establishData.calls.length).toEqual(1)
+      # Only test 1st argument
+      expect(io.myService.establishData.calls[0].args[0]).toEqual({ main: { a: 2 } }) 
+
       expect(result.memoryPatches.main).toBeEmpty()
       expect(result.ioPatches.main.length).toEqual(1)
 
@@ -930,7 +1138,7 @@ describe "RedWire", ->
           pinDefs:
             service: 
               direction: "inout"
-          update: (pins, transformers, log) -> 
+          update: (pins, assets,  transformers, log) -> 
             expect(transformers.testTransformer(pins.service.a, 2)._1).toBe(1)
             pins.service.a++
 
@@ -951,7 +1159,12 @@ describe "RedWire", ->
         io: io
 
       expect(io.myService.provideData).toHaveBeenCalledWith()
-      expect(io.myService.establishData).toHaveBeenCalledWith({ main: { a: 2 } })
+
+      expect(io.myService.establishData).toHaveBeenCalled()
+      expect(io.myService.establishData.calls.length).toEqual(1)
+      # Only test 1st argument
+      expect(io.myService.establishData.calls[0].args[0]).toEqual({ main: { a: 2 } }) 
+
       expect(result.memoryPatches).toDeeplyEqual({ main: [] })
 
     it "rejects conflicting patches", ->

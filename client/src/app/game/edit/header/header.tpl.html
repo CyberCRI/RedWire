@@ -1,15 +1,16 @@
 <div id="headerBar">
-    <a id="logo" href="/"></a>
+    <a id="logo" href="/">v{{RED_WIRE_VERSION}}</a>
     <div id="center">
         <div ng-controller="GameInfoCtrl">
             <h4 id="title">
-                <a href="" editable-text="currentGame.info.name">{{ currentGame.info.name || "Game name" }}</a>
-                (version {{ currentGame.version.versionNumber }})
+                <a href="" editable-text="name">{{ name || "Game name" }}</a>
+                (version {{ versionNumber }})
                 by
-                <a>{{ currentGame.creator }}</a>
+                <a>{{ creator }}</a>
             </h4>
             <ng-include src="'game/undo/undo.tpl.html'"></ng-include>
             <ng-include src="'game/edit/header/time/time.tpl.html'"></ng-include>
+            <ng-include src="'game/edit/header/volume.tpl.html'"></ng-include>
         </div>
     </div>
     <div id="gameLoadingControls">
@@ -18,7 +19,7 @@
                 <i class="font-icon-head"></i> {{user.profile.username}} <button title="Logout" ng-click="user.logout()" analytics-on="click" analytics-category="edit" analytics-event="logout"><i class="font-icon-logout"></i></button>
             </div>
             <div>
-                <button ng-click="publishButtonClick()" class="btn btn-sm btn-primary" ng-disabled="publishButtonDisabled" ng-if="isPublishButtonDisplayed()" analytics-on="click" analytics-category="edit" analytics-event="publish">
+                <button ng-click="publishButtonClick()" class="btn btn-sm btn-primary" ng-disabled="isPublishButtonDisabled()" ng-if="isPublishButtonDisplayed()" analytics-on="click" analytics-category="edit" analytics-event="publish">
                     <i ng-class="font-icon-upload"></i>
                     Publish
                 </button>
@@ -26,17 +27,43 @@
                     <i ng-class="font-icon-fork"></i>
                     Fork
                 </button>
+                
                 <button ng-click="loginDialog.open();" class="btn btn-sm btn-primary" ng-if="user.isNotLoggedIn()" analytics-on="click" analytics-category="edit" analytics-event="login">
                     Login
                 </button>
-                <button id="editDescriptionButton" title="Edit Description" class="btn btn-default btn-sm" ng-click="editDescription()" analytics-on="click" analytics-category="edit" analytics-event="editDescription">
-                    <i class="glyphicon glyphicon-list-alt"></i>
-                </button>
-                <button id="importExportButton" title="Import/Export" ng-click="importExportDialog.open();" class="btn btn-default btn-sm" analytics-on="click" analytics-category="edit" analytics-event="importExport">
-                    <i class="glyphicon glyphicon-file"></i>
-                </button>
-                <button ng-click="gotoPlayScreen()" title="Play" class="btn btn-default btn-sm">
-                    <i class="glyphicon glyphicon-share"></i>
+                
+                <div class="btn-group" dropdown>
+                    <button type="button" class="btn btn-sm btn-default dropdown-toggle">
+                         Tools <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu pull-right" role="menu">
+                        <li>
+                            <a id="editDescriptionButton" ng-click="editDescription()" analytics-on="click" analytics-category="edit" analytics-event="editDescription">
+                                <i class="glyphicon glyphicon-list-alt"></i> Edit Description 
+                            </a>
+                        </li>
+                        <li>
+                            <a id="importExportButton" ng-click="importExportDialog.open();" analytics-on="click" analytics-category="edit" analytics-event="importExport">
+                                <i class="glyphicon glyphicon-file"></i> Import/Export 
+                            </a>
+                        </li>
+                        <li>
+                            <a ng-click="gotoPlayScreen()">
+                                <i class="glyphicon glyphicon-share"></i> Play 
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://github.com/CyberCRI/RedWire/issues/new" target="_blank"><i class="glyphicon glyphicon-fire"></i> Report a bug</a>
+                        </li>
+                        <li>
+                            <a ng-click="deleteButtonClick()" ng-show="isDeleteButtonDisplayed()" class="btn-danger">
+                                <i class="glyphicon glyphicon-trash"></i> Delete 
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <button ng-click="helpButton()" title="Help" class="btn btn-default btn-sm">
+                    <i class="glyphicon glyphicon-question-sign"></i>
                 </button>
             </div>
         </div>

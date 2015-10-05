@@ -29,7 +29,7 @@ buildInitialMemoryData = (circuits) ->
   return memoryData
 
 angular.module('gamEvolve.game.player', [])
-.controller "PlayerCtrl", ($scope, $location, games, currentGame, gameHistory, gameTime, overlay) -> 
+.controller "PlayerCtrl", ($scope, $location, games, currentGame, gameHistory, gameTime, overlay, gamePlayerState) -> 
   # Globals
   puppetIsAlive = false
   gameCode = null
@@ -39,6 +39,7 @@ angular.module('gamEvolve.game.player', [])
   $scope.currentGame = currentGame
   $scope.gameTime = gameTime
   $scope.gameHistoryMeta = gameHistory.meta
+  $scope.gamePlayerState = gamePlayerState
   lastGameVersion = -1
 
   windowEventListener = (e) -> 
@@ -311,6 +312,16 @@ angular.module('gamEvolve.game.player', [])
       else 
         sendMessage("stopPlaying")
   $scope.$watch('gameTime.isPlaying', onUpdatePlaying, true)
+
+  onChangeVolume = ->
+    sendMessage("changeVolume", gamePlayerState.volume)
+
+  $scope.$watch('gamePlayerState.volume', onChangeVolume, true)
+
+  onMuteVolume = ->
+    sendMessage("muteVolume", gamePlayerState.isMuted)
+
+  $scope.$watch('gamePlayerState.isMuted', onMuteVolume, true)
 
   # Keep pinging puppet until he responds
   checkPuppetForSignsOfLife = -> 

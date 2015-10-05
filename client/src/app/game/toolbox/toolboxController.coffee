@@ -32,7 +32,7 @@ angular.module('gamEvolve.game.toolbox', [])
     for itemType in ["processors", "switches", "transformers", "circuits"]
       standardNames = _.keys(currentGame.standardLibrary[itemType])
       customNames = _.keys(currentGame.version[itemType])
-      $scope[itemType] = standardNames.concat(customNames).sort()
+      $scope[itemType] = _.uniq(standardNames.concat(customNames).sort(), true)
   $scope.$watch((-> currentGame.localVersion), updateItems)
 
   openModal = (templateUrl, dialogControllerName, model, onDone) -> 
@@ -160,6 +160,12 @@ angular.module('gamEvolve.game.toolbox', [])
         children: []
       when "transformers"
         transformer: name
+      when "pipes"
+        pipe: 
+          initialValue: ""
+          bindTo: ""
+          outputDestination: ""
+        children: []
       else 
         throw new Error("Unknown item type '#{itemType}'")
 
@@ -204,7 +210,7 @@ angular.module('gamEvolve.game.toolbox', [])
       draggedData = dndHelper.getDraggedData()
       if dndHelper.dragIsFromSameWindow(draggedData) then return false 
       [chipType, chipName] = chips.getChipTypeAndName(draggedData.node) 
-      return chipType not in ["emitter", "splitter"] 
+      return chipType not in ["emitter", "splitter", "pipe"] 
 
     el = element[0]
     dragster = new Dragster(el)

@@ -13,6 +13,19 @@
 		<h3 id="description" ng-bind-html="description | linky"></h3>
 
 		<like-button game-id="gameId"></like-button>
+		<div ng-controller="VolumeCtrl" id="volumeControllerPlay">
+			<div class="btn-group" dropdown>
+				<button class="btn btn-default btn-sm dropdown-toggle" href="" ng-click="triggerMute()"><i class="glyphicon" ng-class="{'glyphicon-volume-up': !isMuted, 'glyphicon-volume-off': isMuted}"></i></button>
+				<button type="button" class="btn btn-default btn-sm dropdown-toggle">
+					<span class="caret"></span>
+					<span class="sr-only">Split button!</span>
+				</button>
+				<ul class="dropdown-menu" role="menu">
+					<input id="slider" type="range" ng-model="baseValue" max="100" min="0" step="2">
+				</ul>
+			</div>
+		</div>
+
 		<a href="" ng-click="remix()"><img src="/assets/images/ribbon.png"></a>
 		<login-controls></login-controls>
 

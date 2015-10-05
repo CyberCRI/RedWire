@@ -17,8 +17,9 @@ angular.module('gamEvolve.game.edit', [
 
 
 .controller 'GameEditCtrl', ($scope, $stateParams, games, circuits, currentGame) ->
-
   games.loadFromId $stateParams.gameId
+
+  $scope.$on "$destroy", -> games.clearGameData()
 
   # Used by toolbox list
   # TODO: put in own controller
@@ -42,7 +43,3 @@ angular.module('gamEvolve.game.edit', [
 
     # Switch current circuit
     circuits.currentCircuitMeta = circuitMeta
-
-
-.controller 'LogoCtrl', ($scope, aboutDialog) ->
-  $scope.aboutDialog = aboutDialog

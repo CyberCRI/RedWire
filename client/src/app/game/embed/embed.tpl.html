@@ -1,5 +1,17 @@
 <div id="embeddedPlayer" ng-style="embeddedPlayerStyle">
 	<p id="title">
+		<div ng-controller="VolumeCtrl" id="volumeControllerEmbed">
+		    <div class="btn-group" dropdown>
+		        <button class="btn btn-default btn-xs dropdown-toggle" href="" ng-click="triggerMute()"><i class="glyphicon" ng-class="{'glyphicon-volume-up': !isMuted, 'glyphicon-volume-off': isMuted}"></i></button>
+		        <button type="button" class="btn btn-default btn-xs dropdown-toggle">
+		            <span class="caret"></span>
+		            <span class="sr-only">Split button!</span>
+		        </button>
+		        <ul class="dropdown-menu" role="menu">
+		            <input id="slider" type="range" ng-model="baseValue" max="100" min="0" step="2">
+		        </ul>
+		    </div>
+		</div>
 		<a ng-href="{{ playUrl }}" target="_blank">{{ title }} by {{ author }}</a>
 		<a ng-href="{{ editUrl }}" target="_blank"><img src="/assets/images/ribbon_small.png"></a>
 		<like-button game-id="gameId" button-classes="['btn-xs']"></like-button>

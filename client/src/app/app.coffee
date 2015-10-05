@@ -41,12 +41,14 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.toolbox.processors'
   'gamEvolve.game.toolbox.switches'
   'gamEvolve.game.toolbox.transformers'
+  'gamEvolve.game.home'
   'gamEvolve.model.chips'
   'gamEvolve.game.undo'
   'gamEvolve.model.games'
   'gamEvolve.model.history'
   'gamEvolve.model.overlay'
   'gamEvolve.model.time'
+  'gamEvolve.model.gameplayerstate'
   'gamEvolve.model.undo'
   'gamEvolve.model.users'
   'gamEvolve.util.logger'
@@ -57,27 +59,29 @@ angular.module( 'gamEvolve', [
   'angulartics.google.analytics'
 ])
 
-.config( ( $stateProvider, $urlRouterProvider, $locationProvider ) ->
+.config ( $stateProvider, $urlRouterProvider, $locationProvider ) ->
   # Get rid of those ugly hashes
   $locationProvider.html5Mode(true)
-  # Default page is /game/list
-  $urlRouterProvider.otherwise( '/game/list' )
-)
+  # Default page is /
+  $urlRouterProvider.otherwise('/')
 
-.controller('AppCtrl', ( $scope, $location ) ->
+.controller 'AppCtrl', ( $scope, $location, currentGame ) ->
+  # The version comes from a global variable in index.html
+  $scope.RED_WIRE_VERSION = RED_WIRE_VERSION;
+
+  WARN_LEAVING_MESSAGE = """You have made some changes but not published them. 
+
+    Are you sure you want to leave?"""
+
   $scope.$on '$stateChangeStart', (event, toState, toParams, fromState, fromParams) ->
     console.log("fromState", fromState, "toState", toState)
 
-    if fromState.name is "game-edit" and not window.confirm("You will lose all your changes. Are you sure?")
+    if fromState.name is "game-edit" and currentGame.hasUnpublishedChanges and not window.confirm(WARN_LEAVING_MESSAGE)
       event.preventDefault()
-
-    # Warn about losing editing changes when the user navigates away to a different site
-    window.onbeforeunload = if toState.name is "game-edit" then -> "You will lose all your changes. Are you sure?"
 
   $scope.$on '$stateChangeSuccess', (event, toState, toParams, fromState, fromParams) ->
     if angular.isDefined( toState.data.pageTitle )
       $scope.pageTitle = toState.data.pageTitle + ' | RedWire'
-)
 
 .run (editableOptions) ->
   # Set options for xeditable
