@@ -377,6 +377,8 @@ leavePlaySequence = ->
   inPlaySequence = false
   for ioName, io of loadedGame.io then io.leavePlaySequence?()
 
+makeScreenshot = (size) -> loadedGame.io.canvas.makeScreenshot(size)
+
 # MAIN
 
 # Dispatch incoming messages
@@ -437,6 +439,9 @@ window.addEventListener 'message', (e) ->
       when "playBackFrame"
         playBackFrame(message.value.outputIoData)
         reporter(null)
+      when "makeScreenshot"
+        screenshot = makeScreenshot(message.value)
+        reporter(null, screenshot)
       when "updateFrames"
         results = onUpdateFrames(message.value.memory, message.value.inputIoDataFrames)
         # TODO: check for errors and return them along with other data
