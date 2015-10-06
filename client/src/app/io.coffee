@@ -297,11 +297,12 @@ RW.io.canvas =
         for { circuitId, name, depth } in options.layers
           # Get layer
           layerId = makeLayerId(circuitId, name)
-          layerContext = layers[layerId][0].getContext("2d")
+          #layerContext = layers[layerId][0].getContext("2d")
 
+          screenshotContext.drawImage(layers[layerId][0], 0, 0)
           # Draw to off-screen canvas
-          imageData = layerContext.getImageData(0, 0, options.size[0], options.size[1])
-          screenshotContext.putImageData(imageData, 0, 0)
+          #imageData = layerContext.getImageData(0, 0, options.size[0], options.size[1])
+          #screenshotContext.putImageData(imageData, 0, 0)
 
         # Now extract an image
         screenshotDataUrl = screenshotCanvas[0].toDataURL()
