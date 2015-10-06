@@ -377,7 +377,7 @@ leavePlaySequence = ->
   inPlaySequence = false
   for ioName, io of loadedGame.io then io.leavePlaySequence?()
 
-makeScreenshot = (size) -> loadedGame.io.canvas.makeScreenshot(size)
+takeScreenshot = (size) -> loadedGame.io.canvas.takeScreenshot(size)
 
 # MAIN
 
@@ -439,8 +439,8 @@ window.addEventListener 'message', (e) ->
       when "playBackFrame"
         playBackFrame(message.value.outputIoData)
         reporter(null)
-      when "makeScreenshot"
-        screenshot = makeScreenshot(message.value)
+      when "takeScreenshot"
+        screenshot = takeScreenshot(message.value)
         reporter(null, screenshot)
       when "updateFrames"
         results = onUpdateFrames(message.value.memory, message.value.inputIoDataFrames)

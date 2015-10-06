@@ -14,9 +14,11 @@ angular.module('gamEvolve.game.description', [
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
         liaison: ->
           {
-            model: currentGame.version.description
+            model: 
+              description: currentGame.version.description
+              screenshot: currentGame.version.screenshot
             done: (newModel) ->
-              currentGame.version.description = newModel
+              currentGame.version.description = newModel.description
               currentGame.updateLocalVersion() # Increment local version of code
 
               dialog.close()
@@ -28,8 +30,7 @@ angular.module('gamEvolve.game.description', [
 
 .controller 'EditDescriptionDialogCtrl', ($scope, liaison) ->
   # Need to put input/output data under an object
-  $scope.exchange = 
-    description: liaison.model
+  $scope.exchange = RW.cloneData(liaison.model)
 
-  $scope.done = -> liaison.done($scope.exchange.description)
+  $scope.done = -> liaison.done($scope.exchange)
   $scope.cancel = -> liaison.cancel()

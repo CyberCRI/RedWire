@@ -1,6 +1,7 @@
 # TODO: this should be configurable
 GAME_DIMENSIONS = [960, 540]
-SCREENSHOT_DIMENSIONS = [240, 135]
+#SCREENSHOT_DIMENSIONS = [240, 135]
+SCREENSHOT_DIMENSIONS = [960, 540]
 
 # Cppies error messages from stepLoop() into log messages attached to a 'global' circuit
 extendLogMessages = (result) ->
@@ -193,6 +194,10 @@ angular.module('gamEvolve.game.player', [])
           # TODO: go to the frame of first error
           onUpdateFrame(gameTime.currentFrameNumber)
 
+      when "takeScreenshot"
+        currentGame.version.screenshot = message.value
+        currentGame.updateLocalVersion()
+
   window.addEventListener("message", windowEventListener) 
   $scope.$on("$destroy", -> window.removeEventListener("message", windowEventListener))
 
@@ -345,8 +350,8 @@ angular.module('gamEvolve.game.player', [])
 
     sendMessage("updateLocation", locationInfo)
 
-  makeScreenshot = -> sendMessage("makeScreenshot", SCREENSHOT_DIMENSIONS)
-  unsubscribeToRequestScreenshot = RequestScreenshotEvent.listen(makeScreenshot)
+  takeScreenshot = -> sendMessage("takeScreenshot", SCREENSHOT_DIMENSIONS)
+  unsubscribeToRequestScreenshot = RequestScreenshotEvent.listen(takeScreenshot)
   $scope.$on("$destroy", unsubscribeToRequestScreenshot)
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!

@@ -79,5 +79,5 @@ angular.module('gamEvolve.game.edit.header', [
     $window.open('http://github.com/CyberCRI/RedWire/wiki/Tutorials','_blank')
     return
 
-  $scope.makeScreenshot = -> RequestScreenshotEvent.send()
+  $scope.takeScreenshot = -> RequestScreenshotEvent.send()
   

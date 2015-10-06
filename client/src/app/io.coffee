@@ -289,7 +289,7 @@ RW.io.canvas =
       destroy: -> 
         for layerId, canvas of layers then canvas.remove()
 
-      makeScreenshot: (size) ->
+      takeScreenshot: (size) ->
         # Create off-screen canvas
         screenshotCanvas = $("<canvas width='#{size[0]}' height='#{size[1]}'/>")
         screenshotContext = screenshotCanvas[0].getContext("2d")
