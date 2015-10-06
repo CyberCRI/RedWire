@@ -295,21 +295,15 @@ RW.io.canvas =
         screenshotContext = screenshotCanvas[0].getContext("2d")
 
         for { circuitId, name, depth } in options.layers
-          # Get layer
+          # Get layer and draw to an offscreen canvas
           layerId = makeLayerId(circuitId, name)
-          #layerContext = layers[layerId][0].getContext("2d")
-
-          screenshotContext.drawImage(layers[layerId][0], 0, 0)
-          # Draw to off-screen canvas
-          #imageData = layerContext.getImageData(0, 0, options.size[0], options.size[1])
-          #screenshotContext.putImageData(imageData, 0, 0)
+          screenshotContext.drawImage(layers[layerId][0], 0, 0, size[0], size[1])
 
         # Now extract an image
         screenshotDataUrl = screenshotCanvas[0].toDataURL()
 
-        # Destroy the canvas
+        # Destroy the canvas and return image 
         screenshotCanvas.remove()
-
         return screenshotDataUrl
     }
 

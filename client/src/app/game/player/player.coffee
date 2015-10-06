@@ -1,7 +1,6 @@
 # TODO: this should be configurable
 GAME_DIMENSIONS = [960, 540]
-#SCREENSHOT_DIMENSIONS = [240, 135]
-SCREENSHOT_DIMENSIONS = [960, 540]
+SCREENSHOT_DIMENSIONS = [240, 135]
 
 # Cppies error messages from stepLoop() into log messages attached to a 'global' circuit
 extendLogMessages = (result) ->
