@@ -14,6 +14,8 @@ angular.module('gamEvolve.game.list', [])
 .controller 'GameListCtrl', ($scope, games, $state, ChangedLoginEvent) ->
     $scope.games = []
 
+    $scope.formatDate = (date) -> moment(date).fromNow()
+
     games.loadAll().then (gamesList) -> $scope.games = gamesList
 
     getRecommendations = ->

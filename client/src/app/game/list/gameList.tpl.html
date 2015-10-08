@@ -54,7 +54,7 @@
 					{{ game.mixedToGameIds.length || 0 }}
 				</td>
 				<td>
-					{{ game.lastUpdatedTime }}
+					{{ formatDate(game.lastUpdatedTime) }}
 				</td>
 				<td>
 					<a ng-click="play(game.id)"><span class="glyphicon glyphicon-play"></span> Play</a>
@@ -112,7 +112,7 @@
 				{{ game.mixedToGameIds.length || 0 }}
 			</td>
 			<td>
-				{{ game.lastUpdatedTime }}
+				{{ formatDate(game.lastUpdatedTime) }}
 			</td>
 			<td>
 				<a ng-click="play(game.id)"><span class="glyphicon glyphicon-play"></span> Play</a>

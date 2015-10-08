@@ -1,4 +1,4 @@
-this.createdTime = new Date().toUTCString();
+this.createdTime = new Date().toISOString();
 this.playCount = 0;
 
 dpd.games.get({ id: this.gameId }, function(gameResult, error) {
