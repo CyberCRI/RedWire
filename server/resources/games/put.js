@@ -14,5 +14,5 @@ if(!internal) {
     protect("mixedFromGameIds");
     protect("mixedToGameIds");
     
-    this.lastUpdatedTime = new Date().toUTCString();
+    this.lastUpdatedTime = new Date().toISOString();
 }
