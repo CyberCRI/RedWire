@@ -400,6 +400,7 @@ angular.module('gamEvolve.game.player', [])
         if obj.error then return console.error(error)
 
         currentGame.version.animation = obj.image
+        currentGame.updateLocalVersion()
 
     gameTime.isTakingScreenshots = false
 

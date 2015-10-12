@@ -6,6 +6,8 @@ JSON_PROPERTIES = [
   "transformers"
   "assets"
   "redMetricsConfig"
+  "screenshot"
+  "animation"
 ]
 
 # These properties are copied directly

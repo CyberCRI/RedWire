@@ -96,6 +96,22 @@
 			"required": false,
 			"id": "redMetricsConfig",
 			"order": 11
+		},
+		"screenshot": {
+			"name": "screenshot",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "screenshot",
+			"order": 12
+		},
+		"animation": {
+			"name": "animation",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "animation",
+			"order": 13
 		}
 	}
 }

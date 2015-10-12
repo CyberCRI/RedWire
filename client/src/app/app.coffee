@@ -17,6 +17,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.util.pins'
   'gamEvolve.game.about'
   'gamEvolve.game.assets'
+  'gamEvolve.game.block'
   'gamEvolve.game.boardTree'
   'gamEvolve.game.boardNodes'
   'gamEvolve.game.channels'

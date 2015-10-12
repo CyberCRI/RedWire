@@ -14,7 +14,10 @@ dpd.games.get({ id: this.gameId }, function(gameResult, error) {
     dpd.games.put({ id: this.gameId }, { 
         lastVersionId: this.id,
         versionCount: this.versionNumber,
-        lastUpdatedTime: this.createdTime
+        lastUpdatedTime: this.createdTime,
+        screenshot: this.screenshot,
+        animation: this.animation,
+        description: this.description
     });
 });
 

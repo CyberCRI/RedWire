@@ -12,7 +12,13 @@ angular.module('gamEvolve.game.list', [])
         pageTitle: 'List Games'
 
 .controller 'GameListCtrl', ($scope, games, $state, ChangedLoginEvent) ->
-    $scope.games = []
+    allGames = []
+    recommendations = []
+
+    $scope.sections = [
+      allGames: allGames
+      recommendations: recommendations
+    ]
 
     $scope.formatDate = (date) -> moment(date).fromNow()
 

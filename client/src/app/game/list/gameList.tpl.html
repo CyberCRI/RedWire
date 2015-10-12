@@ -15,6 +15,14 @@
 		<a id="tutorial-button" target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Tutorials" class="btn btn-primary btn-lg col-md-2" role="button">Tutorial</a>
 	</div>
 
+	<h2>Games</h2>
+
+	<div ng-if="gameRecommendations">
+		<game-block-panel title="'Suggestions'" games="gameRecommendations"></game-block-panel>
+	</div>
+
+	<game-block-panel title="'All Games'" games="games"></game-block-panel>
+
 	<div ng-if="gameRecommendations">
 		<h2>Suggestions</h2>
 
