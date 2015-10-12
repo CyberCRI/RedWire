@@ -1,21 +1,11 @@
 <div id="editDescriptionDialog">
 	<div class="modal-header">
 		<h3>Game Description</h3>
+		<p>URLs will be displayed as links</p>
 	</div>
 	<div class="modal-body">
-		<div>
-			Screenshot: 
-			<img src="{{exchange.screenshot}}"></img>
-		</div>
-		<div>
-			Animation: 
-			<img src="{{exchange.animation}}"></img>
-		</div>
 		<div ui-ace="{ mode: 'text', useWrapMode: true, theme: 'twilight' }" ng-model="exchange.description"></div>
 	</div>
-
-	<h4>Description</h4>
-	<p>URLs will be displayed as links</p>
 	<div class="modal-footer">
 		<button class="btn btn-primary" ng-click="done()">Done</button>
 		<button class="btn btn-warning" ng-click="cancel()">Cancel</button>

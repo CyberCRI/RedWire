@@ -36,6 +36,7 @@ angular.module( 'gamEvolve', [
   'gamEvolve.game.overlay'
   'gamEvolve.game.play'
   'gamEvolve.game.player'
+  'gamEvolve.game.screenshots'
   'gamEvolve.game.toolbox'
   'gamEvolve.game.toolbox.circuits'
   'gamEvolve.game.toolbox.processors'

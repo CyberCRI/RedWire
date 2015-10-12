@@ -3,8 +3,10 @@ angular.module('gamEvolve.model.time', [])
   currentFrameNumber: 0
   isPlaying: false
   inRecordMode: false
+  isTakingScreenshots: false
 
   reset: ->
     @currentFrameNumber = 0
     @isPlaying = false
     @inRecordMode = false
+    @isTakingScreenshots = false

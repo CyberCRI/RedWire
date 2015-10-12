@@ -27,7 +27,7 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.$watch("name", copyFromScopeToGame, true)
 
 
-.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog, RequestScreenshotEvent, RequestRecordAnimationEvent) ->
+.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog, showDescriptionDialog) ->
   $scope.user = loggedUser
   $scope.games = games
   $scope.currentGame = currentGame
@@ -79,7 +79,4 @@ angular.module('gamEvolve.game.edit.header', [
     $window.open('http://github.com/CyberCRI/RedWire/wiki/Tutorials','_blank')
     return
 
-  $scope.takeScreenshot = -> RequestScreenshotEvent.send()
-
-  $scope.recordAnimation = -> RequestRecordAnimationEvent.send()
-  
+  $scope.showScreenshots = -> showDescriptionDialog.open()

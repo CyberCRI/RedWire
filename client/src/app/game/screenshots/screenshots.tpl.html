@@ -1,0 +1,27 @@
+<div id="showScreenshotsDialog">
+	<div class="modal-header">
+		<h3>Screenshots</h3>
+	</div>
+	<div class="modal-body">
+		<div ng-if="gameTime.isTakingScreenshots" class="alert alert-info" role="alert">
+			<i class="font-icon-spin3 animate-spin"></i> Updating
+		</div>
+
+		<h4>Screenshot</h4> 
+		<img ng-if="currentGameVersion.screenshot" src="{{currentGameVersion.screenshot}}"></img>
+		<p ng-if="!currentGameVersion.screenshot">No screenshot taken</p>
+		<button ng-click="takeScreenshot()" analytics-on="click" analytics-category="edit" analytics-event="takeScreenshot" class="btn btn-default">
+			<i class="glyphicon glyphicon-camera"></i> Take Screenshot 
+		</button>
+
+		<h4>Animation</h4> 
+		<img ng-if="currentGameVersion.animation" src="{{currentGameVersion.animation}}"></img>
+		<p ng-if="!currentGameVersion.animation">No animation recorded</p>
+		<button ng-click="recordAnimation()" analytics-on="click" analytics-category="edit" analytics-event="recordAnimation" class="btn btn-default">
+			<i class="glyphicon glyphicon-facetime-video"></i> Record Animation 
+		</button>
+</div>
+	<div class="modal-footer">
+		<button class="btn btn-primary" ng-click="done()">Done</button>
+	</div>
+</div>

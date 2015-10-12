@@ -1,7 +1,7 @@
 # TODO: these should be configurable
 GAME_DIMENSIONS = [960, 540]
 SCREENSHOT_DIMENSIONS = [240, 135]
-ANIMATION_FRAME_COUNT = 10
+ANIMATION_FRAME_COUNT = 30
 
 # Cppies error messages from stepLoop() into log messages attached to a 'global' circuit
 extendLogMessages = (result) ->
@@ -46,8 +46,6 @@ angular.module('gamEvolve.game.player', [])
 
   # The recorded screenshots (set to [] before each screenshot process)
   screenshots = []
-  # The number of taken screenshots (set to 0 before each screenshot process)
-  screenshotCount = 0
   # The number of screenshots attempted (set to 1 for a single screenshot or ANIMATION_FRAME_COUNT for an animation)
   targetScreenshotCount = null
 
@@ -202,10 +200,10 @@ angular.module('gamEvolve.game.player', [])
           onUpdateFrame(gameTime.currentFrameNumber)
 
       when "takeScreenshot"
-        screenshots[message.value.index] = message.value.screenshot
-        screenshotCount++ 
+        screenshots.push(message.value.screenshot)
 
-        if screenshotCount is targetScreenshotCount then completeTakeScreenshot()
+        if screenshots.length is targetScreenshotCount
+          $scope.$apply -> completeTakeScreenshot()
     return 
 
   window.addEventListener("message", windowEventListener) 
@@ -362,12 +360,31 @@ angular.module('gamEvolve.game.player', [])
 
   takeScreenshot = -> 
     screenshots = []
-    screenshotCount = 0
     targetScreenshotCount = 1
+    gameTime.isTakingScreenshots = true
     sendMessage("takeScreenshot", { size: SCREENSHOT_DIMENSIONS, index: 0 })
 
   unsubscribeToRequestScreenshot = RequestScreenshotEvent.listen(takeScreenshot)
   $scope.$on("$destroy", unsubscribeToRequestScreenshot)
+
+  recordAnimation = ->
+    screenshots = []
+    targetScreenshotCount = ANIMATION_FRAME_COUNT
+    gameTime.isTakingScreenshots = true
+
+    # Count the number of frames reminaing (including current frame)
+    remainingFrames = gameHistory.data.frames.length - gameTime.currentFrameNumber
+    # Divide the number of frames by the target number
+    animationSpeed = remainingFrames / ANIMATION_FRAME_COUNT
+
+    for i in [0...ANIMATION_FRAME_COUNT]
+      frameNumber = Math.floor(gameTime.currentFrameNumber + i * animationSpeed)
+
+      frameResult = gameHistory.data.frames[frameNumber]
+      outputIoData = RW.applyPatchesInCircuits(frameResult.ioPatches, _.omit(frameResult.inputIoData, "global"))
+      sendMessage("playBackFrame", { outputIoData: outputIoData })
+
+      sendMessage("takeScreenshot", { size: SCREENSHOT_DIMENSIONS, index: i })
 
   completeTakeScreenshot = ->
     if targetScreenshotCount is 1 
@@ -384,24 +401,7 @@ angular.module('gamEvolve.game.player', [])
 
         currentGame.version.animation = obj.image
 
-  recordAnimation = ->
-    screenshots = []
-    screenshotCount = 0
-    targetScreenshotCount = ANIMATION_FRAME_COUNT
-
-    # Count the number of frames reminaing (including current frame)
-    remainingFrames = gameHistory.data.frames.length - gameTime.currentFrameNumber
-    # Divide the number of frames by the target number
-    animationSpeed = remainingFrames / ANIMATION_FRAME_COUNT
-
-    for i in [0...ANIMATION_FRAME_COUNT]
-      frameNumber = Math.floor(gameTime.currentFrameNumber + i * animationSpeed)
-
-      frameResult = gameHistory.data.frames[frameNumber]
-      outputIoData = RW.applyPatchesInCircuits(frameResult.ioPatches, _.omit(frameResult.inputIoData, "global"))
-      sendMessage("playBackFrame", { outputIoData: outputIoData })
-
-      sendMessage("takeScreenshot", { size: SCREENSHOT_DIMENSIONS, index: i })
+    gameTime.isTakingScreenshots = false
 
   unsubscribeToRequestRecordAnimation = RequestRecordAnimationEvent.listen(recordAnimation)
   $scope.$on("$destroy", unsubscribeToRequestRecordAnimation)
