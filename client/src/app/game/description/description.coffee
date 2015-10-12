@@ -17,6 +17,7 @@ angular.module('gamEvolve.game.description', [
             model: 
               description: currentGame.version.description
               screenshot: currentGame.version.screenshot
+              animation: currentGame.version.animation
             done: (newModel) ->
               currentGame.version.description = newModel.description
               currentGame.updateLocalVersion() # Increment local version of code

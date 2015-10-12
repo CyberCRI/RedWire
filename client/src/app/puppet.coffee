@@ -440,8 +440,8 @@ window.addEventListener 'message', (e) ->
         playBackFrame(message.value.outputIoData)
         reporter(null)
       when "takeScreenshot"
-        screenshot = takeScreenshot(message.value)
-        reporter(null, screenshot)
+        screenshot = takeScreenshot(message.value.size)
+        reporter(null, { screenshot: screenshot, index: message.value.index })
       when "updateFrames"
         results = onUpdateFrames(message.value.memory, message.value.inputIoDataFrames)
         # TODO: check for errors and return them along with other data

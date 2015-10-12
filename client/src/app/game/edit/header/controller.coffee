@@ -27,7 +27,7 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.$watch("name", copyFromScopeToGame, true)
 
 
-.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog, RequestScreenshotEvent) ->
+.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog, RequestScreenshotEvent, RequestRecordAnimationEvent) ->
   $scope.user = loggedUser
   $scope.games = games
   $scope.currentGame = currentGame
@@ -80,4 +80,6 @@ angular.module('gamEvolve.game.edit.header', [
     return
 
   $scope.takeScreenshot = -> RequestScreenshotEvent.send()
+
+  $scope.recordAnimation = -> RequestRecordAnimationEvent.send()
   
