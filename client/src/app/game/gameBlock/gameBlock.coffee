@@ -6,8 +6,8 @@ angular.module('gamEvolve.game.block', [])
         game: "=" 
       templateUrl: 'game/gameBlock/gameBlock.tpl.html'
       link: (scope, element, attrs) ->
-        staticImage = "url(#{scope.game.screenshot})" 
-        animatedImage = "url(#{scope.game.animation})" 
+        staticImage = "url(#{scope.game.screenshot or '/assets/images/screenshot_standin.png'})" 
+        animatedImage = "url(#{scope.game.animation or '/assets/images/screenshot_standin.png'})" 
 
         # Default to static image
         element.find(".screenshot").css("background-image", staticImage)
