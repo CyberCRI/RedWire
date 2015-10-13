@@ -13,13 +13,15 @@ angular.module('gamEvolve.game.list', [])
 
 .controller 'GameListCtrl', ($scope, games, $state, ChangedLoginEvent) ->
     # Sort games by reverse chronological order
-    sortGames = (games) -> return _.sortBy games, (game) -> 
-      return -1 * new Date(game.lastUpdatedTime).valueOf()
+    timeSorter = (game) -> -1 * new Date(game.lastUpdatedTime).valueOf()
+
+    # Sort games by likes
+    likeSorter = (game) -> return -1 * game.likedData.likedCount
 
     allGames = []
     recommendations = []
 
-    games.loadAll().then (gamesList) -> $scope.games = sortGames(gamesList)
+    games.loadAll().then (gamesList) -> $scope.games = _.sortBy(gamesList, likeSorter)
 
     getRecommendations = ->
       games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
