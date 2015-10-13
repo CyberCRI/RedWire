@@ -5,6 +5,8 @@ angular.module('gamEvolve.game.block', [])
       scope:
         game: "=" 
       templateUrl: 'game/gameBlock/gameBlock.tpl.html'
+      controller: ($scope) ->
+        $scope.formatDate = (date) -> moment(date).fromNow()
       link: (scope, element, attrs) ->
         staticImage = "url(#{scope.game.screenshot or '/assets/images/screenshot_standin.png'})" 
         animatedImage = "url(#{scope.game.animation or '/assets/images/screenshot_standin.png'})" 

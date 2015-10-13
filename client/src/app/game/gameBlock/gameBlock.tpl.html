@@ -6,5 +6,10 @@
 		<a ui-sref="play({gameId: game.id})" class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> Play</a>
 		<a ui-sref="game-edit({gameId: game.id})" class="btn btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
 	</p>
+	<p>
+		<i class="font-icon-fork"></i> {{game.forkCount}} forks
+		<br><i class="glyphicon glyphicon-retweet"></i> Mixed from {{game.mixedFromGameIds.length || 0}} and into {{game.mixedToGameIds.length || 0 }}
+		<br>Last updated {{formatDate(game.lastUpdatedTime)}}
+	</p>
 	<p>{{game.description}}</p>
 </div>

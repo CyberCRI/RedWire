@@ -52,6 +52,9 @@ while(gameCursor.hasNext()) {
         }
     }
 
+    // Set updated date
+    game.lastUpdatedTime = new Date().toISOString();
+
     // Update game
     print ("  Saving game:");
     printjson(game);
