@@ -1,7 +1,7 @@
 <div class="gameBlock">
 	<h4>{{game.name}}</h4>
 	<p>by {{game.ownerName}}</p>
-	<img src="{{game.screenshot}}" class="screenshot" ui-sref="play({gameId: game.id})">
+	<div class="screenshot" ui-sref="play({gameId: game.id})"></div>
 	<p class="row">
 		<a ui-sref="play({gameId: game.id})" class="btn btn-primary"><span class="glyphicon glyphicon-play"></span> Play</a>
 		<a ui-sref="game-edit({gameId: game.id})" class="btn btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>

@@ -6,13 +6,13 @@ JSON_PROPERTIES = [
   "transformers"
   "assets"
   "redMetricsConfig"
-  "screenshot"
-  "animation"
 ]
 
 # These properties are copied directly
 DIRECT_PROPERTIES = [
   "description"
+  "screenshot"
+  "animation"
 ]
 
 # These properties are are part of the game info
