@@ -1,6 +1,6 @@
 if(!internal) {
-    if (!me || me.id != this.ownerId) {
-        cancel('Only owner can edit game');
+    if (!me || me.id != this.ownerId && !me.isAdmin) {
+        cancel('Only owner or admin can edit game');
     }
     
     protect("playCount");

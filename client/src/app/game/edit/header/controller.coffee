@@ -42,7 +42,7 @@ angular.module('gamEvolve.game.edit.header', [
 
   $scope.publishInProgress = false
   $scope.isPublishButtonDisplayed = ->
-    isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id
+    isGameLoaded() and loggedUser.isLoggedIn() and (currentGame.info.ownerId is loggedUser.profile.id or loggedUser.profile.isAdmin)
   $scope.publishButtonClick = ->
     $scope.publishInProgress = true
     games.publishCurrent().finally ->
@@ -63,7 +63,7 @@ angular.module('gamEvolve.game.edit.header', [
 
   deleteInProgress = false
   $scope.isDeleteButtonDisplayed = ->
-    isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id and not deleteInProgress
+    isGameLoaded() and loggedUser.isLoggedIn() and (currentGame.info.ownerId is loggedUser.profile.id or loggedUser.profile.isAdmin) and not deleteInProgress
   $scope.deleteButtonClick = ->
     if not $window.confirm """WARNING: If you delete the game then you can never go back and play it.
 

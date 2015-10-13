@@ -294,6 +294,10 @@ RW.io.canvas =
         screenshotCanvas = $("<canvas width='#{size[0]}' height='#{size[1]}'/>")
         screenshotContext = screenshotCanvas[0].getContext("2d")
 
+        # Make white background
+        screenshotContext.fillStyle = "white"
+        screenshotContext.fillRect(0, 0, size[0], size[1])
+
         for { circuitId, name, depth } in options.layers
           # Get layer and draw to an offscreen canvas
           layerId = makeLayerId(circuitId, name)

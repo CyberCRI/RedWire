@@ -71,7 +71,7 @@ angular.module('gamEvolve.model.games', [])
     currentGame.info.parentId = currentGame.info.id
     delete currentGame.info.id 
 
-    saveInfo().then ->
+    games.saveInfo().then ->
       $location.path("/game/#{currentGame.version.gameId}/edit")
       games.saveVersion()
 
