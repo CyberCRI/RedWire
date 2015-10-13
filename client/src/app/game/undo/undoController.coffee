@@ -43,10 +43,27 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
   onUpdateCurrentGame = ->
     if not currentGame.version then return 
 
-    # If this the first time the code is loaded (ie. the controller just started)
-    if not currentLocalVersion
-      # Check if code exists in offline cache
+    handleUpdate = ->
+      # Check that we're not already updated
+      if currentLocalVersion isnt currentGame.localVersion 
+        # Indicate unsaved changes only if we already have some code in the undo stack
+        if not undo.isEmpty() then currentGame.setHasUnpublishedChanges()
 
+        # Store the change in the undo stack
+        undo.changeValue(currentGame.localVersion, currentGame.version)
+        currentLocalVersion = currentGame.localVersion
+
+        cache.save(currentGame.info.id, currentGame.version).then ->
+          currentGame.setStatusMessage("Saved offline at #{formatDate()}")
+        .catch (error) ->
+          currentGame.setStatusMessage("Offline saving unavailable")
+          console.error("Error saving offline:", error)
+
+    # Check if this is the first time the code is loaded (ie. the controller just started)
+    if currentLocalVersion
+      handleUpdate()
+    else
+      # Check if code exists in offline cache
       cache.load(currentGame.info.id).then (cachedCode) ->
         if not cachedCode then return 
 
@@ -67,21 +84,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
       .catch (error) ->
         currentGame.setStatusMessage("Offline saving unavailable")
         console.error("Error saving offline:", error)
-
-    # Check that we're not already updated
-    if currentLocalVersion isnt currentGame.localVersion 
-      # Indicate unsaved changes only if we already have some code in the undo stack
-      if not undo.isEmpty() then currentGame.setHasUnpublishedChanges()
-
-      # Store the change in the undo stack
-      undo.changeValue(currentGame.localVersion, currentGame.version)
-      currentLocalVersion = currentGame.localVersion
-
-      cache.save(currentGame.info.id, currentGame.version).then ->
-        currentGame.setStatusMessage("Saved offline at #{formatDate()}")
-      .catch (error) ->
-        currentGame.setStatusMessage("Offline saving unavailable")
-        console.error("Error saving offline:", error)
+      .then(handleUpdate)
 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", onUpdateCurrentGame, true)
