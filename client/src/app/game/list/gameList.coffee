@@ -11,7 +11,7 @@ angular.module('gamEvolve.game.list', [])
       data:
         pageTitle: 'List Games'
 
-.controller 'GameListCtrl', ($scope, games, $state, ChangedLoginEvent) ->
+.controller 'GameListCtrl', ($scope, games, $state, loggedUser, ChangedLoginEvent) ->
     # Sort games by reverse chronological order
     timeSorter = (game) -> -1 * new Date(game.lastUpdatedTime).valueOf()
 
@@ -20,11 +20,20 @@ angular.module('gamEvolve.game.list', [])
 
     allGames = []
     recommendations = []
+    myGames = []
 
-    games.loadAll().then (gamesList) -> $scope.games = _.sortBy(gamesList, likeSorter)
+    loadGames = ->
+      games.loadAll().then (gamesList) -> 
+        $scope.games = _.sortBy(gamesList, likeSorter)
+        
+        if loggedUser.isLoggedIn()
+          $scope.myGames = _.filter(gamesList, (game) -> game.ownerId is loggedUser.profile.id)
+        else
+          $scope.myGames = []
 
-    getRecommendations = ->
       games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
 
-    getRecommendations()
-    ChangedLoginEvent.listen(getRecommendations)
+    loadGames()
+    unsubscribeChangedLoginEvent = ChangedLoginEvent.listen(loadGames)
+
+    $scope.$on("destroy", unsubscribeChangedLoginEvent)

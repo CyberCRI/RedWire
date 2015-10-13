@@ -21,5 +21,9 @@
 		<game-block-panel title="'Suggestions'" games="gameRecommendations"></game-block-panel>
 	</div>
 
+	<div ng-if="myGames">
+		<game-block-panel title="'My Games'" games="myGames"></game-block-panel>
+	</div>
+
 	<game-block-panel title="'All Games'" games="games"></game-block-panel>
 </div>
