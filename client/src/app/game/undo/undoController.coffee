@@ -46,13 +46,15 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
     # If this the first time the code is loaded (ie. the controller just started)
     if not currentLocalVersion
       # Check if code exists in offline cache
-      try 
-        cachedCode = cache.load(currentGame.info.id)
+
+      cache.load(currentGame.info.id).then (cachedCode) ->
+        if not cachedCode then return 
+
         # Remove hash keys to get good comparaison
         gameConverter.removeHashKeys(cachedCode)
         gameConverter.removeHashKeys(currentGame.version)
 
-        if cachedCode and localCodeIsNewer(cachedCode, currentGame.version)
+        if localCodeIsNewer(cachedCode, currentGame.version)
           if window.confirm("You have some changes saved offline. Restore your offline version?")
             # Put the old version as the first in the undo stack
             undo.changeValue(currentGame.localVersion, currentGame.version)
@@ -62,9 +64,9 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
             currentGame.updateLocalVersion()
           else
             cache.remove(currentGame.info.id)
-      catch error
+      .catch (error) ->
         currentGame.setStatusMessage("Offline saving unavailable")
-        console.error(error)
+        console.error("Error saving offline:", error)
 
     # Check that we're not already updated
     if currentLocalVersion isnt currentGame.localVersion 
@@ -74,12 +76,12 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
       # Store the change in the undo stack
       undo.changeValue(currentGame.localVersion, currentGame.version)
       currentLocalVersion = currentGame.localVersion
-      try 
-        cache.save(currentGame.info.id, currentGame.version)
+
+      cache.save(currentGame.info.id, currentGame.version).then ->
         currentGame.setStatusMessage("Saved offline at #{formatDate()}")
-      catch error
+      .catch (error) ->
         currentGame.setStatusMessage("Offline saving unavailable")
-        console.error(error)
+        console.error("Error saving offline:", error)
 
   $scope.currentGame = currentGame
   $scope.$watch("currentGame.localVersion", onUpdateCurrentGame, true)
