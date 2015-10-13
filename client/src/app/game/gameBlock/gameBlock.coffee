@@ -15,10 +15,8 @@ angular.module('gamEvolve.game.block', [])
         element.find(".screenshot").css("background-image", staticImage)
         
         element.on "mouseenter", ->
-          console.log("animating")
           element.find(".screenshot").css("background-image", animatedImage)
         element.on "mouseleave", ->
-          console.log("static")
           element.find(".screenshot").css("background-image", staticImage)
     }
   )

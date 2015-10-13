@@ -12,23 +12,17 @@ angular.module('gamEvolve.game.list', [])
         pageTitle: 'List Games'
 
 .controller 'GameListCtrl', ($scope, games, $state, ChangedLoginEvent) ->
+    # Sort games by reverse chronological order
+    sortGames = (games) -> return _.sortBy games, (game) -> 
+      return -1 * new Date(game.lastUpdatedTime).valueOf()
+
     allGames = []
     recommendations = []
 
-    $scope.sections = [
-      allGames: allGames
-      recommendations: recommendations
-    ]
-
-    $scope.formatDate = (date) -> moment(date).fromNow()
-
-    games.loadAll().then (gamesList) -> $scope.games = gamesList
+    games.loadAll().then (gamesList) -> $scope.games = sortGames(gamesList)
 
     getRecommendations = ->
       games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
 
     getRecommendations()
     ChangedLoginEvent.listen(getRecommendations)
-
-    $scope.remix = (gameId) -> $state.transitionTo('game-edit', {gameId: gameId})
-    $scope.play = (gameId) -> $state.transitionTo('play', {gameId: gameId})
