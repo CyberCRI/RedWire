@@ -14,15 +14,15 @@ angular.module("gamEvolve.model.cache", [])
   save: (programId, data) -> 
     if not localStorage then throw new Error("LocalStorage not available")
 
-    # Keep trying to save in cache by removing last item until there are no more items
+    # Keep trying to save in cache by removing last item until nothing else can be removed
     loop
       try
         saveToCache(programId, data)
         return
       catch e
-        if localStorage.length is 0
+        wasRemoved = clearLast()
+        if not wasRemoved
           throw new Error("Too big to fit in LocalStorage")
-        @clearLast()
 
   # Returns code from LocalStorage or null if it doesn't exist
   load: (programId) -> 
@@ -32,16 +32,21 @@ angular.module("gamEvolve.model.cache", [])
     return if item then item.data else null
 
   # Remove code in LocalStorage
-  remove: (programId) -> localStorage.removeItem(programId)
+  # Returns true if an item was removed, false otherwise
+  remove: (programId) -> 
+    oldLength = localStorage.length
+    localStorage.removeItem(programId)
+    return oldLength > localStorage.length
 
   # Remove code in LocalStorage
   clearAll: -> localStorage.clear()
 
   # Removes the code last used 
+  # Returns true if an item was removed, false otherwise
   clearLast: ->
     meta = for key, value of localStorage 
       id: key
       time: JSON.parse(value).time
     lastUsed = _.min(meta, (value) -> value.time) 
-    @remove(lastUsed.id)
+    return @remove(lastUsed.id)
 

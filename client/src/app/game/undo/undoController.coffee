@@ -76,7 +76,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
       currentLocalVersion = currentGame.localVersion
       try 
         cache.save(currentGame.info.id, currentGame.version)
-        currentGame.setStatusMessage("Saved at #{formatDate()}")
+        currentGame.setStatusMessage("Saved offline at #{formatDate()}")
       catch error
         currentGame.setStatusMessage("Offline saving unavailable")
         console.error(error)

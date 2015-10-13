@@ -20,6 +20,8 @@ request = request.defaults
 # FUNCTIONS
 statusIsError = (code) -> String(code)[0] == "4"
 
+makePrettyJson = (obj) -> JSON.stringify(obj, null, 2)
+
 login = (baseUrl, user, password, cb) ->
   console.log("Logging into server #{baseUrl} with user #{user} and password #{password}")
   requestOptions = 
@@ -68,7 +70,7 @@ createGame = (baseUrl, gameFile, cb) ->
 
   # Encode certain properties as JSON
   for property in ['processors', 'switches', 'transformers', 'circuits', 'assets']
-    game[property] = JSON.stringify(game[property], null, 2)
+    game[property] = makePrettyJson(game[property])
 
   requestOptions = 
     url:  "#{baseUrl}/games"
@@ -103,7 +105,7 @@ getAllGameVersions = (baseUrl, gameId, cb) ->
 
 # Define command-line arguments
 program
-  .option('-b, --baseUrl <url>', 'Base URL of RedMetrics server. Include protocol, host and port (ex. http://localhost:5000). Defaults to http://api.redwire.io', 'http://redwire.io/api')
+  .option('-b, --baseUrl <url>', 'Base URL of RedMetrics server. Include protocol, host and port (ex. http://localhost:5000). Defaults to https://api.redwire.io', 'https://redwire.io/api')
   .option('-u, --user <user>', 'User name (must be an admin)')
   .option('-p, --password <password>', 'Password')
 
@@ -122,7 +124,7 @@ program
     console.log("Exporting game #{gameId}...")
     login program.baseUrl, program.user, program.password, ->
       getAllGameVersions program.baseUrl, gameId, (gameVersions) ->
-        fs.writeFileSync(outputFile, JSON.stringify(gameVersions), { encoding: "utf8"})
+        fs.writeFileSync(outputFile, makePrettyJson(gameVersions), { encoding: "utf8"})
         console.log("Wrote to #{outputFile}")
 
 program
