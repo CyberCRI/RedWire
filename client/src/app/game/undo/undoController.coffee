@@ -84,6 +84,7 @@ angular.module('gamEvolve.game.undo', ['gamEvolve.model.undo'])
       .catch (error) ->
         currentGame.setStatusMessage("Offline saving unavailable")
         console.error("Error saving offline:", error)
+        handleUpdate()
       .then(handleUpdate)
 
   $scope.currentGame = currentGame

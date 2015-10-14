@@ -5,23 +5,24 @@ saveToCache = (programId, data) ->
     data: data
   return localforage.setItem(programId, JSON.stringify(value))
 
-# Saves data in a LRU cache
+# Saves data offline
 # localforage handles multiple backends (IndexedDB and LocalStorage)
 angular.module("gamEvolve.model.cache", [])
 .factory 'cache', ->
   # Saves in cache, or throws exception
-  save: (programId, data) -> 
+  cache = {}
+  cache.save = (programId, data) -> 
     # Keep trying to save in cache by removing last item until nothing else can be removed
     saveOrRemove = ->
       saveToCache(programId, data).catch ->
-        @clearLast.then (wasRemoved) ->
+        cache.clearLast.then (wasRemoved) ->
           if wasRemoved then return saveAndRemove() 
           else throw new Error("Too big to save locally") 
 
     saveOrRemove()
 
   # Returns code from storage or null if it doesn't exist
-  load: (programId) -> 
+  cache.load = (programId) -> 
     localforage.getItem(programId).then (item) -> 
       parsedItem = JSON.parse(item)
       return if parsedItem then parsedItem.data else null
@@ -29,7 +30,7 @@ angular.module("gamEvolve.model.cache", [])
 
   # Remove code in storage
   # Returns true if an item was removed, false otherwise
-  remove: (programId) -> 
+  cache.remove = (programId) -> 
     localforage.length().then (oldLength) ->
       localforage.removeItem(programId)
       .then -> localforage.length().then (newLength) ->
@@ -37,11 +38,11 @@ angular.module("gamEvolve.model.cache", [])
     .catch (error) -> console.error("Error removing from storage", error)
 
   # Remove code in storage
-  clearAll: -> localforage.clear().catch (error) -> console.error("Error clearing storage", error)
+  cache.clearAll = -> localforage.clear().catch (error) -> console.error("Error clearing storage", error)
 
   # Removes the code last used 
   # Returns true if an item was removed, false otherwise
-  clearLast: ->
+  cache.clearLast = ->
     # Will hold IDs and times
     meta = []
 
@@ -51,5 +52,7 @@ angular.module("gamEvolve.model.cache", [])
 
     return localforage.iterate(iterator).then ->
       lastUsed = _.min(meta, (value) -> value.time) 
-      return @remove(lastUsed.id)
+      return cache.remove(lastUsed.id)
     .catch (error) -> console.error("Error iterating storage", error)
+
+  return cache
