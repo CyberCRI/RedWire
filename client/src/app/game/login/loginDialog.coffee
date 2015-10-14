@@ -30,7 +30,7 @@ angular.module('gamEvolve.game.login', [
     $scope.exchange.errorMessage = "Wrong credentials"
 
   loginUser = (username, password) ->
-    users.login(username, password).then(loginDialog.close, handleError)
+    users.logUser(username, password).then(loginDialog.close, handleError)
 
   $scope.login = ->
     if $scope.exchange.username

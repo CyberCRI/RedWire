@@ -288,6 +288,27 @@ RW.io.canvas =
 
       destroy: -> 
         for layerId, canvas of layers then canvas.remove()
+
+      takeScreenshot: (size) ->
+        # Create off-screen canvas
+        screenshotCanvas = $("<canvas width='#{size[0]}' height='#{size[1]}'/>")
+        screenshotContext = screenshotCanvas[0].getContext("2d")
+
+        # Make white background
+        screenshotContext.fillStyle = "white"
+        screenshotContext.fillRect(0, 0, size[0], size[1])
+
+        for { circuitId, name, depth } in options.layers
+          # Get layer and draw to an offscreen canvas
+          layerId = makeLayerId(circuitId, name)
+          screenshotContext.drawImage(layers[layerId][0], 0, 0, size[0], size[1])
+
+        # Now extract an image
+        screenshotDataUrl = screenshotCanvas[0].toDataURL()
+
+        # Destroy the canvas and return image 
+        screenshotCanvas.remove()
+        return screenshotDataUrl
     }
 
 # Define html input io

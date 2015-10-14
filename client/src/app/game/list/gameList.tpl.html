@@ -1,5 +1,12 @@
 <div id="gameList" class="container">
 	<div class="row">
+		<div class="col-md-12" id="loginContainer">
+			<login-controls></login-controls>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-12" id="logoContainer">
 		<a id="documentation-button" target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Standard-Toolbox-Reference" class="btn btn-primary btn-lg col-md-2" role="button">Documentation</a>
 		<div class="col-md-8" id="logoBlock">
 			<img src="/assets/images/logo_big.png" ui-sref="home"></img>
@@ -10,34 +17,13 @@
 
 	<h2>Games</h2>
 
-	<table class="table">
-		<tr>
-			<th>
-				<span ng-click="orderedProperty = 'name'; orderedDirection = !orderedDirection">
-					Name
-				</span>
-			</th>
-			<th>
-				<span ng-click="orderedProperty = 'author'; orderedDirection = !orderedDirection">
-					Author
-				</span>
-			</th>
-			<th></th>
-			<th></th>
-		</tr>
-		<tr ng-repeat="game in games | orderBy:orderedProperty:orderedDirection">
-			<td>
-				{{ game.name }} 
-			</td>
-			<td>
-				{{ game.author }}
-			</td>
-			<td>
-				<a ng-click="play(game.id)"><span class="glyphicon glyphicon-play"></span> Play</a>
-			</td>
-			<td>
-				<a ng-click="remix(game.id)"><span class="glyphicon glyphicon-edit"></span> Edit</a>
-			</td>
-		</tr>
-	</table>
+	<div ng-if="gameRecommendations">
+		<game-block-panel title="'Suggestions'" games="gameRecommendations"></game-block-panel>
+	</div>
+
+	<div ng-if="myGames">
+		<game-block-panel title="'My Games'" games="myGames"></game-block-panel>
+	</div>
+
+	<game-block-panel title="'All Games'" games="games"></game-block-panel>
 </div>

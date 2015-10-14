@@ -1,8 +1,6 @@
 angular.module('gamEvolve.model.games', [])
 
-
 .factory 'currentGame', (GameVersionUpdatedEvent, WillChangeLocalVersionEvent) ->
-
   version: null
   setVersion: (newVersion) ->
     @version = newVersion
@@ -68,24 +66,19 @@ angular.module('gamEvolve.model.games', [])
     games.updateInfo().then(games.saveVersion)
 
   games.forkCurrent = ->
-    delete currentGame.info.id # Removing the game ID will make the server provide a new one
+    # Set the old game ID as the parent of the new one. 
+    # Then remove the current game ID to make the server provide a new one
+    currentGame.info.parentId = currentGame.info.id
+    delete currentGame.info.id 
+
     games.saveInfo().then ->
       $location.path("/game/#{currentGame.version.gameId}/edit")
       games.saveVersion()
 
+  games.loadAll = -> return $http.get('/api/games').then((result) -> return result.data).catch(-> alert("Can't load games"))
+
   games.deleteCurrent = ->
     $http.delete("/api/games/#{currentGame.version.gameId}").then(currentGame.reset)
-
-  games.loadAll = ->
-    gamesQuery = $http.get('/api/games')
-    usersQuery = $http.get("/api/users") #?{fields={id: 1, username: 1}
-    fillGamesList = ([gamesResult, usersResult]) -> 
-      for game in gamesResult.data
-        id: game.id
-        name: game.name
-        author: _.findWhere(usersResult.data, { id: game.ownerId }).username
-    # This promise will be returned
-    $q.all([gamesQuery, usersQuery]).then(fillGamesList, -> alert("Can't load games"))
 
   # Load the game content and the creator info, then put it all into currentGame
   games.load = (game) ->
@@ -115,8 +108,19 @@ angular.module('gamEvolve.model.games', [])
     $http.get("/api/games/#{gameId}")
       .success(games.load)
       .error (error) ->
-        console.log error
-        window.alert "Hmmm, that game doesn't seem to exist"
+        console.log(error)
+        window.alert("Hmmm, that game doesn't seem to exist")
         $location.path("/")
+
+  games.recordPlay = (gameId) -> $http.post("/api/play/#{gameId}")
+
+  games.getLikeCount = (gameId) -> $http.get("/api/like/#{gameId}").then((results) -> return results.data)
+
+  games.recordLike = (gameId) -> $http.post("/api/like/#{gameId}")
+
+  games.getRecommendations = -> 
+    return $http.get('/api/recommend').then (result) -> _.shuffle(result.data)
+
+  games.recordMix = (fromGameId) -> $http.post("/api/mix/from/#{fromGameId}/to/#{currentGame.info.id}")
 
   return games

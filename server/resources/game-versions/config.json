@@ -9,13 +9,21 @@
 			"id": "gameId",
 			"order": 0
 		},
+		"gameName": {
+			"name": "gameName",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "gameName",
+			"order": 1
+		},
 		"versionNumber": {
 			"name": "versionNumber",
 			"type": "number",
 			"typeLabel": "number",
 			"required": true,
 			"id": "versionNumber",
-			"order": 1
+			"order": 2
 		},
 		"fileVersion": {
 			"name": "fileVersion",
@@ -23,7 +31,15 @@
 			"typeLabel": "number",
 			"required": true,
 			"id": "fileVersion",
-			"order": 2
+			"order": 3
+		},
+		"createdTime": {
+			"name": "createdTime",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "createdTime",
+			"order": 4
 		},
 		"description": {
 			"name": "description",
@@ -31,7 +47,7 @@
 			"typeLabel": "string",
 			"required": false,
 			"id": "description",
-			"order": 3
+			"order": 5
 		},
 		"circuits": {
 			"name": "circuits",
@@ -39,7 +55,7 @@
 			"typeLabel": "string",
 			"required": true,
 			"id": "circuits",
-			"order": 4
+			"order": 6
 		},
 		"processors": {
 			"name": "processors",
@@ -47,7 +63,7 @@
 			"typeLabel": "string",
 			"required": true,
 			"id": "processors",
-			"order": 5
+			"order": 7
 		},
 		"switches": {
 			"name": "switches",
@@ -55,7 +71,7 @@
 			"typeLabel": "string",
 			"required": true,
 			"id": "switches",
-			"order": 6
+			"order": 8
 		},
 		"transformers": {
 			"name": "transformers",
@@ -63,7 +79,7 @@
 			"typeLabel": "string",
 			"required": true,
 			"id": "transformers",
-			"order": 7
+			"order": 9
 		},
 		"assets": {
 			"name": "assets",
@@ -71,7 +87,7 @@
 			"typeLabel": "string",
 			"required": true,
 			"id": "assets",
-			"order": 8
+			"order": 10
 		},
 		"redMetricsConfig": {
 			"name": "redMetricsConfig",
@@ -79,7 +95,23 @@
 			"typeLabel": "string",
 			"required": false,
 			"id": "redMetricsConfig",
-			"order": 9
+			"order": 11
+		},
+		"screenshot": {
+			"name": "screenshot",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "screenshot",
+			"order": 12
+		},
+		"animation": {
+			"name": "animation",
+			"type": "string",
+			"typeLabel": "string",
+			"required": false,
+			"id": "animation",
+			"order": 13
 		}
 	}
 }

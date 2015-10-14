@@ -8,8 +8,8 @@ if (!me) {
             console.log(error);
             cancel(error, 500);
         } else if (!game) {
-            cancel("Game not found for id : " + this.gameId, 404);
-        } else if (game.ownerId !== me.id) {
+            cancel("Game not found for id: " + this.gameId, 404);
+        } else if (game.ownerId !== me.id && !me.isAdmin) {
             cancel("You are not allowed to save a game which is not your own, please fork instead", 403);
         } else {
             // Make sure version passes validation

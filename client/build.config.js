@@ -94,6 +94,7 @@ module.exports = {
       'vendor/sat-js/SAT.js',
       'vendor/angulartics/src/angulartics.js',
       'vendor/angulartics/src/angulartics-ga.js',
+      'vendor/gifshot/build/gifshot.js',
       'vendor/localforage/dist/localforage.js'
     ],
     css: [

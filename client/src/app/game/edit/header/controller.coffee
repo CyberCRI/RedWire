@@ -27,7 +27,7 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.$watch("name", copyFromScopeToGame, true)
 
 
-.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog) ->
+.controller 'MenuCtrl', ($scope, $state, $stateParams, $location, $window, loggedUser, games, currentGame, loginDialog, aboutDialog, importExportDialog, editDescriptionDialog, showDescriptionDialog) ->
   $scope.user = loggedUser
   $scope.games = games
   $scope.currentGame = currentGame
@@ -42,7 +42,7 @@ angular.module('gamEvolve.game.edit.header', [
 
   $scope.publishInProgress = false
   $scope.isPublishButtonDisplayed = ->
-    isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id
+    isGameLoaded() and loggedUser.isLoggedIn() and (currentGame.info.ownerId is loggedUser.profile.id or loggedUser.profile.isAdmin)
   $scope.publishButtonClick = ->
     $scope.publishInProgress = true
     games.publishCurrent().finally ->
@@ -63,7 +63,7 @@ angular.module('gamEvolve.game.edit.header', [
 
   deleteInProgress = false
   $scope.isDeleteButtonDisplayed = ->
-    isGameLoaded() and loggedUser.isLoggedIn() and currentGame.info.ownerId is loggedUser.profile.id and not deleteInProgress
+    isGameLoaded() and loggedUser.isLoggedIn() and (currentGame.info.ownerId is loggedUser.profile.id or loggedUser.profile.isAdmin) and not deleteInProgress
   $scope.deleteButtonClick = ->
     if not $window.confirm """WARNING: If you delete the game then you can never go back and play it.
 
@@ -78,3 +78,5 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.helpButton = ->
     $window.open('http://github.com/CyberCRI/RedWire/wiki/Tutorials','_blank')
     return
+
+  $scope.showScreenshots = -> showDescriptionDialog.open()

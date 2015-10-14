@@ -11,7 +11,7 @@ angular.module('gamEvolve.game.boardTree', [
   'gamEvolve.model.circuits'
 ])
 
-.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, circuits, dndHelper) ->
+.controller 'BoardTreeCtrl', ($scope, $modal, currentGame, gameHistory, gameTime, treeDrag, chips, boardNodes, circuits, dndHelper, games) ->
   $scope.currentGame = currentGame
   $scope.treeDrag = treeDrag
   $scope.chips = chips 
@@ -145,6 +145,8 @@ angular.module('gamEvolve.game.boardTree', [
     if not dndHelper.dragIsFromSameWindow(dragData)
       # Copy chip dependencies
       copiedChipCount = dndHelper.copyChip(dragData.gameId, dragData.versionId, dragData.node)
+      # Record mixing of game
+      games.recordMix(dndHelper.getDraggedGameId(dragData))
 
     # IDs must be unique for this parent, like for ciruits
     if "id" of source 

@@ -1,5 +1,7 @@
-# TODO: this should be configurable
+# TODO: these should be configurable
 GAME_DIMENSIONS = [960, 540]
+SCREENSHOT_DIMENSIONS = [240, 135]
+ANIMATION_FRAME_COUNT = 30
 
 # Cppies error messages from stepLoop() into log messages attached to a 'global' circuit
 extendLogMessages = (result) ->
@@ -29,7 +31,7 @@ buildInitialMemoryData = (circuits) ->
   return memoryData
 
 angular.module('gamEvolve.game.player', [])
-.controller "PlayerCtrl", ($scope, $location, games, currentGame, gameHistory, gameTime, overlay, gamePlayerState) -> 
+.controller "PlayerCtrl", ($scope, $location, games, currentGame, gameHistory, gameTime, overlay, gamePlayerState, RequestScreenshotEvent, RequestRecordAnimationEvent) -> 
   # Globals
   puppetIsAlive = false
   gameCode = null
@@ -42,6 +44,11 @@ angular.module('gamEvolve.game.player', [])
   $scope.gameHistoryMeta = gameHistory.meta
   $scope.gamePlayerState = gamePlayerState
   lastGameVersion = -1
+
+  # The recorded screenshots (set to [] before each screenshot process)
+  screenshots = []
+  # The number of screenshots attempted (set to 1 for a single screenshot or ANIMATION_FRAME_COUNT for an animation)
+  targetScreenshotCount = null
 
   windowEventListener = (e) -> 
     # Sandboxed iframes which lack the 'allow-same-origin' header have "null" rather than a valid origin. 
@@ -192,6 +199,13 @@ angular.module('gamEvolve.game.player', [])
           # Display the current frame
           # TODO: go to the frame of first error
           onUpdateFrame(gameTime.currentFrameNumber)
+
+      when "takeScreenshot"
+        screenshots.push(message.value.screenshot)
+
+        if screenshots.length is targetScreenshotCount
+          $scope.$apply -> completeTakeScreenshot()
+    return 
 
   window.addEventListener("message", windowEventListener) 
   $scope.$on("$destroy", -> window.removeEventListener("message", windowEventListener))
@@ -349,6 +363,56 @@ angular.module('gamEvolve.game.player', [])
       hash: $location.hash()
 
     sendMessage("updateLocation", locationInfo)
+
+  takeScreenshot = -> 
+    screenshots = []
+    targetScreenshotCount = 1
+    gameTime.isTakingScreenshots = true
+    sendMessage("takeScreenshot", { size: SCREENSHOT_DIMENSIONS, index: 0 })
+
+  unsubscribeToRequestScreenshot = RequestScreenshotEvent.listen(takeScreenshot)
+  $scope.$on("$destroy", unsubscribeToRequestScreenshot)
+
+  recordAnimation = ->
+    screenshots = []
+    targetScreenshotCount = ANIMATION_FRAME_COUNT
+    gameTime.isTakingScreenshots = true
+
+    # Count the number of frames reminaing (including current frame)
+    remainingFrames = gameHistory.data.frames.length - gameTime.currentFrameNumber
+    # Divide the number of frames by the target number
+    animationSpeed = remainingFrames / ANIMATION_FRAME_COUNT
+
+    for i in [0...ANIMATION_FRAME_COUNT]
+      frameNumber = Math.floor(gameTime.currentFrameNumber + i * animationSpeed)
+
+      frameResult = gameHistory.data.frames[frameNumber]
+      outputIoData = RW.applyPatchesInCircuits(frameResult.ioPatches, _.omit(frameResult.inputIoData, "global"))
+      sendMessage("playBackFrame", { outputIoData: outputIoData })
+
+      sendMessage("takeScreenshot", { size: SCREENSHOT_DIMENSIONS, index: i })
+
+  completeTakeScreenshot = ->
+    if targetScreenshotCount is 1 
+      currentGame.version.screenshot = screenshots[0]
+      currentGame.updateLocalVersion()
+    else 
+      gifShotOptions = 
+        images: screenshots
+        gifWidth: SCREENSHOT_DIMENSIONS[0]
+        gifHeight: SCREENSHOT_DIMENSIONS[1]
+
+      gifshot.createGIF gifShotOptions, (obj) ->
+        if obj.error then return console.error(error)
+
+        currentGame.version.animation = obj.image
+        currentGame.updateLocalVersion()
+
+    gameTime.isTakingScreenshots = false
+
+  unsubscribeToRequestRecordAnimation = RequestRecordAnimationEvent.listen(recordAnimation)
+  $scope.$on("$destroy", unsubscribeToRequestRecordAnimation)
+
 
   # TODO: need some kind of notification from flexy-layout when a block changes size!
   # Until then automatically resize once in a while.

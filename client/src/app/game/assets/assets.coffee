@@ -109,15 +109,15 @@ angular.module('gamEvolve.game.assets', [
       el.addEventListener "dragstart", (e) ->
         e?.stopPropagation()
         e.dataTransfer.effectAllowed = 'copy'
-        data = parsedDrag(scope)
-        dndHelper.setDraggedData({ asset: data })
+        draggedData = dndHelper.makeDraggedData({ asset: parsedDrag(scope) })
+        dndHelper.setDraggedData(draggedData)
         return false
 
       el.addEventListener "dragend", (e) ->
         e?.stopPropagation()
         return false;
 
-.directive "assetDropzone", (currentGame, dndHelper, circuits) ->
+.directive "assetDropzone", (currentGame, dndHelper, circuits, games) ->
   restrict: 'A',
   link: (scope, element, attrs) ->
     acceptDrop = (event) -> dndHelper.getDraggedData()?.asset?
@@ -131,6 +131,8 @@ angular.module('gamEvolve.game.assets', [
       console.log("drop asset")
 
       draggedData = dndHelper.getDraggedData()
+      if not dndHelper.dragIsFromSameWindow(draggedData)
+        games.recordMix(dndHelper.getDraggedGameId(draggedData))
       
       currentGame.version.assets[draggedData.asset.name] = draggedData.asset.data
       currentGame.updateLocalVersion()
