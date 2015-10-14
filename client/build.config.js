@@ -93,7 +93,8 @@ module.exports = {
       'vendor/bowser/bowser.js',
       'vendor/sat-js/SAT.js',
       'vendor/angulartics/src/angulartics.js',
-      'vendor/angulartics/src/angulartics-ga.js'
+      'vendor/angulartics/src/angulartics-ga.js',
+      'vendor/localforage/dist/localforage.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
