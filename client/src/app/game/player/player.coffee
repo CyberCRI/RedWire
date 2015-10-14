@@ -36,6 +36,7 @@ angular.module('gamEvolve.game.player', [])
   puppetIsAlive = false
   gameCode = null
   oldRoundedScale = null
+  currentLocalVersion = null
 
   # Bring services into the scope
   $scope.currentGame = currentGame
@@ -247,15 +248,20 @@ angular.module('gamEvolve.game.player', [])
   onUpdateCode = ->
     if not currentGame.version? then return
     if not puppetIsAlive then return
+    if currentLocalVersion is currentGame.localVersion then return
 
     # Include the standard library in the game code
     gameCode = RW.cloneData(currentGame.version)
     for key, value of currentGame.standardLibrary
       _.defaults(gameCode[key], value)
 
-    console.log("Game code changed to", gameCode)
+    # Keep track of localVersion to avoid unneeded updates 
+    currentLocalVersion = currentGame.localVersion
+    console.log("Game code changed to version", currentLocalVersion)
+
     sendMessage("loadGameCode", gameCode)
-  $scope.$watch("currentGame.version", onUpdateCode, true)
+
+  $scope.$watch("currentGame.localVersion", onUpdateCode, true)
 
   # Call onUpdateGode() if the game history changes 
   onUpdateGameHistory = ->

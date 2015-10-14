@@ -29,7 +29,8 @@
     "sylvester": "~0.1.3",
     "underscore": "~1.5.2",
     "underscore.string": "*",
-    "webaudiox": "*"
+    "webaudiox": "*",
+    "localforage": "1.3.0"
   },
   "resolutions": {
     "angular-ui-router": "~0.2.13"
