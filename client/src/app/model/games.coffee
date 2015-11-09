@@ -75,8 +75,6 @@ angular.module('gamEvolve.model.games', [])
       $location.path("/game/#{currentGame.version.gameId}/edit")
       games.saveVersion()
 
-  games.loadAll = -> return $http.get('/api/games').then((result) -> return result.data).catch(-> alert("Can't load games"))
-
   games.deleteCurrent = ->
     $http.delete("/api/games/#{currentGame.version.gameId}").then(currentGame.reset)
 
@@ -118,9 +116,26 @@ angular.module('gamEvolve.model.games', [])
 
   games.recordLike = (gameId) -> $http.post("/api/like/#{gameId}")
 
+  games.recordMix = (fromGameId) -> $http.post("/api/mix/from/#{fromGameId}/to/#{currentGame.info.id}")
+
+
+  # Functions to load lists of games from the server
+  games.loadAll = -> return $http.get('/api/games').then((result) -> return result.data).catch(-> alert("Can't load games"))
+
+  games.loadPage = (page, itemsPerPage) -> 
+    query = 
+      $limit: itemsPerPage
+      $skip: (page - 1) * itemsPerPage 
+    if loggedUser.isLoggedIn()
+      query.ownerId = 
+        $ne: loggedUser.profile.id 
+    return $http.get("/api/games?#{JSON.stringify(query)}").then((result) -> return result.data)
+
   games.getRecommendations = -> 
     return $http.get('/api/recommend').then (result) -> _.shuffle(result.data)
 
-  games.recordMix = (fromGameId) -> $http.post("/api/mix/from/#{fromGameId}/to/#{currentGame.info.id}")
+  games.getMyGames = -> 
+    return $http.get("/api/games?ownerId=#{loggedUser.profile.id}").then((result) -> return result.data)
+
 
   return games

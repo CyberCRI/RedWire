@@ -1,9 +1,8 @@
-
-angular.module('gamEvolve.game.list', [])
+angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
 
 .config ($stateProvider) ->
     $stateProvider.state 'game-list',
-      url: '/game/list'
+      url: '/game/list?&page'
       views:
         "main":
           controller: 'GameListCtrl'
@@ -11,27 +10,48 @@ angular.module('gamEvolve.game.list', [])
       data:
         pageTitle: 'List Games'
 
-.controller 'GameListCtrl', ($scope, games, $state, loggedUser, ChangedLoginEvent) ->
+.controller 'GameListCtrl', ($scope, games, $state, $stateParams, loggedUser, ChangedLoginEvent, users) ->
     # Sort games by reverse chronological order
     timeSorter = (game) -> -1 * new Date(game.lastUpdatedTime).valueOf()
 
     # Sort games by likes
     likeSorter = (game) -> return -1 * game.likedData.likedCount
 
-    allGames = []
-    recommendations = []
-    myGames = []
+    $scope.gamesPerPage = 3 * 3
+
+    $scope.allGames = []
+    $scope.recommendations = []
+    $scope.myGames = []
+    $scope.page = $stateParams.page || 1
+
+    # Keep track of last page so not to repeat the same request 
+    lastRequestedPage = null
+
+    loadAllGamesPage = ->
+      # Don't bother repeating the same request
+      if lastRequestedPage == $scope.page then return
+      lastRequestedPage = $scope.page
+
+      games.loadPage($scope.page, $scope.gamesPerPage).then (allGames) ->
+        $scope.allGames = allGames
+
+      # Update the state params, but don't reload anything
+      $state.go("game-list", { page: $scope.page })
+    $scope.$watch("page", loadAllGamesPage)
 
     loadGames = ->
-      games.loadAll().then (gamesList) -> 
-        $scope.games = _.sortBy(gamesList, likeSorter)
-        
-        if loggedUser.isLoggedIn()
-          $scope.myGames = _.filter(gamesList, (game) -> game.ownerId is loggedUser.profile.id)
-        else
-          $scope.myGames = []
+      makeRequests = ->
+        if loggedUser.isLoggedIn() 
+          games.getMyGames().then (myGames) ->
+            $scope.myGames = _.sortBy(myGames, timeSorter)
 
-      games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
+        loadAllGamesPage()
+
+        games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
+
+      # First try to log user in before getting game lists
+      if loggedUser.isLoggedIn() then makeRequests()
+      else users.restoreSession().then(-> makeRequests())
 
     loadGames()
     unsubscribeChangedLoginEvent = ChangedLoginEvent.listen(loadGames)
