@@ -1,6 +1,3 @@
-WAIT_TIME = 2000
-
-
 saveExpandedNodes = (node) ->
   field: node.field
   type: node.type
@@ -21,18 +18,33 @@ restoreExpandedNodes = (node, save) ->
 
 angular.module('gamEvolve.game.memory', [])
 
-.controller 'MemoryCtrl', ($scope, gameHistory, gameTime, currentGame, circuits) ->
+.controller 'MemoryCtrl', ($scope, $window, gameHistory, gameTime, currentGame, circuits) ->
   $scope.gameHistoryMeta = gameHistory.meta 
   $scope.gameTime = gameTime
 
-  onEditorChange = -> $scope.$apply(onUpdateMemoryEditor)
+  memoryModified = false
 
   editor = new JSONEditor $("#memoryEditor")[0],
-    change: _.debounce(onEditorChange, WAIT_TIME)
+    change: -> memoryModified = true
     name: "memory"
     history: false
     search: false
     modes: ["tree", "code", "text"]
+
+  hasFocus = false
+  receivedFocus = (event) ->
+    isChildOnJsonEditor = $(event.target).parents(".jsoneditor").length > 0
+    if !hasFocus and isChildOnJsonEditor
+      hasFocus = true
+    else if hasFocus and not isChildOnJsonEditor
+      if memoryModified
+        $scope.$apply(onUpdateMemoryEditor)
+        memoryModified = false
+      hasFocus = false
+    return true
+
+  $($window).on("click", receivedFocus)
+  $scope.$on("$destroy", -> $($window).off("click", receivedFocus))
 
   # Update from gameHistory
   onUpdateMemoryModel = ->
