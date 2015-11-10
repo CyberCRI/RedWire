@@ -141,40 +141,47 @@ angular.module('gamEvolve.game.boardTree', [
     sourceParent = dragData.parent
     return if source is target
     return if source is chips.getCurrentBoard() # Ignore Main node DnD
-    
+
+    proceedWithCopy = ->
+      # IDs must be unique for this parent, like for circuits
+      if "id" of source 
+        siblings = if treeDrag.dropBefore 
+            targetParent.children
+          else if chips.acceptsChildren(target) 
+            target.children
+          else 
+            targetParent.children
+
+        # Keep trying new names until one fits
+        existingIds = _.pluck(siblings, "id")
+        nextId = source.id
+        nextIndex = 2
+        while nextId in existingIds
+          nextId = "#{source.id} #{nextIndex}"
+          nextIndex++
+        source.id = nextId
+
+      # Put the dropped node into the right place
+      if treeDrag.dropBefore
+        moveBeforeTarget(source, target, sourceParent, targetParent)
+      else if chips.acceptsChildren(target)
+        moveInsideTarget(source, target, sourceParent)
+      else
+        moveAfterTarget(source, target, sourceParent, targetParent)
+      
+      currentGame.updateLocalVersion()   
+
+    # If drag is not from the same window, then copy needed dependencies before proceeding with the copy
     if not dndHelper.dragIsFromSameWindow(dragData)
       # Copy chip dependencies
-      copiedChipCount = dndHelper.copyChip(dragData.gameId, dragData.versionId, dragData.node)
-      # Record mixing of game
-      games.recordMix(dndHelper.getDraggedGameId(dragData))
+      dndHelper.copyChip(dragData.gameId, dragData.versionId, dragData.node).then (copiedChipCount) ->
+        # Record mixing of game
+        games.recordMix(dndHelper.getDraggedGameId(dragData))
 
-    # IDs must be unique for this parent, like for ciruits
-    if "id" of source 
-      siblings = if treeDrag.dropBefore 
-          targetParent.children
-        else if chips.acceptsChildren(target) 
-          target.children
-        else 
-          targetParent.children
+        return proceedWithCopy()
 
-      # Keep trying new names until one fits
-      existingIds = _.pluck(siblings, "id")
-      nextId = source.id
-      nextIndex = 2
-      while nextId in existingIds
-        nextId = "#{source.id} #{nextIndex}"
-        nextIndex++
-      source.id = nextId
+    else proceedWithCopy()
 
-    # Put the dropped node into the right place
-    if treeDrag.dropBefore
-      moveBeforeTarget(source, target, sourceParent, targetParent)
-    else if chips.acceptsChildren(target)
-      moveInsideTarget(source, target, sourceParent)
-    else
-      moveAfterTarget(source, target, sourceParent, targetParent)
-    
-    currentGame.updateLocalVersion()
 
   moveBeforeTarget = (source, target, sourceParent, targetParent) ->
     removeSourceFromParent(source, sourceParent)

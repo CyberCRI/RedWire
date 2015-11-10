@@ -31,12 +31,13 @@ angular.module('gamEvolve.util.dndHelper', [])
 
   getDraggedGameId: (dragData) -> dragData.gameId 
 
+  # Returns promise
   getGameCodeForCopy: (gameId, versionId) ->
     # Get source game from localStorage
     # TOOD: verify versionId
-    sourceGameJson = localStorage.getItem(gameId)
-    if not sourceGameJson then throw new Error("Cannot find game from local storage")
-    return JSON.parse(sourceGameJson).data
+    return localforage.getItem(gameId).then (sourceGameJson) ->
+      if not sourceGameJson then throw new Error("Cannot find game from local storage")
+      return JSON.parse(sourceGameJson).data
 
   # Returns true if the copy is successful, else false
   # Does not update local version
@@ -54,21 +55,20 @@ angular.module('gamEvolve.util.dndHelper', [])
     targetChipCollection[newChipName] = sourceChipCollection[chipName]
     return true
 
-  # Returns number of chips copied
+  # Returns promise for number of chips copied
   # Does not update local version
   copyChip: (gameId, versionId, chip) ->
     # Get source game from localStorage
-    sourceGameCode = @getGameCodeForCopy(gameId, versionId)
+    return @getGameCodeForCopy(gameId, versionId).then (sourceGameCode) =>
+      # Get chip data
+      [chipType, chipName] = chips.getChipTypeAndName(chip)
 
-    # Get chip data
-    [chipType, chipName] = chips.getChipTypeAndName(chip)
+      chipsToCopy = @listChipsToCopy(sourceGameCode, chip)
+      copiedChipCount = 0
+      for chipToCopy in chipsToCopy
+        if @copySingleChip(sourceGameCode, currentGame.version, chipToCopy...) then copiedChipCount++
 
-    chipsToCopy = @listChipsToCopy(sourceGameCode, chip)
-    copiedChipCount = 0
-    for chipToCopy in chipsToCopy
-      if @copySingleChip(sourceGameCode, currentGame.version, chipToCopy...) then copiedChipCount++
-
-    return copiedChipCount
+      return copiedChipCount
 
   isChipNameTaken: (chipType, chipName) ->
     chipCollection = chips.getChipCollection(currentGame.version, chipType)

@@ -250,7 +250,7 @@ angular.module('gamEvolve.game.toolbox', [])
 
       games.recordMix(dndHelper.getDraggedGameId(draggedData))
       
-      copiedChipCount = dndHelper.copyChip(draggedData.gameId, draggedData.versionId, draggedData.node)
-      if copiedChipCount > 0 then currentGame.updateLocalVersion()
+      dndHelper.copyChip(draggedData.gameId, draggedData.versionId, draggedData.node).then (copiedChipCount) ->
+        if copiedChipCount > 0 then currentGame.updateLocalVersion()
 
       return false
