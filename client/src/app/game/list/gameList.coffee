@@ -10,7 +10,7 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
       data:
         pageTitle: 'List Games'
 
-.controller 'GameListCtrl', ($scope, games, $state, $stateParams, loggedUser, ChangedLoginEvent, users) ->
+.controller 'GameListCtrl', ($scope, games, loggedUser, ChangedLoginEvent, users) ->
     # Sort games by reverse chronological order
     timeSorter = (game) -> -1 * new Date(game.lastUpdatedTime).valueOf()
 
@@ -22,7 +22,7 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
     $scope.allGames = []
     $scope.recommendations = []
     $scope.myGames = []
-    $scope.page = $stateParams.page || 1
+    $scope.page = 1
 
     # Keep track of last page so not to repeat the same request 
     lastRequestedPage = null
@@ -33,10 +33,7 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
       lastRequestedPage = $scope.page
 
       games.loadPage($scope.page, $scope.gamesPerPage).then (allGames) ->
-        $scope.allGames = allGames
-
-      # Update the state params, but don't reload anything
-      $state.go("game-list", { page: $scope.page })
+        $scope.allGames = allGames      
     $scope.$watch("page", loadAllGamesPage)
 
     loadGames = ->
