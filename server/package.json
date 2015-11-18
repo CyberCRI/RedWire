@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "deployd": "~0.6.10",
+    "dpd-count": "0.0.1",
     "dpd-event": "0.0.2",
     "dpd-fileupload": "0.0.14",
     "dpd-raccoon": "~0.1.1"

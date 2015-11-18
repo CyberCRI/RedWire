@@ -18,6 +18,7 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
     likeSorter = (game) -> return -1 * game.likedData.likedCount
 
     $scope.gamesPerPage = 3 * 3
+    $scope.gameCount = 100 # Will be replaced with request
 
     $scope.allGames = []
     $scope.recommendations = []
@@ -42,13 +43,15 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
           games.getMyGames().then (myGames) ->
             $scope.myGames = _.sortBy(myGames, timeSorter)
 
+        games.countItems().then (gameCount) -> $scope.gameCount = gameCount
+
         loadAllGamesPage()
 
         games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
 
       # First try to log user in before getting game lists
       if loggedUser.isLoggedIn() then makeRequests()
-      else users.restoreSession().then(-> makeRequests())
+      else users.restoreSession().then(makeRequests)
 
     loadGames()
     unsubscribeChangedLoginEvent = ChangedLoginEvent.listen(loadGames)
