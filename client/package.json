@@ -39,7 +39,9 @@
     "karma-jasmine": "~0.1.5",
     "mime": "~1.2.11",
     "moment": "~2.5.1",
+    "mongodb": "^2.0.48",
     "path": "*",
+    "raccoon": "^0.2.3",
     "request": "~2.33.0",
     "underscore": "*"
   },
