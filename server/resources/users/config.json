@@ -16,6 +16,14 @@
 			"required": false,
 			"id": "isAdmin",
 			"order": 1
+		},
+		"likedGames": {
+			"name": "likedGames",
+			"type": "array",
+			"typeLabel": "array",
+			"required": false,
+			"id": "likedGames",
+			"order": 2
 		}
 	}
 }

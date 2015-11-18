@@ -6,6 +6,7 @@ if(!internal) {
     protect("playCount");
     protect("forkCount");
     protect("versionCount");
+    protect("likeCount");
     protect("lastVersionId");
     protect("mixedFromGameIds");
     protect("mixedToGameIds");

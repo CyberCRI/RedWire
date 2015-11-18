@@ -4,12 +4,13 @@ angular.module('gamEvolve.game.like', [])
     restrict: "E"
     scope: 
       gameId: "="
-      likedData: "="
+      likedCount: "="
+      likedGame: "="
       buttonClasses: "="
     templateUrl: "game/like/like.tpl.html"
     controller: ($scope, games, loggedUser) ->
       # If the likedData is provided, use it. Otherwise query the backend
-      if $scope.likedData 
+      if $scope.likedCount? and $scope.likedGame
         $scope.likedCount = $scope.likedData.likedCount 
         $scope.likedGame = $scope.likedData.likedGame 
       else

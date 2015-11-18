@@ -134,6 +134,8 @@ angular.module('gamEvolve.model.games', [])
     query = 
       $limit: itemsPerPage
       $skip: (page - 1) * itemsPerPage 
+      $sort: 
+        $lastUpdatedTime: -1
     if loggedUser.isLoggedIn()
       query.ownerId = 
         $ne: loggedUser.profile.id 

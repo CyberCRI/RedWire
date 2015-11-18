@@ -2,6 +2,7 @@
 this.playCount = 0;
 this.forkCount = 0;
 this.versionCount = 0;
+this.likeCount = 0;
 this.createdTime = new Date().toISOString();
 this.lastUpdatedTime = new Date().toISOString();
 this.mixedFromGameIds = [];

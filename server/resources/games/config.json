@@ -81,13 +81,21 @@
 			"id": "versionCount",
 			"order": 9
 		},
+		"likedCount": {
+			"name": "likedCount",
+			"type": "number",
+			"typeLabel": "number",
+			"required": false,
+			"id": "likedCount",
+			"order": 10
+		},
 		"lastVersionId": {
 			"name": "lastVersionId",
 			"type": "string",
 			"typeLabel": "string",
 			"required": false,
 			"id": "lastVersionId",
-			"order": 10
+			"order": 11
 		},
 		"mixedFromGameIds": {
 			"name": "mixedFromGameIds",
@@ -95,7 +103,7 @@
 			"typeLabel": "array",
 			"required": false,
 			"id": "mixedFromGameIds",
-			"order": 11
+			"order": 12
 		},
 		"mixedToGameIds": {
 			"name": "mixedToGameIds",
@@ -103,7 +111,7 @@
 			"typeLabel": "array",
 			"required": false,
 			"id": "mixedToGameIds",
-			"order": 12
+			"order": 13
 		},
 		"screenshot": {
 			"name": "screenshot",
@@ -111,7 +119,7 @@
 			"typeLabel": "string",
 			"required": false,
 			"id": "screenshot",
-			"order": 13
+			"order": 14
 		},
 		"animation": {
 			"name": "animation",
@@ -119,7 +127,7 @@
 			"typeLabel": "string",
 			"required": false,
 			"id": "animation",
-			"order": 14
+			"order": 15
 		},
 		"description": {
 			"name": "description",
@@ -127,7 +135,7 @@
 			"typeLabel": "string",
 			"required": false,
 			"id": "description",
-			"order": 15
+			"order": 16
 		}
 	}
 }
