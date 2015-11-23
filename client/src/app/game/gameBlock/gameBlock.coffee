@@ -76,6 +76,7 @@ angular.module('gamEvolve.game.block', [])
         updateGames = (games) ->
           $scope.games = games
           updateRows()
+          $scope.isLoading = false
 
         lastSortBy = null
         lastPageNumber = null
@@ -84,6 +85,8 @@ angular.module('gamEvolve.game.block', [])
 
           lastSortBy = $scope.sortBy
           lastPageNumber = $scope.pageNumber
+
+          $scope.isLoading = true
 
           $scope.getPageOfGames($scope.pageNumber - 1, $scope.gamesPerPage, $scope.sortBy)
           .then(updateGames)
