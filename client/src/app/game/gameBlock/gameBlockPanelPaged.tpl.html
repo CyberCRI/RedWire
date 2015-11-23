@@ -3,7 +3,7 @@
 		<h3 class="panel-title">{{title}}</h3>
 	</div>
 	<div class="panel-body">
-		<div class="row" ng-if="gameCount > gamesPerPage">
+		<div class="row" ng-show="gameCount > gamesPerPage">
 			<div class="col-md-4 form-inline">
 				<div class="form-group"> 
 					<label for="sortBy">Sort By</label>
@@ -19,12 +19,12 @@
 			</div>
 		</div>
 
-		<pager ng-if="gameCount > gamesPerPage" total-items="gameCount" ng-model="pageNumber" items-per-page="gamesPerPage" previous-text="< Previous" next-text="Next >"></pager>
+		<pager ng-show="gameCount > gamesPerPage" total-items="gameCount" ng-model="pageNumber" items-per-page="gamesPerPage" previous-text="< Previous" next-text="Next >"></pager>
 		
 		<div class="row" ng-repeat="row in rows">
 			<game-block ng-repeat="game in row" game="game" class="col-md-4"></game-block>
 		</div>
 		
-		<pager ng-if="gameCount > gamesPerPage" total-items="gameCount" ng-model="pageNumber" items-per-page="gamesPerPage" previous-text="< Previous" next-text="Next >"></pager>
+		<pager ng-show="gameCount > gamesPerPage" total-items="gameCount" ng-model="pageNumber" items-per-page="gamesPerPage" previous-text="< Previous" next-text="Next >"></pager>
 	</div>
 </div>
