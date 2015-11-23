@@ -15,6 +15,7 @@ RW.io.keyboard =
     eventNamespace = _.uniqueId('keyboard')
 
     keysDown = {}
+    lastKeysDown = {}
 
     $(options.elementSelector).on "keydown.#{eventNamespace} keyup.#{eventNamespace} focusout.#{eventNamespace}", (event) ->
       # Don't handle events on HTML controls
@@ -32,10 +33,25 @@ RW.io.keyboard =
 
     return {
       provideData: -> 
-        global: 
-          keysDown: keysDown
+        keyDownSet = _.keys(keysDown)
+        lastKeyDownSet = _.keys(lastKeysDown)
 
-      establishData: -> # NOOP. Input io does not take data
+        keysJustDown = {}
+        for key in _.difference(keyDownSet, lastKeyDownSet)
+          keysJustDown[key] = true
+
+        keysJustUp = {}
+        for key in _.difference(lastKeyDownSet, keyDownSet)
+          keysJustUp[key] = true
+
+        lastKeysDown = RW.cloneData(keysDown)
+
+        return global: 
+          keysDown: keysDown
+          keysJustDown: keysJustDown
+          keysJustUp: keysJustUp
+
+      establishData: -> # NOOP. Input IO does not take data
 
       # Remove all event handlers
       destroy: -> $(options.elementSelector).off(".#{eventNamespace}")

@@ -18,7 +18,7 @@ module.factory 'pins', (circuits, currentGame) ->
     for service in ["time", "http"] then keys.push("io.#{service}")
 
     # Fill in keyboard pins
-    keys.push("io.keyboard.keysDown")
+    for pin in ["keysDown", "keysJustDown", "keysJustUp"] then keys.push("io.keyboard.#{pin}")
 
     # Fill in mouse pins
     for pin in ["down", "position", "cursor", "justDown", "justUp"] then keys.push("io.mouse.#{pin}")
