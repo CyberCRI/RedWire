@@ -24,3 +24,17 @@
 .jsoneditor .menu button {
   background: #e3eaf6 url('images/jsoneditor-icons.png');
 }
+
+#memoryContainer {
+	position: relative;
+
+	// The apply memory button floats on top of the memory editor
+	#memoryApplyButton {
+		position: absolute;
+		top: 0px;
+		right: 0px;
+		z-index: 10;
+		margin: 3px;
+	}
+}
+

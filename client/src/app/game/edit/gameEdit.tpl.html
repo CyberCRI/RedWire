@@ -79,8 +79,8 @@
                 <!-- East Column-->
                 <block-container init="300">
                     <flexy-layout orientation="vertical" >
-                        <block-container style="font-size:13px;">
-                            <div id="memoryEditor" ng-class="{ notFirstFrame: gameTime.currentFrameNumber > 0}" ng-controller="MemoryCtrl"></div>
+                        <block-container id="memoryContainer">
+                            <memory-editor></memory-editor>
                         </block-container>
 
                         <block-splitter></block-splitter>
