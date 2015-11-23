@@ -5,23 +5,19 @@ angular.module('gamEvolve.game.like', [])
     scope: 
       gameId: "="
       likedCount: "="
-      likedGame: "="
       buttonClasses: "="
     templateUrl: "game/like/like.tpl.html"
-    controller: ($scope, games, loggedUser) ->
-      # If the likedData is provided, use it. Otherwise query the backend
-      if $scope.likedCount? and $scope.likedGame
-        $scope.likedCount = $scope.likedData.likedCount 
-        $scope.likedGame = $scope.likedData.likedGame 
-      else
+    controller: ($scope, games, loggedUser, ChangedLoginEvent) ->
+      # If the data about likes is provided, use it. Otherwise query the backend
+      if not $scope.likedCount? 
         $scope.likedCount = 0
-        $scope.likedGame = false
-
-        games.getLikeCount($scope.gameId).then (results) ->
+        games.getLikedCount($scope.gameId).then (results) ->
           $scope.likedCount = results.likedCount
-          $scope.likedGame = results.likedGame
 
-      $scope.isDisabled = -> not loggedUser.isLoggedIn() or $scope.likedGame 
+      # Check if the user already liked the game
+      $scope.likedGame = -> loggedUser.isLoggedIn() and _.contains(loggedUser.profile.likedGames, $scope.gameId)
+
+      $scope.isDisabled = -> not loggedUser.isLoggedIn() or $scope.likedGame()
 
       updateLikeText = (likedCount) ->
         $scope.text = if likedCount then "#{likedCount} Likes" else "Like" 
@@ -29,13 +25,13 @@ angular.module('gamEvolve.game.like', [])
 
       $scope.pickClasses = ->
         baseClasses = $scope.buttonClasses or [] 
-        return baseClasses.concat(if $scope.likedGame then "btn-success" else "btn-default")
+        return baseClasses.concat(if $scope.likedGame() then "btn-success" else "btn-default")
 
       $scope.onClick = ->
-        if $scope.likedGame then return 
+        if $scope.likedGame() then return 
         if not loggedUser.isLoggedIn then 
 
         games.recordLike($scope.gameId).then ->
           $scope.likedCount++
-          $scope.likedGame = true
+          loggedUser.profile.likedGames.push($scope.gameId)
   }

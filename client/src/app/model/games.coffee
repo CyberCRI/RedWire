@@ -112,7 +112,7 @@ angular.module('gamEvolve.model.games', [])
 
   games.recordPlay = (gameId) -> $http.post("/api/play/#{gameId}")
 
-  games.getLikeCount = (gameId) -> $http.get("/api/like/#{gameId}").then((results) -> return results.data)
+  games.getLikedCount = (gameId) -> $http.get("/api/like/#{gameId}").then((results) -> return results.data)
 
   games.recordLike = (gameId) -> $http.post("/api/like/#{gameId}")
 
