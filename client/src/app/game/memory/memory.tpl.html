@@ -1,0 +1,2 @@
+<button class="btn btn-default btn-sm" ng-class="{ 'btn-success': gameTime.currentFrameNumber == 0, 'btn-warning': gameTime.currentFrameNumber > 0}" id="memoryApplyButton" ng-disabled="!memoryModified" ng-click="applyMemoryModification()">{{ applyButtonText() }}</button>
+<div id="memoryEditor" ng-class="{ notFirstFrame: gameTime.currentFrameNumber > 0 }"></div>
