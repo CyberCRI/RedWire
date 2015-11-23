@@ -6,7 +6,7 @@
 	</div>
 
 	<div class="row">
-		<div class="col-md-12" id="logoContainer">
+		<div class="col-md-12" id="logoContainer"></div>
 		<a id="documentation-button" target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Standard-Toolbox-Reference" class="btn btn-primary btn-lg col-md-2" role="button">Documentation</a>
 		<div class="col-md-8" id="logoBlock">
 			<img src="/assets/images/logo_big.png" ui-sref="home"></img>
@@ -17,11 +17,12 @@
 
 	<h2>Games</h2>
 
-	<div class="form-group form-inline">
-		<div class="input-group">
-			<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
-			<input type="text" class="form-control" placeholder="Search..." ng-model="searchText">
-		</div>
+	<div class="input-group" id="searchInputBox">
+		<div class="input-group-addon"><i class="glyphicon glyphicon-search"></i></div>
+		<input type="text" class="form-control" placeholder="Search..." ng-model="searchText">
+		<span class="input-group-btn">
+			<button class="btn btn-default" type="button" ng-click="clearSearchText()"><i class="glyphicon glyphicon-remove"></i></button>
+		</span>
 	</div>
 
 	<game-block-panel-paged ng-if="searchText.length > 0" title="'Search Results'" count-games="countSearchedGames" get-page-of-games="getPageOfSearchedGames" games-per-page="12"></game-block-panel-paged>

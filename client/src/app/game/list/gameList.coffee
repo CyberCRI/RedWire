@@ -64,3 +64,5 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
         $sort: makeSortQuery(sortBy)
 
     $scope.$watch("searchText", changeSearchText)
+
+    $scope.clearSearchText = -> $scope.searchText = ""
