@@ -17,13 +17,22 @@
 
 	<h2>Games</h2>
 
-	<div ng-if="isLoggedIn()">
+	<div class="form-group form-inline">
+		<div class="input-group">
+			<span class="input-group-addon"><i class="glyphicon glyphicon-search"></i></span>
+			<input type="text" class="form-control" placeholder="Search..." ng-model="searchText">
+		</div>
+	</div>
+
+	<game-block-panel-paged ng-show="searchText.length > 0" title="'Search Results'" count-games="countSearchedGames" get-page-of-games="getPageOfSearchedGames" games-per-page="12"></game-block-panel-paged>
+
+	<div ng-if="isLoggedIn()" ng-show="searchText.length == 0">
 		<game-block-panel-paged title="'Suggestions'" count-games="countRecommendations" get-page-of-games="getPageOfRecommendations" games-per-page="3"></game-block-panel-paged>
 	</div>
 
-	<div ng-if="isLoggedIn()">
+	<div ng-if="isLoggedIn()" ng-show="searchText.length == 0">
 		<game-block-panel-paged title="'My Games'" count-games="countMyGames" get-page-of-games="getPageOfMyGames" games-per-page="6"></game-block-panel-paged>
 	</div>
 	
-	<game-block-panel-paged title="'All Games'" count-games="countAllGames" get-page-of-games="getPageOfAllGames" games-per-page="12"></game-block-panel-paged>
+	<game-block-panel-paged ng-show="searchText.length == 0" title="'All Games'" count-games="countAllGames" get-page-of-games="getPageOfAllGames" games-per-page="12"></game-block-panel-paged>
 </div>

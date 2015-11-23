@@ -48,3 +48,12 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
     # There are always 3 recommendations, with no paging
     $scope.countRecommendations = -> wrapValueInPromise(3)
     $scope.getPageOfRecommendations = (pageNumber, gamesPerPage, sortBy) -> games.getRecommendations()
+
+    $scope.searchText = ""
+    $scope.countSearchedGames = -> games.countGames
+      name: $scope.searchText 
+    $scope.getPageOfSearchedGames = (pageNumber, gamesPerPage, sortBy) -> games.getPageOfGames pageNumber, gamesPerPage, 
+      name: $scope.searchText 
+      $sort: makeSortQuery(sortBy)
+
+    $scope.$watch("searchText", -> $scope.$emit("reload"))
