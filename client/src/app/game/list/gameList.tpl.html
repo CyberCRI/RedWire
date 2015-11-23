@@ -21,11 +21,9 @@
 		<game-block-panel title="'Suggestions'" games="gameRecommendations"></game-block-panel>
 	</div>
 
-	<!-- 
-	<div ng-if="myGames">
-		<game-block-panel-paged title="'My Games'" games="myGames"></game-block-panel-paged>
+	<div ng-if="isLoggedIn()">
+		<game-block-panel-paged title="'My Games'" count-games="countMyGames" get-page-of-games="getPageOfMyGames"></game-block-panel-paged>
 	</div>
-	-->
 
 	<game-block-panel-paged title="'All Games'" count-games="countAllGames" get-page-of-games="getPageOfAllGames" games-per-page="3"></game-block-panel-paged>
 </div>

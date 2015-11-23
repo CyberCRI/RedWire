@@ -17,13 +17,18 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
     # Sort games by likes
     likeSorter = (game) -> return -1 * game.likedData.likedCount
 
+    $scope.recommendations = []
+
+    $scope.isLoggedIn = -> loggedUser.isLoggedIn()
+ 
+    ###
     $scope.gamesPerPage = 3 * 3
     $scope.gameCount = 100 # Will be replaced with request
 
     $scope.allGames = []
-    $scope.recommendations = []
     $scope.myGames = []
     $scope.page = 1
+    ###
 
     ###
     # Keep track of last page so not to repeat the same request 
@@ -70,6 +75,11 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
         $lastUpdatedTime: -1
     ###
     $scope.countAllGames = -> games.countGames()
-    $scope.getPageOfAllGames = (pageNumber, gamesPerPage) -> games.getPageOfGames({}, pageNumber, gamesPerPage)
+    $scope.getPageOfAllGames = (pageNumber, gamesPerPage) -> games.getPageOfGames(pageNumber, gamesPerPage)
+
+    $scope.countMyGames = -> games.countGames
+      ownerId: loggedUser.profile.id 
+    $scope.getPageOfMyGames = (pageNumber, gamesPerPage) -> games.getPageOfGames pageNumber, gamesPerPage, 
+      ownerId: loggedUser.profile.id 
 
     # $scope.$on("destroy", unsubscribeChangedLoginEvent)

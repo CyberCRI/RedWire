@@ -127,7 +127,7 @@ angular.module('gamEvolve.model.games', [])
       id: "count"
     return $http.get("/api/games?#{JSON.stringify(query)}").then((result) -> return result.data.count)
 
-  games.getPageOfGames = (query = {}, pageNumber, itemsPerPage) -> 
+  games.getPageOfGames = (pageNumber, itemsPerPage, query = {}) -> 
     query = _.extend {}, query, 
       $limit: itemsPerPage
       $skip: pageNumber * itemsPerPage 
