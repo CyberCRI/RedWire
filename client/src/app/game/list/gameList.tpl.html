@@ -24,7 +24,7 @@
 		</div>
 	</div>
 
-	<game-block-panel-paged ng-show="searchText.length > 0" title="'Search Results'" count-games="countSearchedGames" get-page-of-games="getPageOfSearchedGames" games-per-page="12"></game-block-panel-paged>
+	<game-block-panel-paged ng-if="searchText.length > 0" title="'Search Results'" count-games="countSearchedGames" get-page-of-games="getPageOfSearchedGames" games-per-page="12"></game-block-panel-paged>
 
 	<div ng-if="isLoggedIn()" ng-show="searchText.length == 0">
 		<game-block-panel-paged title="'Suggestions'" count-games="countRecommendations" get-page-of-games="getPageOfRecommendations" games-per-page="3"></game-block-panel-paged>

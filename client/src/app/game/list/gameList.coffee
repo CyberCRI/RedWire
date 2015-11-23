@@ -49,11 +49,19 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
     $scope.countRecommendations = -> wrapValueInPromise(3)
     $scope.getPageOfRecommendations = (pageNumber, gamesPerPage, sortBy) -> games.getRecommendations()
 
-    $scope.searchText = ""
-    $scope.countSearchedGames = -> games.countGames
-      name: $scope.searchText 
-    $scope.getPageOfSearchedGames = (pageNumber, gamesPerPage, sortBy) -> games.getPageOfGames pageNumber, gamesPerPage, 
-      name: $scope.searchText 
-      $sort: makeSortQuery(sortBy)
+    # From http://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
+    escapeRegExp = (str) -> str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 
-    $scope.$watch("searchText", -> $scope.$emit("reload"))
+    # When the search text changes, make new functions to handle the search
+    $scope.searchText = ""
+    changeSearchText = ->
+      if not $scope.searchText then return 
+
+      queryBase = 
+        $or: [{ name: { $regex: escapeRegExp($scope.searchText), $options: "i" } }, { ownerName: { $regex: escapeRegExp($scope.searchText), $options: "i" } }]
+
+      $scope.countSearchedGames = -> games.countGames(queryBase)
+      $scope.getPageOfSearchedGames = (pageNumber, gamesPerPage, sortBy) -> games.getPageOfGames pageNumber, gamesPerPage, _.extend {}, queryBase,
+        $sort: makeSortQuery(sortBy)
+
+    $scope.$watch("searchText", changeSearchText)

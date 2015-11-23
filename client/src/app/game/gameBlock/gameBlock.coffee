@@ -78,13 +78,18 @@ angular.module('gamEvolve.game.block', [])
           updateRows()
           $scope.isLoading = false
 
-        lastSortBy = null
-        lastPageNumber = null
-        loadPage = ->
-          if lastSortBy is $scope.sortBy and lastPageNumber is $scope.pageNumber then return
+        lastValues = {}
+        checkAttributeChanges = (attrs...) ->
+          for attr in attrs
+            if $scope[attr] isnt lastValues[attr]  
+              # Store updated values
+              for attr2 in attrs
+                lastValues[attr2] = $scope[attr2]
+              return true
+          return false
 
-          lastSortBy = $scope.sortBy
-          lastPageNumber = $scope.pageNumber
+        loadPage = ->
+          if not checkAttributeChanges("sortBy", "pageNumber", "getPageOfGames") then return 
 
           $scope.isLoading = true
 
@@ -96,16 +101,25 @@ angular.module('gamEvolve.game.block', [])
           $scope.pageNumber = 1
           loadPage()
 
-        # Set default values
-        $scope.pageNumber = 1
-        $scope.sortBy = "latest"
-
         # Count games 
-        $scope.countGames()
-        .then((gameCount) -> $scope.gameCount = gameCount)
+        changeCountGames = ->
+          $scope.countGames()
+          .then((gameCount) -> $scope.gameCount = gameCount)
+
+        changeGetPageOfGames = ->
+          # Load first page again
+          $scope.pageNumber = 1
+          loadPage()
 
         $scope.$watch("pageNumber", loadPage)
         $scope.$watch("sortBy", changeSortBy)
+
+        $scope.$watch("countGames", changeCountGames)
+        $scope.$watch("getPageOfGames", changeGetPageOfGames)
+
+        # Set default values
+        $scope.pageNumber = 1
+        $scope.sortBy = "latest"
      }
    )
 
