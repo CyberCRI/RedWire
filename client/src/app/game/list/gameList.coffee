@@ -10,76 +10,41 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
       data:
         pageTitle: 'List Games'
 
-.controller 'GameListCtrl', ($scope, games, loggedUser, ChangedLoginEvent, users) ->
-    # Sort games by reverse chronological order
-    timeSorter = (game) -> -1 * new Date(game.lastUpdatedTime).valueOf()
-
-    # Sort games by likes
-    likeSorter = (game) -> return -1 * game.likedData.likedCount
-
-    $scope.recommendations = []
-
+.controller 'GameListCtrl', ($scope, $q, games, loggedUser, users) ->
     $scope.isLoggedIn = -> loggedUser.isLoggedIn()
- 
-    ###
-    $scope.gamesPerPage = 3 * 3
-    $scope.gameCount = 100 # Will be replaced with request
 
-    $scope.allGames = []
-    $scope.myGames = []
-    $scope.page = 1
-    ###
+    makeSortQuery = (sortBy) ->
+      switch sortBy
+        when "latest" 
+          lastUpdatedTime: -1
+        when "mostLiked"
+          likedCount: -1
+        when "mostForks"
+          forkCount: -1
+        when "mostPlayed" 
+          playCount: -1
+        when "alphabetical" 
+          name: 1
+        when "userName" 
+          ownerName: 1
+        else
+          throw new Error("Unknown sortBy", sortBy)
 
-    ###
-    # Keep track of last page so not to repeat the same request 
-    lastRequestedPage = null
+    wrapValueInPromise = (value) -> 
+      deferred = $q.defer()
+      deferred.resolve(value)
+      return deferred.promise
 
-    loadAllGamesPage = ->
-      # Don't bother repeating the same request
-      if lastRequestedPage == $scope.page then return
-      lastRequestedPage = $scope.page
-
-      games.loadPage($scope.page, $scope.gamesPerPage).then (allGames) ->
-        $scope.allGames = allGames      
-    $scope.$watch("page", loadAllGamesPage)
-
-    loadGames = ->
-      makeRequests = ->
-        if loggedUser.isLoggedIn() 
-          games.getMyGames().then (myGames) ->
-            $scope.myGames = _.sortBy(myGames, timeSorter)
-
-        games.countItems().then (gameCount) -> $scope.gameCount = gameCount
-
-        loadAllGamesPage()
-
-        games.getRecommendations().then (recommendations) -> $scope.gameRecommendations = recommendations
-
-      # First try to log user in before getting game lists
-      if loggedUser.isLoggedIn() then makeRequests()
-      else users.restoreSession().then(makeRequests)
-
-    loadGames()
-    unsubscribeChangedLoginEvent = ChangedLoginEvent.listen(loadGames)
-
-    ###
-
-    ###
-        if loggedUser.isLoggedIn()
-      query.ownerId = 
-        $ne: loggedUser.profile.id 
-    ###
-
-    ### 
-          $sort: 
-        $lastUpdatedTime: -1
-    ###
     $scope.countAllGames = -> games.countGames()
-    $scope.getPageOfAllGames = (pageNumber, gamesPerPage) -> games.getPageOfGames(pageNumber, gamesPerPage)
+    $scope.getPageOfAllGames = (pageNumber, gamesPerPage, sortBy) -> games.getPageOfGames pageNumber, gamesPerPage,
+      $sort: makeSortQuery(sortBy)
 
     $scope.countMyGames = -> games.countGames
       ownerId: loggedUser.profile.id 
-    $scope.getPageOfMyGames = (pageNumber, gamesPerPage) -> games.getPageOfGames pageNumber, gamesPerPage, 
+    $scope.getPageOfMyGames = (pageNumber, gamesPerPage, sortBy) -> games.getPageOfGames pageNumber, gamesPerPage, 
       ownerId: loggedUser.profile.id 
+      $sort: makeSortQuery(sortBy)
 
-    # $scope.$on("destroy", unsubscribeChangedLoginEvent)
+    # There are always 3 recommendations, with no paging
+    $scope.countRecommendations = -> wrapValueInPromise(3)
+    $scope.getPageOfRecommendations = (pageNumber, gamesPerPage, sortBy) -> games.getRecommendations()

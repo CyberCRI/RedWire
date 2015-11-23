@@ -18,5 +18,3 @@ if(!internal) {
 protect("ownerId");
 protect("parentId");
 protect("createdTime");
-
-this.lastUpdatedTime = new Date().toISOString();

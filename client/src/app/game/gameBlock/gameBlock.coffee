@@ -77,16 +77,32 @@ angular.module('gamEvolve.game.block', [])
           $scope.games = games
           updateRows()
 
+        lastSortBy = null
+        lastPageNumber = null
         loadPage = ->
-          $scope.getPageOfGames($scope.pageNumber - 1, $scope.gamesPerPage)
+          if lastSortBy is $scope.sortBy and lastPageNumber is $scope.pageNumber then return
+
+          lastSortBy = $scope.sortBy
+          lastPageNumber = $scope.pageNumber
+
+          $scope.getPageOfGames($scope.pageNumber - 1, $scope.gamesPerPage, $scope.sortBy)
           .then(updateGames)
 
+        changeSortBy = ->
+          # Load first page again
+          $scope.pageNumber = 1
+          loadPage()
+
+        # Set default values
         $scope.pageNumber = 1
+        $scope.sortBy = "latest"
+
+        # Count games 
         $scope.countGames()
         .then((gameCount) -> $scope.gameCount = gameCount)
-        .then(loadPage)
 
         $scope.$watch("pageNumber", loadPage)
+        $scope.$watch("sortBy", changeSortBy)
      }
    )
 
