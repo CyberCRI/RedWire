@@ -4,8 +4,8 @@ angular.module('gamEvolve.game.like', [])
     restrict: "E"
     scope: 
       gameId: "="
-      likedCount: "="
-      buttonClasses: "="
+      likedCount: "=?"
+      buttonClasses: "=?"
     templateUrl: "game/like/like.tpl.html"
     controller: ($scope, games, loggedUser, ChangedLoginEvent) ->
       # If the data about likes is provided, use it. Otherwise query the backend
