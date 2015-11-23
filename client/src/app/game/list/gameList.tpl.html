@@ -21,10 +21,11 @@
 		<game-block-panel title="'Suggestions'" games="gameRecommendations"></game-block-panel>
 	</div>
 
+	<!-- 
 	<div ng-if="myGames">
-		<game-block-panel title="'My Games'" games="myGames"></game-block-panel>
+		<game-block-panel-paged title="'My Games'" games="myGames"></game-block-panel-paged>
 	</div>
+	-->
 
-	<pager total-items="gameCount" ng-model="page" items-per-page="gamesPerPage" previous-text="< Previous" next-text="Next >"></pager>
-	<game-block-panel title="'All Games'" games="allGames"></game-block-panel>
+	<game-block-panel-paged title="'All Games'" count-games="countAllGames" get-page-of-games="getPageOfAllGames" games-per-page="3"></game-block-panel-paged>
 </div>

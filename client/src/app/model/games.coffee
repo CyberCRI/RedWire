@@ -122,23 +122,15 @@ angular.module('gamEvolve.model.games', [])
   # Functions to load lists of games from the server
   games.loadAll = -> return $http.get('/api/games').then((result) -> return result.data).catch(-> alert("Can't load games"))
 
-  games.countItems = (itemsPerPage) ->
-    query = 
+  games.countGames = (query = {}) ->
+    query = _.extend {}, query, 
       id: "count"
-    if loggedUser.isLoggedIn()
-      query.ownerId = 
-        $ne: loggedUser.profile.id 
     return $http.get("/api/games?#{JSON.stringify(query)}").then((result) -> return result.data.count)
 
-  games.loadPage = (page, itemsPerPage) -> 
-    query = 
+  games.getPageOfGames = (query = {}, pageNumber, itemsPerPage) -> 
+    query = _.extend {}, query, 
       $limit: itemsPerPage
-      $skip: (page - 1) * itemsPerPage 
-      $sort: 
-        $lastUpdatedTime: -1
-    if loggedUser.isLoggedIn()
-      query.ownerId = 
-        $ne: loggedUser.profile.id 
+      $skip: pageNumber * itemsPerPage 
     return $http.get("/api/games?#{JSON.stringify(query)}").then((result) -> return result.data)
 
   games.getRecommendations = -> 

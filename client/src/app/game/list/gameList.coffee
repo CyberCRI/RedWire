@@ -25,6 +25,7 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
     $scope.myGames = []
     $scope.page = 1
 
+    ###
     # Keep track of last page so not to repeat the same request 
     lastRequestedPage = null
 
@@ -56,4 +57,19 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
     loadGames()
     unsubscribeChangedLoginEvent = ChangedLoginEvent.listen(loadGames)
 
-    $scope.$on("destroy", unsubscribeChangedLoginEvent)
+    ###
+
+    ###
+        if loggedUser.isLoggedIn()
+      query.ownerId = 
+        $ne: loggedUser.profile.id 
+    ###
+
+    ### 
+          $sort: 
+        $lastUpdatedTime: -1
+    ###
+    $scope.countAllGames = -> games.countGames()
+    $scope.getPageOfAllGames = (pageNumber, gamesPerPage) -> games.getPageOfGames({}, pageNumber, gamesPerPage)
+
+    # $scope.$on("destroy", unsubscribeChangedLoginEvent)
