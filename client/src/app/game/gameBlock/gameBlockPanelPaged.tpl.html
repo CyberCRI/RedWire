@@ -5,7 +5,11 @@
 		</h3>
 	</div>
 	<div class="panel-body">
-		<div class="row" ng-show="gameCount > gamesPerPage">
+		<div class="row" ng-show="gameCount == 0">
+			<div class="col-md-12">{{ noResultsText }}</div>
+		</div>
+
+		<div class="row" ng-show="gameCount > 1">
 			<div class="col-md-4 form-inline">
 				<div class="form-group"> 
 					<label for="sortBy">Sort By</label>

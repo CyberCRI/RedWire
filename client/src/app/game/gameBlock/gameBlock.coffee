@@ -55,6 +55,7 @@ angular.module('gamEvolve.game.block', [])
         gamesPerPage: "="
         getPageOfGames: "=" # function that takes parameter "page" starting at 0 and "gamesPerPage" and returns promise for list of games
         countGames: "=" # function that takes no parameters and returns promise for the total number of games
+        noResultsText: "=?" # Text that is shown if no games are found
       templateUrl: 'game/gameBlock/gameBlockPanelPaged.tpl.html'
       controller: ($scope) ->
         updateRows = ->
@@ -120,6 +121,8 @@ angular.module('gamEvolve.game.block', [])
         # Set default values
         $scope.pageNumber = 1
         $scope.sortBy = "latest"
+
+        if not $scope.noResultsText then $scope.noResultsText = "No games found"
      }
    )
 

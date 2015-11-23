@@ -135,6 +135,9 @@ angular.module('gamEvolve.model.games', [])
 
   games.getRecommendations = -> 
     return $http.get('/api/recommend').then (result) -> _.shuffle(result.data)
+  
+  games.countRecommendations = -> 
+    return $http.get('/api/recommend?count=true').then (result) -> result.data.count
 
   games.getMyGames = -> 
     return $http.get("/api/games?ownerId=#{loggedUser.profile.id}").then((result) -> return result.data)

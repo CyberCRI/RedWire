@@ -45,8 +45,7 @@ angular.module('gamEvolve.game.list', ["ui.bootstrap.pagination"])
       ownerId: loggedUser.profile.id 
       $sort: makeSortQuery(sortBy)
 
-    # There are always 3 recommendations, with no paging
-    $scope.countRecommendations = -> wrapValueInPromise(3)
+    $scope.countRecommendations = -> games.countRecommendations()
     $scope.getPageOfRecommendations = (pageNumber, gamesPerPage, sortBy) -> games.getRecommendations()
 
     # From http://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex
