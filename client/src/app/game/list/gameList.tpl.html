@@ -6,7 +6,7 @@
 	</div>
 
 	<div class="row">
-		<div class="col-md-12" id="logoContainer">
+		<div class="col-md-12" id="logoContainer"></div>
 		<a id="documentation-button" target="_blank" href="https://github.com/CyberCRI/RedWire/wiki/Standard-Toolbox-Reference" class="btn btn-primary btn-lg col-md-2" role="button">Documentation</a>
 		<div class="col-md-8" id="logoBlock">
 			<img src="/assets/images/logo_big.png" ui-sref="home"></img>
@@ -17,13 +17,23 @@
 
 	<h2>Games</h2>
 
-	<div ng-if="gameRecommendations">
-		<game-block-panel title="'Suggestions'" games="gameRecommendations"></game-block-panel>
+	<div class="input-group" id="searchInputBox">
+		<div class="input-group-addon"><i class="glyphicon glyphicon-search"></i></div>
+		<input type="text" class="form-control" placeholder="Search..." ng-model="searchText">
+		<span class="input-group-btn">
+			<button class="btn btn-default" type="button" ng-click="clearSearchText()"><i class="glyphicon glyphicon-remove"></i></button>
+		</span>
 	</div>
 
-	<div ng-if="myGames">
-		<game-block-panel title="'My Games'" games="myGames"></game-block-panel>
+	<game-block-panel-paged ng-if="searchText.length > 0" title="'Search Results'" count-games="countSearchedGames" get-page-of-games="getPageOfSearchedGames" games-per-page="12"></game-block-panel-paged>
+
+	<div ng-if="isLoggedIn()" ng-show="searchText.length == 0">
+		<game-block-panel-paged title="'Suggestions'" count-games="countRecommendations" get-page-of-games="getPageOfRecommendations" games-per-page="3"></game-block-panel-paged>
 	</div>
 
-	<game-block-panel title="'All Games'" games="games"></game-block-panel>
+	<div ng-if="isLoggedIn()" ng-show="searchText.length == 0">
+		<game-block-panel-paged title="'My Games'" count-games="countMyGames" get-page-of-games="getPageOfMyGames" games-per-page="6"></game-block-panel-paged>
+	</div>
+	
+	<game-block-panel-paged ng-show="searchText.length == 0" title="'All Games'" count-games="countAllGames" get-page-of-games="getPageOfAllGames" games-per-page="12"></game-block-panel-paged>
 </div>

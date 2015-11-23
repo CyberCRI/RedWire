@@ -1,5 +1,6 @@
 {
   "name": "Leap",
+  "fileVersion": 0.4,
   "circuits": {
     "main": {
       "memory": {

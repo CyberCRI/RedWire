@@ -75,8 +75,6 @@ angular.module('gamEvolve.model.games', [])
       $location.path("/game/#{currentGame.version.gameId}/edit")
       games.saveVersion()
 
-  games.loadAll = -> return $http.get('/api/games').then((result) -> return result.data).catch(-> alert("Can't load games"))
-
   games.deleteCurrent = ->
     $http.delete("/api/games/#{currentGame.version.gameId}").then(currentGame.reset)
 
@@ -114,13 +112,35 @@ angular.module('gamEvolve.model.games', [])
 
   games.recordPlay = (gameId) -> $http.post("/api/play/#{gameId}")
 
-  games.getLikeCount = (gameId) -> $http.get("/api/like/#{gameId}").then((results) -> return results.data)
+  games.getLikedCount = (gameId) -> $http.get("/api/like/#{gameId}").then((results) -> return results.data)
 
   games.recordLike = (gameId) -> $http.post("/api/like/#{gameId}")
 
+  games.recordMix = (fromGameId) -> $http.post("/api/mix/from/#{fromGameId}/to/#{currentGame.info.id}")
+
+
+  # Functions to load lists of games from the server
+  games.loadAll = -> return $http.get('/api/games').then((result) -> return result.data).catch(-> alert("Can't load games"))
+
+  games.countGames = (query = {}) ->
+    query = _.extend {}, query, 
+      id: "count"
+    return $http.get("/api/games?#{JSON.stringify(query)}").then((result) -> return result.data.count)
+
+  games.getPageOfGames = (pageNumber, itemsPerPage, query = {}) -> 
+    query = _.extend {}, query, 
+      $limit: itemsPerPage
+      $skip: pageNumber * itemsPerPage 
+    return $http.get("/api/games?#{JSON.stringify(query)}").then((result) -> return result.data)
+
   games.getRecommendations = -> 
     return $http.get('/api/recommend').then (result) -> _.shuffle(result.data)
+  
+  games.countRecommendations = -> 
+    return $http.get('/api/recommend?count=true').then (result) -> result.data.count
 
-  games.recordMix = (fromGameId) -> $http.post("/api/mix/from/#{fromGameId}/to/#{currentGame.info.id}")
+  games.getMyGames = -> 
+    return $http.get("/api/games?ownerId=#{loggedUser.profile.id}").then((result) -> return result.data)
+
 
   return games

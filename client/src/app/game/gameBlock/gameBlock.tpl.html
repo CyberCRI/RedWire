@@ -7,10 +7,11 @@
 		<a ui-sref="game-edit({gameId: game.id})" class="btn btn-default"><span class="glyphicon glyphicon-edit"></span> Edit</a>
 	</p>
 	<p>
-		<like-button game-id="game.id" liked-data="game.likedData" button-classes="['btn-xs']"></like-button>
+		<like-button game-id="game.id" liked-count="game.likedCount" liked-game="doesUserLikeGame" button-classes="['btn-xs']"></like-button>
 		<br><i class="font-icon-fork"></i> {{game.forkCount}} forks
 		<br><i class="glyphicon glyphicon-retweet"></i> Mixed from {{game.mixedFromGameIds.length || 0}} and into {{game.mixedToGameIds.length || 0 }}
 		<br><i class="glyphicon glyphicon-time"></i> Last updated {{formatDate(game.lastUpdatedTime)}}
+		<br><i class="glyphicon glyphicon-play"></i> {{game.playCount}} plays</a>
 		<br><i class="glyphicon glyphicon-file"></i> {{game.versionCount}} versions
 	</p>
 	<p>{{game.description}}</p>

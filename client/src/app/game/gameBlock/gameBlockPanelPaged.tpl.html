@@ -1,0 +1,36 @@
+<div class="panel panel-default">
+	<div class="panel-heading">
+		<h3 class="panel-title">{{title}} 
+			<span ng-show="isLoading"><i class="font-icon-spin3 animate-spin"></i> Loading</span>
+		</h3>
+	</div>
+	<div class="panel-body">
+		<div class="row" ng-show="gameCount == 0">
+			<div class="col-md-12">{{ noResultsText }}</div>
+		</div>
+
+		<div class="row" ng-show="gameCount > 1">
+			<div class="col-md-4 form-inline">
+				<div class="form-group"> 
+					<label for="sortBy">Sort By</label>
+					<select id="sortBy" ng-model="sortBy" class="form-control">
+						<option value="latest">Latest</option>
+						<option value="mostLiked">Most Liked</option>
+						<option value="mostForks">Most Forked</option>
+						<option value="mostPlayed">Most Played</option>
+						<option value="alphabetical">Name</option>
+						<option value="userName">User name</option>
+					</select>
+				</div>
+			</div>
+		</div>
+
+		<pager ng-show="gameCount > gamesPerPage" total-items="gameCount" ng-model="pageNumber" items-per-page="gamesPerPage" previous-text="< Previous" next-text="Next >"></pager>
+		
+		<div class="row" ng-repeat="row in rows">
+			<game-block ng-repeat="game in row" game="game" class="col-md-4"></game-block>
+		</div>
+		
+		<pager ng-show="gameCount > gamesPerPage" total-items="gameCount" ng-model="pageNumber" items-per-page="gamesPerPage" previous-text="< Previous" next-text="Next >"></pager>
+	</div>
+</div>

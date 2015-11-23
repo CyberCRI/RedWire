@@ -6,6 +6,7 @@ if(!internal) {
     protect("playCount");
     protect("forkCount");
     protect("versionCount");
+    protect("likedCount");
     protect("lastVersionId");
     protect("mixedFromGameIds");
     protect("mixedToGameIds");
@@ -17,5 +18,3 @@ if(!internal) {
 protect("ownerId");
 protect("parentId");
 protect("createdTime");
-
-this.lastUpdatedTime = new Date().toISOString();
