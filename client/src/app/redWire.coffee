@@ -499,7 +499,7 @@ RW.visitSwitchChip = (circuitMeta, path, chip, constants, circuitData, scratchDa
 
       result.append(temporaryResult)
       result.signal = signalsResult # append() does not affect result
-    catch
+    catch e
       RW.transformersLogger(RW.logLevels.ERROR, "Calling switch #{chip.switch}.handleSignals raised an exception #{e}. Input pins were #{JSON.stringify(evaluatedPins)}. Children are #{JSON.stringify(childNames)}.\n#{RW.formatStackTrace(e)}")
       result.signal = RW.signals.ERROR
       return result # return early
