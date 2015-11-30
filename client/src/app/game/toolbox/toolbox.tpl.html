@@ -30,6 +30,7 @@
                         <span frang-tree-drag="{node: itemForDrag('processors', processorName) }">{{processorName}}</span>
                         <a ng-if="canEditItem('processors', processorName)" class="btn btn-default btn-xs" ng-click="editItem('processors', processorName)"><i class="glyphicon glyphicon-edit"></i></a>
                         <a ng-if="canEditItem('processors', processorName)" class="btn btn-default btn-xs" ng-click="removeItem('processors', processorName)"><i class="glyphicon glyphicon-trash"></i></a>
+                        <a class="btn btn-default btn-xs" ng-click="cloneItem('processors', processorName)"><i class="glyphicon glyphicon-duplicate"></i></a>
                     </li>
                 </ul>
                 <a class="btn btn-default" ng-click="addItem('processors')"><i class="glyphicon glyphicon-plus"></i></a>
