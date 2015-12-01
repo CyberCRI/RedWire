@@ -668,7 +668,9 @@ RW.io.sound =
 
         # startup playing music
         for channelId, playingMusicData of playingMusic
-          if playingMusicData.channelData.asset then connectAndPlayBuffer(options.assets[playingMusicData.channelData.asset], true)
+          if playingMusicData.channelData.asset 
+            playingMusicData.id = connectAndPlayBuffer(options.assets[playingMusicData.channelData.asset], true)
+        return 
 
       leavePlaySequence: ->
         stopPlayingSounds()
@@ -696,7 +698,6 @@ RW.io.sound =
 
                   connectAndPlayBuffer(options.assets[sound.asset])
               when "music" 
-
                 # Channel data should be like { asset: "qsdf" } or null
                 channelId = makeChannelId(circuitId, channelName)
                 if _.isEqual(playingMusic[channelId]?.channelData, channelData) then continue
@@ -705,6 +706,7 @@ RW.io.sound =
                 # TODO: handle volume changes of same music
                 if playingMusic[channelId]
                   playingSourceNodes[playingMusic[channelId].id].stop()
+                  delete playingMusic[channelId]
 
                 # Play new music
                 if channelData
@@ -714,9 +716,9 @@ RW.io.sound =
                   # TODO: handle crossfading
                   sourceId = connectAndPlayBuffer(options.assets[channelData.asset], true)
 
-                playingMusic[channelId] = 
-                  channelData: channelData
-                  id: sourceId
+                  playingMusic[channelId] = 
+                    channelData: channelData
+                    id: sourceId
               when "fx"
                 for sound in channelData
                   _.defaults sound, 

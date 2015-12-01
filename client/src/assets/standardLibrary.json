@@ -235,6 +235,15 @@
       },
       "update": "pins.channel = \n{\n    asset: pins.asset\n}; return RW.signals.DONE;"
     },
+    "Stop Music": {
+      "pinDefs": {
+        "channel": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.channel = null; return RW.signals.DONE;"
+    },
     "Play FX": {
       "pinDefs": {
         "fx": {
@@ -520,6 +529,7 @@
         "frame"
       ],
       "body": "// Assuming the frames are set left to right\nvar framesPerLine = spriteSheet.sheetSize[0] / spriteSheet.frameSize[0];\nvar imageCoords = [frame % framesPerLine, Math.floor(frame / framesPerLine)];\n\nreturn {\n    type: \"image\",\n    asset: spriteSheet.asset,\n    position: position,\n    offset: [imageCoords[0] * spriteSheet.frameSize[0], imageCoords[1] * spriteSheet.frameSize[1]],\n    size: spriteSheet.frameSize\n};"
-    }  },
+    }  
+  },
   "circuits": {}
 }
