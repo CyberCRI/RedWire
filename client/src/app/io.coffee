@@ -359,11 +359,13 @@ RW.io.html =
         read: (templateId, keypath) ->
           # console.log("read called with ", arguments)
           [circuitId, templateName] = decodeTemplateId(templateId) 
-          return state[circuitId].templates[templateName].values[keypath]
+          [parent, key] = RW.getParentAndKey(state[circuitId].templates[templateName].values, keypath.split("."))
+          return parent[key]
         publish: (templateId, keypath, value) ->
           # console.log("publish called with ", arguments)
           [circuitId, templateName] = decodeTemplateId(templateId) 
-          state[circuitId].templates[templateName].values[keypath] = value
+          [parent, key] = RW.getParentAndKey(state[circuitId].templates[templateName].values, keypath.split("."))
+          parent[key] = value
 
     return {
       provideData: -> 
