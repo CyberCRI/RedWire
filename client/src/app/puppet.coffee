@@ -229,6 +229,9 @@ createAssets = (inputAssets, evaluator, callback) ->
         script = atob(splitUrl.data)
         evaluator(script)
         reportDone(null, name, script)
+      else if splitUrl.mimeType in ["application/json"]
+        result = JSON.parse(atob(splitUrl.data))
+        reportDone(null, name, result)
       else if splitUrl.mimeType == "text/css"
         css = atob(splitUrl.data)
         element = $('<style type="text/css"></style>').html(css).appendTo("head")
