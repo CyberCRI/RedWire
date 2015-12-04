@@ -762,6 +762,26 @@ RW.io.metrics =
       extendedData.customData.ipAddress = playerIpAddress
       return extendedData
 
+    beginGameSession = ->
+      # Create player
+      jqXhr = $.ajax 
+        url: options.metrics.host + "/v1/player/"
+        type: "POST"
+        data: JSON.stringify(makeExtendedPlayerInfo())
+        processData: false
+        contentType: "application/json"
+      jqXhr.done (data, textStatus) -> 
+        playerId = data.id
+        # Start sending events
+        timerId = window.setInterval(sendResults, 5000)
+      jqXhr.fail (__, textStatus, errorThrown) -> 
+        throw new Error("Cannot create player: #{errorThrown}")
+
+    endGameSession = ->
+        # Stop sending events
+        window.clearInterval(timerId)
+        playerId = null
+
     sendResults = ->
       sendEvents()
       sendSnapshots()
@@ -801,19 +821,7 @@ RW.io.metrics =
         # Reset snapshot counter so that it will be sent on the first frame
         snapshotFrameCounter = SNAPSHOT_FRAME_DELAY
 
-        # Create player
-        jqXhr = $.ajax 
-          url: options.metrics.host + "/v1/player/"
-          type: "POST"
-          data: JSON.stringify(makeExtendedPlayerInfo())
-          processData: false
-          contentType: "application/json"
-        jqXhr.done (data, textStatus) -> 
-          playerId = data.id
-          # Start sending events
-          timerId = window.setInterval(sendResults, 5000)
-        jqXhr.fail (__, textStatus, errorThrown) -> 
-          throw new Error("Cannot create player: #{errorThrown}")
+        beginGameSession()
  
       leavePlaySequence: -> 
         # If metrics session was not created then ignore
@@ -822,14 +830,13 @@ RW.io.metrics =
         # Send last data before stopping 
         sendResults()
 
-        # Stop sending events
-        window.clearInterval(timerId)
-        playerId = null
+        endGameSession()
 
       provideData: -> 
         global: 
           events: []
           player: playerInfo
+          createNewGameSession: false
 
       establishData: (ioData, additionalData) -> 
         # Only send data in play sequence
@@ -838,6 +845,7 @@ RW.io.metrics =
         # Contains updated playerInfo if necessary
         newPlayerInfo = null
         userTime = new Date().toISOString()
+        createNewGameSession = false
 
         # Expecting a format like { player: {}, events: [ type: "", section: [], coordinates: [], customData: }, ... ] }
         for circuitId in _.pluck(options.circuitMetas, "id") 
@@ -867,6 +875,8 @@ RW.io.metrics =
                 inputIo: additionalData.inputIoData
                 memory: additionalData.memoryData
 
+          if ioData[circuitId].createNewGameSession then createNewGameSession = true
+
           # Update player info
           if not _.isEqual(ioData[circuitId].player, playerInfo) 
             newPlayerInfo = ioData[circuitId].player
@@ -874,6 +884,10 @@ RW.io.metrics =
         # Update player info if necessary
         if newPlayerInfo
           playerInfo = newPlayerInfo
+
+        if createNewGameSession
+          beginGameSession()
+        else if newPlayerInfo
           jqXhr = $.ajax 
             url: options.metrics.host + "/v1/player/" + playerId
             type: "PUT"
