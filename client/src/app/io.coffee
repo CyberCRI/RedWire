@@ -748,8 +748,19 @@ RW.io.metrics =
     playerId = null
     playerInfo = {} # Current state of player 
     snapshotFrameCounter = 0 ## Number of frames since last snapshot
+    playerIpAddress = null
 
     configIsValid = -> options.metrics and options.metrics.gameVersionId and options.metrics.host 
+
+    updatePlayerIpAddress = ->
+      $.get("/api/ip").done (data, textStatus) -> playerIpAddress = data.ip
+
+    makeExtendedPlayerInfo = ->
+      extendedData = RW.cloneData(playerInfo)
+      if not extendedData.customData
+        extendedData.customData = {}
+      extendedData.customData.ipAddress = playerIpAddress
+      return extendedData
 
     sendResults = ->
       sendEvents()
@@ -794,7 +805,7 @@ RW.io.metrics =
         jqXhr = $.ajax 
           url: options.metrics.host + "/v1/player/"
           type: "POST"
-          data: "{}"
+          data: JSON.stringify(makeExtendedPlayerInfo())
           processData: false
           contentType: "application/json"
         jqXhr.done (data, textStatus) -> 
@@ -862,18 +873,19 @@ RW.io.metrics =
 
         # Update player info if necessary
         if newPlayerInfo
+          playerInfo = newPlayerInfo
           jqXhr = $.ajax 
             url: options.metrics.host + "/v1/player/" + playerId
             type: "PUT"
-            data: JSON.stringify(newPlayerInfo)
+            data: JSON.stringify(JSON.stringify(makeExtendedPlayerInfo()))
             processData: false
             contentType: "application/json"
-          playerInfo = newPlayerInfo
 
         return null # avoid accumulating results
 
       destroy: -> # NOP
 
+    updatePlayerIpAddress()
     return io
 
 # The location buffer provides information about the URL and its different parts
