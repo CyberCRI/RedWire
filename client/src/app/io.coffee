@@ -748,8 +748,43 @@ RW.io.metrics =
     playerId = null
     playerInfo = {} # Current state of player 
     snapshotFrameCounter = 0 ## Number of frames since last snapshot
+    playerIpAddress = null
 
     configIsValid = -> options.metrics and options.metrics.gameVersionId and options.metrics.host 
+
+    updatePlayerIpAddress = ->
+      $.get("/api/ip").done (data, textStatus) -> playerIpAddress = data.ip
+
+    makeExtendedPlayerInfo = ->
+      extendedData = RW.cloneData(playerInfo)
+      if not extendedData.customData
+        extendedData.customData = {}
+      extendedData.customData.ipAddress = playerIpAddress
+
+      # Currently, custom data must contain a string (which itself can be JSON)
+      extendedData.customData = JSON.stringify(extendedData.customData)
+
+      return extendedData
+
+    beginGameSession = ->
+      # Create player
+      jqXhr = $.ajax 
+        url: options.metrics.host + "/v1/player/"
+        type: "POST"
+        data: JSON.stringify(makeExtendedPlayerInfo())
+        processData: false
+        contentType: "application/json"
+      jqXhr.done (data, textStatus) -> 
+        playerId = data.id
+        # Start sending events
+        timerId = window.setInterval(sendResults, 5000)
+      jqXhr.fail (__, textStatus, errorThrown) -> 
+        throw new Error("Cannot create player: #{errorThrown}")
+
+    endGameSession = ->
+        # Stop sending events
+        window.clearInterval(timerId)
+        playerId = null
 
     sendResults = ->
       sendEvents()
@@ -790,19 +825,7 @@ RW.io.metrics =
         # Reset snapshot counter so that it will be sent on the first frame
         snapshotFrameCounter = SNAPSHOT_FRAME_DELAY
 
-        # Create player
-        jqXhr = $.ajax 
-          url: options.metrics.host + "/v1/player/"
-          type: "POST"
-          data: "{}"
-          processData: false
-          contentType: "application/json"
-        jqXhr.done (data, textStatus) -> 
-          playerId = data.id
-          # Start sending events
-          timerId = window.setInterval(sendResults, 5000)
-        jqXhr.fail (__, textStatus, errorThrown) -> 
-          throw new Error("Cannot create player: #{errorThrown}")
+        beginGameSession()
  
       leavePlaySequence: -> 
         # If metrics session was not created then ignore
@@ -811,14 +834,13 @@ RW.io.metrics =
         # Send last data before stopping 
         sendResults()
 
-        # Stop sending events
-        window.clearInterval(timerId)
-        playerId = null
+        endGameSession()
 
       provideData: -> 
         global: 
           events: []
           player: playerInfo
+          createNewGameSession: false
 
       establishData: (ioData, additionalData) -> 
         # Only send data in play sequence
@@ -827,6 +849,7 @@ RW.io.metrics =
         # Contains updated playerInfo if necessary
         newPlayerInfo = null
         userTime = new Date().toISOString()
+        createNewGameSession = false
 
         # Expecting a format like { player: {}, events: [ type: "", section: [], coordinates: [], customData: }, ... ] }
         for circuitId in _.pluck(options.circuitMetas, "id") 
@@ -856,24 +879,32 @@ RW.io.metrics =
                 inputIo: additionalData.inputIoData
                 memory: additionalData.memoryData
 
+          if ioData[circuitId].createNewGameSession then createNewGameSession = true
+
           # Update player info
           if not _.isEqual(ioData[circuitId].player, playerInfo) 
             newPlayerInfo = ioData[circuitId].player
 
         # Update player info if necessary
         if newPlayerInfo
+          playerInfo = newPlayerInfo
+
+        if createNewGameSession
+          endGameSession()
+          beginGameSession()
+        else if newPlayerInfo
           jqXhr = $.ajax 
             url: options.metrics.host + "/v1/player/" + playerId
             type: "PUT"
-            data: JSON.stringify(newPlayerInfo)
+            data: JSON.stringify(makeExtendedPlayerInfo())
             processData: false
             contentType: "application/json"
-          playerInfo = newPlayerInfo
 
         return null # avoid accumulating results
 
       destroy: -> # NOP
 
+    updatePlayerIpAddress()
     return io
 
 # The location buffer provides information about the URL and its different parts

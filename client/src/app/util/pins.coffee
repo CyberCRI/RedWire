@@ -24,7 +24,7 @@ module.factory 'pins', (circuits, currentGame) ->
     for pin in ["down", "position", "cursor", "justDown", "justUp"] then keys.push("io.mouse.#{pin}")
 
     # Fill in metrics pins
-    for pin in ["player", "events"] then keys.push("io.metrics.#{pin}")
+    for pin in ["player", "events", "createNewGameSession"] then keys.push("io.metrics.#{pin}")
 
     # Fill in layer pins
     layers = currentGame.version.circuits[circuits.currentCircuitMeta.type].io.layers

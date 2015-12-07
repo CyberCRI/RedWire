@@ -1,0 +1,1 @@
+cancel("You cannot POST to this resource");

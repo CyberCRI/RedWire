@@ -34,8 +34,8 @@ angular.module('gamEvolve.game.edit.header', [
   $scope.loginDialog = loginDialog
   $scope.aboutDialog = aboutDialog
   $scope.importExportDialog = importExportDialog
-  $scope.loadGame = -> $state.transitionTo('game-list')
-  $scope.gotoPlayScreen = -> $state.transitionTo('play', { gameId: $stateParams.gameId })
+
+  $scope.gameId = $stateParams.gameId
   $scope.editDescription = -> editDescriptionDialog.open()
   $scope.status = 
     isOpen: false
