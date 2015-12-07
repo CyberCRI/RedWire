@@ -760,6 +760,10 @@ RW.io.metrics =
       if not extendedData.customData
         extendedData.customData = {}
       extendedData.customData.ipAddress = playerIpAddress
+
+      # Currently, custom data must contain a string (which itself can be JSON)
+      extendedData.customData = JSON.stringify(extendedData.customData)
+
       return extendedData
 
     beginGameSession = ->
@@ -886,12 +890,13 @@ RW.io.metrics =
           playerInfo = newPlayerInfo
 
         if createNewGameSession
+          endGameSession()
           beginGameSession()
         else if newPlayerInfo
           jqXhr = $.ajax 
             url: options.metrics.host + "/v1/player/" + playerId
             type: "PUT"
-            data: JSON.stringify(JSON.stringify(makeExtendedPlayerInfo()))
+            data: JSON.stringify(makeExtendedPlayerInfo())
             processData: false
             contentType: "application/json"
 
