@@ -8,8 +8,7 @@ angular.module('gamEvolve.game.layers', [])
 
   $scope.addLayer = -> $scope.layers.push({ name: "", type: "" })
   $scope.removeLayer = (index) -> 
-    if window.confirm("Are you sure you want to delete this layer?")
-      $scope.layers.splice(index, 1)
+    $scope.layers.splice(index, 1)
 
   # Bring currentGame into scope so we can watch it 
   copyFromGameToScope = ->

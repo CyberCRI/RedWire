@@ -8,8 +8,7 @@ angular.module('gamEvolve.game.channels', [])
 
   $scope.addChannel = -> $scope.channels.push({ name: "", type: "" })
   $scope.removeChannel = (index) -> 
-    if window.confirm("Are you sure you want to delete this channel?")
-      $scope.channels.splice(index, 1)
+    $scope.channels.splice(index, 1)
 
   # Bring currentGame into scope so we can watch it 
   copyFromGameToScope = ->
