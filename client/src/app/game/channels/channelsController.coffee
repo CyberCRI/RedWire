@@ -1,6 +1,6 @@
 angular.module('gamEvolve.game.channels', [])
 
-.controller 'ChannelsCtrl', ($scope, currentGame, circuits) ->
+.controller 'ChannelsCtrl', ($scope, currentGame, circuits, dndHelper) ->
   $scope.TYPES = ["clip", "music", "fx"]
 
   # Get the actions object from the currentGame service, and keep it updated
@@ -8,8 +8,13 @@ angular.module('gamEvolve.game.channels', [])
 
   $scope.addChannel = -> $scope.channels.push({ name: "", type: "" })
   $scope.removeChannel = (index) -> 
-    if window.confirm("Are you sure you want to delete this channel?")
-      $scope.channels.splice(index, 1)
+    $scope.channels.splice(index, 1)
+  $scope.cloneChannel = (index) ->
+    existingNames = _.pluck($scope.channels, "name")
+    newChannel = 
+      name: dndHelper.findNewName(existingNames, $scope.channels[index].name)
+      type: $scope.channels[index].type
+    $scope.channels.splice(index + 1, 0, newChannel)
 
   # Bring currentGame into scope so we can watch it 
   copyFromGameToScope = ->

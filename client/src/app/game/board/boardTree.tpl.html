@@ -22,6 +22,8 @@
                     {{node.muted ? 'Unmute' : 'Mute'}}
                 </button>
 
+                <button class="btn btn-xs" ng-click="clone(node, $parent.node)"><span class="font-icon-popup"></span></button>
+
                 <div class="btn-group" dropdown>
                   <button type="button" class="btn btn-xs dropdown-toggle">
                     <span class="glyphicon glyphicon-arrow-right"></span></span>

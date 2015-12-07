@@ -128,10 +128,23 @@ angular.module('gamEvolve.game.boardTree', [
           }
 
   $scope.remove = (node, parent) ->
-    if window.confirm("Are you sure you want to delete this chip?")
-      index = parent.children.indexOf node
-      parent.children.splice(index, 1) # Remove that child
-      currentGame.updateLocalVersion()
+    index = parent.children.indexOf node
+    parent.children.splice(index, 1) # Remove that child
+    currentGame.updateLocalVersion()
+
+  getNodeTitle = (node) -> node.comment || node.id || "Untitled"
+
+  $scope.clone = (node, parent) ->
+    index = parent.children.indexOf(node)
+    newNode = RW.cloneData(node)
+
+    # Create a new hash key
+    newNode.$$hashKey = _.uniqueId("hash")
+
+    existingNames = _.map(parent.children, getNodeTitle)
+    newNode.comment = dndHelper.findNewName(existingNames, getNodeTitle(node))
+    parent.children.splice(index + 1, 0, newNode)
+    currentGame.updateLocalVersion()
 
   $scope.enter = (node) ->
     boardNodes.open(node) unless treeDrag.dropBefore

@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg">
-<metadata>Copyright (C) 2014 by original authors @ fontello.com</metadata>
+<metadata>Copyright (C) 2015 by original authors @ fontello.com</metadata>
 <defs>
 <font id="font-icon" horiz-adv-x="1000" >
 <font-face font-family="font-icon" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
@@ -28,6 +28,7 @@
 <glyph glyph-name="cw" unicode="&#xe813;" d="m857 707v-250q0-14-10-25t-26-11h-250q-23 0-32 23-10 22 7 38l77 77q-82 77-194 77-58 0-111-23t-91-61-62-91-22-111 22-111 62-91 91-61 111-23q66 0 125 29t100 82q4 6 13 7 8 0 14-5l76-77q5-4 6-11t-5-13q-60-74-147-114t-182-41q-87 0-167 34t-136 92-92 137-34 166 34 166 92 137 136 92 167 34q82 0 158-31t137-88l72 72q16 18 39 8 22-9 22-33z" horiz-adv-x="857.1" />
 <glyph glyph-name="fork" unicode="&#xe814;" d="m161 29q0 22-16 38t-38 15-38-15-15-38 15-38 38-16 38 16 16 38z m0 642q0 23-16 38t-38 16-38-16-15-38 15-38 38-15 38 15 16 38z m357-71q0 22-16 38t-38 16-38-16-15-38 15-38 38-16 38 16 16 38z m53 0q0-29-14-54t-39-39q-1-160-126-231-38-21-114-45-71-22-94-39t-23-56v-15q24-14 39-39t14-53q0-45-31-76t-76-32-76 32-31 76q0 29 15 53t39 39v458q-25 14-39 39t-15 53q0 45 31 76t76 32 76-32 31-76q0-29-14-53t-39-39v-278q30 15 86 32 30 10 49 17t39 17 33 22 22 29 16 38 5 51q-25 14-39 39t-15 54q0 45 31 76t76 31 76-31 31-76z" horiz-adv-x="571.4" />
 <glyph glyph-name="resize-full-alt" unicode="&#xe815;" d="m839 55l72 72 0-224-223 0 72 72-184 185 79 79z m-749 591l-72-72 0 223 223 0-72-72 184-184-79-79z m670 79l-72 72 223 0 0-223-72 72-184-184-79 79z m-407-565l-184-185 72-72-223 0 0 224 72-72 184 184z" horiz-adv-x="928" />
+<glyph glyph-name="popup" unicode="&#xe816;" d="m311 504l489 0c36 0 65-30 65-65l0-404c0-35-29-65-65-65l-489 0c-35 0-65 30-65 65l0 404c0 35 30 65 65 65z m454-94l-419 0 0-346 419 0 0 346z m-146 181l-101 0 0 44-417 0 0-336 58 0 0-95-93 0c-36 0-66 30-66 65l0 395c0 36 30 66 66 66l488 0c36 0 65-30 65-66l0-73z" horiz-adv-x="865" />
 </font>
 </defs>
 </svg>

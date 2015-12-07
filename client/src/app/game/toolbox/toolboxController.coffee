@@ -1,5 +1,5 @@
 angular.module('gamEvolve.game.toolbox', [])
-.controller 'ToolboxCtrl', ($scope, $modal, currentGame, circuits, ProcessorRenamedEvent, SwitchRenamedEvent, TransformerRenamedEvent, CircuitRenamedEvent) ->
+.controller 'ToolboxCtrl', ($scope, $modal, currentGame, circuits, dndHelper, ProcessorRenamedEvent, SwitchRenamedEvent, TransformerRenamedEvent, CircuitRenamedEvent) ->
 
   MODALS = 
     processors:
@@ -26,13 +26,18 @@ angular.module('gamEvolve.game.toolbox', [])
 
   $scope.isGameLoaded = -> currentGame.version?
 
+  getItemNames = (itemType) ->
+    standardNames = _.keys(currentGame.standardLibrary[itemType])
+    customNames = _.keys(currentGame.version[itemType])
+    return _.uniq(standardNames.concat(customNames).sort(), true)
+
+  getItem = (itemType, name) -> currentGame.version[itemType][name] || currentGame.standardLibrary[itemType][name]
+
   # Watch currentGame and update our scope
   updateItems = ->
     if not currentGame.version then return 
     for itemType in ["processors", "switches", "transformers", "circuits"]
-      standardNames = _.keys(currentGame.standardLibrary[itemType])
-      customNames = _.keys(currentGame.version[itemType])
-      $scope[itemType] = _.uniq(standardNames.concat(customNames).sort(), true)
+      $scope[itemType] = getItemNames(itemType)
   $scope.$watch((-> currentGame.localVersion), updateItems)
 
   openModal = (templateUrl, dialogControllerName, model, onDone) -> 
@@ -198,6 +203,13 @@ angular.module('gamEvolve.game.toolbox', [])
 
       setModelFromDialog(itemType, newModel)
       currentGame.updateLocalVersion()
+
+  $scope.cloneItem = (itemType, name) ->
+    existingNames = getItemNames(itemType)
+    newChipName = dndHelper.findNewName(existingNames, name)
+    newItem = _.omit(RW.cloneData(getItem(itemType, name), "$$hashKey"))
+    currentGame.version[itemType][newChipName] = newItem
+    currentGame.updateLocalVersion()
 
   $scope.changeCircuit = (circuitName) ->
     # Switch to editing the circuit type, not a particular instance
