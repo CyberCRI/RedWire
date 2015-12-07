@@ -103,6 +103,7 @@
                                                 <a href="" editable-text="layer.name">{{ layer.name || "Layer name" }}</a>
                                                 -
                                                 <a href="" editable-select="layer.type" e-ng-options="type for type in TYPES">{{ layer.type || "Layer type" }}</a>
+                                                <a class="btn btn-default btn-xs" ng-click="cloneLayer($index)"><i class="font-icon-popup"></i></a>
                                                 <a class="btn btn-default btn-xs" ng-click="removeLayer($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </div>
                                     </li>
@@ -127,6 +128,7 @@
                                                 <a href="" editable-text="channel.name">{{ channel.name || "Channel name" }}</a>
                                                 -
                                                 <a href="" editable-select="channel.type" e-ng-options="type for type in TYPES">{{ channel.type || "Channel type" }}</a>
+                                                <a class="btn btn-default btn-xs" ng-click="cloneChannel($index)"><i class="font-icon-popup"></i></a>  
                                                 <a class="btn btn-default btn-sm" ng-click="removeChannel($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                             </div>
                                     </li>

@@ -207,7 +207,8 @@ angular.module('gamEvolve.game.toolbox', [])
   $scope.cloneItem = (itemType, name) ->
     existingNames = getItemNames(itemType)
     newChipName = dndHelper.findNewName(existingNames, name)
-    currentGame.version[itemType][newChipName] = getItem(itemType, name)
+    newItem = _.omit(RW.cloneData(getItem(itemType, name), "$$hashKey"))
+    currentGame.version[itemType][newChipName] = newItem
     currentGame.updateLocalVersion()
 
   $scope.changeCircuit = (circuitName) ->

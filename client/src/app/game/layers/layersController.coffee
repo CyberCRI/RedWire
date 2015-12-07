@@ -1,6 +1,6 @@
 angular.module('gamEvolve.game.layers', [])
 
-.controller 'LayersCtrl', ($scope, currentGame, circuits) ->
+.controller 'LayersCtrl', ($scope, currentGame, circuits, dndHelper) ->
   $scope.TYPES = (name for name, io of RW.io when io.meta.visual)
 
   # Get the actions object from the currentGame service, and keep it updated
@@ -9,6 +9,12 @@ angular.module('gamEvolve.game.layers', [])
   $scope.addLayer = -> $scope.layers.push({ name: "", type: "" })
   $scope.removeLayer = (index) -> 
     $scope.layers.splice(index, 1)
+  $scope.cloneLayer = (index) ->
+    existingNames = _.pluck($scope.layers, "name")
+    newLayer = 
+      name: dndHelper.findNewName(existingNames, $scope.layers[index].name)
+      type: $scope.layers[index].type
+    $scope.layers.splice(index + 1, 0, newLayer)
 
   # Bring currentGame into scope so we can watch it 
   copyFromGameToScope = ->

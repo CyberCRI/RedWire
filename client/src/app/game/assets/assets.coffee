@@ -65,7 +65,7 @@ angular.module('gamEvolve.game.assets', [
   $scope.clone = (index) -> 
     existingNames = _.pluck($scope.assets, "name")
     newName = dndHelper.findNewName(existingNames, $scope.assets[index].name)
-    newAsset = RW.cloneData($scope.assets[index])
+    newAsset = _.omit(RW.cloneData($scope.assets[index]), "$$hashKey")
     newAsset.name = newName
     $scope.assets.push(newAsset)
 
