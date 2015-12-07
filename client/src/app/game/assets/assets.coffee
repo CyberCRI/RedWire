@@ -4,7 +4,7 @@ angular.module('gamEvolve.game.assets', [
   'xeditable'
 ])
 
-.controller 'AssetsCtrl', ($scope, $modal, currentGame) ->
+.controller 'AssetsCtrl', ($scope, $modal, currentGame, dndHelper) ->
   # Get the actions object from the currentGame service, and keep it updated
   $scope.assets = null
   $scope.fileName = ""
@@ -60,8 +60,14 @@ angular.module('gamEvolve.game.assets', [
     dialog = $modal.open(options)
 
   $scope.remove = (index) -> 
-    if window.confirm("Are you sure you want to delete this asset?")
-      $scope.assets.splice(index, 1)
+    $scope.assets.splice(index, 1)
+
+  $scope.clone = (index) -> 
+    existingNames = _.pluck($scope.assets, "name")
+    newName = dndHelper.findNewName(existingNames, $scope.assets[index].name)
+    newAsset = RW.cloneData($scope.assets[index])
+    newAsset.name = newName
+    $scope.assets.push(newAsset)
 
   $scope.addAssetOfType = (mimeType) ->
     dataUrl = RW.combineDataUrl

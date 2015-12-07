@@ -27,9 +27,11 @@ angular.module('gamEvolve.game.toolbox', [])
   $scope.isGameLoaded = -> currentGame.version?
 
   getItemNames = (itemType) ->
-      standardNames = _.keys(currentGame.standardLibrary[itemType])
-      customNames = _.keys(currentGame.version[itemType])
-      return _.uniq(standardNames.concat(customNames).sort(), true)
+    standardNames = _.keys(currentGame.standardLibrary[itemType])
+    customNames = _.keys(currentGame.version[itemType])
+    return _.uniq(standardNames.concat(customNames).sort(), true)
+
+  getItem = (itemType, name) -> currentGame.version[itemType][name] || currentGame.standardLibrary[itemType][name]
 
   # Watch currentGame and update our scope
   updateItems = ->
@@ -205,7 +207,7 @@ angular.module('gamEvolve.game.toolbox', [])
   $scope.cloneItem = (itemType, name) ->
     existingNames = getItemNames(itemType)
     newChipName = dndHelper.findNewName(existingNames, name)
-    currentGame.version[itemType][newChipName] = RW.cloneData(currentGame.version[itemType][name])
+    currentGame.version[itemType][newChipName] = getItem(itemType, name)
     currentGame.updateLocalVersion()
 
   $scope.changeCircuit = (circuitName) ->

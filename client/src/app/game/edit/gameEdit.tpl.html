@@ -23,6 +23,7 @@
                                         <a href="" editable-text="asset.name">{{ asset.name || "Asset name" }}</a>
                                         <div class="assetThumbnail" style="background-image: url({{ asset.data }})"></div>
                                         <a class="btn btn-default btn-xs" ng-click="edit($index)"><i class="glyphicon glyphicon-edit"></i></a>
+                                        <a class="btn btn-default btn-xs" ng-click="clone($index)"><i class="font-icon-popup"></i></a>
                                         <a class="btn btn-default btn-xs" ng-click="remove($index)"><i class="glyphicon glyphicon-trash"></i></a>
                                     </li>
                                 </ul>
