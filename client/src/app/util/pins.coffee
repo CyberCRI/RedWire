@@ -48,4 +48,6 @@ module.factory 'pins', (circuits, currentGame) ->
     # Fill in location pins
     for pin in ["url", "protocol", "host", "port", "path", "query", "hash"] then keys.push("io.location.#{pin}")
 
+    keys.push("io.survey")
+
     return keys

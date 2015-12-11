@@ -957,3 +957,40 @@ RW.io.movuino =
         catch e
           console.log("Error closing Mouvino web socket", e)
     }
+
+RW.io.survey =  
+  meta:
+    visual: true
+  factory: (options) ->
+    lastSurveyConfig = null
+    lastSurveyElement = null
+
+    removeLastSurvey = ->
+      if not lastSurveyConfig then return 
+
+      lastSurveyElement.remove()
+      lastSurveyElement = null
+      lastSurveyConfig = null
+
+    outerWrapper = $("<div id='survey' style='position: absolute; width: #{options.size[0]}px; height: #{options.size[1]}px; text-align: center'/>")
+    $(options.elementSelector).append(outerWrapper)
+
+    provideData: -> 
+      global: {}
+    establishData: (ioData) -> 
+      newSurveyConfig = null
+      for circuitId, circuitData of ioData
+        # Expecting data like {survey: "", idField: "" (optional), idValue: "" (optional)}
+        if circuitData.survey then newSurveyConfig = circuitData
+
+      if newSurveyConfig
+        if not _.isEqual(newSurveyConfig, lastSurveyConfig)
+          removeLastSurvey()
+          
+          extraQueryParams = if circuitData.idField then "&#{circuitData.idField}=#{circuitData.idValue}"
+          lastSurveyElement = $("<a href='https://docs.google.com/forms/d/#{circuitData.survey}/viewform?usp=send_form#{extraQueryParams}' target='_blank' style='display: inline-block; font-size: x-large; margin-top: #{options.size[1]/2}px'>Click on the link to complete the survey</a>")
+          outerWrapper.append(lastSurveyElement)
+          lastSurveyConfig = newSurveyConfig
+      else if lastSurveyConfig
+          removeLastSurvey()
+    destroy: -> removeLastSurvey()
