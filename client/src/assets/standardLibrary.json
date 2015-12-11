@@ -343,6 +343,27 @@
         }
       },
       "update": "if(pins.birthdate) pins.redMetricsPlayer.birthdate = pins.birthdate;\nif(pins.region) pins.redMetricsPlayer.region = pins.region;\nif(pins.country) pins.redMetricsPlayer.country = pins.country;\nif(pins.gender) pins.redMetricsPlayer.gender = pins.gender;\nif(pins.externalId) pins.redMetricsPlayer.externalId = pins.externalId;\nif(pins.customData) pins.redMetricsPlayer.customData = pins.customData;\nreturn RW.signals.DONE;\n"
+    },
+    "Show Survey Link": {
+      "pinDefs": {
+        "survey": {
+          "direction": "in",
+          "default": ""
+        },
+        "idField": {
+          "direction": "in",
+          "default": "\"\""
+        },
+        "idValue": {
+          "direction": "in",
+          "default": "\"\""
+        },
+        "ioSurvey": {
+          "direction": "out",
+          "default": null
+        }
+      },
+      "update": "pins.ioSurvey = {\n    survey: pins.survey,\n    idField: pins.idField,\n    idValue: pins.idValue\n};\n\nreturn RW.signals.DONE;"
     }
   },
   "switches": {
