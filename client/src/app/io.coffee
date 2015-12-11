@@ -958,6 +958,8 @@ RW.io.movuino =
           console.log("Error closing Mouvino web socket", e)
     }
 
+# Displays a link to a Google Forms survey that opens in a new window. 
+# Can pre-fill a form element with a given value.
 RW.io.survey =  
   meta:
     visual: true
@@ -972,7 +974,8 @@ RW.io.survey =
       lastSurveyElement = null
       lastSurveyConfig = null
 
-    outerWrapper = $("<div id='survey' style='position: absolute; width: #{options.size[0]}px; height: #{options.size[1]}px; text-align: center'/>")
+    # Currently does not use the layer system. Instead, the link is always positioned on top (z = 1000)
+    outerWrapper = $("<div id='survey' style='position: absolute; width: #{options.size[0]}px; height: #{options.size[1]}px; text-align: center; z-index: 1000' />")
     $(options.elementSelector).append(outerWrapper)
 
     provideData: -> 
