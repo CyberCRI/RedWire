@@ -964,19 +964,16 @@ RW.io.survey =
   meta:
     visual: true
   factory: (options) ->
+    outerWrapper = null
     lastSurveyConfig = null
     lastSurveyElement = null
 
     removeLastSurvey = ->
       if not lastSurveyConfig then return 
 
-      lastSurveyElement.remove()
+      outerWrapper.remove()
       lastSurveyElement = null
       lastSurveyConfig = null
-
-    # Currently does not use the layer system. Instead, the link is always positioned on top (z = 1000)
-    outerWrapper = $("<div id='survey' style='position: absolute; width: #{options.size[0]}px; height: #{options.size[1]}px; text-align: center; z-index: 1000' />")
-    $(options.elementSelector).append(outerWrapper)
 
     provideData: -> 
       global: {}
@@ -990,6 +987,10 @@ RW.io.survey =
         if not _.isEqual(newSurveyConfig, lastSurveyConfig)
           removeLastSurvey()
           
+          # Currently does not use the layer system. Instead, the link is always positioned on top (z = 1000)
+          outerWrapper = $("<div id='survey' style='position: absolute; width: #{options.size[0]}px; height: #{options.size[1]}px; text-align: center; z-index: 1000; pointer-events: none' />")
+          $(options.elementSelector).append(outerWrapper)
+
           extraQueryParams = if circuitData.idField then "&#{circuitData.idField}=#{circuitData.idValue}"
           lastSurveyElement = $("<a href='https://docs.google.com/forms/d/#{circuitData.survey}/viewform?usp=send_form#{extraQueryParams}' target='_blank' style='display: inline-block; font-size: x-large; margin-top: #{options.size[1]/2}px'>Click on the link to complete the survey</a>")
           outerWrapper.append(lastSurveyElement)
