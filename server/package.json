@@ -9,7 +9,7 @@
     "url": "https://github.com/CyberCRI/RedWire"
   },
   "dependencies": {
-    "deployd": "~0.6.10",
+    "deployd": "~0.8.7",
     "dpd-count": "0.0.1",
     "dpd-event": "0.0.2",
     "dpd-fileupload": "0.0.14",
