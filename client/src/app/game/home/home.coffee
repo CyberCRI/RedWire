@@ -83,10 +83,10 @@ angular.module('gamEvolve.game.home', [])
             description: "Feed the animals coming down the train"
           }
           {
-            title: "My Way"
+            title: "Red My Way"
             author: "Dioptre"
             screenshot: "myWay.png"
-            id: "b14ed49c932dab87"
+            id: "bb23ce4b9da32bab"
             description: "Program your robot to complete the puzzles"
           }
         ]
