@@ -61,6 +61,9 @@ angular.module('gamEvolve.game.block', [])
         noResultsText: "=?" # Text that is shown if no games are found
       templateUrl: 'game/gameBlock/gameBlockPanelPaged.tpl.html'
       controller: ($scope) ->
+        # Number of requests that have not resolved
+        outstandingRequestCount = 0
+
         updateRows = ->
           # Split the games into rows of 3
           $scope.rows = []
@@ -78,8 +81,12 @@ angular.module('gamEvolve.game.block', [])
               $scope.rows.push(currentRow)
 
         updateGames = (games) ->
+          outstandingRequestCount--
+          if outstandingRequestCount > 0 then return
+
           $scope.games = games
           updateRows()
+
           $scope.isLoading = false
 
         lastValues = {}
@@ -96,6 +103,7 @@ angular.module('gamEvolve.game.block', [])
           if not checkAttributeChanges("sortBy", "pageNumber", "getPageOfGames") then return 
 
           $scope.isLoading = true
+          outstandingRequestCount++
 
           $scope.getPageOfGames($scope.pageNumber - 1, $scope.gamesPerPage, $scope.sortBy)
           .then(updateGames)
