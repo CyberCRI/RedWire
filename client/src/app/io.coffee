@@ -592,7 +592,7 @@ RW.io.charts =
             displayOptions = 
               size: chartData.size ? options.size
               position: chartData.position ? [0, 0]
-            chartOptions = _.defaults chartData.options ? {},
+            chartOptions = _.defaults {}, chartData.options ? {},
               animation: false
               showTooltips: false
 
