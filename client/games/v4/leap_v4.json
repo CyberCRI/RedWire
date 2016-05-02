@@ -161,7 +161,7 @@
             ],
             "comment": "Update frame counter",
             "name": null,
-            "$$hashKey": "hash5"
+            "$$hashKey": "015"
           },
           {
             "emitter": {
@@ -172,7 +172,7 @@
             "path": [
               "1"
             ],
-            "$$hashKey": "hash6"
+            "$$hashKey": "016"
           },
           {
             "pins": {
@@ -516,6 +516,19 @@
                         "name": null
                       },
                       {
+                        "emitter": {
+                          "memory.blocks": "memory.constants.initialBlocks"
+                        },
+                        "path": [
+                          "2",
+                          "3",
+                          "6",
+                          "1"
+                        ],
+                        "comment": "Put blocks back in place",
+                        "name": null
+                      },
+                      {
                         "processor": "Send RedMetrics Event",
                         "pins": {
                           "in": {
@@ -531,7 +544,7 @@
                           "2",
                           "3",
                           "6",
-                          "1"
+                          "2"
                         ],
                         "comment": "Send tutorial complete metrics event",
                         "name": null
@@ -1603,7 +1616,7 @@
                     "pins": {
                       "in": {
                         "asset": "\"slider.png\"",
-                        "position": "[200, 290]"
+                        "position": "[200, 250]"
                       },
                       "out": {
                         "io.canvas.blocks": "pins.canvas"
@@ -1624,7 +1637,7 @@
                     "pins": {
                       "in": {
                         "color": "\"lawngreen\"",
-                        "position": "[\n    465 + memory.stats.searchScore * 255, \n    310\n]",
+                        "position": "[\n    465 + memory.stats.searchScore * 255, \n    270\n]",
                         "radius": "10"
                       },
                       "out": {
@@ -1726,7 +1739,7 @@
             "path": [
               "2"
             ],
-            "$$hashKey": "hash7"
+            "$$hashKey": "017"
           }
         ],
         "switch": "Do All",
@@ -1735,7 +1748,8 @@
           "in": {},
           "out": {}
         },
-        "path": []
+        "path": [],
+        "$$hashKey": "014"
       },
       "io": {
         "layers": [
