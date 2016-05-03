@@ -17,6 +17,9 @@ RW.lineOut = new WebAudiox.LineOut(RW.audioContext)
 RW.volume = RW.audioContext.createGain()
 RW.volume.gain.value = 0.1
 
+# TODO: this should be configurable outside of source code
+FPS_COUNTER = true
+
 
 # SHARED VARIABLES
 
@@ -319,8 +322,23 @@ onRepeatRecordFrame = ->
     lastMemory = RW.applyPatchesInCircuits(result.memoryPatches, lastMemory)
     requestAnimationFrame(onRepeatRecordFrame) # Loop!
 
+if FPS_COUNTER
+  # Make FPS counter
+  fpsFrameCount = 0
+  fpsSlotStartTime = 0
+  fpsMaxTime = 5 * 1000
+
 onRepeatPlayFrame = ->
   if !isPlaying then return  # Stop when requested
+
+  if FPS_COUNTER
+    time = Date.now() 
+    if time - fpsSlotStartTime > fpsMaxTime
+      console.debug("FPS", 1000 * fpsFrameCount / (time - fpsSlotStartTime))
+      fpsSlotStartTime = time
+      fpsFrameCount = 1
+    else
+      fpsFrameCount++
 
   # Keep result for stopPlaying message
   lastPlayedFrame = onRecordFrame(lastMemory)
