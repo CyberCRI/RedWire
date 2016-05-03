@@ -1,5 +1,5 @@
 {
-  "name": "Leap tutorial",
+  "name": "Creative Leaps",
   "circuits": {
     "main": {
       "memory": {
@@ -148,7 +148,8 @@
         "tutorialPhase": "move",
         "frameCounter": 0,
         "startedSearchTime": -1,
-        "endedSearchTime": -1
+        "endedSearchTime": -1,
+        "selectionBlockShapes": []
       },
       "board": {
         "children": [
@@ -161,7 +162,7 @@
             ],
             "comment": "Update frame counter",
             "name": null,
-            "$$hashKey": "hash5"
+            "$$hashKey": "00O"
           },
           {
             "emitter": {
@@ -172,7 +173,7 @@
             "path": [
               "1"
             ],
-            "$$hashKey": "hash6"
+            "$$hashKey": "00P"
           },
           {
             "pins": {
@@ -1374,10 +1375,9 @@
                 "name": null
               },
               {
+                "switch": "Do All",
                 "pins": {
-                  "in": {
-                    "value": "!io.html.selectionForm || !io.html.selectionForm.values.done"
-                  },
+                  "in": {},
                   "out": {}
                 },
                 "children": [
@@ -1390,37 +1390,68 @@
                     "children": [
                       {
                         "emitter": {
-                          "io.canvas.gallery": "transformers.makeSelectionGalleryShapes(memory.selectionGrids, memory.selectedGalleryIndexes)"
+                          "memory.selectionBlockShapes": "transformers.translateShapes(transformers.inverseVector(transformers.findCenterOfCells(bindings.selectionGrid, memory.gallery[bindings.selectionGridIndex])), transformers.makeBlockShapes(bindings.selectionGrid, memory.gallery[bindings.selectionGridIndex], transformers.rgbColorString(memory.constants.blockColor), memory.constants.selectionGalleryBlockSize))"
                         },
-                        "comment": "Draw the selection grid",
+                        "comment": "Preprare the blocks shapes on the grid",
                         "name": null,
                         "path": [
                           "2",
                           "6",
                           "0",
                           "0"
-                        ]
-                      },
-                      {
-                        "emitter": {
-                          "io.canvas.blocks": "transformers.translateShapes(transformers.inverseVector(transformers.findCenterOfCells(bindings.selectionGrid, memory.gallery[bindings.selectionGridIndex])), transformers.makeBlockShapes(bindings.selectionGrid, memory.gallery[bindings.selectionGridIndex], transformers.rgbColorString(memory.constants.blockColor), memory.constants.selectionGalleryBlockSize))"
-                        },
-                        "comment": "Draw the blocks on the grid",
-                        "name": null,
-                        "path": [
-                          "2",
-                          "6",
-                          "0",
-                          "1"
-                        ]
+                        ],
+                        "muted": false
                       }
                     ],
-                    "comment": "For each selection grid",
+                    "comment": "For each selection grid 2",
                     "path": [
                       "2",
                       "6",
                       "0"
-                    ]
+                    ],
+                    "muted": false
+                  }
+                ],
+                "path": [
+                  "2",
+                  "6"
+                ],
+                "comment": "Prepare block shapes",
+                "name": null
+              },
+              {
+                "pins": {
+                  "in": {
+                    "value": "!io.html.selectionForm || !io.html.selectionForm.values.done"
+                  },
+                  "out": {}
+                },
+                "children": [
+                  {
+                    "emitter": {
+                      "io.canvas.blocks": "memory.selectionBlockShapes"
+                    },
+                    "comment": "Draw the blocks on the grid",
+                    "name": null,
+                    "path": [
+                      "2",
+                      "7",
+                      "0"
+                    ],
+                    "muted": false
+                  },
+                  {
+                    "emitter": {
+                      "io.canvas.gallery": "transformers.makeSelectionGalleryShapes(memory.selectionGrids, memory.selectedGalleryIndexes)"
+                    },
+                    "comment": "Draw the selection grid",
+                    "name": null,
+                    "path": [
+                      "2",
+                      "7",
+                      "1"
+                    ],
+                    "muted": false
                   },
                   {
                     "pins": {
@@ -1443,8 +1474,8 @@
                     "children": [],
                     "path": [
                       "2",
-                      "6",
-                      "1"
+                      "7",
+                      "2"
                     ],
                     "muted": false
                   },
@@ -1463,8 +1494,8 @@
                         },
                         "path": [
                           "2",
-                          "6",
-                          "2",
+                          "7",
+                          "3",
                           "0"
                         ]
                       },
@@ -1483,8 +1514,8 @@
                             },
                             "path": [
                               "2",
-                              "6",
-                              "2",
+                              "7",
+                              "3",
                               "1",
                               "0"
                             ]
@@ -1504,8 +1535,8 @@
                             "children": [],
                             "path": [
                               "2",
-                              "6",
-                              "2",
+                              "7",
+                              "3",
                               "1",
                               "1"
                             ],
@@ -1515,8 +1546,8 @@
                         ],
                         "path": [
                           "2",
-                          "6",
-                          "2",
+                          "7",
+                          "3",
                           "1"
                         ],
                         "name": "click"
@@ -1526,8 +1557,8 @@
                     "comment": "Depending on the mouse state...",
                     "path": [
                       "2",
-                      "6",
-                      "2"
+                      "7",
+                      "3"
                     ],
                     "muted": false
                   },
@@ -1538,8 +1569,8 @@
                     "comment": "Draw selection HTML form",
                     "path": [
                       "2",
-                      "6",
-                      "3"
+                      "7",
+                      "4"
                     ],
                     "name": null
                   }
@@ -1548,7 +1579,7 @@
                 "comment": "Until the selection is finished",
                 "path": [
                   "2",
-                  "6"
+                  "7"
                 ],
                 "name": null
               },
@@ -1565,7 +1596,7 @@
                     },
                     "path": [
                       "2",
-                      "7",
+                      "8",
                       "0"
                     ],
                     "comment": "Calculate statistics",
@@ -1586,7 +1617,7 @@
                     "children": [],
                     "path": [
                       "2",
-                      "7",
+                      "8",
                       "1"
                     ],
                     "comment": "Send Completed Selection event",
@@ -1595,7 +1626,7 @@
                 ],
                 "path": [
                   "2",
-                  "7"
+                  "8"
                 ]
               },
               {
@@ -1613,7 +1644,7 @@
                 "children": [],
                 "path": [
                   "2",
-                  "8"
+                  "9"
                 ],
                 "comment": "Send statistics",
                 "name": null
@@ -1633,7 +1664,7 @@
                     "comment": "Draw the thank you form",
                     "path": [
                       "2",
-                      "9",
+                      "10",
                       "0"
                     ],
                     "name": null,
@@ -1653,7 +1684,7 @@
                     "children": [],
                     "path": [
                       "2",
-                      "9",
+                      "10",
                       "1"
                     ],
                     "comment": "Draw the slider background",
@@ -1675,7 +1706,7 @@
                     "children": [],
                     "path": [
                       "2",
-                      "9",
+                      "10",
                       "2"
                     ],
                     "comment": "Draw slider ball",
@@ -1687,7 +1718,7 @@
                     },
                     "path": [
                       "2",
-                      "9",
+                      "10",
                       "3"
                     ],
                     "comment": "Remove the selection form",
@@ -1698,7 +1729,7 @@
                 "comment": "Until the player hits the button",
                 "path": [
                   "2",
-                  "9"
+                  "10"
                 ],
                 "name": null
               },
@@ -1715,7 +1746,7 @@
                     },
                     "path": [
                       "2",
-                      "10",
+                      "11",
                       "0"
                     ],
                     "comment": "Play again",
@@ -1735,7 +1766,7 @@
                     "children": [],
                     "path": [
                       "2",
-                      "10",
+                      "11",
                       "1"
                     ],
                     "comment": "Send play again event",
@@ -1747,7 +1778,7 @@
                     },
                     "path": [
                       "2",
-                      "10",
+                      "11",
                       "2"
                     ],
                     "comment": "Create new metrics session",
@@ -1756,7 +1787,7 @@
                 ],
                 "path": [
                   "2",
-                  "10"
+                  "11"
                 ],
                 "comment": "Time to loop back",
                 "name": null
@@ -1767,7 +1798,7 @@
             "path": [
               "2"
             ],
-            "$$hashKey": "hash7"
+            "$$hashKey": "00Q"
           }
         ],
         "switch": "Do All",
@@ -1776,7 +1807,8 @@
           "in": {},
           "out": {}
         },
-        "path": []
+        "path": [],
+        "$$hashKey": "00N"
       },
       "io": {
         "layers": [
