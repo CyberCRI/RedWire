@@ -74,6 +74,9 @@ RW.io.mouse =
     $(options.elementSelector).on("selectstart.#{eventNamespace}", -> false)
 
     $(options.elementSelector).on "mousedown.#{eventNamespace} mouseup.#{eventNamespace} mousemove.#{eventNamespace} mouseleave.#{eventNamespace}", (event) ->
+      # Don't handle events on HTML controls
+      if event.target.tagName in ["INPUT", "BUTTON", "LABEL", "TEXTAREA"] then return true
+
       switch event.type 
         when 'mousedown' then mouse.down = true
         when 'mouseup' then mouse.down = false
