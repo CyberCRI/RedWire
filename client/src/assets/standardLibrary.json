@@ -313,7 +313,7 @@
     },
     "Update Player in RedMetrics": {
       "pinDefs": {
-        "birthdate": {
+        "birthDate": {
           "direction": "in",
           "default": "null"
         },
@@ -342,7 +342,7 @@
           "default": null
         }
       },
-      "update": "if(pins.birthdate) pins.redMetricsPlayer.birthdate = pins.birthdate;\nif(pins.region) pins.redMetricsPlayer.region = pins.region;\nif(pins.country) pins.redMetricsPlayer.country = pins.country;\nif(pins.gender) pins.redMetricsPlayer.gender = pins.gender;\nif(pins.externalId) pins.redMetricsPlayer.externalId = pins.externalId;\nif(pins.customData) pins.redMetricsPlayer.customData = pins.customData;\nreturn RW.signals.DONE;\n"
+      "update": "if(pins.birthDate) pins.redMetricsPlayer.birthDate = pins.birthDate;\nif(pins.region) pins.redMetricsPlayer.region = pins.region;\nif(pins.country) pins.redMetricsPlayer.country = pins.country;\nif(pins.gender) pins.redMetricsPlayer.gender = pins.gender;\nif(pins.externalId) pins.redMetricsPlayer.externalId = pins.externalId;\nif(pins.customData) pins.redMetricsPlayer.customData = pins.customData;\nreturn RW.signals.DONE;\n"
     },
     "Show Survey Link": {
       "pinDefs": {
