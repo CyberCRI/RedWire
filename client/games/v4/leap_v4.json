@@ -167,7 +167,7 @@
             ],
             "comment": "Update frame counter",
             "name": null,
-            "$$hashKey": "hash5"
+            "$$hashKey": "00R"
           },
           {
             "emitter": {
@@ -178,7 +178,7 @@
             "path": [
               "1"
             ],
-            "$$hashKey": "hash6"
+            "$$hashKey": "00S"
           },
           {
             "pins": {
@@ -212,27 +212,6 @@
                     "name": null
                   },
                   {
-                    "processor": "Update Player in RedMetrics",
-                    "pins": {
-                      "in": {
-                        "externalId": "io.location.query.id",
-                        "customData": "",
-                        "redMetricsPlayer": "io.metrics.player"
-                      },
-                      "out": {
-                        "io.metrics.player": "pins.redMetricsPlayer"
-                      }
-                    },
-                    "children": [],
-                    "path": [
-                      "2",
-                      "0",
-                      "1"
-                    ],
-                    "comment": "Update RedMetrics player",
-                    "name": null
-                  },
-                  {
                     "processor": "Send RedMetrics Event",
                     "pins": {
                       "in": {
@@ -247,7 +226,7 @@
                     "path": [
                       "2",
                       "0",
-                      "2"
+                      "1"
                     ],
                     "comment": "Send start event",
                     "name": null
@@ -335,6 +314,7 @@
                         "birthDate": "io.html.ageForm.values.age && (new Date(new Date().getFullYear() - io.html.ageForm.values.age, 0, 1))",
                         "gender": "io.html.ageForm.values.gender && io.html.ageForm.values.gender.toUpperCase()",
                         "externalId": "io.location.query.id",
+                        "customData": "{\n    playerId: io.location.query.id\n}",
                         "redMetricsPlayer": "io.metrics.player"
                       },
                       "out": {
@@ -1930,7 +1910,7 @@
             "path": [
               "2"
             ],
-            "$$hashKey": "hash7"
+            "$$hashKey": "00T"
           }
         ],
         "switch": "Do All",
@@ -1939,7 +1919,8 @@
           "in": {},
           "out": {}
         },
-        "path": []
+        "path": [],
+        "$$hashKey": "00Q"
       },
       "io": {
         "layers": [
