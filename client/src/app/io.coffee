@@ -843,6 +843,7 @@ RW.io.metrics =
         global: 
           events: []
           player: playerInfo
+          playerId: playerId
           createNewGameSession: false
 
       establishData: (ioData, additionalData) -> 
