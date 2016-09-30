@@ -30,7 +30,8 @@
     "underscore": "~1.5.2",
     "underscore.string": "*",
     "webaudiox": "*",
-    "localforage": "1.3.0"
+    "localforage": "1.3.0",
+    "RedMetrics.js": "~0.0.5"
   },
   "resolutions": {
     "angular-ui-router": "~0.2.13"

@@ -95,7 +95,10 @@ module.exports = {
       'vendor/angulartics/src/angulartics.js',
       'vendor/angulartics/src/angulartics-ga.js',
       'vendor/gifshot/build/gifshot.js',
-      'vendor/localforage/dist/localforage.js'
+      'vendor/localforage/dist/localforage.js',
+      'vendor/q/q.js',
+      'vendor/q-xhr/q-xhr.js',
+      'vendor/RedMetrics.js/redmetrics.js'
     ],
     css: [
       'vendor/flexy-layout/src/flexyLayout.css',
