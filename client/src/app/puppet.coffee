@@ -229,14 +229,14 @@ createAssets = (inputAssets, evaluator, callback) ->
     do (name, dataUrl) ->
       splitUrl = RW.splitDataUrl(dataUrl)
       if splitUrl.mimeType in ["application/javascript", "text/javascript"]
-        script = atob(splitUrl.data)
+        script = RW.textToData(splitUrl.data)
         evaluator(script)
         reportDone(null, name, script)
       else if splitUrl.mimeType in ["application/json"]
-        result = JSON.parse(atob(splitUrl.data))
+        result = JSON.parse(RW.textToData(splitUrl.data))
         reportDone(null, name, result)
       else if splitUrl.mimeType == "text/css"
-        css = atob(splitUrl.data)
+        css = RW.textToData(splitUrl.data)
         element = $('<style type="text/css"></style>').html(css).appendTo("head")
         reportDone(null, name, element)
       else if splitUrl.mimeType.indexOf("image/") == 0
@@ -251,7 +251,7 @@ createAssets = (inputAssets, evaluator, callback) ->
 
         RW.audioContext.decodeAudioData(arrayBuffer, onSuccess, onError)
       else
-        reportDone(null, name, atob(splitUrl.data))
+        reportDone(null, name, RW.textToData(splitUrl.data))
   return null
 
 # When complete, calls callback(err)

@@ -42,12 +42,13 @@ angular.module('gamEvolve.game.assets', [
       size: "lg"
       resolve: 
         # This object will be provided to the dialog as a dependency, and serves to communicate between the two
+        # The encode/decode URI component calls handle non-ASCII characters
         liaison: ->
           {
-            assetData: atob(splitUrl.data)
+            assetData: RW.textToData(splitUrl.data)
             mimeType: splitUrl.mimeType
             done: (newAssetData) ->
-              decodedAsset = btoa(newAssetData)
+              decodedAsset = RW.dataToText(newAssetData)
               $scope.assets[index].data = RW.combineDataUrl
                 mimeType: splitUrl.mimeType
                 base64: splitUrl.base64

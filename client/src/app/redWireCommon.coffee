@@ -171,6 +171,18 @@ RW.dataURLToArrayBuffer = (dataURL) ->
 
     return uInt8Array
 
+# Enocde data as text
+RW.dataToText = (data) -> btoa(encodeURIComponent(data))
+
+# Enocde data as text
+RW.textToData = (text) -> 
+  # Old assets (not using encodeURIComponent() might fail
+  b = atob(text)
+  try  
+    return decodeURIComponent(b)
+  catch e
+    return b
+
 # For accessing a value within an embedded object or array
 # Takes a parent object/array and the "path" as an array
 # Returns [parent, key] where parent is the array/object and key is last one required to access the child
