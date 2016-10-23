@@ -169,7 +169,7 @@
             ],
             "comment": "Update frame counter",
             "name": null,
-            "$$hashKey": "05X"
+            "$$hashKey": "hash12"
           },
           {
             "emitter": {
@@ -180,7 +180,7 @@
             "path": [
               "1"
             ],
-            "$$hashKey": "05Y"
+            "$$hashKey": "hash13"
           },
           {
             "pins": {
@@ -1930,6 +1930,26 @@
                 "name": null
               },
               {
+                "processor": "Send RedMetrics Event",
+                "pins": {
+                  "in": {
+                    "type": "\"startFeedback\"",
+                    "customData": "",
+                    "redMetricsEvents": "io.metrics.events"
+                  },
+                  "out": {
+                    "io.metrics.events": "pins.redMetricsEvents"
+                  }
+                },
+                "children": [],
+                "path": [
+                  "2",
+                  "21"
+                ],
+                "comment": "Send start feedback event",
+                "name": null
+              },
+              {
                 "pins": {
                   "in": {
                     "value": "!io.html.thanksForm || !io.html.thanksForm.values.done"
@@ -1944,7 +1964,7 @@
                     "comment": "Draw the thank you form",
                     "path": [
                       "2",
-                      "21",
+                      "22",
                       "0"
                     ],
                     "name": null,
@@ -1964,7 +1984,7 @@
                     "children": [],
                     "path": [
                       "2",
-                      "21",
+                      "22",
                       "1"
                     ],
                     "comment": "Draw the slider background",
@@ -1986,7 +2006,7 @@
                     "children": [],
                     "path": [
                       "2",
-                      "21",
+                      "22",
                       "2"
                     ],
                     "comment": "Draw slider ball",
@@ -1998,7 +2018,7 @@
                     },
                     "path": [
                       "2",
-                      "21",
+                      "22",
                       "3"
                     ],
                     "comment": "Remove the debriefing form",
@@ -2009,8 +2029,28 @@
                 "comment": "Until the player hits the button",
                 "path": [
                   "2",
-                  "21"
+                  "22"
                 ],
+                "name": null
+              },
+              {
+                "processor": "Send RedMetrics Event",
+                "pins": {
+                  "in": {
+                    "type": "\"startFollowup\"",
+                    "customData": "",
+                    "redMetricsEvents": "io.metrics.events"
+                  },
+                  "out": {
+                    "io.metrics.events": "pins.redMetricsEvents"
+                  }
+                },
+                "children": [],
+                "path": [
+                  "2",
+                  "23"
+                ],
+                "comment": "Send start followup",
                 "name": null
               },
               {
@@ -2028,7 +2068,7 @@
                     "comment": "Draw the followup form",
                     "path": [
                       "2",
-                      "22",
+                      "24",
                       "0"
                     ],
                     "name": null,
@@ -2040,7 +2080,7 @@
                     },
                     "path": [
                       "2",
-                      "22",
+                      "24",
                       "1"
                     ],
                     "comment": "Remove the debriefing form",
@@ -2051,7 +2091,7 @@
                 "comment": "Loop forever",
                 "path": [
                   "2",
-                  "22"
+                  "24"
                 ],
                 "name": null
               }
@@ -2061,7 +2101,7 @@
             "path": [
               "2"
             ],
-            "$$hashKey": "05Z"
+            "$$hashKey": "hash14"
           }
         ],
         "switch": "Do All",
@@ -2070,90 +2110,73 @@
           "in": {},
           "out": {}
         },
-        "path": [],
-        "$$hashKey": "05W"
+        "path": []
       },
       "io": {
         "layers": [
           {
             "name": "bg",
-            "type": "canvas",
-            "$$hashKey": "1IO"
+            "type": "canvas"
           },
           {
             "name": "gallery",
-            "type": "canvas",
-            "$$hashKey": "1IP"
+            "type": "canvas"
           },
           {
             "name": "blocks",
-            "type": "canvas",
-            "$$hashKey": "1IQ"
+            "type": "canvas"
           },
           {
             "name": "blocks 2",
-            "type": "canvas",
-            "$$hashKey": "1KU"
+            "type": "canvas"
           },
           {
             "name": "drag",
-            "type": "canvas",
-            "$$hashKey": "1IR"
+            "type": "canvas"
           },
           {
             "name": "ageForm",
-            "type": "html",
-            "$$hashKey": "1IS"
+            "type": "html"
           },
           {
             "name": "blocksForm",
-            "type": "html",
-            "$$hashKey": "1IT"
+            "type": "html"
           },
           {
             "name": "selectionForm",
-            "type": "html",
-            "$$hashKey": "1IU"
+            "type": "html"
           },
           {
             "name": "thanksForm",
-            "type": "html",
-            "$$hashKey": "1IV"
+            "type": "html"
           },
           {
             "name": "followupForm",
-            "type": "html",
-            "$$hashKey": "1IW"
+            "type": "html"
           },
           {
             "name": "tutorialForm",
-            "type": "html",
-            "$$hashKey": "1IX"
+            "type": "html"
           },
           {
             "name": "sliderBall",
-            "type": "canvas",
-            "$$hashKey": "1IY"
+            "type": "canvas"
           },
           {
             "name": "consentForm",
-            "type": "html",
-            "$$hashKey": "1IZ"
+            "type": "html"
           },
           {
             "name": "trustSurvey",
-            "type": "html",
-            "$$hashKey": "1J0"
+            "type": "html"
           },
           {
             "name": "additionalSurvey",
-            "type": "html",
-            "$$hashKey": "1J1"
+            "type": "html"
           },
           {
             "name": "debriefingForm",
-            "type": "html",
-            "$$hashKey": "1J2"
+            "type": "html"
           }
         ],
         "channels": []
