@@ -169,7 +169,7 @@
             ],
             "comment": "Update frame counter",
             "name": null,
-            "$$hashKey": "hash5"
+            "$$hashKey": "02F"
           },
           {
             "emitter": {
@@ -180,7 +180,7 @@
             "path": [
               "1"
             ],
-            "$$hashKey": "hash6"
+            "$$hashKey": "02G"
           },
           {
             "pins": {
@@ -239,8 +239,7 @@
                   "0"
                 ],
                 "comment": "Do at first",
-                "name": null,
-                "$$hashKey": "005"
+                "name": null
               },
               {
                 "switch": "Do While",
@@ -270,8 +269,7 @@
                   "1"
                 ],
                 "comment": "Until consent form done",
-                "name": null,
-                "$$hashKey": "006"
+                "name": null
               },
               {
                 "emitter": {
@@ -282,8 +280,7 @@
                   "2"
                 ],
                 "comment": "Remove consent form",
-                "name": null,
-                "$$hashKey": "007"
+                "name": null
               },
               {
                 "processor": "Update Player in RedMetrics",
@@ -303,8 +300,7 @@
                   "3"
                 ],
                 "name": null,
-                "comment": "Update Player",
-                "$$hashKey": "009"
+                "comment": "Update Player"
               },
               {
                 "processor": "Send RedMetrics Event",
@@ -323,8 +319,7 @@
                   "4"
                 ],
                 "comment": "Send start tutorial event",
-                "name": null,
-                "$$hashKey": "00A"
+                "name": null
               },
               {
                 "pins": {
@@ -844,8 +839,7 @@
                   "2",
                   "5"
                 ],
-                "name": null,
-                "$$hashKey": "00B"
+                "name": null
               },
               {
                 "processor": "Send RedMetrics Event",
@@ -864,8 +858,7 @@
                   "6"
                 ],
                 "comment": "Send start seach event",
-                "name": null,
-                "$$hashKey": "00C"
+                "name": null
               },
               {
                 "emitter": {
@@ -876,8 +869,7 @@
                   "7"
                 ],
                 "comment": "Record start search time",
-                "name": null,
-                "$$hashKey": "008"
+                "name": null
               },
               {
                 "pins": {
@@ -888,29 +880,204 @@
                 },
                 "children": [
                   {
+                    "switch": "When",
                     "pins": {
                       "in": {
-                        "shapes": "transformers.translateShapes(transformers.inverseVector(memory.gridTranslation), transformers.makeMovableBlockShapes(memory.constants.grid, memory.blocks, transformers.rgbColorString(memory.constants.blockColor), memory.constants.blockSize))",
-                        "shape": "memory.mouseDetection.shape",
-                        "mousePosition": "io.mouse.position",
-                        "mouseDown": "io.mouse.down",
-                        "state": "memory.mouseDetection.state",
-                        "dragStartPosition": "memory.mouseDetection.dragStartPosition"
+                        "value": "io.time - memory.startedSearchTime < memory.constants.maxSearchTime"
                       },
-                      "out": {
-                        "memory.mouseDetection.shape": "pins.shape",
-                        "memory.mouseDetection.state": "pins.state",
-                        "memory.mouseDetection.dragStartPosition": "pins.dragStartPosition"
-                      }
+                      "out": {}
                     },
-                    "processor": "Detect Mouse",
-                    "comment": "Detect mouse interaction with shapes",
-                    "children": [],
+                    "children": [
+                      {
+                        "pins": {
+                          "in": {
+                            "shapes": "transformers.translateShapes(transformers.inverseVector(memory.gridTranslation), transformers.makeMovableBlockShapes(memory.constants.grid, memory.blocks, transformers.rgbColorString(memory.constants.blockColor), memory.constants.blockSize))",
+                            "shape": "memory.mouseDetection.shape",
+                            "mousePosition": "io.mouse.position",
+                            "mouseDown": "io.mouse.down",
+                            "state": "memory.mouseDetection.state",
+                            "dragStartPosition": "memory.mouseDetection.dragStartPosition"
+                          },
+                          "out": {
+                            "memory.mouseDetection.shape": "pins.shape",
+                            "memory.mouseDetection.state": "pins.state",
+                            "memory.mouseDetection.dragStartPosition": "pins.dragStartPosition"
+                          }
+                        },
+                        "processor": "Detect Mouse",
+                        "comment": "Detect mouse interaction with shapes",
+                        "children": [],
+                        "path": [
+                          "2",
+                          "8",
+                          "0",
+                          "0"
+                        ]
+                      },
+                      {
+                        "pins": {
+                          "in": {
+                            "value": "memory.mouseDetection.state"
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "drag",
+                            "comment": "If the mouse position is valid",
+                            "pins": {
+                              "in": {
+                                "value": "io.mouse.position != null"
+                              }
+                            },
+                            "children": [
+                              {
+                                "comment": "Draw the dragged shape and the 'move' mouse cursor",
+                                "emitter": {
+                                  "io.mouse.cursor": "'move'",
+                                  "io.canvas.drag": "[transformers.makeDraggedShape(memory.constants.blockSize, transformers.rgbColorString(transformers.cyclicInterpolate(memory.constants.highlightedBlockColor, memory.constants.blockColor, memory.dragFrameCounter / memory.constants.dragHighlightPeriod)), io.mouse.position)]",
+                                  "memory.dragFrameCounter": "(memory.dragFrameCounter + 1) % memory.constants.dragHighlightPeriod"
+                                },
+                                "name": null,
+                                "path": [
+                                  "2",
+                                  "8",
+                                  "0",
+                                  "1",
+                                  "0",
+                                  "0"
+                                ]
+                              }
+                            ],
+                            "switch": "If",
+                            "path": [
+                              "2",
+                              "8",
+                              "0",
+                              "1",
+                              "0"
+                            ]
+                          },
+                          {
+                            "name": "startDrag",
+                            "comment": "Take the dragged block out of the list of normal blocks",
+                            "emitter": {
+                              "memory.blocks": "RW.removeFromArray(memory.blocks, memory.mouseDetection.shape.meta)",
+                              "memory.dragFrameCounter": 0,
+                              "memory.startDragTime": "io.time"
+                            },
+                            "path": [
+                              "2",
+                              "8",
+                              "0",
+                              "1",
+                              "1"
+                            ]
+                          },
+                          {
+                            "switch": "Do All",
+                            "pins": {
+                              "in": {},
+                              "out": {}
+                            },
+                            "children": [
+                              {
+                                "name": null,
+                                "comment": "Put the block back in place, and start the highlighting",
+                                "emitter": {
+                                  "memory.blockGroupsToBeHighlighted": "transformers.makeBlockGroupsToBeHighlighted(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))",
+                                  "memory.blocks": "RW.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))"
+                                },
+                                "path": [
+                                  "2",
+                                  "8",
+                                  "0",
+                                  "1",
+                                  "2",
+                                  "0"
+                                ]
+                              },
+                              {
+                                "processor": "Send RedMetrics Event",
+                                "pins": {
+                                  "in": {
+                                    "type": "\"movedBlock\"",
+                                    "customData": "{\n    startPosition: memory.mouseDetection.shape.meta,\n    endPosition: transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)),\n    time: io.time - memory.startDragTime,\n    newShape: RW.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))\n}",
+                                    "redMetricsEvents": "io.metrics.events"
+                                  },
+                                  "out": {
+                                    "io.metrics.events": "pins.redMetricsEvents"
+                                  }
+                                },
+                                "children": [],
+                                "path": [
+                                  "2",
+                                  "8",
+                                  "0",
+                                  "1",
+                                  "2",
+                                  "1"
+                                ],
+                                "comment": "Send moved block event",
+                                "name": null
+                              },
+                              {
+                                "emitter": {
+                                  "memory.lastMouseUpTime": "io.time"
+                                },
+                                "path": [
+                                  "2",
+                                  "8",
+                                  "0",
+                                  "1",
+                                  "2",
+                                  "2"
+                                ],
+                                "comment": "Update last mouse up time",
+                                "name": null
+                              }
+                            ],
+                            "path": [
+                              "2",
+                              "8",
+                              "0",
+                              "1",
+                              "2"
+                            ],
+                            "comment": "Block has been dropped",
+                            "name": "endDrag"
+                          },
+                          {
+                            "name": "hover",
+                            "comment": "Show the 'pointer' mouse cursor",
+                            "emitter": {
+                              "io.mouse.cursor": "'pointer'"
+                            },
+                            "path": [
+                              "2",
+                              "8",
+                              "0",
+                              "1",
+                              "3"
+                            ]
+                          }
+                        ],
+                        "switch": "Switch on child name",
+                        "comment": "Depending on the mouse detection state",
+                        "path": [
+                          "2",
+                          "8",
+                          "0",
+                          "1"
+                        ]
+                      }
+                    ],
                     "path": [
                       "2",
                       "8",
                       "0"
-                    ]
+                    ],
+                    "comment": "When there is still time left",
+                    "name": null
                   },
                   {
                     "emitter": {
@@ -992,153 +1159,6 @@
                     ]
                   },
                   {
-                    "pins": {
-                      "in": {
-                        "value": "memory.mouseDetection.state"
-                      }
-                    },
-                    "children": [
-                      {
-                        "name": "drag",
-                        "comment": "If the mouse position is valid",
-                        "pins": {
-                          "in": {
-                            "value": "io.mouse.position != null"
-                          }
-                        },
-                        "children": [
-                          {
-                            "comment": "Draw the dragged shape and the 'move' mouse cursor",
-                            "emitter": {
-                              "io.mouse.cursor": "'move'",
-                              "io.canvas.drag": "[transformers.makeDraggedShape(memory.constants.blockSize, transformers.rgbColorString(transformers.cyclicInterpolate(memory.constants.highlightedBlockColor, memory.constants.blockColor, memory.dragFrameCounter / memory.constants.dragHighlightPeriod)), io.mouse.position)]",
-                              "memory.dragFrameCounter": "(memory.dragFrameCounter + 1) % memory.constants.dragHighlightPeriod"
-                            },
-                            "name": null,
-                            "path": [
-                              "2",
-                              "8",
-                              "6",
-                              "0",
-                              "0"
-                            ]
-                          }
-                        ],
-                        "switch": "If",
-                        "path": [
-                          "2",
-                          "8",
-                          "6",
-                          "0"
-                        ]
-                      },
-                      {
-                        "name": "startDrag",
-                        "comment": "Take the dragged block out of the list of normal blocks",
-                        "emitter": {
-                          "memory.blocks": "RW.removeFromArray(memory.blocks, memory.mouseDetection.shape.meta)",
-                          "memory.dragFrameCounter": 0,
-                          "memory.startDragTime": "io.time"
-                        },
-                        "path": [
-                          "2",
-                          "8",
-                          "6",
-                          "1"
-                        ]
-                      },
-                      {
-                        "switch": "Do All",
-                        "pins": {
-                          "in": {},
-                          "out": {}
-                        },
-                        "children": [
-                          {
-                            "name": null,
-                            "comment": "Put the block back in place, and start the highlighting",
-                            "emitter": {
-                              "memory.blockGroupsToBeHighlighted": "transformers.makeBlockGroupsToBeHighlighted(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))",
-                              "memory.blocks": "RW.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))"
-                            },
-                            "path": [
-                              "2",
-                              "8",
-                              "6",
-                              "2",
-                              "0"
-                            ]
-                          },
-                          {
-                            "processor": "Send RedMetrics Event",
-                            "pins": {
-                              "in": {
-                                "type": "\"movedBlock\"",
-                                "customData": "{\n    startPosition: memory.mouseDetection.shape.meta,\n    endPosition: transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)),\n    time: io.time - memory.startDragTime,\n    newShape: RW.appendToArray(memory.blocks, transformers.findDroppedPosition(memory.constants.grid, memory.blocks, transformers.translatePoint(memory.gridTranslation, io.mouse.position)))\n}",
-                                "redMetricsEvents": "io.metrics.events"
-                              },
-                              "out": {
-                                "io.metrics.events": "pins.redMetricsEvents"
-                              }
-                            },
-                            "children": [],
-                            "path": [
-                              "2",
-                              "8",
-                              "6",
-                              "2",
-                              "1"
-                            ],
-                            "comment": "Send moved block event",
-                            "name": null
-                          },
-                          {
-                            "emitter": {
-                              "memory.lastMouseUpTime": "io.time"
-                            },
-                            "path": [
-                              "2",
-                              "8",
-                              "6",
-                              "2",
-                              "2"
-                            ],
-                            "comment": "Update last mouse up time",
-                            "name": null
-                          }
-                        ],
-                        "path": [
-                          "2",
-                          "8",
-                          "6",
-                          "2"
-                        ],
-                        "comment": "Block has been dropped",
-                        "name": "endDrag"
-                      },
-                      {
-                        "name": "hover",
-                        "comment": "Show the 'pointer' mouse cursor",
-                        "emitter": {
-                          "io.mouse.cursor": "'pointer'"
-                        },
-                        "path": [
-                          "2",
-                          "8",
-                          "6",
-                          "3"
-                        ]
-                      }
-                    ],
-                    "switch": "Switch on child name",
-                    "comment": "Depending on the mouse detection state",
-                    "path": [
-                      "2",
-                      "8",
-                      "6"
-                    ]
-                  },
-                  {
                     "emitter": {
                       "io.html.blocksForm": "{ asset: 'blocksForm', values: { \n    done: false, \n    galleryShapeCount: memory.gallery.length, \n    canAddShape: memory.gallery.length < memory.constants.createdShapeLimit && !transformers.sameAsLastBlock(memory.blocks, memory.gallery) && io.time - memory.startedSearchTime < memory.constants.maxSearchTime, \n    ready: memory.gallery.length >= 5, createdShapeLimit: memory.constants.createdShapeLimit, \n    remainingTime: transformers.makeRemainingTimeText(io.time - memory.startedSearchTime, memory.constants.maxSearchTime),\n    showTimer: io.time - memory.startedSearchTime > memory.constants.showTimerTime\n} }"
                     },
@@ -1146,7 +1166,7 @@
                     "path": [
                       "2",
                       "8",
-                      "7"
+                      "6"
                     ],
                     "name": null
                   },
@@ -1167,7 +1187,7 @@
                         "path": [
                           "2",
                           "8",
-                          "8",
+                          "7",
                           "0"
                         ]
                       },
@@ -1179,7 +1199,7 @@
                         "path": [
                           "2",
                           "8",
-                          "8",
+                          "7",
                           "1"
                         ]
                       }
@@ -1189,7 +1209,7 @@
                     "path": [
                       "2",
                       "8",
-                      "8"
+                      "7"
                     ]
                   },
                   {
@@ -1209,7 +1229,7 @@
                         "path": [
                           "2",
                           "8",
-                          "9",
+                          "8",
                           "0"
                         ],
                         "name": null
@@ -1230,7 +1250,7 @@
                         "path": [
                           "2",
                           "8",
-                          "9",
+                          "8",
                           "1"
                         ],
                         "comment": "Send added shape event",
@@ -1240,7 +1260,7 @@
                     "path": [
                       "2",
                       "8",
-                      "9"
+                      "8"
                     ],
                     "comment": "When they press the add button",
                     "name": null
@@ -1262,7 +1282,7 @@
                         "path": [
                           "2",
                           "8",
-                          "10",
+                          "9",
                           "0"
                         ],
                         "muted": false
@@ -1273,7 +1293,7 @@
                     "path": [
                       "2",
                       "8",
-                      "10"
+                      "9"
                     ]
                   }
                 ],
@@ -1283,8 +1303,7 @@
                   "2",
                   "8"
                 ],
-                "name": null,
-                "$$hashKey": "00D"
+                "name": null
               },
               {
                 "switch": "Do All",
@@ -1355,8 +1374,7 @@
                   "9"
                 ],
                 "comment": "After all shapes are found",
-                "name": null,
-                "$$hashKey": "00E"
+                "name": null
               },
               {
                 "switch": "Do All",
@@ -1423,8 +1441,7 @@
                   "10"
                 ],
                 "comment": "Prepare block shapes",
-                "name": null,
-                "$$hashKey": "00F"
+                "name": null
               },
               {
                 "pins": {
@@ -1651,8 +1668,7 @@
                   "2",
                   "11"
                 ],
-                "name": null,
-                "$$hashKey": "00G"
+                "name": null
               },
               {
                 "switch": "Do All",
@@ -1698,8 +1714,7 @@
                 "path": [
                   "2",
                   "12"
-                ],
-                "$$hashKey": "00H"
+                ]
               },
               {
                 "processor": "Send RedMetrics Event",
@@ -1719,8 +1734,7 @@
                   "13"
                 ],
                 "comment": "Send statistics",
-                "name": null,
-                "$$hashKey": "00I"
+                "name": null
               },
               {
                 "switch": "Do While",
@@ -1793,8 +1807,7 @@
                   "14"
                 ],
                 "comment": "Until trust survey done",
-                "name": null,
-                "$$hashKey": "00J"
+                "name": null
               },
               {
                 "emitter": {
@@ -1806,8 +1819,7 @@
                 ],
                 "comment": "Store trust survey results",
                 "name": null,
-                "muted": false,
-                "$$hashKey": "00K"
+                "muted": false
               },
               {
                 "processor": "Send RedMetrics Event",
@@ -1827,8 +1839,7 @@
                   "16"
                 ],
                 "comment": "Send trust survey",
-                "name": null,
-                "$$hashKey": "00L"
+                "name": null
               },
               {
                 "switch": "Do While",
@@ -1870,8 +1881,7 @@
                   "17"
                 ],
                 "comment": "Until additional survey done",
-                "name": null,
-                "$$hashKey": "00M"
+                "name": null
               },
               {
                 "emitter": {
@@ -1883,8 +1893,7 @@
                 ],
                 "comment": "Store additional survey results",
                 "name": null,
-                "muted": false,
-                "$$hashKey": "00N"
+                "muted": false
               },
               {
                 "processor": "Send RedMetrics Event",
@@ -1904,8 +1913,7 @@
                   "19"
                 ],
                 "comment": "Send additional survey",
-                "name": null,
-                "$$hashKey": "00O"
+                "name": null
               },
               {
                 "switch": "Do While",
@@ -1947,8 +1955,7 @@
                   "20"
                 ],
                 "comment": "Until debriefing form done",
-                "name": null,
-                "$$hashKey": "00P"
+                "name": null
               },
               {
                 "processor": "Send RedMetrics Event",
@@ -1968,8 +1975,7 @@
                   "21"
                 ],
                 "comment": "Send start feedback event",
-                "name": null,
-                "$$hashKey": "00Q"
+                "name": null
               },
               {
                 "pins": {
@@ -2053,8 +2059,7 @@
                   "2",
                   "22"
                 ],
-                "name": null,
-                "$$hashKey": "00R"
+                "name": null
               },
               {
                 "processor": "Send RedMetrics Event",
@@ -2074,8 +2079,7 @@
                   "23"
                 ],
                 "comment": "Send start followup",
-                "name": null,
-                "$$hashKey": "00S"
+                "name": null
               },
               {
                 "pins": {
@@ -2117,8 +2121,7 @@
                   "2",
                   "24"
                 ],
-                "name": null,
-                "$$hashKey": "00T"
+                "name": null
               }
             ],
             "switch": "Do One at a Time",
@@ -2126,7 +2129,7 @@
             "path": [
               "2"
             ],
-            "$$hashKey": "hash7"
+            "$$hashKey": "02H"
           }
         ],
         "switch": "Do All",
@@ -2135,7 +2138,8 @@
           "in": {},
           "out": {}
         },
-        "path": []
+        "path": [],
+        "$$hashKey": "02E"
       },
       "io": {
         "layers": [
@@ -2735,7 +2739,7 @@
         "timePassed",
         "maxTime"
       ],
-      "body": "var timeLeft = maxTime - timePassed;\n\nif(timeLeft <= 0) return \"none\";\n    \nvar s = Math.floor((timeLeft / 1000) % 60);\nvar m = Math.floor(timeLeft / 60000);\nif(s < 10) s = \"0\" + s;\n\nreturn m + \":\" + s;"
+      "body": "var timeLeft = maxTime - timePassed;\n\nif(timeLeft <= 0) return \"none. Please click 'End game' to move to the next stage\";\n    \nvar s = Math.floor((timeLeft / 1000) % 60);\nvar m = Math.floor(timeLeft / 60000);\nif(s < 10) s = \"0\" + s;\n\nreturn m + \":\" + s;"
     }
   },
   "assets": {
