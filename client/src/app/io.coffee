@@ -747,21 +747,9 @@ RW.io.metrics =
 
     playerInfo = null # Current state of player 
     snapshotFrameCounter = 0 ## Number of frames since last snapshot
-    playerIpAddress = null
     recordingData = false
 
     configIsValid = -> options.metrics and options.metrics.gameVersionId and options.metrics.host 
-
-    updatePlayerIpAddress = ->
-      $.get("/api/ip").done (data, textStatus) -> playerIpAddress = data.ip
-
-    makeExtendedPlayerInfo = ->
-      extendedData = RW.cloneData(playerInfo)
-      if not extendedData.customData
-        extendedData.customData = {}
-      extendedData.customData.ipAddress = playerIpAddress
-
-      return extendedData
 
     beginGameSession = ->
       redmetrics.connect 
@@ -827,7 +815,7 @@ RW.io.metrics =
         # Update player info if necessary
         if newPlayerInfo
           playerInfo = newPlayerInfo
-          redmetrics.updatePlayer(makeExtendedPlayerInfo(newPlayerInfo))
+          redmetrics.updatePlayer(newPlayerInfo)
 
         if createNewGameSession
           endGameSession().then(beginGameSession())
@@ -836,7 +824,6 @@ RW.io.metrics =
 
       destroy: -> # NOP
 
-    updatePlayerIpAddress()
     return io
 
 # The location buffer provides information about the URL and its different parts
