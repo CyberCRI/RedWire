@@ -128,6 +128,21 @@ program
         console.log("Wrote to #{outputFile}")
 
 program
+  .command('deleteGame <gameId>')
+  .description("Delete the game")
+  .action (gameId, options) -> 
+    console.log("Deleting game", gameId, "...")
+    login program.baseUrl, program.user, program.password, ->
+      deleteThing program.baseUrl, "games", gameId, ->
+        console.log("Deleted game.")
+
+      getAllGameVersions program.baseUrl, gameId, (gameVersions) ->
+        for gameVersion in gameVersions 
+          console.log("Deleting game version", gameVersion.id, "...")
+          deleteThing program.baseUrl, "game-versions", gameVersion.id, ->
+            console.log("Deleted game version", gameVersion.id, ".")
+
+program
   .command('deleteAllGames')
   .description("Delete all games")
   .action (options) -> 

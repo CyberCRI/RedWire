@@ -275,7 +275,8 @@
             "type": "canvas",
             "$$hashKey": "0G8"
           }
-        ]
+        ],
+        "channels": []
       }
     },
     "starfield": {
@@ -353,7 +354,8 @@
             "type": "canvas",
             "$$hashKey": "08D"
           }
-        ]
+        ],
+        "channels": []
       },
       "name": "starfield",
       "pinDefs": {
