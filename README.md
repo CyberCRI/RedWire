@@ -1,11 +1,18 @@
 RedWire
 =========
 
-A tool for creating, sharing, and modifing online games using simple concepts. Try it online at https://redwire.io (best used with Mozilla Firefox and Google Chrome for the time being).
+_RedWire is no longer under development. A new version has been planned to make it a purely visual functional programming  language. To find out more about what we learned developing RedWire, check out the talk below._
+
+[![Lessons learned making a visual programming language to remix open source games](http://img.youtube.com/vi/EeGXagYDfdQ/0.jpg)](https://www.youtube.com/watch?v=EeGXagYDfdQ&t=1s&index=19&list=PLOJbImijbLrQO9ZC392qES7KMP4E-Z8dW "Lessons learned making a visual programming language to remix open source games")
+
+
+Summary
+-------
+
+A tool for creating, sharing, and modifing online games using simple concepts. ~~Try it online at https://redwire.io (best used with Mozilla Firefox and Google Chrome for the time being).~~
 
 Inspired by both [Rich Hickey's notions of simplicity] and [Bret Victor's ideas on understanding programming], the goal of the project is to let people take other's games and easily modify them, or take several games and recombine them in novel ways. In order to do so, games must be written as a set of "atoms" that can be moved, copied, and forked with minimum refactoring hassle.
 
-Currently under development in pre-alpha phase.
 
 
 Contributions
