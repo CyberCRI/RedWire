@@ -5,6 +5,8 @@ _RedWire is no longer under development. A new version has been planned to make 
 
 [![Lessons learned making a visual programming language to remix open source games](http://img.youtube.com/vi/EeGXagYDfdQ/0.jpg)](https://www.youtube.com/watch?v=EeGXagYDfdQ&t=1s&index=19&list=PLOJbImijbLrQO9ZC392qES7KMP4E-Z8dW "Lessons learned making a visual programming language to remix open source games")
 
+__Jesse Himmelstein: Lessons learned making a visual programming language to remix open source games__ @ Scratch Conference, Bordeaux 2017
+
 
 Summary
 -------
